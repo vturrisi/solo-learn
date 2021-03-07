@@ -129,7 +129,6 @@ class Model(BaseModel):
             projection_bn=args.projection_bn,
             hidden_mlp=args.hidden_mlp,
             output_dim=args.encoding_size,
-            n_projection_heads=args.n_projection_heads,
         )
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
