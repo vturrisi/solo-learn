@@ -9,21 +9,14 @@ from pytorch_lightning.loggers import WandbLogger
 
 from models.base import Model
 from models.simclr import SimCLR
-from models.deepcluster_simclr import DCSimCLR
-from models.dali import DaliSimCLR, DaliDCSimCLR, DaliAttSimCLR
-from models.attention_simclr import AttSimCLR
-
-from models.deepcluster import (
-    resnet18 as deepcluster_resnet18,
-    resnet50 as deepcluster_resnet50,
-)
+from models.dali import DaliSimCLR
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
 from utils.epoch_checkpointer import EpochCheckpointer
 from utils.info_nce import info_nce
-from utils.normal_dataloader import prepare_data as prepare_data_normal
+from utils.classification_dataloader import prepare_data as prepare_data_classification
 
 
 def parse_args():
@@ -82,7 +75,8 @@ def parse_args():
 
     # extra dataloader settings
     parser.add_argument("--multicrop", action="store_true")
-    parser.add_argument("--with_index", action="store_true")
+    parser.add_argument("--n_crops", type=int, default=2)
+    parser.add_argument("--n_small_crops", type=int, default=6)
     parser.add_argument("--pseudo_labels_path", default=None)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
@@ -120,9 +114,6 @@ def parse_args():
 
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
-    # extra deepcluster settings
-    args.deepcluster_hidden_mlp = 2048
-
     args.projection_bn = not args.no_projection_bn
 
     return args
@@ -148,11 +139,8 @@ def main():
                 val_dir=args.val_dir,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
-                nmb_crops=[args.n_crops, args.n_small_crops]
-                if args.deepcluster_simclr
-                else None,
+                nmb_crops=[args.n_crops, args.n_small_crops],
                 consensus=False,
-                with_index=args.with_index,
                 pseudo_labels_path=args.pseudo_labels_path,
             )
         else:
@@ -164,12 +152,11 @@ def main():
                 n_augs=2,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
-                with_index=args.with_index,
                 pseudo_labels_path=args.pseudo_labels_path,
             )
 
     # normal dataloader
-    _, val_loader = prepare_data_normal(
+    _, val_loader = prepare_data_classification(
         args.dataset,
         data_folder=args.data_folder,
         train_dir=args.train_dir,
