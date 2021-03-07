@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
 from utils.epoch_checkpointer import EpochCheckpointer
 from utils.info_nce import info_nce
-from utils.normal_dataloader import prepare_data as prepare_data_normal
+from utils.classification_dataloader import prepare_data as prepare_data_classification
 
 
 def parse_args():
@@ -157,7 +157,7 @@ def main():
             )
 
     # normal dataloader
-    _, val_loader = prepare_data_normal(
+    _, val_loader = prepare_data_classification(
         args.dataset,
         data_folder=args.data_folder,
         train_dir=args.train_dir,
