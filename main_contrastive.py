@@ -11,11 +11,6 @@ from models.base import Model
 from models.simclr import SimCLR
 from models.dali import DaliSimCLR
 
-from models.deepcluster import (
-    resnet18 as deepcluster_resnet18,
-    resnet50 as deepcluster_resnet50,
-)
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
@@ -118,9 +113,6 @@ def parse_args():
 
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
-    # extra deepcluster settings
-    args.deepcluster_hidden_mlp = 2048
-
     args.projection_bn = not args.no_projection_bn
 
     return args
@@ -146,9 +138,7 @@ def main():
                 val_dir=args.val_dir,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
-                nmb_crops=[args.n_crops, args.n_small_crops]
-                if args.deepcluster_simclr
-                else None,
+                nmb_crops=[args.n_crops, args.n_small_crops],
                 consensus=False,
                 with_index=args.with_index,
                 pseudo_labels_path=args.pseudo_labels_path,
