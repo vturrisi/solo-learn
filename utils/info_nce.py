@@ -13,7 +13,10 @@ def info_nce(x1, x2, extra_pos_mask=None, temperature=0.2, normalize=True):
     if normalize:
         x = F.normalize(x, dim=1)
 
-    logits = torch.mm(x, x.t()) / temperature
+    logits = torch.einsum("if, jf -> ij", x, x) / temperature
+    print(logits)
+    print(torch.mm(x, x.t()) / temperature)
+    exit()
 
     logits_max, _ = torch.max(logits, dim=1, keepdim=True)
     logits = logits - logits_max.detach()
