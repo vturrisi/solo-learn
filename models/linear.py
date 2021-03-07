@@ -24,12 +24,10 @@ class LinearModel(pl.LightningModule):
     def __init__(self, model, args):
         super().__init__()
 
+        self.args = args
         self.model = model
         # reset classifier
-        # self.model.classifier.reset_parameters()
         self.model.classifier = nn.Linear(self.model.features_size, args.n_classes)
-
-        self.args = args
 
     def configure_optimizers(self):
         # select optimizer

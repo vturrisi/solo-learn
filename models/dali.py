@@ -24,9 +24,9 @@ from utils.dali_dataloader import ContrastivePipeline, NormalPipeline
 
 class ContrastiveWrapper(DALIGenericIterator):
     def __init__(
-        self, *kargs, model_batch_size=None, model_rank=None, model_device=None, **kvargs,
+        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
     ):
-        super().__init__(*kargs, **kvargs)
+        super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
@@ -37,7 +37,7 @@ class ContrastiveWrapper(DALIGenericIterator):
             self.model_rank * self.model_batch_size
         )
         *all_X, target = [batch[0][v] for v in self.output_map]
-        target = target.squeeze(-1).cuda().long()
+        target = target.squeeze(-1).long()
         return indexes, all_X, target
 
     # this might be a shitty fix for now to handle when LastBatchPolicy.DROP is on
@@ -66,11 +66,15 @@ class Wrapper(DALIGenericIterator):
     def __next__(self):
         batch = super().__next__()
         x, target = batch[0]["x"], batch[0]["label"]
-        target = target.squeeze(-1).cuda().long()
+        target = target.squeeze(-1).long()
         return x, target
 
 
 class ContrastiveABC(ABC):
+    """
+    Abstract contrastive class that returns a train_dataloader and val_dataloader using dali.
+    """
+
     def setup(self, stage=None):
         device_id = self.local_rank
         num_shards = self.trainer.world_size
@@ -144,6 +148,10 @@ class ContrastiveABC(ABC):
 
 
 class ClassificationABC(ABC):
+    """
+    Abstract classification class that returns a train_dataloader and val_dataloader using dali.
+    """
+
     def setup(self, stage=None):
         device_id = self.local_rank
         num_shards = self.trainer.world_size

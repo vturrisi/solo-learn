@@ -4,6 +4,7 @@ import sys
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
+from einops import reduce, rearrange, repeat
 
 try:
     from base import Model
@@ -19,9 +20,9 @@ from utils.metrics import accuracy_at_k
 
 class SimCLR(Model):
     @torch.no_grad()
-    def gen_extra_positives_gt(self, Y, n_augs=None):
-        if n_augs:
-            Y = Y.repeat(n_augs)
+    def gen_extra_positives_gt(self, Y):
+        if self.args.multicrop:
+            Y = Y.repeat(self.args.n_crops)
         else:
             Y = Y.repeat(2)
         b = Y.size(0)
@@ -51,6 +52,9 @@ class SimCLR(Model):
             # ------- contrastive loss -------
             indexes = gather(indexes).repeat(n_augs)
             index_matrix = indexes.reshape(1, -1).repeat(indexes.size(0), 1)
+            print(index_matrix)
+            print(indexes.size())
+            exit()
             pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
 
