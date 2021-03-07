@@ -214,7 +214,7 @@ def prepare_datasets(
     train_dir=None,
     val_dir=None,
     pseudo_labels_path=None,
-    with_index=False,
+    with_index=True,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):

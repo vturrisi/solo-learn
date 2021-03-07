@@ -58,7 +58,7 @@ class SimCLR(Model):
                 z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
             )
         else:
-            (X_aug1, X_aug2), target = batch
+            indexes, (X_aug1, X_aug2), target = batch
             X = torch.cat((X_aug1, X_aug2), dim=0)
 
             # features, projection head features, class

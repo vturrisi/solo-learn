@@ -141,7 +141,6 @@ def main():
                 num_workers=args.num_workers,
                 nmb_crops=[args.n_crops, args.n_small_crops],
                 consensus=False,
-                with_index=True,
                 pseudo_labels_path=args.pseudo_labels_path,
             )
         else:
