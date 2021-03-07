@@ -53,7 +53,10 @@ class SimCLR(Model):
             indexes = gather(indexes)
             index_matrix = indexes.repeat(n_augs).reshape(1, -1).repeat(indexes.size(0), 1)
             print(index_matrix)
-            print(repeat(indexes, "b -> c (b d)", c=indexes.size(0), d=n_augs))
+            print(
+                index_matrix
+                == repeat(indexes, "b -> c (b d)", c=indexes.size(0) * n_augs, d=n_augs)
+            )
             exit()
             pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
