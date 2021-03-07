@@ -75,7 +75,6 @@ def parse_args():
 
     # extra dataloader settings
     parser.add_argument("--multicrop", action="store_true")
-    parser.add_argument("--with_index", action="store_true")
     parser.add_argument("--pseudo_labels_path", default=None)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
@@ -140,7 +139,7 @@ def main():
                 num_workers=args.num_workers,
                 nmb_crops=[args.n_crops, args.n_small_crops],
                 consensus=False,
-                with_index=args.with_index,
+                with_index=True,
                 pseudo_labels_path=args.pseudo_labels_path,
             )
         else:
@@ -152,7 +151,6 @@ def main():
                 n_augs=2,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
-                with_index=args.with_index,
                 pseudo_labels_path=args.pseudo_labels_path,
             )
 
