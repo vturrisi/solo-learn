@@ -317,7 +317,7 @@ def prepare_data(
     batch_size=64,
     num_workers=4,
     pseudo_labels_path=None,
-    with_index=False,
+    with_index=True,
 ):
     T = prepare_transformations(dataset, n_augs=n_augs)
     train_dataset, val_dataset = prepare_datasets(
@@ -349,7 +349,7 @@ def prepare_data_multicrop(
     batch_size=64,
     num_workers=4,
     pseudo_labels_path=None,
-    with_index=False,
+    with_index=True,
 ):
     T = prepare_transformations_multicrop(dataset, nmb_crops=nmb_crops, consensus=consensus)
     train_dataset, val_dataset = prepare_datasets(

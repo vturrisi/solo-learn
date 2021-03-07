@@ -27,6 +27,7 @@ from utils.metrics import accuracy_at_k, weighted_mean
 class BaseModel(pl.LightningModule):
     def __init__(self, args):
         super().__init__()
+
         self.args = args
 
     def configure_optimizers(self):
@@ -36,24 +37,17 @@ class BaseModel(pl.LightningModule):
         else:
             optimizer = torch.optim.Adam
 
-        if hasattr(self, "student"):
-            model_with_parameters = self.student
-        else:
-            model_with_parameters = self
-
-        if hasattr(model_with_parameters, "classifier"):
-            classifier_parameters = model_with_parameters.classifier.parameters()
+        if hasattr(self, "classifier"):
+            classifier_parameters = self.classifier.parameters()
             other_parameters = (
-                p
-                for name, p in model_with_parameters.named_parameters()
-                if "classifier" not in name
+                p for name, p in self.named_parameters() if "classifier" not in name
             )
             parameters = [
                 {"params": other_parameters},
                 {"params": classifier_parameters, "lr": 0.3, "weight_decay": 0},
             ]
         else:
-            parameters = model_with_parameters.parameters()
+            parameters = self.parameters()
 
         optimizer = optimizer(
             parameters,
@@ -111,6 +105,11 @@ class BaseModel(pl.LightningModule):
 
 
 class Model(BaseModel):
+    """
+    Implementation of the base model that automatically creates a linear classifier for online evaluation.
+    The linear classifier is automatically detached from the computational graph.
+    """
+
     def __init__(self, args):
         super().__init__(args)
 
