@@ -78,7 +78,7 @@ python3 main_linear.py \
     --num_workers 10 \
     --no_projection_bn \
     --name simclr-linear-eval \
-    --pretrained_feature_extractor trained_models/MODEL_PATH \
+    --pretrained_feature_extractor trained_models/WANDB_RANDOM_ID \
     --project contrastive_learning
 ```
 Or follow `bash_files/run_linear.sh`

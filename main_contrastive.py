@@ -9,9 +9,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 from models.base import Model
 from models.simclr import SimCLR
-from models.deepcluster_simclr import DCSimCLR
-from models.dali import DaliSimCLR, DaliDCSimCLR, DaliAttSimCLR
-from models.attention_simclr import AttSimCLR
+from models.dali import DaliSimCLR
 
 from models.deepcluster import (
     resnet18 as deepcluster_resnet18,
