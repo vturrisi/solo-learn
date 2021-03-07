@@ -1,0 +1,8 @@
+torch
+torchvision
+einops
+pytorch-lightning
+tqdm
+wandb
+matplotlib
+--extra-index-url https://developer.download.nvidia.com/compute/redist nvidia-dali-cuda110
