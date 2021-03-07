@@ -22,11 +22,10 @@ class SimCLR(Model):
     @torch.no_grad()
     def gen_extra_positives_gt(self, Y):
         if self.args.multicrop:
-            Y = Y.repeat(self.args.n_crops)
+            n_augs = self.args.n_crops + self.args.n_small_crops
         else:
-            Y = Y.repeat(2)
-        b = Y.size(0)
-        labels_matrix = Y.reshape(1, -1).repeat(b, 1)
+            n_augs = 2
+        labels_matrix = repeat(Y, "b -> c (d b)", c=n_augs * Y.size(0), d=n_augs)
         labels_matrix = (labels_matrix == labels_matrix.t()).fill_diagonal_(False)
         return labels_matrix
 
@@ -50,17 +49,17 @@ class SimCLR(Model):
             z = torch.cat((*z, *z_small), dim=0)
 
             # ------- contrastive loss -------
-            indexes = gather(indexes)
-            index_matrix = indexes.repeat(n_augs).reshape(1, -1).repeat(indexes.size(0), 1)
-            print(index_matrix)
-            print(
-                index_matrix
-                == repeat(indexes, "b -> c (b d)", c=indexes.size(0) * n_augs, d=n_augs)
-            )
-            exit()
-            pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
-            negative_mask = (~pos_mask).fill_diagonal_(False)
+            if self.args.supervised:
+                gathered_target = gather(target)
+                pos_mask = self.gen_extra_positives_gt(gathered_target)
 
+            else:
+                indexes = gather(indexes)
+                index_matrix = repeat(
+                    indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs
+                )
+                pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
+            negative_mask = (~pos_mask).fill_diagonal_(False)
             nce_loss = manual_info_nce_sava(
                 z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
             )
