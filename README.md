@@ -53,7 +53,6 @@ python3 ../main_contrastive.py \
     --num_workers 4 \
     --hidden_mlp 2048 \
     --no_projection_bn \
-    --with_index \
     --name simclr \
     --project contrastive_learning
 ```

@@ -12,10 +12,9 @@ python3 ../main_contrastive.py \
     --batch_size 128 \
     --temperature 0.1 \
     --gpus 0 1 \
-    --num_workers 4 \
+    --num_workers 8 \
     --hidden_mlp 2048 \
     --no_projection_bn \
-    --with_index \
     --name simclr \
     --project contrastive_learning
 
@@ -36,7 +35,6 @@ python3 ../main_contrastive.py \
     --num_workers 4 \
     --hidden_mlp 2048 \
     --no_projection_bn \
-    --with_index \
     --name simclr-dali \
     --dali \
     --project contrastive_learning
@@ -59,7 +57,6 @@ python3 ../main_contrastive.py \
     --hidden_mlp 2048 \
     --no_projection_bn \
     --multicrop \
-    --with_index \
     --n_crops 2 \
     --n_small_crops 6 \
     --name multi-crop-simclr-dali \
@@ -84,7 +81,6 @@ python3 ../main_contrastive.py \
     --hidden_mlp 2048 \
     --no_projection_bn \
     --multicrop \
-    --with_index \
     --supervised \
     --n_crops 2 \
     --n_small_crops 6 \
