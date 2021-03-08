@@ -38,6 +38,8 @@ class RandomColorJitter:
     def __init__(
         self, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, prob=0.8, device="gpu",
     ):
+        assert 0 <= hue <= 0.5
+
         self.mux = Mux(prob=prob)
 
         # look at torchvision docs to see how colorjitter samples stuff
@@ -48,7 +50,8 @@ class RandomColorJitter:
         self.contrast = ops.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
         self.saturation = ops.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
         # dali uses hue in degrees for some reason...
-        self.hue = ops.Uniform(range=[-hue * 180, hue * 180])
+        hue = 360 * hue
+        self.hue = ops.Uniform(range=[-hue, hue])
 
     def __call__(self, images):
         out = self.color(
