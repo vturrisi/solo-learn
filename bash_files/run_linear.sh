@@ -1,4 +1,4 @@
-python3 main_linear.py \
+python3 ../main_linear.py \
     imagenet100 \
     resnet18 \
     --data_folder /datasets \
