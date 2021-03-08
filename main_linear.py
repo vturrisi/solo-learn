@@ -9,8 +9,6 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
 from models.base import Model
-from models.deepcluster import resnet18 as deepcluster_resnet18
-from models.deepcluster import resnet50 as deepcluster_resnet50
 from models.linear import LinearModel
 from models.dali import DaliLinearModel
 
@@ -101,9 +99,6 @@ def parse_args():
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-
-    # extra deepcluster settings
-    args.deepcluster_hidden_mlp = 2048
 
     args.projection_bn = not args.no_projection_bn
 
