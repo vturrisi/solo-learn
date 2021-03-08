@@ -15,7 +15,7 @@ from models.dali import DaliLinearModel
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from utils.epoch_checkpointer import EpochCheckpointer
-from utils.normal_dataloader import prepare_data
+from utils.classification_dataloader import prepare_data
 
 
 def parse_args():
