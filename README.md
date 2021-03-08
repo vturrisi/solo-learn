@@ -16,9 +16,9 @@ Third-party pytorch implementation of [SimCLR](https://arxiv.org/abs/2002.05709)
 | Model    	| Dataset      	| Epochs 	| Batch 	| Temperature 	| Multicrop          	| Dali               	| Supervised         	| Online linear eval 	| Post-pretraining linear eval 	|
 |----------	|--------------	|--------	|-------	|-------------	|--------------------	|--------------------	|--------------------	|--------------------	|------------------------------	|
 | Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.2         	|                    	|                    	|                    	| 70.7               	| 71.0                         	|
-| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	|                    	| :white_check_mark: 	|                    	| 69.9               	| 71.0                         	|
-| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	|                    	| 72.4               	| 73.6                         	|
-| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| 85.9               	|                              	|
+| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	|                    	| :white_check_mark: 	|                    	|                    	|                              	|
+| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	|                    	|                    	|                              	|
+| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	|                    	|                              	|
 ## Requirements
 * torch
 * tqdm
