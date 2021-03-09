@@ -19,6 +19,40 @@ from utils.metrics import accuracy_at_k
 
 
 class SimCLR(Model):
+    def __init__(self, args):
+        super().__init__(args)
+
+        projection_bn = args.projection_bn
+        hidden_mlp = args.hidden_mlp
+        output_dim = args.encoding_size
+        assert output_dim > 0
+
+        # projection head
+        if hidden_mlp == 0:
+            self.projection_head = nn.Linear(num_out_filters * block.expansion, output_dim)
+        else:
+            if projection_bn:
+                self.projection_head = nn.Sequential(
+                    nn.Linear(num_out_filters * block.expansion, hidden_mlp),
+                    nn.BatchNorm1d(hidden_mlp),
+                    nn.ReLU(inplace=True),
+                    nn.Linear(hidden_mlp, output_dim),
+                )
+            else:
+                self.projection_head = nn.Sequential(
+                    nn.Linear(num_out_filters * block.expansion, hidden_mlp),
+                    nn.ReLU(inplace=True),
+                    nn.Linear(hidden_mlp, output_dim),
+                )
+
+    def forward(self, X, classify_only=True):
+        if classify_only:
+            return super()(X, classify_only=classify_only)
+        else:
+            features, y = super()(X, classify_only=classify_only)
+            z = self.projection_head(features)
+            return features, z, y
+
     @torch.no_grad()
     def gen_extra_positives_gt(self, Y):
         if self.args.multicrop:

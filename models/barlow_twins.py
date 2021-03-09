@@ -18,8 +18,34 @@ from utils.metrics import accuracy_at_k
 
 
 class BarlowTwins(Model):
-    def training_step(self, batch, batch_idx):
+    def __init__(self, args):
+        super().__init__(args)
 
+        projection_bn = args.projection_bn
+        hidden_mlp = args.hidden_mlp
+        output_dim = args.encoding_size
+        assert output_dim > 0
+
+        # projection head
+        self.projection_head = nn.Sequential(
+            nn.Linear(num_out_filters * block.expansion, hidden_mlp),
+            nn.BatchNorm1d(hidden_mlp),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_mlp, hidden_mlp),
+            nn.BatchNorm1d(hidden_mlp),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_mlp, output_dim),
+        )
+
+    def forward(self, X, classify_only=True):
+        if classify_only:
+            return super()(X, classify_only=classify_only)
+        else:
+            features, y = super()(X, classify_only=classify_only)
+            z = self.projection_head(features)
+            return features, z, y
+
+    def training_step(self, batch, batch_idx):
         indexes, (X_aug1, X_aug2), target = batch
         X = torch.cat((X_aug1, X_aug2), dim=0)
 

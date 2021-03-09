@@ -13,7 +13,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 * Post-pretraining linear evaluation (this usually gives 1-1.5% accuracy points)
 
 ## Working on:
-* Barlow Twins
+* [Barlow Twins](https://arxiv.org/abs/2103.03230)
 
 ## Results
 | Model    	| Method 	| Dataset      	| Epochs 	| Batch 	| Temperature 	| Multicrop          	| Dali               	| Supervised         	| Online linear eval 	| Post-pretraining linear eval 	|

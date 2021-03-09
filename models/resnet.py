@@ -142,9 +142,6 @@ class ResNet(nn.Module):
         width_per_group=64,
         replace_stride_with_dilation=None,
         norm_layer=None,
-        output_dim=0,
-        hidden_mlp=0,
-        projection_bn=True,
     ):
         super(ResNet, self).__init__()
         if norm_layer is None:
@@ -189,26 +186,6 @@ class ResNet(nn.Module):
             block, num_out_filters, layers[3], stride=2, dilate=replace_stride_with_dilation[2],
         )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-
-        # projection head
-        if output_dim == 0:
-            self.projection_head = None
-        elif hidden_mlp == 0:
-            self.projection_head = nn.Linear(num_out_filters * block.expansion, output_dim)
-        else:
-            if projection_bn:
-                self.projection_head = nn.Sequential(
-                    nn.Linear(num_out_filters * block.expansion, hidden_mlp),
-                    nn.BatchNorm1d(hidden_mlp),
-                    nn.ReLU(inplace=True),
-                    nn.Linear(hidden_mlp, output_dim),
-                )
-            else:
-                self.projection_head = nn.Sequential(
-                    nn.Linear(num_out_filters * block.expansion, hidden_mlp),
-                    nn.ReLU(inplace=True),
-                    nn.Linear(hidden_mlp, output_dim),
-                )
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -286,9 +263,6 @@ class ResNet(nn.Module):
         return x
 
     def forward_head(self, x):
-        if self.projection_head is not None:
-            proj = self.projection_head(x)
-            return x, proj
         return x
 
     def forward(self, inputs):
