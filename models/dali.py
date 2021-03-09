@@ -9,9 +9,11 @@ import torch.nn.functional as F
 try:
     from linear import LinearModel
     from simclr import SimCLR
+    from barlow_twins import BarlowTwins
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
+    from .barlow_twins import BarlowTwins
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -203,4 +205,8 @@ class DaliSimCLR(SimCLR, ContrastiveABC):
 
 
 class DaliLinearModel(LinearModel, ClassificationABC):
+    pass
+
+
+class DaliBarlowTwins(BarlowTwins, ContrastiveABC):
     pass
