@@ -6,7 +6,7 @@ from einops import rearrange, reduce
 def barlow_twins_loss(z1, z2, l=5e-3):
     z1 = (z1 - z1.mean(0)) / z1.std(0)
     z2 = (z2 - z2.mean(0)) / z2.std(0)
-    corr = torch.einsum("bi,bj->i,j", z1, z2)
+    corr = torch.einsum("bi, bj -> ij", z1, z2)
 
     diag = torch.eye(corr.size(0), device=corr.device)
     cdif = (corr - diag).pow(2)

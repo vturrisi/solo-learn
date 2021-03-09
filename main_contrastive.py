@@ -44,7 +44,7 @@ def parse_args():
     parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
-    parser.add_argument("method", choices=["simclr", "barlow_twins"], default="simclr")
+    parser.add_argument("--method", choices=["simclr", "barlow_twins"], default="simclr")
 
     # optimizer
     parser.add_argument(
