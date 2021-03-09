@@ -31,7 +31,7 @@ class BarlowTwins(Model):
         z2 = gather(z2)
 
         # ------- contrastive loss -------
-        nce_loss = barlow_twins_loss(z1, z2)
+        barlow_loss = barlow_twins_loss(z1, z2)
 
         # ------- classification loss -------
         output = torch.chunk(output, 2)[0]
@@ -45,13 +45,13 @@ class BarlowTwins(Model):
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
-        loss = nce_loss + class_loss
+        loss = barlow_loss + class_loss
 
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
 
         metrics = {
-            "train_nce_loss": nce_loss,
+            "train_barlow_loss": barlow_loss,
             "train_class_loss": class_loss,
             "train_acc1": acc1,
             "train_acc5": acc5,
