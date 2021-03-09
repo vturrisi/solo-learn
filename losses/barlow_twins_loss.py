@@ -12,6 +12,6 @@ def barlow_twins_loss(z1, z2, l=5e-3):
 
     diag = torch.eye(D, device=corr.device)
     cdif = (corr - diag).pow(2)
-    cdif[~diag.bool()].mul_(l)
+    cdif[~diag.bool()] *= l
     loss = cdif.sum()
     return loss
