@@ -49,19 +49,12 @@ class BarlowTwins(Model):
 
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
-        # compute number of extra positives
-        n_positives = (
-            (pos_mask != 0).sum().float()
-            if self.args.supervised
-            else torch.tensor(0.0, device=self.device)
-        )
 
         metrics = {
             "train_nce_loss": nce_loss,
             "train_class_loss": class_loss,
             "train_acc1": acc1,
             "train_acc5": acc5,
-            "train_n_positives": n_positives,
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
         return loss
