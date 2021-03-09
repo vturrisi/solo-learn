@@ -166,7 +166,6 @@ class ResNet(nn.Module):
 
         # change padding 3 -> 2 compared to original torchvision code because added a padding layer
         num_out_filters = width_per_group * widen
-        self.n_features = num_out_filters * block.expansion
 
         self.conv1 = nn.Conv2d(
             3, num_out_filters, kernel_size=7, stride=2, padding=2, bias=False
@@ -206,6 +205,7 @@ class ResNet(nn.Module):
                     nn.init.constant_(m.bn3.weight, 0)
                 elif isinstance(m, BasicBlock):
                     nn.init.constant_(m.bn2.weight, 0)
+        self.n_features = num_out_filters * block.expansion
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
         norm_layer = self._norm_layer
