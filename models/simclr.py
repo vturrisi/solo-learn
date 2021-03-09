@@ -48,9 +48,9 @@ class SimCLR(Model):
 
     def forward(self, X, classify_only=True):
         if classify_only:
-            return super()(X, classify_only=classify_only)
+            return super().forward(X, classify_only=classify_only)
         else:
-            features, y = super()(X, classify_only=classify_only)
+            features, y = super().forward(X, classify_only=classify_only)
             z = self.projection_head(features)
             return features, z, y
 
