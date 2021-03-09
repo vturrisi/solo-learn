@@ -17,8 +17,8 @@ Third-party pytorch implementation of [SimCLR](https://arxiv.org/abs/2002.05709)
 |----------	|--------------	|--------	|-------	|-------------	|--------------------	|--------------------	|--------------------	|--------------------	|------------------------------	|
 | Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.2         	|                    	|                    	|                    	| 70.74              	| 71.02                        	|
 | Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.2         	|                    	| :white_check_mark: 	|                    	| 70.66              	| 71.64                        	|
-| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	|                    	| 73.04              	|                              	|
-| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| 85.56              	|                              	|
+| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	|                    	| 73.04              	| 73.72                        	|
+| Resnet18 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| 85.56              	| 86.16                        	|
 
 ## Requirements
 * torch
