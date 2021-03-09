@@ -163,10 +163,11 @@ class ResNet(nn.Module):
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.n_features = num_out_filters * block.expansion
 
         # change padding 3 -> 2 compared to original torchvision code because added a padding layer
         num_out_filters = width_per_group * widen
+        self.n_features = num_out_filters * block.expansion
+
         self.conv1 = nn.Conv2d(
             3, num_out_filters, kernel_size=7, stride=2, padding=2, bias=False
         )
