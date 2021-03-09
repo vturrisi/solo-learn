@@ -123,23 +123,15 @@ class Model(BaseModel):
             base_model = resnet50
 
         # initialize encoder
-        self.encoder = base_model(
-            cifar=args.cifar,
-            projection_bn=args.projection_bn,
-            hidden_mlp=args.hidden_mlp,
-            output_dim=args.encoding_size,
-        )
+        self.encoder = base_model(cifar=args.cifar)
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
-        self.encoding_size = args.encoding_size
-        self.temperature = args.temperature
-
     def forward(self, X, classify_only=True):
-        features, z = self.encoder(X)
+        features = self.encoder(X)
         # stop gradients from the classifier
         y = self.classifier(features.detach())
 
         if classify_only:
             return y
 
-        return features, z, y
+        return features, y

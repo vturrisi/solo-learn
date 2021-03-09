@@ -9,7 +9,8 @@ from pytorch_lightning.loggers import WandbLogger
 
 from models.base import Model
 from models.simclr import SimCLR
-from models.dali import DaliSimCLR
+from models.dali import DaliSimCLR, DaliBarlowTwins
+from models.barlow_twins import BarlowTwins
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -42,6 +43,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
+
+    parser.add_argument("--method", choices=["simclr", "barlow_twins"], default="simclr")
 
     # optimizer
     parser.add_argument(
@@ -124,10 +127,16 @@ def main():
 
     args = parse_args()
 
-    if args.dali:
-        model = DaliSimCLR(args)
+    if args.method == "simclr":
+        if args.dali:
+            model = DaliSimCLR(args)
+        else:
+            model = SimCLR(args)
     else:
-        model = SimCLR(args)
+        if args.dali:
+            model = DaliBarlowTwins(args)
+        else:
+            model = BarlowTwins(args)
 
     # contrastive dataloader
     if not args.dali:
