@@ -16,6 +16,6 @@ python3 ../main_contrastive.py \
     --hidden_mlp 2048 \
     --no_projection_bn \
     --name barlow \
-    --method barlow \
+    --method barlow_twins \
     --dali \
     --project debug
