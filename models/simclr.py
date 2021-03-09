@@ -2,10 +2,10 @@ import os
 import sys
 
 import torch
-import torch.nn as nn
 import torch.distributed as dist
+import torch.nn as nn
 import torch.nn.functional as F
-from einops import reduce, rearrange, repeat
+from einops import rearrange, reduce, repeat
 
 try:
     from base import Model
@@ -14,8 +14,8 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
+from losses.info_nce import info_nce, manual_info_nce_sava
 from utils.gather_layer import gather
-from utils.info_nce import info_nce, manual_info_nce_sava
 from utils.metrics import accuracy_at_k
 
 

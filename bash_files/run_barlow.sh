@@ -12,7 +12,8 @@ python3 ../main_contrastive.py \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 4 \
-    --hidden_mlp 2048 \
+    --hidden_mlp 8192 \
+    --encoding_size 8192 \
     --no_projection_bn \
     --name barlow \
     --method barlow_twins \

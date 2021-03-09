@@ -2,8 +2,8 @@ import os
 import sys
 
 import torch
-import torch.nn as nn
 import torch.distributed as dist
+import torch.nn as nn
 import torch.nn.functional as F
 
 try:
@@ -13,8 +13,8 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
+from losses.barlow_twins_loss import barlow_twins_loss
 from utils.gather_layer import gather
-from utils.barlow_twins_loss import barlow_twins_loss
 from utils.metrics import accuracy_at_k
 
 
