@@ -2,6 +2,7 @@ import os
 import sys
 
 import torch
+import torch.nn as nn
 import torch.distributed as dist
 import torch.nn.functional as F
 from einops import reduce, rearrange, repeat
