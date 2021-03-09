@@ -16,7 +16,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
 from utils.epoch_checkpointer import EpochCheckpointer
-from utils.info_nce import info_nce
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 
 
