@@ -30,18 +30,18 @@ class SimCLR(Model):
 
         # projection head
         if hidden_mlp == 0:
-            self.projection_head = nn.Linear(num_out_filters * block.expansion, output_dim)
+            self.projection_head = nn.Linear(self.encoder.n_features, output_dim)
         else:
             if projection_bn:
                 self.projection_head = nn.Sequential(
-                    nn.Linear(num_out_filters * block.expansion, hidden_mlp),
+                    nn.Linear(self.encoder.n_features, hidden_mlp),
                     nn.BatchNorm1d(hidden_mlp),
                     nn.ReLU(inplace=True),
                     nn.Linear(hidden_mlp, output_dim),
                 )
             else:
                 self.projection_head = nn.Sequential(
-                    nn.Linear(num_out_filters * block.expansion, hidden_mlp),
+                    nn.Linear(self.encoder.n_features, hidden_mlp),
                     nn.ReLU(inplace=True),
                     nn.Linear(hidden_mlp, output_dim),
                 )
