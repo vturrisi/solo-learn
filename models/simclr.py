@@ -28,6 +28,8 @@ class SimCLR(Model):
         output_dim = args.encoding_size
         assert output_dim > 0
 
+        self.temperature = args.temperature
+
         # projection head
         if hidden_mlp == 0:
             self.projection_head = nn.Linear(self.encoder.n_features, output_dim)

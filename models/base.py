@@ -126,9 +126,6 @@ class Model(BaseModel):
         self.encoder = base_model(cifar=args.cifar)
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
-        self.encoding_size = args.encoding_size
-        self.temperature = args.temperature
-
     def forward(self, X, classify_only=True):
         features = self.encoder(X)
         # stop gradients from the classifier
