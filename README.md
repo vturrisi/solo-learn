@@ -2,18 +2,21 @@
 
 Third-party pytorch implementations of contrastive learning methods that supports extra stuff (see "What is available" section).
 
+## Methods available:
+* [SimCLR](https://arxiv.org/abs/2002.05709)
+* [Barlow Twins](https://arxiv.org/abs/2103.03230)
+* SimCLR + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
+
 ## What is available?
-* Contrastive learning pretraining using SimCLR
 * Online linear evaluation via stop-gradient
 * Pytorch-lightning loggining and default benefits (multi-gpu training, mixed precision, etc)
 * Gathering negatives across gpu devices to simulate larger batch sizes (gradients don't flow across gpus though)
 * Dataloading speed up (at the cost of using more GPU memory) using [Nvidia Dali](https://github.com/NVIDIA/DALI)
-* SimCLR multi-resolution crop from [SwAV](https://arxiv.org/abs/2006.09882)
-* SimCLR + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
+* Multi-resolution crop from [SwAV](https://arxiv.org/abs/2006.09882)
 * Post-pretraining linear evaluation (this usually gives 1-1.5% accuracy points)
 
 ## Working on:
-* [Barlow Twins](https://arxiv.org/abs/2103.03230)
+
 
 ## Results
 | Model    	| Method       	| Dataset      	| Epochs 	| Batch 	| Temperature 	| Projection output 	| Multicrop          	| Dali               	| Supervised         	| Online linear eval 	| Post-pretraining linear eval 	|
