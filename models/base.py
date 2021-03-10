@@ -14,6 +14,7 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 
+
 try:
     from resnet import resnet18, resnet50
 except:
@@ -63,10 +64,7 @@ class BaseModel(pl.LightningModule):
         else:
             if self.args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=10,
-                    max_epochs=self.args.epochs,
-                    warmup_start_lr=0.003,
+                    optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
                 )
             if self.args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
@@ -106,7 +104,8 @@ class BaseModel(pl.LightningModule):
 
 class Model(BaseModel):
     """
-    Implementation of the base model that automatically creates a linear classifier for online evaluation.
+    Implementation of the base model that automatically
+    creates a linear classifier for online evaluation.
     The linear classifier is automatically detached from the computational graph.
     """
 

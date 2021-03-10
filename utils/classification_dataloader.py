@@ -1,11 +1,6 @@
-import math
 import os
-import random
 
-import torch
-import torchvision.transforms.functional as TF
-from PIL import Image, ImageFilter
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, ImageFolder, STL10
 
@@ -96,10 +91,7 @@ def prepare_datasets(dataset, T_train, T_val, data_folder=None, train_dir=None, 
 
     elif dataset == "stl10":
         train_dataset = STL10(
-            os.path.join(data_folder, train_dir),
-            split="train",
-            download=True,
-            transform=T_train,
+            os.path.join(data_folder, train_dir), split="train", download=True, transform=T_train,
         )
         val_dataset = STL10(
             os.path.join(data_folder, val_dir), split="test", download=True, transform=T_val,

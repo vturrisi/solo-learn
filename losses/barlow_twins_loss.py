@@ -1,6 +1,4 @@
 import torch
-import torch.nn.functional as F
-from einops import rearrange, reduce
 
 
 def barlow_twins_loss(z1, z2, l=5e-3):

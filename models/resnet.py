@@ -6,7 +6,6 @@
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
@@ -167,9 +166,7 @@ class ResNet(nn.Module):
         # change padding 3 -> 2 compared to original torchvision code because added a padding layer
         num_out_filters = width_per_group * widen
 
-        self.conv1 = nn.Conv2d(
-            3, num_out_filters, kernel_size=7, stride=2, padding=2, bias=False
-        )
+        self.conv1 = nn.Conv2d(3, num_out_filters, kernel_size=7, stride=2, padding=2, bias=False)
         self.bn1 = norm_layer(num_out_filters)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)

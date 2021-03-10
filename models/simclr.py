@@ -2,10 +2,9 @@ import os
 import sys
 
 import torch
-import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-from einops import rearrange, reduce, repeat
+from einops import repeat
 
 try:
     from base import Model
@@ -92,9 +91,7 @@ class SimCLR(Model):
 
             else:
                 indexes = gather(indexes)
-                index_matrix = repeat(
-                    indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs
-                )
+                index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
             nce_loss = manual_info_nce_sava(
@@ -115,9 +112,7 @@ class SimCLR(Model):
             if self.args.supervised:
                 gathered_target = gather(target)
                 pos_mask = self.gen_extra_positives_gt(gathered_target)
-                nce_loss = info_nce(
-                    z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
-                )
+                nce_loss = info_nce(z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature)
             else:
                 nce_loss = info_nce(z1, z2, temperature=self.temperature)
 
