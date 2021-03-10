@@ -1,11 +1,6 @@
-import random
-import os
-
-import nvidia.dali as dali
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
 from nvidia.dali.pipeline import Pipeline
-from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 import nvidia.dali.fn as fn
 
 

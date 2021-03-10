@@ -62,4 +62,3 @@ def manual_info_nce_sava(x, pos_mask, negative_mask, temperature=0.2, normalize=
     # loss
     loss = -mean_log_prob_pos.mean()
     return loss
-

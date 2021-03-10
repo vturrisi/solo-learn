@@ -1,13 +1,9 @@
-import math
 import os
-import random
 
 import cv2
 import numpy as np
-import torch
-import torchvision.transforms.functional as TF
-from PIL import Image, ImageFilter
-from torch.utils.data import DataLoader, Dataset
+from PIL import Image
+from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
 
@@ -208,13 +204,7 @@ def prepare_transformations_multicrop(dataset, nmb_crops=None, consensus=False):
 
 
 def prepare_datasets(
-    dataset,
-    T,
-    data_folder=None,
-    train_dir=None,
-    val_dir=None,
-    pseudo_labels_path=None,
-    with_index=True,
+    dataset, T, data_folder=None, train_dir=None, val_dir=None, with_index=True,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -264,10 +254,7 @@ def prepare_datasets(
         train_dir = os.path.join(data_folder, train_dir)
         val_dir = os.path.join(data_folder, val_dir)
 
-        if pseudo_labels_path is not None:
-            train_dataset = DatasetWithPseudoLabels(train_dir, T, pseudo_labels_path)
-        else:
-            train_dataset = ImageFolder(train_dir, T)
+        train_dataset = ImageFolder(train_dir, T)
 
         val_dataset = ImageFolder(val_dir, T)
 
@@ -275,10 +262,7 @@ def prepare_datasets(
         train_dir = os.path.join(data_folder, train_dir)
         val_dir = os.path.join(data_folder, val_dir)
 
-        if pseudo_labels_path is not None:
-            train_dataset = DatasetWithPseudoLabels(train_dir, T, pseudo_labels_path)
-        else:
-            train_dataset = ImageFolder(train_dir, T)
+        train_dataset = ImageFolder(train_dir, T)
 
         val_dataset = ImageFolder(val_dir, T)
 
@@ -316,7 +300,6 @@ def prepare_data(
     val_dir=None,
     batch_size=64,
     num_workers=4,
-    pseudo_labels_path=None,
     with_index=True,
 ):
     T = prepare_transformations(dataset, n_augs=n_augs)
@@ -326,15 +309,10 @@ def prepare_data(
         data_folder=data_folder,
         train_dir=train_dir,
         val_dir=val_dir,
-        pseudo_labels_path=pseudo_labels_path,
         with_index=with_index,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset,
-        val_dataset,
-        n_augs=n_augs,
-        batch_size=batch_size,
-        num_workers=num_workers,
+        train_dataset, val_dataset, n_augs=n_augs, batch_size=batch_size, num_workers=num_workers,
     )
     return train_loader, val_loader
 
@@ -348,7 +326,6 @@ def prepare_data_multicrop(
     val_dir=None,
     batch_size=64,
     num_workers=4,
-    pseudo_labels_path=None,
     with_index=True,
 ):
     T = prepare_transformations_multicrop(dataset, nmb_crops=nmb_crops, consensus=consensus)
@@ -358,7 +335,6 @@ def prepare_data_multicrop(
         data_folder=data_folder,
         train_dir=train_dir,
         val_dir=val_dir,
-        pseudo_labels_path=pseudo_labels_path,
         with_index=with_index,
     )
     train_loader, val_loader = prepare_dataloaders(
