@@ -2,12 +2,10 @@ import argparse
 import os
 import sys
 
-import torch
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
-from models.base import Model
 from models.simclr import SimCLR
 from models.dali import DaliSimCLR, DaliBarlowTwins
 from models.barlow_twins import BarlowTwins
@@ -46,34 +44,34 @@ def parse_args():
     parser.add_argument("--method", choices=["simclr", "barlow_twins"], default="simclr")
 
     # optimizer
-    parser.add_argument(
-        "-optimizer", "--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str,
-    )
+    parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
+    parser.add_argument("--lars", type=bool, default=True)
+
     # scheduler
-    parser.add_argument(
-        "-scheduler", "--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce",
-    )
-    parser.add_argument(
-        "-lr_decay_steps", "--lr_decay_steps", default=[200, 300, 350], type=int, nargs="+",
-    )
+    parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
+    parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
 
     # general settings
-    parser.add_argument("--epochs", type=int, default=1000)
-    parser.add_argument("--batch_size", type=int, default=256)
-
-    parser.add_argument("--lr", type=float, default=0.1)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--lr", type=float, default=0.3)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
-    parser.add_argument("--temperature", type=float, default=0.10)
+
+    # projection head
     parser.add_argument("--encoding_size", type=int, default=128)
     parser.add_argument("--hidden_mlp", type=int, default=2048)
-    parser.add_argument("--lars", type=bool, default=True)
     parser.add_argument("--no_projection_bn", action="store_true")
 
-    # training settings
+    # extra training settings
     parser.add_argument("--resume_training_from", type=str)
     parser.add_argument("--num_workers", type=int, default=4)
     parser.add_argument("--gpus", type=int, nargs="+")
     parser.add_argument("--precision", type=int, default=16)
+
+    # dataset path
+    parser.add_argument("--data_folder", default=None)
+    parser.add_argument("--train_dir", default=None)
+    parser.add_argument("--val_dir", default=None)
 
     # extra dataloader settings
     parser.add_argument("--multicrop", action="store_true")
@@ -83,13 +81,12 @@ def parse_args():
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
 
-    # dataset path
-    parser.add_argument("--data_folder", default=None)
-    parser.add_argument("--train_dir", default=None)
-    parser.add_argument("--val_dir", default=None)
-
     # extra simclr settings
+    parser.add_argument("--temperature", type=float, default=0.1)
     parser.add_argument("--supervised", action="store_true")
+
+    # extra barlow twins settings
+    parser.add_argument("--lamb", type=float, default=5e-3)
 
     # wandb
     parser.add_argument("--name")
@@ -114,6 +111,7 @@ def parse_args():
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
 
+    # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
     args.projection_bn = not args.no_projection_bn
