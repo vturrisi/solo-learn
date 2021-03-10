@@ -25,6 +25,8 @@ class BarlowTwins(Model):
         output_dim = args.encoding_size
         assert output_dim > 0
 
+        self.lamb = args.lamb
+
         # projection head
         self.projection_head = nn.Sequential(
             nn.Linear(self.encoder.n_features, hidden_mlp),
@@ -56,7 +58,7 @@ class BarlowTwins(Model):
         z2 = gather(z2)
 
         # ------- contrastive loss -------
-        barlow_loss = barlow_twins_loss(z1, z2)
+        barlow_loss = barlow_twins_loss(z1, z2, lamb=self.lamb)
 
         # ------- classification loss -------
         output = torch.chunk(output, 2)[0]
