@@ -77,7 +77,6 @@ def parse_args():
     parser.add_argument("--multicrop", action="store_true")
     parser.add_argument("--n_crops", type=int, default=2)
     parser.add_argument("--n_small_crops", type=int, default=6)
-    parser.add_argument("--pseudo_labels_path", default=None)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
 
@@ -147,7 +146,6 @@ def main():
                 num_workers=args.num_workers,
                 nmb_crops=[args.n_crops, args.n_small_crops],
                 consensus=False,
-                pseudo_labels_path=args.pseudo_labels_path,
             )
         else:
             train_loader, _ = prepare_data(
@@ -158,7 +156,6 @@ def main():
                 n_augs=2,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
-                pseudo_labels_path=args.pseudo_labels_path,
             )
 
     # normal dataloader
