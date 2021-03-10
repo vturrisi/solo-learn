@@ -16,12 +16,13 @@ Third-party pytorch implementations of contrastive learning methods that support
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
 
 ## Results
-| Model    	| Method 	| Dataset      	| Epochs 	| Batch 	| Temperature 	| Multicrop          	| Dali               	| Supervised         	| Online linear eval 	| Post-pretraining linear eval 	|
-|----------	|--------	|--------------	|--------	|-------	|-------------	|--------------------	|--------------------	|--------------------	|--------------------	|------------------------------	|
-| Resnet18 	| SimCLR 	| Imagenet-100 	| 100    	| 256   	| 0.2         	|                    	|                    	|                    	| 70.74              	| 71.02                        	|
-| Resnet18 	| SimCLR 	| Imagenet-100 	| 100    	| 256   	| 0.2         	|                    	| :white_check_mark: 	|                    	| 70.66              	| 71.64                        	|
-| Resnet18 	| SimCLR 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	|                    	| 73.04              	| 73.72                        	|
-| Resnet18 	| SimCLR 	| Imagenet-100 	| 100    	| 256   	| 0.1         	| :white_check_mark: 	| :white_check_mark: 	| :white_check_mark: 	| 85.56              	| 86.16                        	|
+| Model    	| Method       	| Dataset      	| Epochs 	| Batch 	| Temperature 	| Projection output 	| Multicrop          	| Dali               	| Supervised         	| Online linear eval 	| Post-pretraining linear eval 	|
+|----------	|--------------	|--------------	|--------	|-------	|-------------	|-------------------	|--------------------	|--------------------	|--------------------	|--------------------	|------------------------------	|
+| Resnet18 	| SimCLR       	| Imagenet-100 	| 100    	| 256   	| 0.2         	| 128               	|                    	|                    	|                    	| 70.74              	| 71.02                        	|
+| Resnet18 	| SimCLR       	| Imagenet-100 	| 100    	| 256   	| 0.2         	| 128               	|                    	| :heavy_check_mark: 	|                    	| 70.66              	| 71.64                        	|
+| Resnet18 	| SimCLR       	| Imagenet-100 	| 100    	| 256   	| 0.1         	| 128               	| :heavy_check_mark: 	| :heavy_check_mark: 	|                    	| 73.04              	| 73.72                        	|
+| Resnet18 	| SimCLR       	| Imagenet-100 	| 100    	| 256   	| 0.1         	| 128               	| :heavy_check_mark: 	| :heavy_check_mark: 	| :heavy_check_mark: 	| 85.56              	| 86.16                        	|
+| Resnet   	| Barlow Twins 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	|                    	| :heavy_check_mark: 	|                    	| 70.72              	| 71.22                        	|
 
 ## Requirements
 * torch
