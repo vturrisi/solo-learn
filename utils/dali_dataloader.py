@@ -167,6 +167,10 @@ class ContrastivePipeline(Pipeline):
         nmb_crops,
         min_scale_crops,
         max_scale_crops,
+        brightness=0.8,
+        contrast=0.8,
+        saturation=0.8,
+        hue=0.2,
         random_shuffle=True,
         device_id=0,
         num_shards=1,
@@ -194,7 +198,12 @@ class ContrastivePipeline(Pipeline):
 
         # color jitter
         self.random_color_jitter = RandomColorJitter(
-            brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, prob=0.8, device=self.device,
+            brightness=brightness,
+            contrast=contrast,
+            saturation=saturation,
+            hue=hue,
+            prob=0.8,
+            device=self.device,
         )
 
         # grayscale conversion

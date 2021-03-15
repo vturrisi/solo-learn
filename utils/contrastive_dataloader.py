@@ -104,17 +104,17 @@ class RandomGaussianBlur:
         return Image.fromarray(cv2.GaussianBlur(np.asarray(img), (23, 23), sigma))
 
 
-def get_color_distortion(strength=1.0):
-    color_jitter = transforms.ColorJitter(
-        0.8 * strength, 0.8 * strength, 0.8 * strength, 0.2 * strength
-    )
+def get_color_distortion(brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2):
+    color_jitter = transforms.ColorJitter(brightness, contrast, saturation, hue)
     rnd_color_jitter = transforms.RandomApply([color_jitter], p=0.8)
     rnd_gray = transforms.RandomGrayscale(p=0.2)
     color_distort = transforms.Compose([rnd_color_jitter, rnd_gray])
     return color_distort
 
 
-def prepare_transformations(dataset, n_augs=2):
+def prepare_transformations(
+    dataset, n_augs=2, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2
+):
     if dataset in ["cifar10", "cifar100"]:
         T = transforms.Compose(
             [
@@ -140,7 +140,9 @@ def prepare_transformations(dataset, n_augs=2):
     elif dataset in ["imagenet", "imagenet100"]:
         T = [
             transforms.RandomResizedCrop((224, 224), scale=(0.2, 1)),
-            transforms.RandomApply([transforms.ColorJitter(0.8, 0.8, 0.8, 0.2)], p=0.8),
+            transforms.RandomApply(
+                [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8
+            ),
             transforms.RandomGrayscale(p=0.2),
             RandomGaussianBlur(),
             transforms.RandomHorizontalFlip(p=0.5),
@@ -153,7 +155,9 @@ def prepare_transformations(dataset, n_augs=2):
     return T
 
 
-def prepare_transformations_multicrop(dataset, nmb_crops=None, consensus=False):
+def prepare_transformations_multicrop(
+    dataset, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, nmb_crops=None, consensus=False
+):
     if nmb_crops is None:
         nmb_crops = [2, 6]
     min_scale_crops = [0.14, 0.05]
@@ -180,7 +184,14 @@ def prepare_transformations_multicrop(dataset, nmb_crops=None, consensus=False):
         size_crops = [224, 96]
         T = [
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.Compose([get_color_distortion(strength=1), RandomGaussianBlur()]),
+            transforms.Compose(
+                [
+                    get_color_distortion(
+                        brightness=brightness, contrast=contrast, saturation=saturation, hue=hue
+                    ),
+                    RandomGaussianBlur(),
+                ]
+            ),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
         ]
@@ -295,6 +306,10 @@ def prepare_dataloaders(train_dataset, val_dataset, n_augs=2, batch_size=64, num
 def prepare_data(
     dataset,
     n_augs,
+    brightness=0.8,
+    contrast=0.8,
+    saturation=0.8,
+    hue=0.2,
     data_folder=None,
     train_dir=None,
     val_dir=None,
@@ -302,7 +317,14 @@ def prepare_data(
     num_workers=4,
     with_index=True,
 ):
-    T = prepare_transformations(dataset, n_augs=n_augs)
+    T = prepare_transformations(
+        dataset,
+        brightness=brightness,
+        contrast=contrast,
+        saturation=saturation,
+        hue=hue,
+        n_augs=n_augs,
+    )
     train_dataset, val_dataset = prepare_datasets(
         dataset,
         T,
@@ -319,6 +341,10 @@ def prepare_data(
 
 def prepare_data_multicrop(
     dataset,
+    brightness=0.8,
+    contrast=0.8,
+    saturation=0.8,
+    hue=0.2,
     nmb_crops=None,
     consensus=False,
     data_folder=None,
@@ -328,7 +354,15 @@ def prepare_data_multicrop(
     num_workers=4,
     with_index=True,
 ):
-    T = prepare_transformations_multicrop(dataset, nmb_crops=nmb_crops, consensus=consensus)
+    T = prepare_transformations_multicrop(
+        dataset,
+        brightness=brightness,
+        contrast=contrast,
+        saturation=saturation,
+        hue=hue,
+        nmb_crops=nmb_crops,
+        consensus=consensus,
+    )
     train_dataset, val_dataset = prepare_datasets(
         dataset,
         T,

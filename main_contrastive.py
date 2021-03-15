@@ -7,8 +7,9 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
 from models.simclr import SimCLR
-from models.dali import DaliSimCLR, DaliBarlowTwins
+from models.dali import DaliSimCLR, DaliBarlowTwins, DaliSimSiam
 from models.barlow_twins import BarlowTwins
+from models.simsiam import SimSiam
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -41,11 +42,11 @@ def parse_args():
     parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
-    parser.add_argument("--method", choices=["simclr", "barlow_twins"], default="simclr")
+    parser.add_argument("--method", choices=["simclr", "barlow_twins", "simsiam"], default="simclr")
 
     # optimizer
     parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
-    parser.add_argument("--lars", type=bool, default=True)
+    parser.add_argument("--lars", action="store_true")
 
     # scheduler
     parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
@@ -79,6 +80,10 @@ def parse_args():
     parser.add_argument("--n_small_crops", type=int, default=6)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
+    parser.add_argument("--brightness", type=float, default=0.8)
+    parser.add_argument("--contrast", type=float, default=0.8)
+    parser.add_argument("--saturation", type=float, default=0.8)
+    parser.add_argument("--hue", type=float, default=0.2)
 
     # extra simclr settings
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -86,6 +91,9 @@ def parse_args():
 
     # extra barlow twins settings
     parser.add_argument("--lamb", type=float, default=5e-3)
+
+    # extra simsiam settings
+    parser.add_argument("--pred_hidden_mlp", type=int, default=512)
 
     # wandb
     parser.add_argument("--name")
@@ -128,11 +136,16 @@ def main():
             model = DaliSimCLR(args)
         else:
             model = SimCLR(args)
-    else:
+    elif args.method == "barlow_twins":
         if args.dali:
             model = DaliBarlowTwins(args)
         else:
             model = BarlowTwins(args)
+    else:
+        if args.dali:
+            model = DaliSimSiam(args)
+        else:
+            model = SimSiam(args)
 
     # contrastive dataloader
     if not args.dali:

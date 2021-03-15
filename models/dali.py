@@ -8,10 +8,12 @@ try:
     from linear import LinearModel
     from simclr import SimCLR
     from barlow_twins import BarlowTwins
+    from simsiam import SimSiam
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
     from .barlow_twins import BarlowTwins
+    from .simsiam import SimSiam
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -92,7 +94,7 @@ class ContrastiveABC(ABC):
         else:
             nmb_crops = [self.args.n_crops]
             size_crops = [224]
-            min_scale_crops = [0.14]
+            min_scale_crops = [0.2]
             max_scale_crops = [1.0]
             self.output_map = [
                 *[f"large{i}" for i in range(nmb_crops[0])],
@@ -106,6 +108,10 @@ class ContrastiveABC(ABC):
             min_scale_crops=min_scale_crops,
             max_scale_crops=max_scale_crops,
             batch_size=self.args.batch_size,
+            brightness=self.args.brightness,
+            contrast=self.args.contrast,
+            saturation=self.args.saturation,
+            hue=self.args.hue,
             device="gpu",
             device_id=device_id,
             num_shards=num_shards,
@@ -207,4 +213,8 @@ class DaliLinearModel(LinearModel, ClassificationABC):
 
 
 class DaliBarlowTwins(BarlowTwins, ContrastiveABC):
+    pass
+
+
+class DaliSimSiam(SimSiam, ContrastiveABC):
     pass
