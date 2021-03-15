@@ -8,10 +8,12 @@ try:
     from linear import LinearModel
     from simclr import SimCLR
     from barlow_twins import BarlowTwins
+    from simsiam import SimSiam
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
     from .barlow_twins import BarlowTwins
+    from .simsiam import SimSiam
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -207,4 +209,8 @@ class DaliLinearModel(LinearModel, ClassificationABC):
 
 
 class DaliBarlowTwins(BarlowTwins, ContrastiveABC):
+    pass
+
+
+class DaliSimSiam(SimSiam, ContrastiveABC):
     pass
