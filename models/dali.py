@@ -94,7 +94,7 @@ class ContrastiveABC(ABC):
         else:
             nmb_crops = [self.args.n_crops]
             size_crops = [224]
-            min_scale_crops = [0.14]
+            min_scale_crops = [0.2]
             max_scale_crops = [1.0]
             self.output_map = [
                 *[f"large{i}" for i in range(nmb_crops[0])],

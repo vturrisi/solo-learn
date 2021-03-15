@@ -7,7 +7,7 @@ python3 ../main_contrastive.py \
     --epochs 100 \
     --optimizer sgd \
     --scheduler warmup_cosine \
-    --lr 0.3 \
+    --lr 0.05 \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --gpus 0 1 \
@@ -16,6 +16,10 @@ python3 ../main_contrastive.py \
     --pred_hidden_mlp 512 \
     --encoding_size 2048 \
     --no_projection_bn \
+    --brightness 0.4 \
+    --contrast 0.4 \
+    --saturation 0.4 \
+    --hue 0.1 \
     --name simsiam \
     --method simsiam \
     --dali \

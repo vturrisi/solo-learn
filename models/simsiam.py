@@ -59,17 +59,14 @@ class SimSiam(Model):
 
     def training_step(self, batch, batch_idx):
         indexes, (X_aug1, X_aug2), target = batch
-        # X = torch.cat((X_aug1, X_aug2), dim=0)
 
         # features, projection head features, class
         features, z1, p1, output = self(X_aug1, classify_only=False)
         features, z2, p2, output = self(X_aug2, classify_only=False)
 
-        # z1, z2 = torch.chunk(z, 2)
         z1 = gather(z1)
         z2 = gather(z2)
 
-        # p1, p2 = torch.chunk(p, 2)
         p1 = gather(p1)
         p2 = gather(p2)
 
@@ -79,7 +76,6 @@ class SimSiam(Model):
         )
 
         # ------- classification loss -------
-        # output = torch.chunk(output, 2)[0]
         # for datasets with unsupervised data
         index = target >= 0
         output = output[index]
