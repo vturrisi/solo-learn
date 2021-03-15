@@ -19,4 +19,4 @@ python3 ../main_contrastive.py \
     --method barlow_twins \
     --lars \
     --dali \
-    --project debug
+    --project contrastive_learning

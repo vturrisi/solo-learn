@@ -26,8 +26,6 @@ class SimSiam(Model):
 
         pred_hidden_mlp = args.pred_hidden_mlp
 
-        self.lamb = args.lamb
-
         # projection head
         self.projection_head = nn.Sequential(
             nn.Linear(self.encoder.n_features, proj_hidden_mlp),
