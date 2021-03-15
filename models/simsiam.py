@@ -1,7 +1,7 @@
 import os
 import sys
 
-import torch
+# import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -49,26 +49,27 @@ class SimSiam(Model):
         )
 
     def forward(self, X, classify_only=True):
+        features, y = super().forward(X, classify_only=False)
         if classify_only:
-            return super().forward(X, classify_only=classify_only)
+            return y
         else:
-            features, y = super().forward(X, classify_only=classify_only)
             z = self.projection_head(features)
             p = self.prediction_head(z)
             return features, z, p, y
 
     def training_step(self, batch, batch_idx):
         indexes, (X_aug1, X_aug2), target = batch
-        X = torch.cat((X_aug1, X_aug2), dim=0)
+        # X = torch.cat((X_aug1, X_aug2), dim=0)
 
         # features, projection head features, class
-        features, z, p, output = self(X, classify_only=False)
+        features, z1, p1, output = self(X_aug1, classify_only=False)
+        features, z2, p2, output = self(X_aug2, classify_only=False)
 
-        z1, z2 = torch.chunk(z, 2)
+        # z1, z2 = torch.chunk(z, 2)
         z1 = gather(z1)
         z2 = gather(z2)
 
-        p1, p2 = torch.chunk(p, 2)
+        # p1, p2 = torch.chunk(p, 2)
         p1 = gather(p1)
         p2 = gather(p2)
 
@@ -78,7 +79,7 @@ class SimSiam(Model):
         )
 
         # ------- classification loss -------
-        output = torch.chunk(output, 2)[0]
+        # output = torch.chunk(output, 2)[0]
         # for datasets with unsupervised data
         index = target >= 0
         output = output[index]

@@ -17,5 +17,6 @@ python3 ../main_contrastive.py \
     --no_projection_bn \
     --name barlow \
     --method barlow_twins \
+    --lars \
     --dali \
     --project debug

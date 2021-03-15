@@ -46,7 +46,7 @@ def parse_args():
 
     # optimizer
     parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
-    parser.add_argument("--lars", type=bool, default=True)
+    parser.add_argument("--lars", action="store_true")
 
     # scheduler
     parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
@@ -80,6 +80,10 @@ def parse_args():
     parser.add_argument("--n_small_crops", type=int, default=6)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
+    parser.add_argument("--brightness", type=float, default=0.8)
+    parser.add_argument("--contrast", type=float, default=0.8)
+    parser.add_argument("--saturation", type=float, default=0.8)
+    parser.add_argument("--hue", type=float, default=0.2)
 
     # extra simclr settings
     parser.add_argument("--temperature", type=float, default=0.1)
