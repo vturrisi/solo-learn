@@ -1,7 +1,7 @@
 import os
 import sys
 
-# import torch
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -89,9 +89,12 @@ class SimSiam(Model):
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
 
+        z_std = torch.cat((z1, z2), dim=0).std(dim=0).mean()
+
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,
             "train_class_loss": class_loss,
+            "train_z_std": z_std,
             "train_acc1": acc1,
             "train_acc5": acc5,
         }
