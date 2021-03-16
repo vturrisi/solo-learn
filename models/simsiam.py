@@ -13,7 +13,6 @@ except:
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 from losses.neg_cosine_sim import negative_cosine_similarity
-from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
 
@@ -61,12 +60,6 @@ class SimSiam(Model):
         # features, projection head features, class
         features, z1, p1, output = self(X_aug1, classify_only=False)
         features, z2, p2, output = self(X_aug2, classify_only=False)
-
-        z1 = gather(z1)
-        z2 = gather(z2)
-
-        p1 = gather(p1)
-        p2 = gather(p2)
 
         # ------- contrastive loss -------
         neg_cos_sim = (
