@@ -16,6 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
 from utils.epoch_checkpointer import EpochCheckpointer
 from utils.classification_dataloader import prepare_data as prepare_data_classification
+from utils.callbacks import StaticLR
 
 
 def parse_args():
@@ -51,6 +52,7 @@ def parse_args():
     # scheduler
     parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
     parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
+    parser.add_argument("--no_lr_scheduler_for_pred_head", action="store_true")
 
     # general settings
     parser.add_argument("--epochs", type=int, default=100)
@@ -192,6 +194,12 @@ def main():
     # epoch checkpointer
     checkpointer = EpochCheckpointer(args, frequency=25)
 
+    callbacks = [lr_monitor, checkpointer]
+
+    if args.no_lr_scheduler_for_pred_head:
+        static_lr_callback = StaticLR("prediction_head")
+        callbacks.append(static_lr_callback)
+
     trainer = Trainer(
         max_epochs=args.epochs,
         gpus=[*args.gpus],
@@ -200,7 +208,7 @@ def main():
         precision=args.precision,
         sync_batchnorm=True,
         resume_from_checkpoint=args.resume_training_from,
-        callbacks=[lr_monitor, checkpointer],
+        callbacks=callbacks,
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)

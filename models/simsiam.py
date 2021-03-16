@@ -89,7 +89,7 @@ class SimSiam(Model):
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
 
-        z_std = torch.cat((z1, z2), dim=0).std(dim=0).mean()
+        z_std = F.normalize(torch.cat((z1, z2), dim=0), dim=1).std(dim=0).mean()
 
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,

@@ -66,7 +66,7 @@ class BaseModel(pl.LightningModule):
                 scheduler = LinearWarmupCosineAnnealingLR(
                     optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
                 )
-            if self.args.scheduler == "cosine":
+            elif self.args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
             elif self.args.scheduler == "reduce":
                 scheduler = ReduceLROnPlateau(optimizer)
