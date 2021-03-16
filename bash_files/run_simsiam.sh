@@ -20,6 +20,7 @@ python3 ../main_contrastive.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
+    --no_lr_scheduler_for_pred_head \
     --name simsiam \
     --method simsiam \
     --dali \

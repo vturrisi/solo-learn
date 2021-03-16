@@ -40,15 +40,41 @@ class BaseModel(pl.LightningModule):
 
         if hasattr(self, "classifier"):
             classifier_parameters = self.classifier.parameters()
-            other_parameters = (
-                p for name, p in self.named_parameters() if "classifier" not in name
-            )
-            parameters = [
-                {"params": other_parameters},
-                {"params": classifier_parameters, "lr": 0.3, "weight_decay": 0},
-            ]
+
+            if self.args.prediction_head_weights:
+                prediction_head_parameters = self.prediction_head.parameters()
+                other_parameters = (
+                    p
+                    for name, p in self.named_parameters()
+                    if "classifier" not in name and "prediction_head" not in name
+                )
+                parameters = [
+                    {"params": other_parameters},
+                    {"params": classifier_parameters, "lr": 0.3, "weight_decay": 0},
+                    {"params": prediction_head_parameters},
+                ]
+            else:
+                other_parameters = (
+                    p for name, p in self.named_parameters() if "classifier" not in name
+                )
+                parameters = [
+                    {"params": other_parameters},
+                    {"params": classifier_parameters, "lr": 0.3, "weight_decay": 0},
+                ]
         else:
-            parameters = self.parameters()
+            if self.args.prediction_head_weights:
+                prediction_head_parameters = self.prediction_head.parameters()
+                other_parameters = (
+                    p for name, p in self.named_parameters() if "prediction_head" not in name
+                )
+                parameters = [
+                    {"params": other_parameters},
+                    {"params": prediction_head_parameters},
+                ]
+            else:
+                parameters = [
+                    {"params": self.parameters()},
+                ]
 
         optimizer = optimizer(
             parameters,

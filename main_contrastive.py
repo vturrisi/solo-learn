@@ -125,6 +125,8 @@ def parse_args():
 
     args.projection_bn = not args.no_projection_bn
 
+    args.split_prediction_head_weights = args.no_lr_scheduler_for_pred_head
+
     return args
 
 
@@ -188,17 +190,16 @@ def main():
     wandb_logger.watch(model, log="gradients", log_freq=100)
     wandb_logger.log_hyperparams(args)
 
+    callbacks = []
+    if args.no_lr_scheduler_for_pred_head:
+        static_lr_callback = StaticLR(lrs=[args.lr], param_group_indexes=[2])
+        callbacks.append(static_lr_callback)
+
     # lr logging
-    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+    callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
     # epoch checkpointer
-    checkpointer = EpochCheckpointer(args, frequency=25)
-
-    callbacks = [lr_monitor, checkpointer]
-
-    if args.no_lr_scheduler_for_pred_head:
-        static_lr_callback = StaticLR("prediction_head")
-        callbacks.append(static_lr_callback)
+    callbacks.append(EpochCheckpointer(args, frequency=25))
 
     trainer = Trainer(
         max_epochs=args.epochs,
