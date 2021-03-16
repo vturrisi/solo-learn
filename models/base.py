@@ -41,7 +41,7 @@ class BaseModel(pl.LightningModule):
         if hasattr(self, "classifier"):
             classifier_parameters = self.classifier.parameters()
 
-            if self.args.prediction_head_weights:
+            if self.args.split_prediction_head_weights:
                 prediction_head_parameters = self.prediction_head.parameters()
                 other_parameters = (
                     p
@@ -62,7 +62,7 @@ class BaseModel(pl.LightningModule):
                     {"params": classifier_parameters, "lr": 0.3, "weight_decay": 0},
                 ]
         else:
-            if self.args.prediction_head_weights:
+            if self.args.split_prediction_head_weights:
                 prediction_head_parameters = self.prediction_head.parameters()
                 other_parameters = (
                     p for name, p in self.named_parameters() if "prediction_head" not in name
