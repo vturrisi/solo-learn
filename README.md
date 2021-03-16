@@ -5,6 +5,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 ## Methods available:
 * [SimCLR](https://arxiv.org/abs/2002.05709)
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
+* [SimSiam](https://arxiv.org/abs/2011.10566)
 * SimCLR + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
 
 ## What is available?

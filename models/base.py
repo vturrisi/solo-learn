@@ -148,7 +148,7 @@ class Model(BaseModel):
             base_model = resnet50
 
         # initialize encoder
-        self.encoder = base_model(cifar=args.cifar)
+        self.encoder = base_model(cifar=args.cifar, zero_init_residual=args.zero_init_residual)
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
     def forward(self, X, classify_only=True):

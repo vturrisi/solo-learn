@@ -59,6 +59,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=0.3)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
+    parser.add_argument("--zero_init_residual", action="store_true")
 
     # projection head
     parser.add_argument("--encoding_size", type=int, default=128)
@@ -171,6 +172,10 @@ def main():
                 train_dir=args.train_dir,
                 val_dir=args.val_dir,
                 n_augs=2,
+                brightness=args.brightness,
+                contrast=args.contrast,
+                saturation=args.saturation,
+                hue=args.hue,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
             )
