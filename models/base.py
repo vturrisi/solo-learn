@@ -90,7 +90,10 @@ class BaseModel(pl.LightningModule):
         else:
             if self.args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
+                    optimizer,
+                    warmup_epochs=10,
+                    max_epochs=self.args.epochs,
+                    warmup_start_lr=0.003,
                 )
             elif self.args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.args.epochs)

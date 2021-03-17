@@ -59,7 +59,7 @@ class SimSiam(Model):
 
         # features, projection head features, class
         features, z1, p1, output = self(X_aug1, classify_only=False)
-        features, z2, p2, output = self(X_aug2, classify_only=False)
+        _, z2, p2, _ = self(X_aug2, classify_only=False)
 
         # ------- contrastive loss -------
         neg_cos_sim = (
