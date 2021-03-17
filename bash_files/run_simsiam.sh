@@ -29,21 +29,3 @@ python3 ../main_contrastive.py \
     --project debug
 
 # --no_lr_scheduler_for_pred_head \
-
-# python3 ../main_linear.py \
-#     cifar10 \
-#     resnet18 \
-#     --data_folder /data/datasets \
-#     --epochs 100 \
-#     --optimizer sgd \
-#     --scheduler step \
-#     --lr 0.1 \
-#     --lr_decay_steps 60 80 \
-#     --weight_decay 0 \
-#     --batch_size 128 \
-#     --gpus 0 1 \
-#     --num_workers 10 \
-#     --no_projection_bn \
-#     --name simclr-linear-eval \
-#     --pretrained_feature_extractor trained_models/3gumrgep \
-#     --project debug
