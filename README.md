@@ -39,7 +39,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 * tqdm
 * wandb
 * nvidia-dali
-* pytorch-lightning
+* pytorch-lightning==1.0.8 (there's a problem with the lastest version and dali...)
 * einops
 
 ## Installation

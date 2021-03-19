@@ -10,7 +10,7 @@ python3 ../main_contrastive.py \
     --lr 0.3 \
     --classifier_lr 30.0 \
     --weight_decay 1e-4 \
-    --batch_size 2 \
+    --batch_size 128 \
     --gpus 0 1 \
     --num_workers 4 \
     --hidden_mlp 2048 \
@@ -23,8 +23,3 @@ python3 ../main_contrastive.py \
     --no_lr_scheduler_for_pred_head \
     --dali \
     --project debug
-<<<<<<< HEAD
-=======
-
-# --no_lr_scheduler_for_pred_head \
->>>>>>> 7b7c1da69e2e00f5bf44b064736cede17271382e

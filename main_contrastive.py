@@ -16,7 +16,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
 from utils.epoch_checkpointer import EpochCheckpointer
 from utils.classification_dataloader import prepare_data as prepare_data_classification
-from utils.callbacks import StaticLR
 
 
 def parse_args():
@@ -127,8 +126,6 @@ def parse_args():
 
     args.projection_bn = not args.no_projection_bn
 
-    args.split_prediction_head_weights = args.no_lr_scheduler_for_pred_head
-
     return args
 
 
@@ -197,10 +194,6 @@ def main():
     wandb_logger.log_hyperparams(args)
 
     callbacks = []
-    if args.no_lr_scheduler_for_pred_head:
-        static_lr_callback = StaticLR(lrs=[args.lr], param_group_indexes=[2])
-        callbacks.append(static_lr_callback)
-
     # lr logging
     callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
