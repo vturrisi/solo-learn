@@ -58,6 +58,7 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=0.3)
+    parser.add_argument("--classifier_lr", type=float, default=0.3)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
     parser.add_argument("--zero_init_residual", action="store_true")
 

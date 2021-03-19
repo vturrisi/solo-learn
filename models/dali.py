@@ -24,24 +24,7 @@ from abc import ABC
 from utils.dali_dataloader import ContrastivePipeline, NormalPipeline
 
 
-class ContrastiveWrapper(DALIGenericIterator):
-    def __init__(
-        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
-    ):
-        super().__init__(*args, **kwargs)
-        self.model_batch_size = model_batch_size
-        self.model_rank = model_rank
-        self.model_device = model_device
-
-    def __next__(self):
-        batch = super().__next__()
-        indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-            self.model_rank * self.model_batch_size
-        )
-        *all_X, target = [batch[0][v] for v in self.output_map]
-        target = target.squeeze(-1).long()
-        return indexes, all_X, target
-
+class BaseWrapper(DALIGenericIterator):
     # this might be a shitty fix for now to handle when LastBatchPolicy.DROP is on
     def __len__(self):
         size = (
@@ -61,10 +44,31 @@ class ContrastiveWrapper(DALIGenericIterator):
                 return size // (self._num_gpus * self.batch_size)
 
 
-class Wrapper(DALIGenericIterator):
-    def __init__(self, *kargs, **kvargs):
-        super().__init__(*kargs, **kvargs)
+class ContrastiveWrapper(BaseWrapper):
+    def __init__(
+        self,
+        *args,
+        model_batch_size=None,
+        model_rank=None,
+        model_device=None,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.model_batch_size = model_batch_size
+        self.model_rank = model_rank
+        self.model_device = model_device
 
+    def __next__(self):
+        batch = super().__next__()
+        indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
+            self.model_rank * self.model_batch_size
+        )
+        *all_X, target = [batch[0][v] for v in self.output_map]
+        target = target.squeeze(-1).long()
+        return indexes, all_X, target
+
+
+class Wrapper(BaseWrapper):
     def __next__(self):
         batch = super().__next__()
         x, target = batch[0]["x"], batch[0]["label"]
