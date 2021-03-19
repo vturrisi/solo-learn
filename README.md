@@ -16,8 +16,6 @@ Third-party pytorch implementations of contrastive learning methods that support
 * Multi-resolution crop from [SwAV](https://arxiv.org/abs/2006.09882)
 * Post-pretraining linear evaluation (this usually gives 1-1.5% accuracy points)
 
-## Working on:
-
 
 ## Results
 | Model    	| Method       	| Dataset      	| Epochs 	| Batch 	| Temperature 	| Projection output 	| Multicrop          	| Dali               	| Supervised         	| Online linear eval 	| Post-pretraining linear eval 	|
@@ -27,6 +25,14 @@ Third-party pytorch implementations of contrastive learning methods that support
 | Resnet18 	| SimCLR       	| Imagenet-100 	| 100    	| 256   	| 0.1         	| 128               	| :heavy_check_mark: 	| :heavy_check_mark: 	|                    	| 73.04              	| 73.72                        	|
 | Resnet18 	| SimCLR       	| Imagenet-100 	| 100    	| 256   	| 0.1         	| 128               	| :heavy_check_mark: 	| :heavy_check_mark: 	| :heavy_check_mark: 	| 85.56              	| 86.16                        	|
 | Resnet   	| Barlow Twins 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	|                    	| :heavy_check_mark: 	|                    	| 70.72              	| 71.22                        	|
+| Resnet   	| SimSiam 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	|                    	| :heavy_check_mark: 	|                    	| 66.72              	| 71.16                        	|
+
+
+## Notes:
+* Barlow Twins and SimCLR work with basically the same hyperparameters
+* SimSiam is very hyperparameter-dependent, it can easily collapse with a lr too high and there are a number of tricks that improve performance a lot, e.g. making the lr of the projection head fixed (as described in the paper). Also, the online/offline classifier training doesn't play nice with the same settings as SimCLR.
+* SimSiam was tested with 2048 as output for the projection/prediction heads, but maybe it would be better to scale this to 512 (because of the resnet18) and then change the bottleneck on the prediction head from 512 to something like 128.
+* I think that selecting a better lr to the online classifier training for SimSiam can make numbers closer, but I tried with 3.0 (and lower values) and it just converges to a much worse number (this doesn't change the offline linear eval, ofc).
 
 ## Requirements
 * torch

@@ -9,3 +9,5 @@ class StaticLR(Callback):
     def on_train_batch_start(self, trainer, pl_module, batch, batch_idx, dataloader_idx):
         for lr, idx in zip(self.lrs, self.param_group_indexes):
             trainer.optimizers[0].param_groups[idx]["lr"] = lr
+            print(trainer.optimizers[0].param_groups[idx].keys())
+            exit()
