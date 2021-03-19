@@ -5,6 +5,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from pl_bolts.optimizers.lars_scheduling import LARSWrapper
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
@@ -41,6 +42,9 @@ class LinearModel(pl.LightningModule):
             weight_decay=self.args.weight_decay,
             **self.args.extra_optimizer_args,
         )
+
+        if self.args.lars:
+            optimizer = LARSWrapper(optimizer)
 
         # select scheduler
         if self.args.scheduler == "none":

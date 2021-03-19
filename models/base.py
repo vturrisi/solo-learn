@@ -1,5 +1,6 @@
 import os
 import sys
+from functools import partial
 
 import pytorch_lightning as pl
 import torch
@@ -14,7 +15,6 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 
-
 try:
     from resnet import resnet18, resnet50
 except:
@@ -23,6 +23,13 @@ except:
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 from utils.metrics import accuracy_at_k, weighted_mean
+
+
+def static_lr(get_lr, param_group_indexes, lrs_to_replace):
+    lrs = get_lr()
+    for idx, lr in zip(param_group_indexes, lrs_to_replace):
+        lrs[idx] = lr
+    return lrs
 
 
 class BaseModel(pl.LightningModule):
@@ -40,15 +47,49 @@ class BaseModel(pl.LightningModule):
 
         if hasattr(self, "classifier"):
             classifier_parameters = self.classifier.parameters()
-            other_parameters = (
-                p for name, p in self.named_parameters() if "classifier" not in name
-            )
-            parameters = [
-                {"params": other_parameters},
-                {"params": classifier_parameters, "lr": 0.3, "weight_decay": 0},
-            ]
+
+            if self.args.no_lr_scheduler_for_pred_head:
+                prediction_head_parameters = self.prediction_head.parameters()
+                other_parameters = (
+                    p
+                    for name, p in self.named_parameters()
+                    if "classifier" not in name and "prediction_head" not in name
+                )
+                parameters = [
+                    {"params": other_parameters},
+                    {
+                        "params": classifier_parameters,
+                        "lr": self.args.classifier_lr,
+                        "weight_decay": 0,
+                    },
+                    {"params": prediction_head_parameters},
+                ]
+            else:
+                other_parameters = (
+                    p for name, p in self.named_parameters() if "classifier" not in name
+                )
+                parameters = [
+                    {"params": other_parameters},
+                    {
+                        "params": classifier_parameters,
+                        "lr": self.args.classifier_lr,
+                        "weight_decay": 0,
+                    },
+                ]
         else:
-            parameters = self.parameters()
+            if self.args.no_lr_scheduler_for_pred_head:
+                prediction_head_parameters = self.prediction_head.parameters()
+                other_parameters = (
+                    p for name, p in self.named_parameters() if "prediction_head" not in name
+                )
+                parameters = [
+                    {"params": other_parameters},
+                    {"params": prediction_head_parameters},
+                ]
+            else:
+                parameters = [
+                    {"params": self.parameters()},
+                ]
 
         optimizer = optimizer(
             parameters,
@@ -64,9 +105,12 @@ class BaseModel(pl.LightningModule):
         else:
             if self.args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
+                    optimizer,
+                    warmup_epochs=10,
+                    max_epochs=self.args.epochs,
+                    warmup_start_lr=0.003,
                 )
-            if self.args.scheduler == "cosine":
+            elif self.args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
             elif self.args.scheduler == "reduce":
                 scheduler = ReduceLROnPlateau(optimizer)
@@ -74,6 +118,15 @@ class BaseModel(pl.LightningModule):
                 scheduler = MultiStepLR(optimizer, self.args.lr_decay_steps)
             elif self.args.scheduler == "exponential":
                 scheduler = ExponentialLR(optimizer, self.args.weight_decay)
+
+            if self.args.no_lr_scheduler_for_pred_head:
+                partial_fn = partial(
+                    static_lr,
+                    get_lr=scheduler.get_lr,
+                    param_group_indexes=(2,),
+                    lrs_to_replace=(self.args.lr,),
+                )
+                scheduler.get_lr = partial_fn
             return [optimizer], [scheduler]
 
     def validation_step(self, batch, batch_idx):
@@ -122,7 +175,7 @@ class Model(BaseModel):
             base_model = resnet50
 
         # initialize encoder
-        self.encoder = base_model(cifar=args.cifar)
+        self.encoder = base_model(cifar=args.cifar, zero_init_residual=args.zero_init_residual)
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
     def forward(self, X, classify_only=True):

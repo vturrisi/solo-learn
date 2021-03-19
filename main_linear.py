@@ -46,6 +46,8 @@ def parse_args():
     parser.add_argument(
         "-optimizer", "--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str,
     )
+    parser.add_argument("--lars", action="store_true")
+
     # scheduler
     parser.add_argument(
         "-scheduler", "--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce",

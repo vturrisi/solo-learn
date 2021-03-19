@@ -1,7 +1,7 @@
 import os
 import sys
 
-# import torch
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -13,7 +13,6 @@ except:
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 from losses.neg_cosine_sim import negative_cosine_similarity
-from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
 
@@ -25,8 +24,6 @@ class SimSiam(Model):
         output_dim = args.encoding_size
 
         pred_hidden_mlp = args.pred_hidden_mlp
-
-        self.lamb = args.lamb
 
         # projection head
         self.projection_head = nn.Sequential(
@@ -62,13 +59,7 @@ class SimSiam(Model):
 
         # features, projection head features, class
         features, z1, p1, output = self(X_aug1, classify_only=False)
-        features, z2, p2, output = self(X_aug2, classify_only=False)
-
-        z1 = gather(z1)
-        z2 = gather(z2)
-
-        p1 = gather(p1)
-        p2 = gather(p2)
+        _, z2, p2, _ = self(X_aug2, classify_only=False)
 
         # ------- contrastive loss -------
         neg_cos_sim = (
@@ -91,9 +82,12 @@ class SimSiam(Model):
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
 
+        z_std = F.normalize(torch.cat((z1, z2), dim=0), dim=1).std(dim=0).mean()
+
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,
             "train_class_loss": class_loss,
+            "train_z_std": z_std,
             "train_acc1": acc1,
             "train_acc5": acc5,
         }

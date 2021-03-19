@@ -39,10 +39,10 @@ class BarlowTwins(Model):
         )
 
     def forward(self, X, classify_only=True):
+        features, y = super().forward(X, classify_only=False)
         if classify_only:
-            return super().forward(X, classify_only=classify_only)
+            return y
         else:
-            features, y = super().forward(X, classify_only=classify_only)
             z = self.projection_head(features)
             return features, z, y
 

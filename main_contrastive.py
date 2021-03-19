@@ -51,12 +51,15 @@ def parse_args():
     # scheduler
     parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
     parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
+    parser.add_argument("--no_lr_scheduler_for_pred_head", action="store_true")
 
     # general settings
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=0.3)
+    parser.add_argument("--classifier_lr", type=float, default=0.3)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
+    parser.add_argument("--zero_init_residual", action="store_true")
 
     # projection head
     parser.add_argument("--encoding_size", type=int, default=128)
@@ -167,6 +170,10 @@ def main():
                 train_dir=args.train_dir,
                 val_dir=args.val_dir,
                 n_augs=2,
+                brightness=args.brightness,
+                contrast=args.contrast,
+                saturation=args.saturation,
+                hue=args.hue,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
             )
@@ -186,11 +193,12 @@ def main():
     wandb_logger.watch(model, log="gradients", log_freq=100)
     wandb_logger.log_hyperparams(args)
 
+    callbacks = []
     # lr logging
-    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+    callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
     # epoch checkpointer
-    checkpointer = EpochCheckpointer(args, frequency=25)
+    callbacks.append(EpochCheckpointer(args, frequency=25))
 
     trainer = Trainer(
         max_epochs=args.epochs,
@@ -200,7 +208,7 @@ def main():
         precision=args.precision,
         sync_batchnorm=True,
         resume_from_checkpoint=args.resume_training_from,
-        callbacks=[lr_monitor, checkpointer],
+        callbacks=callbacks,
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
