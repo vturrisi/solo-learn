@@ -23,3 +23,8 @@ python3 ../main_contrastive.py \
     --no_lr_scheduler_for_pred_head \
     --dali \
     --project debug
+<<<<<<< HEAD
+=======
+
+# --no_lr_scheduler_for_pred_head \
+>>>>>>> 7b7c1da69e2e00f5bf44b064736cede17271382e
