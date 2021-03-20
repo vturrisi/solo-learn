@@ -17,4 +17,4 @@ python3 ../main_linear.py \
     --name simsiam-linear-eval \
     --pretrained_feature_extractor trained_models/ID \
     --dali \
-    --project debug
+    --project contrastive_learning
