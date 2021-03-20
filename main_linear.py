@@ -44,16 +44,28 @@ def parse_args():
 
     # optimizer
     parser.add_argument(
-        "-optimizer", "--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str,
+        "-optimizer",
+        "--optimizer",
+        default="sgd",
+        choices=SUPPORTED_OPTIMIZERS,
+        type=str,
     )
     parser.add_argument("--lars", action="store_true")
 
     # scheduler
     parser.add_argument(
-        "-scheduler", "--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce",
+        "-scheduler",
+        "--scheduler",
+        choices=SUPPORTED_SCHEDULERS,
+        type=str,
+        default="reduce",
     )
     parser.add_argument(
-        "-lr_decay_steps", "--lr_decay_steps", default=[200, 300, 350], type=int, nargs="+",
+        "-lr_decay_steps",
+        "--lr_decay_steps",
+        default=[200, 300, 350],
+        type=int,
+        nargs="+",
     )
 
     # general settings
@@ -115,6 +127,10 @@ def main():
     model_args_path = os.path.join(args.pretrained_feature_extractor, "args.json")
     model_args_dict = dict(**json.load(open(model_args_path)))
     model_args = argparse.Namespace(**model_args_dict)
+
+    # compatibility with models created before zero_init_residual was added
+    if "zero_init_residual" not in model_args:
+        model_args.zero_init_residual = False
 
     model = Model(model_args)
     if (
