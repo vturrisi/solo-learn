@@ -44,8 +44,8 @@ python3 ../main_contrastive.py \
     --encoding_size 512 \
     --no_projection_bn \
     --zero_init_residual \
-    --name simsiam \
-    --method simsiam-smaller-heads \
+    --name simsiam-smaller-heads \
+    --method simsiam \
     --no_lr_scheduler_for_pred_head \
     --dali \
     --project contrastive_learning
