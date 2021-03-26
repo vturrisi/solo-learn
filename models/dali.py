@@ -81,8 +81,9 @@ class ContrastiveABC(ABC):
     Abstract contrastive class that returns a train_dataloader and val_dataloader using dali.
     """
 
-    def setup(self, stage=None):
+    def train_dataloader(self):
         device_id = self.local_rank
+        shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
         if self.args.multicrop:
@@ -118,11 +119,12 @@ class ContrastiveABC(ABC):
             hue=self.args.hue,
             device="gpu",
             device_id=device_id,
+            shard_id=shard_id,
             num_shards=num_shards,
             num_threads=self.args.num_workers,
         )
         policy = LastBatchPolicy.FILL if self.args.last_batch_fill else LastBatchPolicy.DROP
-        self.train_loader = ContrastiveWrapper(
+        train_loader = ContrastiveWrapper(
             train_pipeline,
             output_map=self.output_map,
             reader_name="Reader",
@@ -132,6 +134,12 @@ class ContrastiveABC(ABC):
             model_rank=device_id,
             model_device=self.device,
         )
+        return train_loader
+
+    def val_dataloader(self):
+        device_id = self.local_rank
+        shard_id = self.global_rank
+        num_shards = self.trainer.world_size
 
         val_pipeline = NormalPipeline(
             os.path.join(self.args.data_folder, self.args.val_dir),
@@ -139,22 +147,18 @@ class ContrastiveABC(ABC):
             batch_size=self.args.batch_size,
             device="gpu",
             device_id=device_id,
+            shard_id=shard_id,
             num_shards=num_shards,
             num_threads=self.args.num_workers,
         )
-        self.val_loader = Wrapper(
+        val_loader = Wrapper(
             val_pipeline,
             output_map=["x", "label"],
             reader_name="Reader",
             last_batch_policy=LastBatchPolicy.PARTIAL,
             auto_reset=True,
         )
-
-    def train_dataloader(self):
-        return self.train_loader
-
-    def val_dataloader(self):
-        return self.val_loader
+        return val_loader
 
 
 class ClassificationABC(ABC):
@@ -162,8 +166,9 @@ class ClassificationABC(ABC):
     Abstract classification class that returns a train_dataloader and val_dataloader using dali.
     """
 
-    def setup(self, stage=None):
+    def train_dataloader(self):
         device_id = self.local_rank
+        shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
         train_pipeline = NormalPipeline(
@@ -172,16 +177,23 @@ class ClassificationABC(ABC):
             batch_size=self.args.batch_size,
             device="gpu",
             device_id=device_id,
+            shard_id=shard_id,
             num_shards=num_shards,
             num_threads=self.args.num_workers,
         )
-        self.train_loader = Wrapper(
+        train_loader = Wrapper(
             train_pipeline,
             output_map=["x", "label"],
             reader_name="Reader",
             last_batch_policy=LastBatchPolicy.DROP,
             auto_reset=True,
         )
+        return train_loader
+
+    def val_dataloader(self):
+        device_id = self.local_rank
+        shard_id = self.global_rank
+        num_shards = self.trainer.world_size
 
         val_pipeline = NormalPipeline(
             os.path.join(self.args.data_folder, self.args.val_dir),
@@ -189,23 +201,19 @@ class ClassificationABC(ABC):
             batch_size=self.args.batch_size,
             device="gpu",
             device_id=device_id,
+            shard_id=shard_id,
             num_shards=num_shards,
             num_threads=self.args.num_workers,
         )
 
-        self.val_loader = Wrapper(
+        val_loader = Wrapper(
             val_pipeline,
             output_map=["x", "label"],
             reader_name="Reader",
             last_batch_policy=LastBatchPolicy.PARTIAL,
             auto_reset=True,
         )
-
-    def train_dataloader(self):
-        return self.train_loader
-
-    def val_dataloader(self):
-        return self.val_loader
+        return val_loader
 
 
 class DaliSimCLR(SimCLR, ContrastiveABC):

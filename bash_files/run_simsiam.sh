@@ -14,11 +14,11 @@ python3 ../main_contrastive.py \
     --gpus 0 1 \
     --num_workers 4 \
     --hidden_mlp 2048 \
-    --pred_hidden_mlp 512 \
-    --encoding_size 2048 \
+    --pred_hidden_mlp 128 \
+    --encoding_size 512 \
     --no_projection_bn \
     --zero_init_residual \
-    --name simsiam \
+    --name simsiam-smaller-heads \
     --method simsiam \
     --no_lr_scheduler_for_pred_head \
     --dali \
@@ -40,11 +40,11 @@ python3 ../main_contrastive.py \
     --gpus 0 1 \
     --num_workers 4 \
     --hidden_mlp 2048 \
-    --pred_hidden_mlp 128 \
-    --encoding_size 512 \
+    --pred_hidden_mlp 512 \
+    --encoding_size 2048 \
     --no_projection_bn \
     --zero_init_residual \
-    --name simsiam-smaller-heads \
+    --name simsiam \
     --method simsiam \
     --no_lr_scheduler_for_pred_head \
     --dali \

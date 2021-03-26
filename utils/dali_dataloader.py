@@ -31,7 +31,13 @@ class RandomGrayScaleConversion:
 
 class RandomColorJitter:
     def __init__(
-        self, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, prob=0.8, device="gpu",
+        self,
+        brightness=0.8,
+        contrast=0.8,
+        saturation=0.8,
+        hue=0.2,
+        prob=0.8,
+        device="gpu",
     ):
         assert 0 <= hue <= 0.5
 
@@ -80,6 +86,7 @@ class NormalPipeline(Pipeline):
         device,
         validation=False,
         device_id=0,
+        shard_id=0,
         num_shards=1,
         num_threads=4,
         seed=12,
@@ -92,12 +99,18 @@ class NormalPipeline(Pipeline):
 
         self.reader = ops.FileReader(
             file_root=data_path,
-            shard_id=device_id,
+            shard_id=shard_id,
             num_shards=num_shards,
             random_shuffle=True if not self.validation else False,
         )
+        decoder_device = "mixed" if self.device == "gpu" else "cpu"
+        device_memory_padding = 211025920 if decoder_device == "mixed" else 0
+        host_memory_padding = 140544512 if decoder_device == "mixed" else 0
         self.decode = ops.ImageDecoder(
-            device="mixed" if self.device == "gpu" else "cpu", output_type=types.RGB
+            device=decoder_device,
+            output_type=types.RGB,
+            device_memory_padding=device_memory_padding,
+            host_memory_padding=host_memory_padding,
         )
 
         # crop operations
@@ -173,6 +186,7 @@ class ContrastivePipeline(Pipeline):
         hue=0.2,
         random_shuffle=True,
         device_id=0,
+        shard_id=0,
         num_shards=1,
         num_threads=4,
         seed=12,
@@ -183,12 +197,18 @@ class ContrastivePipeline(Pipeline):
         self.device = device
         self.reader = ops.FileReader(
             file_root=data_path,
-            shard_id=device_id,
+            shard_id=shard_id,
             num_shards=num_shards,
             random_shuffle=random_shuffle,
         )
+        decoder_device = "mixed" if self.device == "gpu" else "cpu"
+        device_memory_padding = 211025920 if decoder_device == "mixed" else 0
+        host_memory_padding = 140544512 if decoder_device == "mixed" else 0
         self.decode = ops.ImageDecoder(
-            device="mixed" if self.device == "gpu" else "cpu", output_type=types.RGB
+            device=decoder_device,
+            output_type=types.RGB,
+            device_memory_padding=device_memory_padding,
+            host_memory_padding=host_memory_padding,
         )
 
         self.size_crops = size_crops
