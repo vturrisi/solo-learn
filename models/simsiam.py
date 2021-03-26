@@ -46,20 +46,20 @@ class SimSiam(Model):
         )
 
     def forward(self, X, classify_only=True):
-        features, y = super().forward(X, classify_only=False)
+        feat, y = super().forward(X, classify_only=False)
         if classify_only:
             return y
         else:
-            z = self.projection_head(features)
+            z = self.projection_head(feat)
             p = self.prediction_head(z)
-            return features, z, p, y
+            return z, p, y
 
     def training_step(self, batch, batch_idx):
         indexes, (X_aug1, X_aug2), target = batch
 
         # features, projection head features, class
-        features, z1, p1, output = self(X_aug1, classify_only=False)
-        _, z2, p2, _ = self(X_aug2, classify_only=False)
+        z1, p1, output = self(X_aug1, classify_only=False)
+        z2, p2, _ = self(X_aug2, classify_only=False)
 
         # ------- contrastive loss -------
         neg_cos_sim = (

@@ -179,11 +179,11 @@ class Model(BaseModel):
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
     def forward(self, X, classify_only=True):
-        features = self.encoder(X)
+        feat = self.encoder(X)
         # stop gradients from the classifier
-        y = self.classifier(features.detach())
+        y = self.classifier(feat.detach())
 
         if classify_only:
             return y
 
-        return features, y
+        return feat, y
