@@ -1,9 +1,7 @@
 python3 ../main_linear.py \
-    imagenet100 \
+    cifar10 \
     resnet18 \
     --data_folder /data/datasets \
-    --train_dir imagenet-100/train \
-    --val_dir imagenet-100/test \
     --epochs 100 \
     --optimizer sgd \
     --scheduler step \
@@ -15,6 +13,5 @@ python3 ../main_linear.py \
     --num_workers 10 \
     --no_projection_bn \
     --name simsiam-linear-eval \
-    --pretrained_feature_extractor trained_models/ID \
-    --dali \
-    --project contrastive_learning
+    --pretrained_feature_extractor trained_models/1upaqr1q \
+    --project debug
