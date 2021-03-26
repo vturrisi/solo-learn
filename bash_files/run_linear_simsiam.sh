@@ -13,5 +13,5 @@ python3 ../main_linear.py \
     --num_workers 10 \
     --no_projection_bn \
     --name simsiam-linear-eval \
-    --pretrained_feature_extractor trained_models/1upaqr1q \
-    --project debug
+    --pretrained_feature_extractor trained_models/PATH \
+    --project contrastive_learning

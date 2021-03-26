@@ -5,17 +5,18 @@ import sys
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.plugins import DDPPlugin
 
-from models.simclr import SimCLR
-from models.dali import DaliSimCLR, DaliBarlowTwins, DaliSimSiam
 from models.barlow_twins import BarlowTwins
+from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam
+from models.simclr import SimCLR
 from models.simsiam import SimSiam
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
 from utils.epoch_checkpointer import EpochCheckpointer
-from utils.classification_dataloader import prepare_data as prepare_data_classification
 
 
 def parse_args():
@@ -209,6 +210,7 @@ def main():
         sync_batchnorm=True,
         resume_from_checkpoint=args.resume_training_from,
         callbacks=callbacks,
+        plugins=DDPPlugin(find_unused_parameters=False),
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
