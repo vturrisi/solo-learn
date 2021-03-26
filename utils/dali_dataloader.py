@@ -103,8 +103,14 @@ class NormalPipeline(Pipeline):
             num_shards=num_shards,
             random_shuffle=True if not self.validation else False,
         )
+        decoder_device = "mixed" if self.device == "gpu" else "cpu"
+        device_memory_padding = 211025920 if decoder_device == "mixed" else 0
+        host_memory_padding = 140544512 if decoder_device == "mixed" else 0
         self.decode = ops.ImageDecoder(
-            device="mixed" if self.device == "gpu" else "cpu", output_type=types.RGB
+            device=decoder_device,
+            output_type=types.RGB,
+            device_memory_padding=device_memory_padding,
+            host_memory_padding=host_memory_padding,
         )
 
         # crop operations
@@ -195,8 +201,14 @@ class ContrastivePipeline(Pipeline):
             num_shards=num_shards,
             random_shuffle=random_shuffle,
         )
+        decoder_device = "mixed" if self.device == "gpu" else "cpu"
+        device_memory_padding = 211025920 if decoder_device == "mixed" else 0
+        host_memory_padding = 140544512 if decoder_device == "mixed" else 0
         self.decode = ops.ImageDecoder(
-            device="mixed" if self.device == "gpu" else "cpu", output_type=types.RGB
+            device=decoder_device,
+            output_type=types.RGB,
+            device_memory_padding=device_memory_padding,
+            host_memory_padding=host_memory_padding,
         )
 
         self.size_crops = size_crops
