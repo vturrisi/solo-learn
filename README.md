@@ -68,7 +68,7 @@ python3 ../main_contrastive.py \
     --temperature 0.2 \
     --gpus 0 1 \
     --num_workers 8 \
-    --hidden_mlp 2048 \
+    --hidden_dim 2048 \
     --name simclr \
     --project contrastive_learning
 ```

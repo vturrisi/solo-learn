@@ -13,9 +13,9 @@ python3 ../main_contrastive.py \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 4 \
-    --hidden_mlp 2048 \
-    --pred_hidden_mlp 128 \
-    --encoding_size 512 \
+    --hidden_dim 2048 \
+    --pred_hidden_dim 128 \
+    --encoding_dim 512 \
     --zero_init_residual \
     --name simsiam-smaller-heads \
     --method simsiam \
@@ -38,9 +38,9 @@ python3 ../main_contrastive.py \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 4 \
-    --hidden_mlp 2048 \
-    --pred_hidden_mlp 512 \
-    --encoding_size 2048 \
+    --hidden_dim 2048 \
+    --pred_hidden_dim 512 \
+    --encoding_dim 2048 \
     --zero_init_residual \
     --name simsiam \
     --method simsiam \

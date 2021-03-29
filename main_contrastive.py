@@ -65,8 +65,8 @@ def parse_args():
     parser.add_argument("--zero_init_residual", action="store_true")
 
     # projection head
-    parser.add_argument("--encoding_size", type=int, default=128)
-    parser.add_argument("--hidden_mlp", type=int, default=2048)
+    parser.add_argument("--encoding_dim", type=int, default=128)
+    parser.add_argument("--hidden_dim", type=int, default=2048)
 
     # extra training settings
     parser.add_argument("--resume_training_from", type=str)
@@ -98,7 +98,7 @@ def parse_args():
     parser.add_argument("--lamb", type=float, default=5e-3)
 
     # extra simsiam settings
-    parser.add_argument("--pred_hidden_mlp", type=int, default=512)
+    parser.add_argument("--pred_hidden_dim", type=int, default=512)
 
     # wandb
     parser.add_argument("--name")
