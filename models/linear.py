@@ -15,7 +15,7 @@ from torch.optim.lr_scheduler import (
 )
 
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from utils.metrics import accuracy_at_k, weighted_mean
 

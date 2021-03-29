@@ -11,7 +11,7 @@ try:
 except:
     from .base import Model
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.info_nce import info_nce, manual_info_nce_sava
 from utils.gather_layer import gather

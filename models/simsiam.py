@@ -10,7 +10,7 @@ try:
 except:
     from .base import Model
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.neg_cosine_sim import negative_cosine_similarity
 from utils.metrics import accuracy_at_k
