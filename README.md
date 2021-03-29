@@ -27,6 +27,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 | Resnet   	| Barlow Twins 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	| :x: |                    	| :heavy_check_mark: 	|                    	| 70.72              	| 71.22                        	|
 | Resnet   	| SimSiam 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	| 512 |                    	| :heavy_check_mark: 	|                    	| 66.72              	| 71.16                        	|
 | Resnet   	| SimSiam 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 69.28              	| 72.22                        	|
+| Resnet   	| SimSiam 	| Imagenet 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 55.422              	|                         	|
 
 
 ## Notes:
@@ -68,7 +69,6 @@ python3 ../main_contrastive.py \
     --gpus 0 1 \
     --num_workers 8 \
     --hidden_mlp 2048 \
-    --no_projection_bn \
     --name simclr \
     --project contrastive_learning
 ```
@@ -91,7 +91,6 @@ python3 main_linear.py \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 10 \
-    --no_projection_bn \
     --name simclr-linear-eval \
     --pretrained_feature_extractor trained_models/WANDB_RANDOM_ID \
     --project contrastive_learning

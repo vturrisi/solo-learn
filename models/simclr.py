@@ -22,7 +22,6 @@ class SimCLR(Model):
     def __init__(self, args):
         super().__init__(args)
 
-        projection_bn = args.projection_bn
         hidden_mlp = args.hidden_mlp
         output_dim = args.encoding_size
         assert output_dim > 0
@@ -33,19 +32,11 @@ class SimCLR(Model):
         if hidden_mlp == 0:
             self.projection_head = nn.Linear(self.encoder.n_features, output_dim)
         else:
-            if projection_bn:
-                self.projection_head = nn.Sequential(
-                    nn.Linear(self.encoder.n_features, hidden_mlp),
-                    nn.BatchNorm1d(hidden_mlp),
-                    nn.ReLU(inplace=True),
-                    nn.Linear(hidden_mlp, output_dim),
-                )
-            else:
-                self.projection_head = nn.Sequential(
-                    nn.Linear(self.encoder.n_features, hidden_mlp),
-                    nn.ReLU(inplace=True),
-                    nn.Linear(hidden_mlp, output_dim),
-                )
+            self.projection_head = nn.Sequential(
+                nn.Linear(self.encoder.n_features, hidden_mlp),
+                nn.ReLU(inplace=True),
+                nn.Linear(hidden_mlp, output_dim),
+            )
 
     def forward(self, X, classify_only=True):
         features, y = super().forward(X, classify_only=False)

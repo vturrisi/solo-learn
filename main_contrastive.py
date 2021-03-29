@@ -27,9 +27,11 @@ def parse_args():
         "imagenet",
         "imagenet100",
     ]
+
     SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
 
     SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
+
     SUPPORTED_SCHEDULERS = [
         "reduce",
         "cosine",
@@ -65,7 +67,6 @@ def parse_args():
     # projection head
     parser.add_argument("--encoding_size", type=int, default=128)
     parser.add_argument("--hidden_mlp", type=int, default=2048)
-    parser.add_argument("--no_projection_bn", action="store_true")
 
     # extra training settings
     parser.add_argument("--resume_training_from", type=str)
@@ -82,12 +83,12 @@ def parse_args():
     parser.add_argument("--multicrop", action="store_true")
     parser.add_argument("--n_crops", type=int, default=2)
     parser.add_argument("--n_small_crops", type=int, default=6)
-    parser.add_argument("--dali", action="store_true")
-    parser.add_argument("--last_batch_fill", action="store_true")
     parser.add_argument("--brightness", type=float, default=0.8)
     parser.add_argument("--contrast", type=float, default=0.8)
     parser.add_argument("--saturation", type=float, default=0.8)
     parser.add_argument("--hue", type=float, default=0.2)
+    parser.add_argument("--dali", action="store_true")
+    parser.add_argument("--last_batch_fill", action="store_true")
 
     # extra simclr settings
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -124,8 +125,6 @@ def parse_args():
 
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
-
-    args.projection_bn = not args.no_projection_bn
 
     return args
 

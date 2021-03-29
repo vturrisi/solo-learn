@@ -44,28 +44,16 @@ def parse_args():
 
     # optimizer
     parser.add_argument(
-        "-optimizer",
-        "--optimizer",
-        default="sgd",
-        choices=SUPPORTED_OPTIMIZERS,
-        type=str,
+        "-optimizer", "--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str,
     )
     parser.add_argument("--lars", action="store_true")
 
     # scheduler
     parser.add_argument(
-        "-scheduler",
-        "--scheduler",
-        choices=SUPPORTED_SCHEDULERS,
-        type=str,
-        default="reduce",
+        "-scheduler", "--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce",
     )
     parser.add_argument(
-        "-lr_decay_steps",
-        "--lr_decay_steps",
-        default=[200, 300, 350],
-        type=int,
-        nargs="+",
+        "-lr_decay_steps", "--lr_decay_steps", default=[200, 300, 350], type=int, nargs="+",
     )
 
     # general settings
@@ -74,7 +62,6 @@ def parse_args():
 
     parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument("--weight_decay", type=float, default=0)
-    parser.add_argument("--no_projection_bn", action="store_true")
 
     # training settings
     parser.add_argument("--resume_training_from", type=str)
@@ -113,8 +100,6 @@ def parse_args():
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-
-    args.projection_bn = not args.no_projection_bn
 
     args.n_projection_heads = 1
 

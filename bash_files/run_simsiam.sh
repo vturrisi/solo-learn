@@ -16,7 +16,6 @@ python3 ../main_contrastive.py \
     --hidden_mlp 2048 \
     --pred_hidden_mlp 128 \
     --encoding_size 512 \
-    --no_projection_bn \
     --zero_init_residual \
     --name simsiam-smaller-heads \
     --method simsiam \
@@ -42,7 +41,6 @@ python3 ../main_contrastive.py \
     --hidden_mlp 2048 \
     --pred_hidden_mlp 512 \
     --encoding_size 2048 \
-    --no_projection_bn \
     --zero_init_residual \
     --name simsiam \
     --method simsiam \

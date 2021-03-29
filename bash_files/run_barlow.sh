@@ -14,7 +14,6 @@ python3 ../main_contrastive.py \
     --num_workers 4 \
     --hidden_mlp 2048 \
     --encoding_size 2048 \
-    --no_projection_bn \
     --name barlow \
     --method barlow_twins \
     --lars \
