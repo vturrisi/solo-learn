@@ -27,7 +27,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 | Resnet   	| Barlow Twins 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	| :x: |                    	| :heavy_check_mark: 	|                    	| 70.72              	| 71.22                        	|
 | Resnet   	| SimSiam 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 2048              	| 512 |                    	| :heavy_check_mark: 	|                    	| 66.72              	| 71.16                        	|
 | Resnet   	| SimSiam 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 69.28              	| 72.22                        	|
-| Resnet   	| SimSiam 	| Imagenet 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 55.422              	|                         	|
+| Resnet   	| SimSiam 	| Imagenet 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 55.42              	| ~62.5 atm (running, but strenghting the augmentations seem to have a detrimental effect on imagenet)                         	|
 
 
 ## Notes:
