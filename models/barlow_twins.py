@@ -10,7 +10,7 @@ try:
 except:
     from .base import Model
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.barlow_twins_loss import barlow_twins_loss
 from utils.gather_layer import gather
@@ -21,21 +21,21 @@ class BarlowTwins(Model):
     def __init__(self, args):
         super().__init__(args)
 
-        hidden_mlp = args.hidden_mlp
-        output_dim = args.encoding_size
+        hidden_dim = args.hidden_dim
+        output_dim = args.encoding_dim
         assert output_dim > 0
 
         self.lamb = args.lamb
 
         # projection head
         self.projection_head = nn.Sequential(
-            nn.Linear(self.encoder.n_features, hidden_mlp),
-            nn.BatchNorm1d(hidden_mlp),
+            nn.Linear(self.encoder.n_features, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_mlp, hidden_mlp),
-            nn.BatchNorm1d(hidden_mlp),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_mlp, output_dim),
+            nn.Linear(hidden_dim, output_dim),
         )
 
     def forward(self, X, classify_only=True):

@@ -10,7 +10,7 @@ try:
 except:
     from .base import Model
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.neg_cosine_sim import negative_cosine_similarity
 from utils.metrics import accuracy_at_k
@@ -20,29 +20,29 @@ class SimSiam(Model):
     def __init__(self, args):
         super().__init__(args)
 
-        proj_hidden_mlp = args.hidden_mlp
-        output_dim = args.encoding_size
+        proj_hidden_dim = args.hidden_dim
+        output_dim = args.encoding_dim
 
-        pred_hidden_mlp = args.pred_hidden_mlp
+        pred_hidden_dim = args.pred_hidden_dim
 
         # projection head
         self.projection_head = nn.Sequential(
-            nn.Linear(self.encoder.n_features, proj_hidden_mlp),
-            nn.BatchNorm1d(proj_hidden_mlp),
+            nn.Linear(self.encoder.n_features, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(proj_hidden_mlp, proj_hidden_mlp),
-            nn.BatchNorm1d(proj_hidden_mlp),
+            nn.Linear(proj_hidden_dim, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(proj_hidden_mlp, output_dim),
+            nn.Linear(proj_hidden_dim, output_dim),
             nn.BatchNorm1d(output_dim),
         )
 
         # prediction head
         self.prediction_head = nn.Sequential(
-            nn.Linear(output_dim, pred_hidden_mlp),
-            nn.BatchNorm1d(pred_hidden_mlp),
+            nn.Linear(output_dim, pred_hidden_dim),
+            nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(pred_hidden_mlp, output_dim),
+            nn.Linear(pred_hidden_dim, output_dim),
         )
 
     def forward(self, X, classify_only=True):

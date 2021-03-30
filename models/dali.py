@@ -17,7 +17,7 @@ except:
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from abc import ABC
 
@@ -46,12 +46,7 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self,
-        *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
-        **kwargs,
+        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size

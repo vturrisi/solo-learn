@@ -20,7 +20,7 @@ try:
 except:
     from .resnet import resnet18, resnet50
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from utils.metrics import accuracy_at_k, weighted_mean
 
@@ -105,10 +105,7 @@ class BaseModel(pl.LightningModule):
         else:
             if self.args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=10,
-                    max_epochs=self.args.epochs,
-                    warmup_start_lr=0.003,
+                    optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
                 )
             elif self.args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
