@@ -87,8 +87,10 @@ def parse_args():
     parser.add_argument("--contrast", type=float, default=0.8)
     parser.add_argument("--saturation", type=float, default=0.8)
     parser.add_argument("--hue", type=float, default=0.2)
+    # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
+    # this might make things slightly faster
     parser.add_argument("--jit_transforms", action="store_true")
 
     # extra simclr settings

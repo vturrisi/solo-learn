@@ -26,9 +26,11 @@ def parse_args():
         "imagenet",
         "imagenet100",
     ]
+
     SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
 
     SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
+
     SUPPORTED_SCHEDULERS = [
         "reduce",
         "cosine",
@@ -43,27 +45,20 @@ def parse_args():
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
     # optimizer
-    parser.add_argument(
-        "-optimizer", "--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str,
-    )
+    parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
     parser.add_argument("--lars", action="store_true")
 
     # scheduler
-    parser.add_argument(
-        "-scheduler", "--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce",
-    )
-    parser.add_argument(
-        "-lr_decay_steps", "--lr_decay_steps", default=[200, 300, 350], type=int, nargs="+",
-    )
+    parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
+    parser.add_argument("--lr_decay_steps", default=[200, 300, 350], type=int, nargs="+")
 
     # general settings
-    parser.add_argument("--epochs", type=int, default=1000)
+    parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=256)
-
     parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument("--weight_decay", type=float, default=0)
 
-    # training settings
+    # extra training settings
     parser.add_argument("--resume_training_from", type=str)
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--gpus", type=int, nargs="+")
@@ -79,7 +74,9 @@ def parse_args():
     parser.add_argument("--data_folder", default=None)
     parser.add_argument("--train_dir", default=None)
     parser.add_argument("--val_dir", default=None)
-    # this only works for imagenet, but you prob won't need to any other of the "normal" datasets
+
+    # extra dataloader settings
+    # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
 
     args = parser.parse_args()
