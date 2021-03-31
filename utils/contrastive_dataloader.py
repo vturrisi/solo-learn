@@ -1,73 +1,41 @@
 import os
 
-import cv2
-import numpy as np
-from PIL import Image
+import torch
+import torch.jit as jit
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
+from torchvision.io import read_image
 
 
 class MultiCropAugmentation:
     def __init__(
-        self, T, size_crops, nmb_crops, min_scale_crops, max_scale_crops,
+        self, T, size_crops, nmb_crops, min_scale_crops, max_scale_crops, jit_transforms=False,
     ):
         self.size_crops = size_crops
         self.nmb_crops = nmb_crops
         self.min_scale_crops = min_scale_crops
         self.max_scale_crops = max_scale_crops
+        self.jit_transforms = jit_transforms
 
-        trans = []
+        self.transforms = []
         for i in range(len(size_crops)):
             randomresizedcrop = transforms.RandomResizedCrop(
                 size_crops[i], scale=(min_scale_crops[i], max_scale_crops[i]),
             )
-            trans.extend([transforms.Compose([randomresizedcrop, *T])] * nmb_crops[i])
-        self.transform = trans
+
+            if jit_transforms:
+                transform = jit.script(nn.Sequential(randomresizedcrop, *T))
+            else:
+                transform = transforms.Compose([randomresizedcrop, *T])
+            self.transforms.append(transform)
 
     def __call__(self, x):
-        # this preserves the class label
-        if isinstance(x, Image.Image):
-            multi_crops = [trans(x) for trans in self.transform]
-            return multi_crops
-        else:
-            return x
-
-
-class MultiCropAugmentationConsensus:
-    def __init__(
-        self, T, size_crops, nmb_crops, min_scale_crops, max_scale_crops,
-    ):
-        self.size_crops = size_crops
-        self.nmb_crops = nmb_crops
-        self.min_scale_crops = min_scale_crops
-        self.max_scale_crops = max_scale_crops
-
-        # i will assume that we are always normalizing,
-        # so i can just take the last two transforms out
-        self.T_tensor = transforms.Compose(T[-2:])
-        T = T[:-2]
-
-        trans = []
-        for i in range(len(size_crops)):
-            randomresizedcrop = transforms.RandomResizedCrop(
-                size_crops[i], scale=(min_scale_crops[i], max_scale_crops[i]),
-            )
-            trans.extend([transforms.Compose([randomresizedcrop, *T])])
-        self.transform = trans
-
-    def __call__(self, x):
-        # this preserves the class label
-        if isinstance(x, Image.Image):
-            large_crops = [self.transform[0](x) for i in range(self.nmb_crops[0])]
-            small_crops = [self.transform[1](x) for i in range(self.nmb_crops[1])]
-            multi_crops = [
-                *[self.T_tensor(crop) for crop in large_crops],
-                *[self.T_tensor(crop) for crop in small_crops],
-            ]
-            return multi_crops
-        else:
-            return x
+        imgs = []
+        for n, transform in zip(self.nmb_crops, self.transforms):
+            imgs.extend([transform(x) for i in range(n)])
+        return imgs
 
 
 class NAugmentationsTransform:
@@ -76,11 +44,7 @@ class NAugmentationsTransform:
         self.n = n
 
     def __call__(self, x):
-        # this preserves the class label
-        if isinstance(x, Image.Image):
-            return [self.transform(x) for i in range(self.n)]
-        else:
-            return x
+        return [self.transform(x) for i in range(self.n)]
 
 
 class ImageFolderWithIndex:
@@ -95,30 +59,13 @@ class ImageFolderWithIndex:
         return index, (*data)
 
 
-class RandomGaussianBlur:
-    def __call__(self, img):
-        do_it = np.random.rand() > 0.5
-        if not do_it:
-            return img
-        sigma = np.random.rand() * 1.9 + 0.1
-        return Image.fromarray(cv2.GaussianBlur(np.asarray(img), (23, 23), sigma))
-
-
-def get_color_distortion(brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2):
-    color_jitter = transforms.ColorJitter(brightness, contrast, saturation, hue)
-    rnd_color_jitter = transforms.RandomApply([color_jitter], p=0.8)
-    rnd_gray = transforms.RandomGrayscale(p=0.2)
-    color_distort = transforms.Compose([rnd_color_jitter, rnd_gray])
-    return color_distort
-
-
 def prepare_transformations(
-    dataset, n_augs=2, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2
+    dataset, n_augs=2, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, jit_transforms=False
 ):
     if dataset in ["cifar10", "cifar100"]:
         T = transforms.Compose(
             [
-                transforms.RandomResizedCrop((32, 32), scale=(0.2, 1)),
+                transforms.RandomResizedCrop((32, 32), scale=(0.2, 1.0)),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
@@ -129,7 +76,7 @@ def prepare_transformations(
     elif dataset == "stl10":
         T = transforms.Compose(
             [
-                transforms.RandomResizedCrop((96, 96), scale=(0.2, 1)),
+                transforms.RandomResizedCrop((96, 96), scale=(0.2, 1.0)),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
@@ -139,24 +86,35 @@ def prepare_transformations(
         )
     elif dataset in ["imagenet", "imagenet100"]:
         T = [
-            transforms.RandomResizedCrop((224, 224), scale=(0.2, 1)),
+            transforms.RandomResizedCrop(224, scale=(0.2, 1.0)),
             transforms.RandomApply(
-                [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8
+                nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
+                p=0.8,
             ),
             transforms.RandomGrayscale(p=0.2),
-            RandomGaussianBlur(),
+            transforms.RandomApply(nn.ModuleList([transforms.GaussianBlur(23)]), p=0.5),
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.ToTensor(),
+            transforms.ConvertImageDtype(torch.float) if jit_transforms else transforms.ToTensor(),
             transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
         ]
-        T = transforms.Compose(T)
+
+        if jit_transforms:
+            T = jit.script(nn.Sequential(*T))
+        else:
+            T = transforms.Compose(T)
 
     T = NAugmentationsTransform(T, n_augs)
     return T
 
 
 def prepare_transformations_multicrop(
-    dataset, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, nmb_crops=None, consensus=False
+    dataset,
+    brightness=0.8,
+    contrast=0.8,
+    saturation=0.8,
+    hue=0.2,
+    nmb_crops=None,
+    jit_transforms=False,
 ):
     if nmb_crops is None:
         nmb_crops = [2, 6]
@@ -183,39 +141,35 @@ def prepare_transformations_multicrop(
     elif dataset in ["imagenet", "imagenet100"]:
         size_crops = [224, 96]
         T = [
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.Compose(
-                [
-                    get_color_distortion(
-                        brightness=brightness, contrast=contrast, saturation=saturation, hue=hue
-                    ),
-                    RandomGaussianBlur(),
-                ]
+            transforms.RandomApply(
+                nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
+                p=0.8,
             ),
-            transforms.ToTensor(),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.RandomApply(nn.ModuleList([transforms.GaussianBlur(23)]), p=0.5),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.ConvertImageDtype(torch.float) if jit_transforms else transforms.ToTensor(),
             transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
         ]
-    if consensus:
-        T = MultiCropAugmentationConsensus(
-            T,
-            size_crops=size_crops,
-            nmb_crops=nmb_crops,
-            min_scale_crops=min_scale_crops,
-            max_scale_crops=max_scale_crops,
-        )
-    else:
-        T = MultiCropAugmentation(
-            T,
-            size_crops=size_crops,
-            nmb_crops=nmb_crops,
-            min_scale_crops=min_scale_crops,
-            max_scale_crops=max_scale_crops,
-        )
+    T = MultiCropAugmentation(
+        T,
+        size_crops=size_crops,
+        nmb_crops=nmb_crops,
+        min_scale_crops=min_scale_crops,
+        max_scale_crops=max_scale_crops,
+        jit_transforms=jit_transforms,
+    )
     return T
 
 
 def prepare_datasets(
-    dataset, T, data_folder=None, train_dir=None, val_dir=None, with_index=True,
+    dataset,
+    T,
+    data_folder=None,
+    train_dir=None,
+    val_dir=None,
+    with_index=True,
+    jit_transforms=False,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -261,21 +215,16 @@ def prepare_datasets(
             os.path.join(data_folder, val_dir), split="test", download=True, transform=T,
         )
 
-    elif dataset == "imagenet":
+    elif dataset in ["imagenet", "imagenet100"]:
         train_dir = os.path.join(data_folder, train_dir)
         val_dir = os.path.join(data_folder, val_dir)
 
-        train_dataset = ImageFolder(train_dir, T)
-
-        val_dataset = ImageFolder(val_dir, T)
-
-    elif dataset == "imagenet100":
-        train_dir = os.path.join(data_folder, train_dir)
-        val_dir = os.path.join(data_folder, val_dir)
-
-        train_dataset = ImageFolder(train_dir, T)
-
-        val_dataset = ImageFolder(val_dir, T)
+        if jit_transforms:
+            train_dataset = ImageFolder(train_dir, T, loader=read_image)
+            val_dataset = ImageFolder(val_dir, T, loader=read_image)
+        else:
+            train_dataset = ImageFolder(train_dir, T)
+            val_dataset = ImageFolder(val_dir, T)
 
     if with_index:
         train_dataset = ImageFolderWithIndex(train_dataset)
@@ -284,7 +233,7 @@ def prepare_datasets(
     return train_dataset, val_dataset
 
 
-def prepare_dataloaders(train_dataset, val_dataset, n_augs=2, batch_size=64, num_workers=4):
+def prepare_dataloaders(train_dataset, val_dataset, batch_size=64, num_workers=4):
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -305,7 +254,7 @@ def prepare_dataloaders(train_dataset, val_dataset, n_augs=2, batch_size=64, num
 
 def prepare_data(
     dataset,
-    n_augs,
+    n_augs=2,
     brightness=0.8,
     contrast=0.8,
     saturation=0.8,
@@ -316,6 +265,7 @@ def prepare_data(
     batch_size=64,
     num_workers=4,
     with_index=True,
+    jit_transforms=False,
 ):
     T = prepare_transformations(
         dataset,
@@ -324,6 +274,7 @@ def prepare_data(
         saturation=saturation,
         hue=hue,
         n_augs=n_augs,
+        jit_transforms=jit_transforms,
     )
     train_dataset, val_dataset = prepare_datasets(
         dataset,
@@ -332,9 +283,10 @@ def prepare_data(
         train_dir=train_dir,
         val_dir=val_dir,
         with_index=with_index,
+        jit_transforms=jit_transforms,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset, val_dataset, n_augs=n_augs, batch_size=batch_size, num_workers=num_workers,
+        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
     )
     return train_loader, val_loader
 
@@ -346,13 +298,13 @@ def prepare_data_multicrop(
     saturation=0.8,
     hue=0.2,
     nmb_crops=None,
-    consensus=False,
     data_folder=None,
     train_dir=None,
     val_dir=None,
     batch_size=64,
     num_workers=4,
     with_index=True,
+    jit_transforms=False,
 ):
     T = prepare_transformations_multicrop(
         dataset,
@@ -361,7 +313,7 @@ def prepare_data_multicrop(
         saturation=saturation,
         hue=hue,
         nmb_crops=nmb_crops,
-        consensus=consensus,
+        jit_transforms=jit_transforms,
     )
     train_dataset, val_dataset = prepare_datasets(
         dataset,
@@ -370,8 +322,35 @@ def prepare_data_multicrop(
         train_dir=train_dir,
         val_dir=val_dir,
         with_index=with_index,
+        jit_transforms=jit_transforms,
     )
     train_loader, val_loader = prepare_dataloaders(
         train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
     )
     return train_loader, val_loader
+
+
+if __name__ == "__main__":
+    dataset = "imagenet100"
+    data_folder = "/home/vturrisi/Documents/hmdb_ucf/hmdb/test"
+    train_dir = "fencing"
+    val_dir = "fencing"
+    torch.manual_seed(17)
+
+    train_loader, _ = prepare_data(
+        dataset,
+        data_folder=data_folder,
+        train_dir=train_dir,
+        val_dir=val_dir,
+        batch_size=15,
+        num_workers=5,
+        with_index=True,
+        jit_transforms=False,
+    )
+    import time
+
+    start = time.time()
+    batch = next(iter(train_loader))
+    indexes, all_X, target = batch
+    print([x.size() for x in all_X])
+    print(time.time() - start)
