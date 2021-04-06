@@ -8,7 +8,7 @@ class Mux:
     # DALI doesn't support probabilistic augmentations, so we use muxing.
     def __init__(self, prob):
         self.to_bool = ops.Cast(dtype=types.DALIDataType.BOOL)
-        self.rng = ops.CoinFlip(probability=prob)
+        self.rng = ops.random.CoinFlip(probability=prob)
 
     def __call__(self, true_case, false_case):
         condition = self.to_bool(self.rng())
@@ -41,12 +41,12 @@ class RandomColorJitter:
         # for bright, cont and sat, it samples from [1-v, 1+v]
         # for hue, it samples from [-hue, hue]
         self.color = ops.ColorTwist(device=device)
-        self.brightness = ops.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
-        self.contrast = ops.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
-        self.saturation = ops.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
+        self.brightness = ops.random.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
+        self.contrast = ops.random.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
+        self.saturation = ops.random.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
         # dali uses hue in degrees for some reason...
         hue = 360 * hue
-        self.hue = ops.Uniform(range=[-hue, hue])
+        self.hue = ops.random.Uniform(range=[-hue, hue])
 
     def __call__(self, images):
         out = self.color(
@@ -64,7 +64,7 @@ class RandomGaussianBlur:
         self.mux = Mux(prob=prob)
         # gaussian blur
         self.gaussian_blur = ops.GaussianBlur(device=device, window_size=(23, 23))
-        self.sigma = ops.Uniform(range=[0, 1])
+        self.sigma = ops.random.Uniform(range=[0, 1])
 
     def __call__(self, images):
         sigma = self.sigma() * 1.9 + 0.1
@@ -139,7 +139,7 @@ class NormalPipeline(Pipeline):
                 std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
             )
 
-        self.coin05 = ops.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=0.5)
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
     def define_graph(self):
@@ -246,7 +246,7 @@ class ContrastivePipeline(Pipeline):
             std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
         )
 
-        self.coin05 = ops.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=0.5)
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
     def define_graph(self):
