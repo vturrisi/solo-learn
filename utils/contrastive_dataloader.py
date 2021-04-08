@@ -11,7 +11,13 @@ from torchvision.io import read_image
 
 class MultiCropAugmentation:
     def __init__(
-        self, T, size_crops, nmb_crops, min_scale_crops, max_scale_crops, jit_transforms=False,
+        self,
+        T,
+        size_crops,
+        nmb_crops,
+        min_scale_crops,
+        max_scale_crops,
+        jit_transforms=False,
     ):
         self.size_crops = size_crops
         self.nmb_crops = nmb_crops
@@ -22,7 +28,8 @@ class MultiCropAugmentation:
         self.transforms = []
         for i in range(len(size_crops)):
             randomresizedcrop = transforms.RandomResizedCrop(
-                size_crops[i], scale=(min_scale_crops[i], max_scale_crops[i]),
+                size_crops[i],
+                scale=(min_scale_crops[i], max_scale_crops[i]),
             )
 
             if jit_transforms:
@@ -188,20 +195,32 @@ def prepare_datasets(
 
     if dataset == "cifar10":
         train_dataset = CIFAR10(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=T,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=T,
         )
 
         val_dataset = CIFAR10(
-            os.path.join(data_folder, val_dir), train=False, download=True, transform=T,
+            os.path.join(data_folder, val_dir),
+            train=False,
+            download=True,
+            transform=T,
         )
 
     elif dataset == "cifar100":
         train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=T,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=T,
         )
 
         val_dataset = CIFAR100(
-            os.path.join(data_folder, val_dir), train=False, download=True, transform=T,
+            os.path.join(data_folder, val_dir),
+            train=False,
+            download=True,
+            transform=T,
         )
 
     elif dataset == "stl10":
@@ -212,7 +231,10 @@ def prepare_datasets(
             transform=T,
         )
         val_dataset = STL10(
-            os.path.join(data_folder, val_dir), split="test", download=True, transform=T,
+            os.path.join(data_folder, val_dir),
+            split="test",
+            download=True,
+            transform=T,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
@@ -286,7 +308,10 @@ def prepare_data(
         jit_transforms=jit_transforms,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
+        train_dataset,
+        val_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
     )
     return train_loader, val_loader
 
@@ -325,32 +350,9 @@ def prepare_data_multicrop(
         jit_transforms=jit_transforms,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
+        train_dataset,
+        val_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
     )
     return train_loader, val_loader
-
-
-if __name__ == "__main__":
-    dataset = "imagenet100"
-    data_folder = "/home/vturrisi/Documents/hmdb_ucf/hmdb/test"
-    train_dir = "fencing"
-    val_dir = "fencing"
-    torch.manual_seed(17)
-
-    train_loader, _ = prepare_data(
-        dataset,
-        data_folder=data_folder,
-        train_dir=train_dir,
-        val_dir=val_dir,
-        batch_size=15,
-        num_workers=5,
-        with_index=True,
-        jit_transforms=False,
-    )
-    import time
-
-    start = time.time()
-    batch = next(iter(train_loader))
-    indexes, all_X, target = batch
-    print([x.size() for x in all_X])
-    print(time.time() - start)
