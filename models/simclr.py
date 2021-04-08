@@ -44,8 +44,6 @@ class SimCLR(Model):
             return y
         else:
             z = self.projection_head(features)
-            print(features.size(), z.size(), y.size())
-            exit()
             return features, z, y
 
     @torch.no_grad()
