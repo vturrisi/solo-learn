@@ -31,13 +31,7 @@ class RandomGrayScaleConversion:
 
 class RandomColorJitter:
     def __init__(
-        self,
-        brightness=0.8,
-        contrast=0.8,
-        saturation=0.8,
-        hue=0.2,
-        prob=0.8,
-        device="gpu",
+        self, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, prob=0.8, device="gpu",
     ):
         assert 0 <= hue <= 0.5
 
@@ -125,7 +119,7 @@ class NormalPipeline(Pipeline):
                 device=self.device,
                 dtype=types.FLOAT,
                 output_layout=types.NCHW,
-                crop=(256, 256),
+                crop=(224, 224),
                 mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
                 std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
             )

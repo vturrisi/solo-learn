@@ -45,7 +45,7 @@ def prepare_transformations(dataset, normalize=True):
         ]
         T_val = [
             transforms.Resize(256),  # resize shorter
-            transforms.CenterCrop(256),  # take center crop
+            transforms.CenterCrop(224),  # take center crop
             transforms.ToTensor(),
         ]
         if normalize:

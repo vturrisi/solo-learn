@@ -87,8 +87,11 @@ def parse_args():
     parser.add_argument("--contrast", type=float, default=0.8)
     parser.add_argument("--saturation", type=float, default=0.8)
     parser.add_argument("--hue", type=float, default=0.2)
+    # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
+    # this might make things slightly faster
+    parser.add_argument("--jit_transforms", action="store_true")
 
     # extra simclr settings
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -162,7 +165,7 @@ def main():
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 nmb_crops=[args.n_crops, args.n_small_crops],
-                consensus=False,
+                jit_transforms=args.jit_transforms,
             )
         else:
             train_loader, _ = prepare_data(
@@ -170,13 +173,13 @@ def main():
                 data_folder=args.data_folder,
                 train_dir=args.train_dir,
                 val_dir=args.val_dir,
-                n_augs=2,
                 brightness=args.brightness,
                 contrast=args.contrast,
                 saturation=args.saturation,
                 hue=args.hue,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
+                jit_transforms=args.jit_transforms,
             )
 
     # normal dataloader
