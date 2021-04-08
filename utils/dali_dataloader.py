@@ -8,7 +8,7 @@ class Mux:
     # DALI doesn't support probabilistic augmentations, so we use muxing.
     def __init__(self, prob):
         self.to_bool = ops.Cast(dtype=types.DALIDataType.BOOL)
-        self.rng = ops.CoinFlip(probability=prob)
+        self.rng = ops.random.CoinFlip(probability=prob)
 
     def __call__(self, true_case, false_case):
         condition = self.to_bool(self.rng())
@@ -47,12 +47,12 @@ class RandomColorJitter:
         # for bright, cont and sat, it samples from [1-v, 1+v]
         # for hue, it samples from [-hue, hue]
         self.color = ops.ColorTwist(device=device)
-        self.brightness = ops.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
-        self.contrast = ops.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
-        self.saturation = ops.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
+        self.brightness = ops.random.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
+        self.contrast = ops.random.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
+        self.saturation = ops.random.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
         # dali uses hue in degrees for some reason...
         hue = 360 * hue
-        self.hue = ops.Uniform(range=[-hue, hue])
+        self.hue = ops.random.Uniform(range=[-hue, hue])
 
     def __call__(self, images):
         out = self.color(
@@ -70,7 +70,7 @@ class RandomGaussianBlur:
         self.mux = Mux(prob=prob)
         # gaussian blur
         self.gaussian_blur = ops.GaussianBlur(device=device, window_size=(23, 23))
-        self.sigma = ops.Uniform(range=[0, 1])
+        self.sigma = ops.random.Uniform(range=[0, 1])
 
     def __call__(self, images):
         sigma = self.sigma() * 1.9 + 0.1
@@ -97,7 +97,7 @@ class NormalPipeline(Pipeline):
         self.device = device
         self.validation = validation
 
-        self.reader = ops.FileReader(
+        self.reader = ops.readers.File(
             file_root=data_path,
             shard_id=shard_id,
             num_shards=num_shards,
@@ -106,7 +106,7 @@ class NormalPipeline(Pipeline):
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0
-        self.decode = ops.ImageDecoder(
+        self.decode = ops.decoders.Image(
             device=decoder_device,
             output_type=types.RGB,
             device_memory_padding=device_memory_padding,
@@ -145,7 +145,7 @@ class NormalPipeline(Pipeline):
                 std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
             )
 
-        self.coin05 = ops.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=0.5)
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
     def define_graph(self):
@@ -195,7 +195,7 @@ class ContrastivePipeline(Pipeline):
         super().__init__(batch_size, num_threads, device_id, seed)
 
         self.device = device
-        self.reader = ops.FileReader(
+        self.reader = ops.readers.File(
             file_root=data_path,
             shard_id=shard_id,
             num_shards=num_shards,
@@ -204,7 +204,7 @@ class ContrastivePipeline(Pipeline):
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0
-        self.decode = ops.ImageDecoder(
+        self.decode = ops.decoders.Image(
             device=decoder_device,
             output_type=types.RGB,
             device_memory_padding=device_memory_padding,
@@ -252,7 +252,7 @@ class ContrastivePipeline(Pipeline):
             std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
         )
 
-        self.coin05 = ops.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=0.5)
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
     def define_graph(self):

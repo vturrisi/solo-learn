@@ -133,7 +133,8 @@ def main():
         ]
         checkpoints.sort(key=lambda ckpt: int(ckpt[:-5].split("ep=")[1]), reverse=True)
         ckpt_path = os.path.join(args.pretrained_feature_extractor, checkpoints[0])
-
+    
+    print(f'loaded {ckpt_path}')
     state = torch.load(ckpt_path)["state_dict"]
     model.load_state_dict(state, strict=False)
 

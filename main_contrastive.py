@@ -96,6 +96,7 @@ def parse_args():
 
     # extra barlow twins settings
     parser.add_argument("--lamb", type=float, default=5e-3)
+    parser.add_argument("--scale_loss", type=float, default=0.025)
 
     # extra simsiam settings
     parser.add_argument("--pred_hidden_dim", type=int, default=512)

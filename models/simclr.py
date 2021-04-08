@@ -44,6 +44,8 @@ class SimCLR(Model):
             return y
         else:
             z = self.projection_head(features)
+            print(features.size(), z.size(), y.size())
+            exit()
             return features, z, y
 
     @torch.no_grad()
@@ -86,7 +88,10 @@ class SimCLR(Model):
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
             nce_loss = manual_info_nce_sava(
-                z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
+                z,
+                pos_mask=pos_mask,
+                negative_mask=negative_mask,
+                temperature=self.temperature,
             )
         else:
             indexes, (X_aug1, X_aug2), target = batch
