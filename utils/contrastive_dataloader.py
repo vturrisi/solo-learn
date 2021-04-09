@@ -1,57 +1,10 @@
 import os
 
-import torch
-import torch.jit as jit
 import torch.nn as nn
+from PIL import ImageOps
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
-from torchvision.io import read_image
-
-
-class MultiCropAugmentation:
-    def __init__(
-        self,
-        T,
-        size_crops,
-        nmb_crops,
-        min_scale_crops,
-        max_scale_crops,
-        jit_transforms=False,
-    ):
-        self.size_crops = size_crops
-        self.nmb_crops = nmb_crops
-        self.min_scale_crops = min_scale_crops
-        self.max_scale_crops = max_scale_crops
-        self.jit_transforms = jit_transforms
-
-        self.transforms = []
-        for i in range(len(size_crops)):
-            randomresizedcrop = transforms.RandomResizedCrop(
-                size_crops[i],
-                scale=(min_scale_crops[i], max_scale_crops[i]),
-            )
-
-            if jit_transforms:
-                transform = jit.script(nn.Sequential(randomresizedcrop, *T))
-            else:
-                transform = transforms.Compose([randomresizedcrop, *T])
-            self.transforms.append(transform)
-
-    def __call__(self, x):
-        imgs = []
-        for n, transform in zip(self.nmb_crops, self.transforms):
-            imgs.extend([transform(x) for i in range(n)])
-        return imgs
-
-
-class NAugmentationsTransform:
-    def __init__(self, transform, n):
-        self.transform = transform
-        self.n = n
-
-    def __call__(self, x):
-        return [self.transform(x) for i in range(self.n)]
 
 
 class ImageFolderWithIndex:
@@ -66,11 +19,41 @@ class ImageFolderWithIndex:
         return index, (*data)
 
 
-def prepare_transformations(
-    dataset, n_augs=2, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, jit_transforms=False
-):
-    if dataset in ["cifar10", "cifar100"]:
-        T = transforms.Compose(
+class Solarization:
+    def __call__(self, img):
+        return ImageOps.solarize(img)
+
+
+class NCropAugmentation:
+    def __init__(self, transform, n_crops=None):
+        self.transform = transform
+
+        if isinstance(transform, list):
+            self.one_transform_per_crop = True
+        else:
+            self.one_transform_per_crop = False
+            self.n_crops = n_crops
+
+    def __call__(self, x):
+        if self.one_transform_per_crop:
+            return [transform(x) for transform in self.transform]
+        else:
+            return [self.transform(x) for i in range(self.n_crops)]
+
+
+class BaseTransform:
+    def __call__(self, x):
+        return self.transform(x)
+
+    def __repr__(self):
+        return str(self.transform)
+
+
+class CifarTransform(BaseTransform):
+    def __init__(self):
+        super().__init__()
+
+        self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop((32, 32), scale=(0.2, 1.0)),
                 transforms.RandomHorizontalFlip(p=0.5),
@@ -80,8 +63,12 @@ def prepare_transformations(
                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
             ]
         )
-    elif dataset == "stl10":
-        T = transforms.Compose(
+
+
+class STLTransform(BaseTransform):
+    def __init__(self):
+        super().__init__()
+        self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop((96, 96), scale=(0.2, 1.0)),
                 transforms.RandomHorizontalFlip(p=0.5),
@@ -91,92 +78,150 @@ def prepare_transformations(
                 transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
             ]
         )
-    elif dataset in ["imagenet", "imagenet100"]:
-        T = [
-            transforms.RandomResizedCrop(224, scale=(0.2, 1.0)),
-            transforms.RandomApply(
-                nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
-                p=0.8,
-            ),
-            transforms.RandomGrayscale(p=0.2),
-            transforms.RandomApply(nn.ModuleList([transforms.GaussianBlur(23)]), p=0.5),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.ConvertImageDtype(torch.float) if jit_transforms else transforms.ToTensor(),
-            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
-        ]
-
-        if jit_transforms:
-            T = jit.script(nn.Sequential(*T))
-        else:
-            T = transforms.Compose(T)
-
-    T = NAugmentationsTransform(T, n_augs)
-    return T
 
 
-def prepare_transformations_multicrop(
-    dataset,
-    brightness=0.8,
-    contrast=0.8,
-    saturation=0.8,
-    hue=0.2,
-    nmb_crops=None,
-    jit_transforms=False,
-):
-    if nmb_crops is None:
-        nmb_crops = [2, 6]
-    min_scale_crops = [0.14, 0.05]
-    max_scale_crops = [1.0, 0.14]
+class ImagenetTransform(BaseTransform):
+    def __init__(
+        self, brightness, contrast, saturation, hue, gaussian_prob=0.5, solarization_prob=0
+    ):
+        super().__init__()
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(224, scale=(0.2, 1.0)),
+                transforms.RandomApply(
+                    nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
+                    p=0.8,
+                ),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([transforms.GaussianBlur(23)], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+            ]
+        )
+
+
+class MulticropAugmentation:
+    def __init__(
+        self,
+        transform,
+        size_crops,
+        n_crops,
+        min_scale_crops,
+        max_scale_crops,
+    ):
+        self.size_crops = size_crops
+        self.n_crops = n_crops
+        self.min_scale_crops = min_scale_crops
+        self.max_scale_crops = max_scale_crops
+
+        self.transforms = []
+        for i in range(len(size_crops)):
+            rrc = transforms.RandomResizedCrop(
+                size_crops[i],
+                scale=(min_scale_crops[i], max_scale_crops[i]),
+            )
+            full_transform = transforms.Compose([rrc, transform])
+            self.transforms.append(full_transform)
+
+    def __call__(self, x):
+        imgs = []
+        for n, transform in zip(self.n_crops, self.transforms):
+            imgs.extend([transform(x) for i in range(n)])
+        return imgs
+
+
+class MulticropCifarTransform(BaseTransform):
+    def __init__(self):
+        super().__init__()
+
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
+            ]
+        )
+
+
+class MulticropSTLTransform(BaseTransform):
+    def __init__(self):
+        super().__init__()
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
+            ]
+        )
+
+
+class MulticropImagenetTransform(BaseTransform):
+    def __init__(
+        self, brightness, contrast, saturation, hue, gaussian_prob=0.5, solarization_prob=0
+    ):
+        super().__init__()
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomApply(
+                    nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
+                    p=0.8,
+                ),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([transforms.GaussianBlur(23)], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+            ]
+        )
+
+
+def prepare_transform(dataset, multicrop=False, **kwargs):
     if dataset in ["cifar10", "cifar100"]:
-        size_crops = [32, 24]
-        T = [
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
-            transforms.RandomGrayscale(p=0.2),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
-        ]
+        return CifarTransform() if not multicrop else MulticropCifarTransform()
     elif dataset == "stl10":
-        size_crops = [96, 58]
-        T = [
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
-            transforms.RandomGrayscale(p=0.2),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
-        ]
+        return STLTransform() if not multicrop else MulticropSTLTransform()
     elif dataset in ["imagenet", "imagenet100"]:
-        size_crops = [224, 96]
-        T = [
-            transforms.RandomApply(
-                nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
-                p=0.8,
-            ),
-            transforms.RandomGrayscale(p=0.2),
-            transforms.RandomApply(nn.ModuleList([transforms.GaussianBlur(23)]), p=0.5),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.ConvertImageDtype(torch.float) if jit_transforms else transforms.ToTensor(),
-            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
-        ]
-    T = MultiCropAugmentation(
-        T,
+        return (
+            ImagenetTransform(**kwargs) if not multicrop else MulticropImagenetTransform(**kwargs)
+        )
+
+
+def prepare_n_crop_transform(transform, n_crops=None):
+    return NCropAugmentation(transform, n_crops)
+
+
+def prepare_multicrop_transform(
+    transform, size_crops, n_crops=None, min_scale_crops=None, max_scale_crops=None
+):
+    if n_crops is None:
+        n_crops = [2, 6]
+    if min_scale_crops is None:
+        min_scale_crops = [0.14, 0.05]
+    if max_scale_crops is None:
+        max_scale_crops = [1.0, 0.14]
+
+    return MulticropAugmentation(
+        transform,
         size_crops=size_crops,
-        nmb_crops=nmb_crops,
+        n_crops=n_crops,
         min_scale_crops=min_scale_crops,
         max_scale_crops=max_scale_crops,
-        jit_transforms=jit_transforms,
     )
-    return T
 
 
 def prepare_datasets(
     dataset,
-    T,
     data_folder=None,
     train_dir=None,
-    val_dir=None,
+    transform=None,
     with_index=True,
-    jit_transforms=False,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -190,22 +235,12 @@ def prepare_datasets(
     if train_dir is None:
         train_dir = f"{dataset}/train"
 
-    if val_dir is None:
-        val_dir = f"{dataset}/test"
-
     if dataset == "cifar10":
         train_dataset = CIFAR10(
             os.path.join(data_folder, train_dir),
             train=True,
             download=True,
-            transform=T,
-        )
-
-        val_dataset = CIFAR10(
-            os.path.join(data_folder, val_dir),
-            train=False,
-            download=True,
-            transform=T,
+            transform=transform,
         )
 
     elif dataset == "cifar100":
@@ -213,14 +248,7 @@ def prepare_datasets(
             os.path.join(data_folder, train_dir),
             train=True,
             download=True,
-            transform=T,
-        )
-
-        val_dataset = CIFAR100(
-            os.path.join(data_folder, val_dir),
-            train=False,
-            download=True,
-            transform=T,
+            transform=transform,
         )
 
     elif dataset == "stl10":
@@ -228,34 +256,20 @@ def prepare_datasets(
             os.path.join(data_folder, train_dir),
             split="train+unlabeled",
             download=True,
-            transform=T,
-        )
-        val_dataset = STL10(
-            os.path.join(data_folder, val_dir),
-            split="test",
-            download=True,
-            transform=T,
+            transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
         train_dir = os.path.join(data_folder, train_dir)
-        val_dir = os.path.join(data_folder, val_dir)
-
-        if jit_transforms:
-            train_dataset = ImageFolder(train_dir, T, loader=read_image)
-            val_dataset = ImageFolder(val_dir, T, loader=read_image)
-        else:
-            train_dataset = ImageFolder(train_dir, T)
-            val_dataset = ImageFolder(val_dir, T)
+        train_dataset = ImageFolder(train_dir, transform)
 
     if with_index:
         train_dataset = ImageFolderWithIndex(train_dataset)
-        val_dataset = ImageFolderWithIndex(val_dataset)
 
-    return train_dataset, val_dataset
+    return train_dataset
 
 
-def prepare_dataloaders(train_dataset, val_dataset, batch_size=64, num_workers=4):
+def prepare_dataloaders(train_dataset, batch_size=64, num_workers=4):
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -264,95 +278,4 @@ def prepare_dataloaders(train_dataset, val_dataset, batch_size=64, num_workers=4
         pin_memory=True,
         drop_last=True,
     )
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=False,
-    )
-    return train_loader, val_loader
-
-
-def prepare_data(
-    dataset,
-    n_augs=2,
-    brightness=0.8,
-    contrast=0.8,
-    saturation=0.8,
-    hue=0.2,
-    data_folder=None,
-    train_dir=None,
-    val_dir=None,
-    batch_size=64,
-    num_workers=4,
-    with_index=True,
-    jit_transforms=False,
-):
-    T = prepare_transformations(
-        dataset,
-        brightness=brightness,
-        contrast=contrast,
-        saturation=saturation,
-        hue=hue,
-        n_augs=n_augs,
-        jit_transforms=jit_transforms,
-    )
-    train_dataset, val_dataset = prepare_datasets(
-        dataset,
-        T,
-        data_folder=data_folder,
-        train_dir=train_dir,
-        val_dir=val_dir,
-        with_index=with_index,
-        jit_transforms=jit_transforms,
-    )
-    train_loader, val_loader = prepare_dataloaders(
-        train_dataset,
-        val_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-    )
-    return train_loader, val_loader
-
-
-def prepare_data_multicrop(
-    dataset,
-    brightness=0.8,
-    contrast=0.8,
-    saturation=0.8,
-    hue=0.2,
-    nmb_crops=None,
-    data_folder=None,
-    train_dir=None,
-    val_dir=None,
-    batch_size=64,
-    num_workers=4,
-    with_index=True,
-    jit_transforms=False,
-):
-    T = prepare_transformations_multicrop(
-        dataset,
-        brightness=brightness,
-        contrast=contrast,
-        saturation=saturation,
-        hue=hue,
-        nmb_crops=nmb_crops,
-        jit_transforms=jit_transforms,
-    )
-    train_dataset, val_dataset = prepare_datasets(
-        dataset,
-        T,
-        data_folder=data_folder,
-        train_dir=train_dir,
-        val_dir=val_dir,
-        with_index=with_index,
-        jit_transforms=jit_transforms,
-    )
-    train_loader, val_loader = prepare_dataloaders(
-        train_dataset,
-        val_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-    )
-    return train_loader, val_loader
+    return train_loader

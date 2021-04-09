@@ -14,6 +14,11 @@ python3 ../main_contrastive.py \
     --num_workers 4 \
     --hidden_dim 2048 \
     --encoding_dim 2048 \
+    --brightness 0.4 \
+    --contrast 0.4 \
+    --saturation 0.2 \
+    --hue 0.1 \
+    --asymmetric_augmentations \
     --name barlow \
     --method barlow_twins \
     --lars \

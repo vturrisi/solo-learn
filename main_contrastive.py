@@ -1,6 +1,4 @@
 import argparse
-import os
-import sys
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -11,11 +9,14 @@ from models.barlow_twins import BarlowTwins
 from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
 from utils.classification_dataloader import prepare_data as prepare_data_classification
-from utils.contrastive_dataloader import prepare_data, prepare_data_multicrop
+from utils.contrastive_dataloader import (
+    prepare_dataloaders,
+    prepare_datasets,
+    prepare_n_crop_transform,
+    prepare_multicrop_transform,
+    prepare_transform,
+)
 from utils.epoch_checkpointer import EpochCheckpointer
 
 
@@ -87,11 +88,11 @@ def parse_args():
     parser.add_argument("--contrast", type=float, default=0.8)
     parser.add_argument("--saturation", type=float, default=0.8)
     parser.add_argument("--hue", type=float, default=0.2)
+    parser.add_argument("--gaussian_prob", type=float, default=0.5)
+    parser.add_argument("--solarization_prob", type=float, default=0)
     # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--last_batch_fill", action="store_true")
-    # this might make things slightly faster
-    parser.add_argument("--jit_transforms", action="store_true")
 
     # extra simclr settings
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -100,9 +101,13 @@ def parse_args():
     # extra barlow twins settings
     parser.add_argument("--lamb", type=float, default=5e-3)
     parser.add_argument("--scale_loss", type=float, default=0.025)
+    parser.add_argument("--asymmetric_augmentations", action="store_true")
 
     # extra simsiam settings
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
+
+    # multi-head stuff
+    parser.add_argument("--n_heads", type=int, default=2)
 
     # wandb
     parser.add_argument("--name")
@@ -110,16 +115,47 @@ def parse_args():
 
     args = parser.parse_args()
 
+    args.transform_kwargs = {}
     if args.dataset == "cifar10":
         args.n_classes = 10
     elif args.dataset == "cifar100":
         args.n_classes = 100
     elif args.dataset == "stl10":
         args.n_classes = 10
-    elif args.dataset == "imagenet":
-        args.n_classes = 1000
-    elif args.dataset == "imagenet100":
-        args.n_classes = 100
+    else:
+        if args.dataset == "imagenet":
+            args.n_classes = 1000
+        else:
+            args.n_classes = 100
+
+        if args.asymmetric_augmentations:
+            args.transform_kwargs = [
+                dict(
+                    brightness=args.brightness,
+                    contrast=args.contrast,
+                    saturation=args.saturation,
+                    hue=args.hue,
+                    gaussian_prob=1.0,
+                    solarization_prob=0.0,
+                ),
+                dict(
+                    brightness=args.brightness,
+                    contrast=args.contrast,
+                    saturation=args.saturation,
+                    hue=args.hue,
+                    gaussian_prob=0.1,
+                    solarization_prob=0.2,
+                ),
+            ]
+        else:
+            args.transform_kwargs = dict(
+                brightness=args.brightness,
+                contrast=args.contrast,
+                saturation=args.saturation,
+                hue=args.hue,
+                gaussian_prob=args.gaussian_prob,
+                solarization_prob=args.solarization_prob,
+            )
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
@@ -156,31 +192,42 @@ def main():
 
     # contrastive dataloader
     if not args.dali:
+        # asymmetric augmentations on barlow twins
+        if args.asymmetric_augmentations:
+            transform = [
+                prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
+                for kwargs in args.transform_kwargs
+            ]
+        else:
+            transform = prepare_transform(
+                args.dataset, multicrop=args.multicrop, **args.transform_kwargs
+            )
+
         if args.multicrop:
-            train_loader, _ = prepare_data_multicrop(
-                args.dataset,
-                data_folder=args.data_folder,
-                train_dir=args.train_dir,
-                val_dir=args.val_dir,
-                batch_size=args.batch_size,
-                num_workers=args.num_workers,
-                nmb_crops=[args.n_crops, args.n_small_crops],
-                jit_transforms=args.jit_transforms,
+            assert not args.asymmetric_augmentations
+
+            if args.dataset in ["cifar10", "cifar100"]:
+                size_crops = [32, 24]
+            elif args.dataset == "stl10":
+                size_crops = [96, 58]
+            else:
+                size_crops = [224, 96]
+
+            transform = prepare_multicrop_transform(
+                transform, size_crops=size_crops, n_crops=[args.n_crops, args.n_small_crops]
             )
         else:
-            train_loader, _ = prepare_data(
-                args.dataset,
-                data_folder=args.data_folder,
-                train_dir=args.train_dir,
-                val_dir=args.val_dir,
-                brightness=args.brightness,
-                contrast=args.contrast,
-                saturation=args.saturation,
-                hue=args.hue,
-                batch_size=args.batch_size,
-                num_workers=args.num_workers,
-                jit_transforms=args.jit_transforms,
-            )
+            transform = prepare_n_crop_transform(transform, n_crops=2)
+
+        train_dataset = prepare_datasets(
+            args.dataset,
+            data_folder=args.data_folder,
+            train_dir=args.train_dir,
+            transform=transform,
+        )
+        train_loader = prepare_dataloaders(
+            train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
+        )
 
     # normal dataloader
     _, val_loader = prepare_data_classification(
@@ -203,7 +250,6 @@ def main():
 
     # epoch checkpointer
     callbacks.append(EpochCheckpointer(args, frequency=25))
-
     trainer = Trainer(
         max_epochs=args.epochs,
         gpus=[*args.gpus],

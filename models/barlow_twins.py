@@ -12,7 +12,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.barlow_twins_loss import barlow_twins_loss
+from losses.barlow_twins import barlow_twins_loss
 from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
