@@ -5,9 +5,9 @@ import sys
 import torch
 
 try:
+    from barlow_twins import BarlowTwins
     from linear import LinearModel
     from simclr import SimCLR
-    from barlow_twins import BarlowTwins
     from simsiam import SimSiam
 except:
     from .linear import LinearModel
@@ -21,7 +21,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from abc import ABC
 
-from utils.dali_dataloader import ContrastivePipeline, NormalPipeline
+from utils.dali_dataloader import (
+    ContrastivePipeline,
+    ImagenetTransform,
+    MulticropContrastivePipeline,
+    NormalPipeline,
+)
 
 
 class BaseWrapper(DALIGenericIterator):
@@ -46,7 +51,12 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
+        self,
+        *args,
+        model_batch_size=None,
+        model_rank=None,
+        model_device=None,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -81,43 +91,101 @@ class ContrastiveABC(ABC):
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
-        if self.args.multicrop:
-            nmb_crops = [self.args.n_crops, self.args.n_small_crops]
+        args = self.args
+        if args.multicrop:
+            n_crops = [self.args.n_crops, self.args.n_small_crops]
             size_crops = [224, 96]
             min_scale_crops = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]
+
+            transforms = []
+            for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
+                transform = ImagenetTransform(
+                    device="gpu",
+                    brightness=args.brightness,
+                    contrast=args.contrast,
+                    saturation=args.saturation,
+                    hue=args.hue,
+                    gaussian_prob=args.gaussian_prob,
+                    solarization_prob=args.solarization_prob,
+                    size=size,
+                    min_scale=min_scale,
+                    max_scale=max_scale,
+                )
+                transforms.append(transform)
+            train_pipeline = MulticropContrastivePipeline(
+                os.path.join(self.args.data_folder, self.args.train_dir),
+                batch_size=self.args.batch_size,
+                transforms=transforms,
+                n_crops=n_crops,
+                size_crops=size_crops,
+                min_scale_crops=min_scale_crops,
+                max_scale_crops=max_scale_crops,
+                device="gpu",
+                device_id=device_id,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                num_threads=self.args.num_workers,
+            )
             self.output_map = [
-                *[f"large{i}" for i in range(nmb_crops[0])],
-                *[f"small{i}" for i in range(nmb_crops[1])],
-                "label",
-            ]
-        else:
-            nmb_crops = [self.args.n_crops]
-            size_crops = [224]
-            min_scale_crops = [0.2]
-            max_scale_crops = [1.0]
-            self.output_map = [
-                *[f"large{i}" for i in range(nmb_crops[0])],
+                *[f"large{i}" for i in range(n_crops[0])],
+                *[f"small{i}" for i in range(n_crops[1])],
                 "label",
             ]
 
-        train_pipeline = ContrastivePipeline(
-            os.path.join(self.args.data_folder, self.args.train_dir),
-            size_crops=size_crops,
-            nmb_crops=nmb_crops,
-            min_scale_crops=min_scale_crops,
-            max_scale_crops=max_scale_crops,
-            batch_size=self.args.batch_size,
-            brightness=self.args.brightness,
-            contrast=self.args.contrast,
-            saturation=self.args.saturation,
-            hue=self.args.hue,
-            device="gpu",
-            device_id=device_id,
-            shard_id=shard_id,
-            num_shards=num_shards,
-            num_threads=self.args.num_workers,
-        )
+        else:
+            if args.asymmetric_augmentations:
+                transform = [
+                    ImagenetTransform(
+                        device="gpu",
+                        brightness=args.brightness,
+                        contrast=args.contrast,
+                        saturation=args.saturation,
+                        hue=args.hue,
+                        gaussian_prob=1.0,
+                        solarization_prob=0.0,
+                        size=224,
+                        min_scale=0.2,
+                        max_scale=1.0,
+                    ),
+                    ImagenetTransform(
+                        device="gpu",
+                        brightness=args.brightness,
+                        contrast=args.contrast,
+                        saturation=args.saturation,
+                        hue=args.hue,
+                        gaussian_prob=0.1,
+                        solarization_prob=0.2,
+                        size=224,
+                        min_scale=0.2,
+                        max_scale=1.0,
+                    ),
+                ]
+            else:
+                transform = ImagenetTransform(
+                    device="gpu",
+                    brightness=args.brightness,
+                    contrast=args.contrast,
+                    saturation=args.saturation,
+                    hue=args.hue,
+                    gaussian_prob=args.gaussian_prob,
+                    solarization_prob=args.solarization_prob,
+                    size=224,
+                    min_scale=0.2,
+                    max_scale=1.0,
+                )
+            train_pipeline = ContrastivePipeline(
+                os.path.join(self.args.data_folder, self.args.train_dir),
+                batch_size=self.args.batch_size,
+                transform=transform,
+                device="gpu",
+                device_id=device_id,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                num_threads=self.args.num_workers,
+            )
+            self.output_map = ["large1", "large2", "label"]
+
         policy = LastBatchPolicy.FILL if self.args.last_batch_fill else LastBatchPolicy.DROP
         train_loader = ContrastiveWrapper(
             train_pipeline,

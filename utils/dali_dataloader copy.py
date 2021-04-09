@@ -86,7 +86,7 @@ class RandomSolarize:
 
     def __call__(self, images):
         inverted_img = 255 - images
-        mask = images >= self.threshold
+        mask = images >= self._threshold
         out = mask * inverted_img + (True ^ mask) * images
         return self.mux(true_case=out, false_case=images)
 
@@ -186,22 +186,18 @@ class NormalPipeline(Pipeline):
 class ImagenetTransform:
     def __init__(
         self,
-        device,
         brightness=0.8,
         contrast=0.8,
         saturation=0.8,
         hue=0.2,
         gaussian_prob=0.5,
         solarization_prob=0.0,
-        size=224,
-        min_scale=0.2,
-        max_scale=1.0,
     ):
         # random crop
         self.random_crop = ops.RandomResizedCrop(
-            device=device,
-            size=size,
-            random_area=(min_scale, max_scale),
+            device=self.device,
+            size=224,
+            random_area=(0.2, 1.0),
             # interp_type=types.INTERP_TRIANGULAR,
         )
 
@@ -212,27 +208,17 @@ class ImagenetTransform:
             saturation=saturation,
             hue=hue,
             prob=0.8,
-            device=device,
+            device=self.device,
         )
 
         # grayscale conversion
-        self.random_grayscale = RandomGrayScaleConversion(prob=0.2, device=device)
+        self.random_grayscale = RandomGrayScaleConversion(prob=0.2, device=self.device)
 
         # gaussian blur
-        self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
+        self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=self.device)
 
         # solarization
         self.random_solarization = RandomSolarize(prob=solarization_prob)
-
-        # normalize and horizontal flip
-        self.cmn = ops.CropMirrorNormalize(
-            device=device,
-            dtype=types.FLOAT,
-            output_layout=types.NCHW,
-            mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
-            std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
-        )
-        self.coin05 = ops.random.CoinFlip(probability=0.5)
 
     def __call__(self, images):
         out = self.random_crop(images)
@@ -240,7 +226,6 @@ class ImagenetTransform:
         out = self.random_grayscale(out)
         out = self.random_gaussian_blur(out)
         out = self.random_solarization(out)
-        out = self.cmn(out, mirror=self.coin05())
         return out
 
 
@@ -250,76 +235,11 @@ class ContrastivePipeline(Pipeline):
         data_path,
         batch_size,
         device,
-        transform,
-        n_crops=2,
-        random_shuffle=True,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
-    ):
-        seed += device_id
-        super().__init__(batch_size, num_threads, device_id, seed)
-
-        self.device = device
-        self.reader = ops.readers.File(
-            file_root=data_path,
-            shard_id=shard_id,
-            num_shards=num_shards,
-            random_shuffle=random_shuffle,
-        )
-        decoder_device = "mixed" if self.device == "gpu" else "cpu"
-        device_memory_padding = 211025920 if decoder_device == "mixed" else 0
-        host_memory_padding = 140544512 if decoder_device == "mixed" else 0
-        self.decode = ops.decoders.Image(
-            device=decoder_device,
-            output_type=types.RGB,
-            device_memory_padding=device_memory_padding,
-            host_memory_padding=host_memory_padding,
-        )
-        self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
-
-        self.n_crops = n_crops
-
-        # transformations
-        self.transform = transform
-
-        if isinstance(transform, list):
-            self.one_transform_per_crop = True
-        else:
-            self.one_transform_per_crop = False
-            self.n_crops = n_crops
-
-    def define_graph(self):
-        # read images from memory
-        inputs, labels = self.reader(name="Reader")
-        images = self.decode(inputs)
-
-        if self.one_transform_per_crop:
-            crops = [transform(images) for transform in self.transform]
-        else:
-            crops = [self.transform(images) for i in range(self.n_crops)]
-
-        if self.device == "gpu":
-            labels = labels.gpu()
-        # PyTorch expects labels as INT64
-        labels = self.to_int64(labels)
-
-        return (*crops, labels)
-
-
-class MulticropContrastivePipeline(Pipeline):
-    def __init__(
-        self,
-        data_path,
-        batch_size,
-        device,
-        transforms,
-        n_crops,
         size_crops,
+        n_crops,
         min_scale_crops,
         max_scale_crops,
+        transform,
         random_shuffle=True,
         device_id=0,
         shard_id=0,
@@ -346,16 +266,37 @@ class MulticropContrastivePipeline(Pipeline):
             device_memory_padding=device_memory_padding,
             host_memory_padding=host_memory_padding,
         )
-        self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        self.n_crops = n_crops
         self.size_crops = size_crops
+        self.n_crops = n_crops
         self.min_scale_crops = min_scale_crops
         self.max_scale_crops = max_scale_crops
 
-        assert isinstance(transforms, list) and len(transforms) == len(size_crops)
+        # color/grayscale/gaussian/solarization transform
+        self.transform = transform
 
-        self.transforms = transforms
+        # crop operations
+        self.rrcs = []
+        for i in range(len(size_crops)):
+            self.rrcs.append(
+                ops.RandomResizedCrop(
+                    device=self.device,
+                    size=size_crops[i],
+                    random_area=(min_scale_crops[i], max_scale_crops[i]),
+                    # interp_type=types.INTERP_TRIANGULAR,
+                )
+            )
+        # normalize and horizontal flip
+        self.cmn = ops.CropMirrorNormalize(
+            device=self.device,
+            dtype=types.FLOAT,
+            output_layout=types.NCHW,
+            mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
+            std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
+        )
+
+        self.coin05 = ops.random.CoinFlip(probability=0.5)
+        self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
     def define_graph(self):
         # read images from memory
@@ -364,9 +305,17 @@ class MulticropContrastivePipeline(Pipeline):
 
         # crop into large and small images
         crops = []
-        for i, transform in enumerate(self.transforms):
+        for i in range(len(self.n_crops)):
             for _ in range(self.n_crops[i]):
-                crop = transform(images)
+                # crop images into desired resolutions
+                crop = self.rrcs[i](images)
+
+                # all the other transformations
+                crop = self.transform(crop)
+
+                # normalize and maybe apply horizontal flip with 0.5 chance
+                crop = self.cmn(crop, mirror=self.coin05())
+
                 crops.append(crop)
 
         if self.device == "gpu":
