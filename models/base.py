@@ -159,7 +159,7 @@ class Model(BaseModel):
         super().__init__(args)
 
         assert args.encoder in ["resnet18", "resnet50"]
-        from torchvision import resnet18, resnet50
+        from torchvision.models import resnet18, resnet50
 
         base_model = {"resnet18": resnet18, "resnet50": resnet50}[args.encoder]
 
