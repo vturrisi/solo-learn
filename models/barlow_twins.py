@@ -28,7 +28,7 @@ class BarlowTwins(Model):
 
         # projection head
         self.projection_head = nn.Sequential(
-            nn.Linear(self.encoder.n_features, hidden_dim),
+            nn.Linear(self.features_size, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, hidden_dim),

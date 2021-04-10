@@ -30,10 +30,10 @@ class SimCLR(Model):
 
         # projection head
         if hidden_dim == 0:
-            self.projection_head = nn.Linear(self.encoder.n_features, output_dim)
+            self.projection_head = nn.Linear(self.features_size, output_dim)
         else:
             self.projection_head = nn.Sequential(
-                nn.Linear(self.encoder.n_features, hidden_dim),
+                nn.Linear(self.features_size, hidden_dim),
                 nn.ReLU(inplace=True),
                 nn.Linear(hidden_dim, output_dim),
             )
@@ -86,10 +86,7 @@ class SimCLR(Model):
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
             nce_loss = manual_info_nce_sava(
-                z,
-                pos_mask=pos_mask,
-                negative_mask=negative_mask,
-                temperature=self.temperature,
+                z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
             )
         else:
             indexes, (X_aug1, X_aug2), target = batch
