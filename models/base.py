@@ -15,10 +15,6 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 
-try:
-    from resnet import resnet18, resnet50
-except:
-    from .resnet import resnet18, resnet50
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -163,16 +159,19 @@ class Model(BaseModel):
         super().__init__(args)
 
         assert args.encoder in ["resnet18", "resnet50"]
+        from torchvision import resnet18, resnet50
 
-        if args.encoder == "resnet18":
-            base_model = resnet18
-            self.features_size = 512
-        else:
-            self.features_size = 2048
-            base_model = resnet50
+        base_model = {"resnet18": resnet18, "resnet50": resnet50}[args.encoder]
 
         # initialize encoder
-        self.encoder = base_model(cifar=args.cifar, zero_init_residual=args.zero_init_residual)
+        self.encoder = base_model(zero_init_residual=args.zero_init_residual)
+        self.features_size = self.encoder.inplanes
+        # remove fc layer
+        self.encoder.fc = nn.Identity()
+        if args.cifar:
+            self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
+            self.encoder.maxpool = nn.Identity()
+
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
     def forward(self, X, classify_only=True):

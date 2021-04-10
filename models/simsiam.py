@@ -55,11 +55,11 @@ class SimSiam(Model):
             return z, p, y
 
     def training_step(self, batch, batch_idx):
-        indexes, (X_aug1, X_aug2), target = batch
+        indexes, (X1, X2), target = batch
 
         # features, projection head features, class
-        z1, p1, output = self(X_aug1, classify_only=False)
-        z2, p2, _ = self(X_aug2, classify_only=False)
+        z1, p1, output = self(X1, classify_only=False)
+        z2, p2, _ = self(X2, classify_only=False)
 
         # ------- contrastive loss -------
         neg_cos_sim = (

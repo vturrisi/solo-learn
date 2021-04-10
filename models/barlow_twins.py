@@ -1,7 +1,6 @@
 import os
 import sys
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -13,7 +12,6 @@ except:
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.barlow_twins import barlow_twins_loss
-from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
 
@@ -45,24 +43,19 @@ class BarlowTwins(Model):
             return y
         else:
             z = self.projection_head(features)
-            return features, z, y
+            return z, y
 
     def training_step(self, batch, batch_idx):
-        indexes, (X_aug1, X_aug2), target = batch
-        X = torch.cat((X_aug1, X_aug2), dim=0)
+        indexes, (X1, X2), target = batch
 
         # features, projection head features, class
-        features, z, output = self(X, classify_only=False)
-
-        z1, z2 = torch.chunk(z, 2)
-        z1 = gather(z1)
-        z2 = gather(z2)
+        z1, output = self(X1, classify_only=False)
+        z2, _ = self(X2, classify_only=False)
 
         # ------- contrastive loss -------
         barlow_loss = barlow_twins_loss(z1, z2, lamb=self.lamb, scale_loss=self.scale_loss)
 
         # ------- classification loss -------
-        output = torch.chunk(output, 2)[0]
         # for datasets with unsupervised data
         index = target >= 0
         output = output[index]
