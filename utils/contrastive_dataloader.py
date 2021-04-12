@@ -104,12 +104,7 @@ class ImagenetTransform(BaseTransform):
 
 class MulticropAugmentation:
     def __init__(
-        self,
-        transform,
-        size_crops,
-        n_crops,
-        min_scale_crops,
-        max_scale_crops,
+        self, transform, size_crops, n_crops, min_scale_crops, max_scale_crops,
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -119,8 +114,7 @@ class MulticropAugmentation:
         self.transforms = []
         for i in range(len(size_crops)):
             rrc = transforms.RandomResizedCrop(
-                size_crops[i],
-                scale=(min_scale_crops[i], max_scale_crops[i]),
+                size_crops[i], scale=(min_scale_crops[i], max_scale_crops[i]),
             )
             full_transform = transforms.Compose([rrc, transform])
             self.transforms.append(full_transform)
@@ -217,11 +211,7 @@ def prepare_multicrop_transform(
 
 
 def prepare_datasets(
-    dataset,
-    data_folder=None,
-    train_dir=None,
-    transform=None,
-    with_index=True,
+    dataset, data_folder=None, train_dir=None, transform=None, with_index=True,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -237,18 +227,12 @@ def prepare_datasets(
 
     if dataset == "cifar10":
         train_dataset = CIFAR10(
-            os.path.join(data_folder, train_dir),
-            train=True,
-            download=True,
-            transform=transform,
+            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "cifar100":
         train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir),
-            train=True,
-            download=True,
-            transform=transform,
+            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "stl10":

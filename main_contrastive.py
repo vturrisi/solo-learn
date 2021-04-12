@@ -157,6 +157,9 @@ def parse_args():
                 solarization_prob=args.solarization_prob,
             )
 
+    if args.asymmetric_augmentations:
+        assert args.dataset in ["imagenet", "imagenet100"]
+
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
     args.extra_optimizer_args = {}
@@ -229,15 +232,15 @@ def main():
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
-    # normal dataloader
-    _, val_loader = prepare_data_classification(
-        args.dataset,
-        data_folder=args.data_folder,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-    )
+        # normal dataloader
+        _, val_loader = prepare_data_classification(
+            args.dataset,
+            data_folder=args.data_folder,
+            train_dir=args.train_dir,
+            val_dir=args.val_dir,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+        )
 
     # wandb logging
     wandb_logger = WandbLogger(name=args.name, project=args.project)
@@ -262,7 +265,7 @@ def main():
         plugins=DDPPlugin(find_unused_parameters=False),
     )
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader)
+        trainer.fit(model)
     else:
         trainer.fit(model, train_loader, val_loader)
 
