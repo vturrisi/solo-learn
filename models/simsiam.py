@@ -22,7 +22,6 @@ class SimSiam(Model):
 
         proj_hidden_dim = args.hidden_dim
         output_dim = args.encoding_dim
-
         pred_hidden_dim = args.pred_hidden_dim
 
         # projection head

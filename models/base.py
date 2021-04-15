@@ -6,18 +6,14 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pl_bolts.optimizers.lars_scheduling import LARSWrapper
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    ExponentialLR,
-    MultiStepLR,
-    ReduceLROnPlateau,
-)
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
+# from pl_bolts.optimizers.lars_scheduling import LARSWrapper
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+from utils.larc import LARC
 from utils.metrics import accuracy_at_k, weighted_mean
 
 
@@ -94,23 +90,22 @@ class BaseModel(pl.LightningModule):
             **self.args.extra_optimizer_args,
         )
         if self.args.lars:
-            optimizer = LARSWrapper(optimizer)
+            optimizer = LARC(optimizer, 0.001, False)
+            # optimizer = LARSWrapper(optimizer)
 
         if self.args.scheduler == "none":
             return optimizer
         else:
+            assert self.args.lr in ["warmup_cosine", "cosine", "step"]
+
             if self.args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
                     optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
                 )
             elif self.args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
-            elif self.args.scheduler == "reduce":
-                scheduler = ReduceLROnPlateau(optimizer)
-            elif self.args.scheduler == "step":
+            else:
                 scheduler = MultiStepLR(optimizer, self.args.lr_decay_steps)
-            elif self.args.scheduler == "exponential":
-                scheduler = ExponentialLR(optimizer, self.args.weight_decay)
 
             if self.args.no_lr_scheduler_for_pred_head:
                 partial_fn = partial(
