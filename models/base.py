@@ -96,7 +96,7 @@ class BaseModel(pl.LightningModule):
         if self.args.scheduler == "none":
             return optimizer
         else:
-            assert self.args.lr in ["warmup_cosine", "cosine", "step"]
+            assert self.args.scheduler in ["warmup_cosine", "cosine", "step"]
 
             if self.args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
