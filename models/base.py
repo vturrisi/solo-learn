@@ -6,14 +6,12 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from pl_bolts.optimizers.lars_scheduling import LARSWrapper
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
-# from pl_bolts.optimizers.lars_scheduling import LARSWrapper
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from utils.larc import LARC
 from utils.metrics import accuracy_at_k, weighted_mean
 
 
@@ -90,8 +88,7 @@ class BaseModel(pl.LightningModule):
             **self.args.extra_optimizer_args,
         )
         if self.args.lars:
-            optimizer = LARC(optimizer, 0.001, False)
-            # optimizer = LARSWrapper(optimizer)
+            optimizer = LARSWrapper(optimizer)
 
         if self.args.scheduler == "none":
             return optimizer
