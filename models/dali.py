@@ -51,12 +51,7 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self,
-        *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
-        **kwargs,
+        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -90,8 +85,8 @@ class ContrastiveABC(ABC):
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
-
         args = self.args
+
         if args.multicrop:
             n_crops = [self.args.n_crops, self.args.n_small_crops]
             size_crops = [224, 96]
@@ -101,7 +96,7 @@ class ContrastiveABC(ABC):
             transforms = []
             for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
                 transform = ImagenetTransform(
-                    device="gpu",
+                    device=args.dali_device,
                     brightness=args.brightness,
                     contrast=args.contrast,
                     saturation=args.saturation,
@@ -121,7 +116,7 @@ class ContrastiveABC(ABC):
                 size_crops=size_crops,
                 min_scale_crops=min_scale_crops,
                 max_scale_crops=max_scale_crops,
-                device="gpu",
+                device=args.dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
                 num_shards=num_shards,
@@ -137,7 +132,7 @@ class ContrastiveABC(ABC):
             if args.asymmetric_augmentations:
                 transform = [
                     ImagenetTransform(
-                        device="gpu",
+                        device=args.dali_device,
                         brightness=args.brightness,
                         contrast=args.contrast,
                         saturation=args.saturation,
@@ -149,7 +144,7 @@ class ContrastiveABC(ABC):
                         max_scale=1.0,
                     ),
                     ImagenetTransform(
-                        device="gpu",
+                        device=args.dali_device,
                         brightness=args.brightness,
                         contrast=args.contrast,
                         saturation=args.saturation,
@@ -163,7 +158,7 @@ class ContrastiveABC(ABC):
                 ]
             else:
                 transform = ImagenetTransform(
-                    device="gpu",
+                    device=args.dali_device,
                     brightness=args.brightness,
                     contrast=args.contrast,
                     saturation=args.saturation,
@@ -178,7 +173,7 @@ class ContrastiveABC(ABC):
                 os.path.join(self.args.data_folder, self.args.train_dir),
                 batch_size=self.args.batch_size,
                 transform=transform,
-                device="gpu",
+                device=args.dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
                 num_shards=num_shards,
@@ -199,29 +194,29 @@ class ContrastiveABC(ABC):
         )
         return train_loader
 
-    def val_dataloader(self):
-        device_id = self.local_rank
-        shard_id = self.global_rank
-        num_shards = self.trainer.world_size
+    # def val_dataloader(self):
+    #     device_id = self.local_rank
+    #     shard_id = self.global_rank
+    #     num_shards = self.trainer.world_size
 
-        val_pipeline = NormalPipeline(
-            os.path.join(self.args.data_folder, self.args.val_dir),
-            validation=True,
-            batch_size=self.args.batch_size,
-            device="gpu",
-            device_id=device_id,
-            shard_id=shard_id,
-            num_shards=num_shards,
-            num_threads=self.args.num_workers,
-        )
-        val_loader = Wrapper(
-            val_pipeline,
-            output_map=["x", "label"],
-            reader_name="Reader",
-            last_batch_policy=LastBatchPolicy.PARTIAL,
-            auto_reset=True,
-        )
-        return val_loader
+    #     val_pipeline = NormalPipeline(
+    #         os.path.join(self.args.data_folder, self.args.val_dir),
+    #         validation=True,
+    #         batch_size=self.args.batch_size,
+    #         device=args.dali_device,
+    #         device_id=device_id,
+    #         shard_id=shard_id,
+    #         num_shards=num_shards,
+    #         num_threads=self.args.num_workers,
+    #     )
+    #     val_loader = Wrapper(
+    #         val_pipeline,
+    #         output_map=["x", "label"],
+    #         reader_name="Reader",
+    #         last_batch_policy=LastBatchPolicy.PARTIAL,
+    #         auto_reset=True,
+    #     )
+    #     return val_loader
 
 
 class ClassificationABC(ABC):
@@ -233,12 +228,13 @@ class ClassificationABC(ABC):
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
+        args = self.args
 
         train_pipeline = NormalPipeline(
             os.path.join(self.args.data_folder, self.args.train_dir),
             validation=False,
             batch_size=self.args.batch_size,
-            device="gpu",
+            device=args.dali_device,
             device_id=device_id,
             shard_id=shard_id,
             num_shards=num_shards,
@@ -257,12 +253,13 @@ class ClassificationABC(ABC):
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
+        args = self.args
 
         val_pipeline = NormalPipeline(
             os.path.join(self.args.data_folder, self.args.val_dir),
             validation=True,
             batch_size=self.args.batch_size,
-            device="gpu",
+            device=args.dali_device,
             device_id=device_id,
             shard_id=shard_id,
             num_shards=num_shards,

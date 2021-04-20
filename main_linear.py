@@ -78,6 +78,7 @@ def parse_args():
     # extra dataloader settings
     # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
+    parser.add_argument("--dali_device", type=str, default="gpu")
 
     args = parser.parse_args()
 
@@ -130,8 +131,8 @@ def main():
         ]
         checkpoints.sort(key=lambda ckpt: int(ckpt[:-5].split("ep=")[1]), reverse=True)
         ckpt_path = os.path.join(args.pretrained_feature_extractor, checkpoints[0])
-    
-    print(f'loaded {ckpt_path}')
+
+    print(f"loaded {ckpt_path}")
     state = torch.load(ckpt_path)["state_dict"]
     model.load_state_dict(state, strict=False)
 

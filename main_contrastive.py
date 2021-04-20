@@ -92,6 +92,7 @@ def parse_args():
     parser.add_argument("--solarization_prob", type=float, default=0)
     # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
+    parser.add_argument("--dali_device", type=str, default="gpu")
     parser.add_argument("--last_batch_fill", action="store_true")
 
     # extra simclr settings
