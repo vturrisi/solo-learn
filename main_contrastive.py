@@ -234,15 +234,15 @@ def main():
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
-        # normal dataloader
-        _, val_loader = prepare_data_classification(
-            args.dataset,
-            data_folder=args.data_folder,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
-        )
+    # normal dataloader
+    _, val_loader = prepare_data_classification(
+        args.dataset,
+        data_folder=args.data_folder,
+        train_dir=args.train_dir,
+        val_dir=args.val_dir,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+    )
 
     # wandb logging
     wandb_logger = WandbLogger(name=args.name, project=args.project)
