@@ -14,5 +14,6 @@ python3 ../main_linear.py \
     --gpus 0 1 \
     --num_workers 10 \
     --name simclr-linear-eval \
+    --dali \
     --pretrained_feature_extractor trained_models/MODEL_PATH \
     --project contrastive_learning

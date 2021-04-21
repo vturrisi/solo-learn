@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pl_bolts.optimizers.lars_scheduling import LARSWrapper
+from pl_bolts.optimizers.lars import LARS
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
@@ -30,36 +30,38 @@ class LinearModel(pl.LightningModule):
         self.model.classifier = nn.Linear(self.model.features_size, args.n_classes)
 
     def configure_optimizers(self):
+        args = self.args
         # select optimizer
-        if self.args.optimizer == "sgd":
+        if args.optimizer == "sgd":
             optimizer = torch.optim.SGD
-        else:
+        elif args.optimizer == "adam":
             optimizer = torch.optim.Adam
+        elif args.optimizer == "lars":
+            optimizer = LARS
+        else:
+            raise ValueError(f"{args.optimizer} not in (sgd, adam, lars)")
 
         optimizer = optimizer(
             self.model.classifier.parameters(),
-            lr=self.args.lr,
-            weight_decay=self.args.weight_decay,
-            **self.args.extra_optimizer_args,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+            **args.extra_optimizer_args,
         )
 
-        if self.args.lars:
-            optimizer = LARSWrapper(optimizer)
-
         # select scheduler
-        if self.args.scheduler == "none":
+        if args.scheduler == "none":
             return optimizer
         else:
-            if self.args.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.args.epochs)
-            if self.args.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
-            elif self.args.scheduler == "reduce":
+            if args.scheduler == "warmup_cosine":
+                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, args.epochs)
+            if args.scheduler == "cosine":
+                scheduler = CosineAnnealingLR(optimizer, args.epochs)
+            elif args.scheduler == "reduce":
                 scheduler = ReduceLROnPlateau(optimizer)
-            elif self.args.scheduler == "step":
-                scheduler = MultiStepLR(optimizer, self.args.lr_decay_steps, gamma=0.1)
-            elif self.args.scheduler == "exponential":
-                scheduler = ExponentialLR(optimizer, self.args.weight_decay)
+            elif args.scheduler == "step":
+                scheduler = MultiStepLR(optimizer, args.lr_decay_steps, gamma=0.1)
+            elif args.scheduler == "exponential":
+                scheduler = ExponentialLR(optimizer, args.weight_decay)
             return [optimizer], [scheduler]
 
     def on_train_epoch_start(self):

@@ -5,10 +5,9 @@ python3 ../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --epochs 100 \
-    --optimizer sgd \
+    --optimizer lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
-    --lars \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --temperature 0.2 \
@@ -25,10 +24,9 @@ python3 ../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --epochs 100 \
-    --optimizer sgd \
+    --optimizer lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
-    --lars \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --temperature 0.2 \
@@ -46,10 +44,9 @@ python3 ../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --epochs 100 \
-    --optimizer sgd \
+    --optimizer lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
-    --lars \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --temperature 0.1 \
@@ -70,10 +67,9 @@ python3 ../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --epochs 100 \
-    --optimizer sgd \
+    --optimizer lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
-    --lars \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --temperature 0.1 \

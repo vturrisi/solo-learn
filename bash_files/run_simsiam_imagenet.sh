@@ -34,8 +34,7 @@ python3 ../main_contrastive.py \
 #     --train_dir imagenet/train \
 #     --val_dir imagenet/val \
 #     --epochs 90 \
-#     --optimizer sgd \
-#     --lars \
+#     --optimizer lars \
 #     --scheduler cosine \
 #     --lr 0.02 \
 #     --weight_decay 0 \
