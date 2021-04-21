@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pl_bolts.optimizers.lars_scheduling import LARSWrapper
+from pl_bolts.optimizers.lars import LARS
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
@@ -29,16 +29,21 @@ class BaseModel(pl.LightningModule):
         self.args = args
 
     def configure_optimizers(self):
+        args = self.args
         # select optimizer
-        if self.args.optimizer == "sgd":
+        if args.optimizer == "sgd":
             optimizer = torch.optim.SGD
-        else:
+        elif args.optimizer == "adam":
             optimizer = torch.optim.Adam
+        elif args.optimizer == "lars":
+            optimizer = LARS
+        else:
+            raise ValueError(f"{args.optimizer} not in (sgd, adam, lars)")
 
         if hasattr(self, "classifier"):
             classifier_parameters = self.classifier.parameters()
 
-            if self.args.no_lr_scheduler_for_pred_head:
+            if args.no_lr_scheduler_for_pred_head:
                 prediction_head_parameters = self.prediction_head.parameters()
                 other_parameters = (
                     p
@@ -47,11 +52,7 @@ class BaseModel(pl.LightningModule):
                 )
                 parameters = [
                     {"params": other_parameters},
-                    {
-                        "params": classifier_parameters,
-                        "lr": self.args.classifier_lr,
-                        "weight_decay": 0,
-                    },
+                    {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
                     {"params": prediction_head_parameters},
                 ]
             else:
@@ -60,14 +61,10 @@ class BaseModel(pl.LightningModule):
                 )
                 parameters = [
                     {"params": other_parameters},
-                    {
-                        "params": classifier_parameters,
-                        "lr": self.args.classifier_lr,
-                        "weight_decay": 0,
-                    },
+                    {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
                 ]
         else:
-            if self.args.no_lr_scheduler_for_pred_head:
+            if args.no_lr_scheduler_for_pred_head:
                 prediction_head_parameters = self.prediction_head.parameters()
                 other_parameters = (
                     p for name, p in self.named_parameters() if "prediction_head" not in name
@@ -82,34 +79,29 @@ class BaseModel(pl.LightningModule):
                 ]
 
         optimizer = optimizer(
-            parameters,
-            lr=self.args.lr,
-            weight_decay=self.args.weight_decay,
-            **self.args.extra_optimizer_args,
+            parameters, lr=args.lr, weight_decay=args.weight_decay, **args.extra_optimizer_args,
         )
-        if self.args.lars:
-            optimizer = LARSWrapper(optimizer)
 
-        if self.args.scheduler == "none":
+        if args.scheduler == "none":
             return optimizer
         else:
-            assert self.args.scheduler in ["warmup_cosine", "cosine", "step"]
+            assert args.scheduler in ["warmup_cosine", "cosine", "step"]
 
-            if self.args.scheduler == "warmup_cosine":
+            if args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer, warmup_epochs=10, max_epochs=self.args.epochs, warmup_start_lr=0.003,
+                    optimizer, warmup_epochs=10, max_epochs=args.epochs, warmup_start_lr=0.003,
                 )
-            elif self.args.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, self.args.epochs)
+            elif args.scheduler == "cosine":
+                scheduler = CosineAnnealingLR(optimizer, args.epochs)
             else:
-                scheduler = MultiStepLR(optimizer, self.args.lr_decay_steps)
+                scheduler = MultiStepLR(optimizer, args.lr_decay_steps)
 
-            if self.args.no_lr_scheduler_for_pred_head:
+            if args.no_lr_scheduler_for_pred_head:
                 partial_fn = partial(
                     static_lr,
                     get_lr=scheduler.get_lr,
                     param_group_indexes=(2,),
-                    lrs_to_replace=(self.args.lr,),
+                    lrs_to_replace=(args.lr,),
                 )
                 scheduler.get_lr = partial_fn
             return [optimizer], [scheduler]
