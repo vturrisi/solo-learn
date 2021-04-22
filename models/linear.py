@@ -5,7 +5,6 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pl_bolts.optimizers.lars import LARS
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
@@ -14,9 +13,9 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+from utils.lars import LARSWrapper
 from utils.metrics import accuracy_at_k, weighted_mean
 
 
@@ -31,15 +30,13 @@ class LinearModel(pl.LightningModule):
 
     def configure_optimizers(self):
         args = self.args
-        # select optimizer
+
         if args.optimizer == "sgd":
             optimizer = torch.optim.SGD
         elif args.optimizer == "adam":
             optimizer = torch.optim.Adam
-        elif args.optimizer == "lars":
-            optimizer = LARS
         else:
-            raise ValueError(f"{args.optimizer} not in (sgd, adam, lars)")
+            raise ValueError(f"{args.optimizer} not in (sgd, adam)")
 
         optimizer = optimizer(
             self.model.classifier.parameters(),
@@ -47,6 +44,8 @@ class LinearModel(pl.LightningModule):
             weight_decay=args.weight_decay,
             **args.extra_optimizer_args,
         )
+        if args.lars:
+            optimizer = LARSWrapper(optimizer)
 
         # select scheduler
         if args.scheduler == "none":

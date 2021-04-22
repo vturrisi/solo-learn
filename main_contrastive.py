@@ -31,7 +31,7 @@ def parse_args():
 
     SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
 
-    SUPPORTED_OPTIMIZERS = ["sgd", "adam", "lars"]
+    SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
 
     SUPPORTED_SCHEDULERS = [
         "reduce",
@@ -50,6 +50,7 @@ def parse_args():
 
     # optimizer
     parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
+    parser.add_argument("--lars", action="store_true")
 
     # scheduler
     parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
@@ -163,10 +164,8 @@ def parse_args():
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
     args.extra_optimizer_args = {}
-    if args.optimizer in ("sgd", "lars"):
+    if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-    if args.optimizer == "lars":
-        args.extra_optimizer_args["trust_coefficient"] = 0.001
 
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
@@ -252,9 +251,9 @@ def main():
     callbacks = []
     # lr logging
     callbacks.append(LearningRateMonitor(logging_interval="epoch"))
-
     # epoch checkpointer
     callbacks.append(EpochCheckpointer(args, frequency=25))
+
     trainer = Trainer(
         max_epochs=args.epochs,
         gpus=[*args.gpus],

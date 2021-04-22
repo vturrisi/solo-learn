@@ -5,7 +5,8 @@ python3 ../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --epochs 100 \
-    --optimizer lars \
+    --optimizer sgd \
+    --lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
@@ -18,9 +19,9 @@ python3 ../main_contrastive.py \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
-    --asymmetric_augmentations \
     --scale_loss 0.1 \
+    --asymmetric_augmentations \
     --name barlow \
     --method barlow_twins \
     --dali \
-    --project contrastive_learning
+    --project debug
