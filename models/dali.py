@@ -140,7 +140,7 @@ class ContrastiveABC(ABC):
                         gaussian_prob=1.0,
                         solarization_prob=0.0,
                         size=224,
-                        min_scale=0.2,
+                        min_scale=0.08,
                         max_scale=1.0,
                     ),
                     ImagenetTransform(
@@ -152,7 +152,7 @@ class ContrastiveABC(ABC):
                         gaussian_prob=0.1,
                         solarization_prob=0.2,
                         size=224,
-                        min_scale=0.2,
+                        min_scale=0.08,
                         max_scale=1.0,
                     ),
                 ]
@@ -166,7 +166,7 @@ class ContrastiveABC(ABC):
                     gaussian_prob=args.gaussian_prob,
                     solarization_prob=args.solarization_prob,
                     size=224,
-                    min_scale=0.2,
+                    min_scale=0.08,
                     max_scale=1.0,
                 )
             train_pipeline = ContrastivePipeline(

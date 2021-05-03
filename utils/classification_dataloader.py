@@ -9,7 +9,7 @@ def prepare_transformations(dataset, normalize=True):
     if dataset in ["cifar10", "cifar100"]:
         T_train = transforms.Compose(
             [
-                transforms.RandomResizedCrop(size=32, scale=(0.2, 1.0)),
+                transforms.RandomResizedCrop(size=32, scale=(0.08, 1.0)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
@@ -24,7 +24,7 @@ def prepare_transformations(dataset, normalize=True):
     elif dataset == "stl10":
         T_train = transforms.Compose(
             [
-                transforms.RandomResizedCrop(size=96, scale=(0.2, 1.0)),
+                transforms.RandomResizedCrop(size=96, scale=(0.08, 1.0)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
@@ -39,7 +39,7 @@ def prepare_transformations(dataset, normalize=True):
         )
     elif dataset in ["imagenet", "imagenet100"]:
         T_train = [
-            transforms.RandomResizedCrop(size=224, scale=(0.2, 1.0)),
+            transforms.RandomResizedCrop(size=224, scale=(0.08, 1.0)),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
         ]

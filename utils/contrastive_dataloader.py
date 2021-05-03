@@ -55,7 +55,7 @@ class CifarTransform(BaseTransform):
 
         self.transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop((32, 32), scale=(0.2, 1.0)),
+                transforms.RandomResizedCrop((32, 32), scale=(0.08, 1.0)),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
@@ -70,7 +70,7 @@ class STLTransform(BaseTransform):
         super().__init__()
         self.transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop((96, 96), scale=(0.2, 1.0)),
+                transforms.RandomResizedCrop((96, 96), scale=(0.08, 1.0)),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
@@ -87,7 +87,7 @@ class ImagenetTransform(BaseTransform):
         super().__init__()
         self.transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(224, scale=(0.2, 1.0)),
+                transforms.RandomResizedCrop(224, scale=(0.08, 1.0)),
                 transforms.RandomApply(
                     nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
                     p=0.8,

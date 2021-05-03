@@ -138,7 +138,7 @@ class NormalPipeline(Pipeline):
             self.resize = ops.RandomResizedCrop(
                 device=self.device,
                 size=224,
-                random_area=(0.2, 1.0),
+                random_area=(0.08, 1.0),
                 interp_type=types.INTERP_CUBIC,
             )
             # normalize and horizontal flip
@@ -186,7 +186,7 @@ class ImagenetTransform:
         gaussian_prob=0.5,
         solarization_prob=0.0,
         size=224,
-        min_scale=0.2,
+        min_scale=0.08,
         max_scale=1.0,
     ):
         # random crop
