@@ -28,6 +28,10 @@ class LinearModel(pl.LightningModule):
         # reset classifier
         self.model.classifier = nn.Linear(self.model.features_size, args.n_classes)
 
+    def forward(self, x):
+        out = self.model(x)
+        return out
+
     def configure_optimizers(self):
         args = self.args
 
@@ -75,7 +79,7 @@ class LinearModel(pl.LightningModule):
         X, target = batch
         batch_size = X.size(0)
 
-        output = self.model(X)
+        output = self(X)
         loss = F.cross_entropy(output, target)
 
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
