@@ -5,6 +5,8 @@ from PIL import ImageOps
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
+from PIL import ImageFilter
+import random
 
 
 class ImageFolderWithIndex:
@@ -17,6 +19,18 @@ class ImageFolderWithIndex:
     def __getitem__(self, index):
         data = self.dataset[index]
         return index, (*data)
+
+
+class GaussianBlur(object):
+    """Gaussian blur augmentation in SimCLR https://arxiv.org/abs/2002.05709"""
+
+    def __init__(self, sigma=[0.1, 2.0]):
+        self.sigma = sigma
+
+    def __call__(self, x):
+        sigma = random.uniform(self.sigma[0], self.sigma[1])
+        x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
+        return x
 
 
 class Solarization:
@@ -93,7 +107,7 @@ class ImagenetTransform(BaseTransform):
                     p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
-                transforms.RandomApply([transforms.GaussianBlur(23)], p=gaussian_prob),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
                 transforms.RandomApply([Solarization()], p=solarization_prob),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
@@ -104,7 +118,12 @@ class ImagenetTransform(BaseTransform):
 
 class MulticropAugmentation:
     def __init__(
-        self, transform, size_crops, n_crops, min_scale_crops, max_scale_crops,
+        self,
+        transform,
+        size_crops,
+        n_crops,
+        min_scale_crops,
+        max_scale_crops,
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -114,7 +133,8 @@ class MulticropAugmentation:
         self.transforms = []
         for i in range(len(size_crops)):
             rrc = transforms.RandomResizedCrop(
-                size_crops[i], scale=(min_scale_crops[i], max_scale_crops[i]),
+                size_crops[i],
+                scale=(min_scale_crops[i], max_scale_crops[i]),
             )
             full_transform = transforms.Compose([rrc, transform])
             self.transforms.append(full_transform)
@@ -167,7 +187,7 @@ class MulticropImagenetTransform(BaseTransform):
                     p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
-                transforms.RandomApply([transforms.GaussianBlur(23)], p=gaussian_prob),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
                 transforms.RandomApply([Solarization()], p=solarization_prob),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
@@ -211,7 +231,11 @@ def prepare_multicrop_transform(
 
 
 def prepare_datasets(
-    dataset, data_folder=None, train_dir=None, transform=None, with_index=True,
+    dataset,
+    data_folder=None,
+    train_dir=None,
+    transform=None,
+    with_index=True,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -227,12 +251,18 @@ def prepare_datasets(
 
     if dataset == "cifar10":
         train_dataset = CIFAR10(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "cifar100":
         train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "stl10":
