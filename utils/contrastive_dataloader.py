@@ -1,6 +1,5 @@
 import os
 
-import torch.nn as nn
 from PIL import ImageOps
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -103,7 +102,7 @@ class ImagenetTransform(BaseTransform):
             [
                 transforms.RandomResizedCrop(224, scale=(0.08, 1.0)),
                 transforms.RandomApply(
-                    nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
                     p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
@@ -183,7 +182,7 @@ class MulticropImagenetTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomApply(
-                    nn.ModuleList([transforms.ColorJitter(brightness, contrast, saturation, hue)]),
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
                     p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
