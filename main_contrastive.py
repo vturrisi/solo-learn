@@ -6,9 +6,10 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
 from models.barlow_twins import BarlowTwins
-from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam
+from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam, DaliBYOL
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
+from models.byol import BYOL
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -46,7 +47,7 @@ def parse_args():
     parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
-    parser.add_argument("--method", choices=["simclr", "barlow_twins", "simsiam"], default="simclr")
+    parser.add_argument("--method", choices=["simclr", "barlow_twins", "simsiam", "byol"], default="simclr")
 
     # optimizer
     parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
@@ -65,7 +66,7 @@ def parse_args():
     parser.add_argument("--weight_decay", type=float, default=0.0001)
     parser.add_argument("--zero_init_residual", action="store_true")
 
-    # projection head
+    # projector
     parser.add_argument("--encoding_dim", type=int, default=128)
     parser.add_argument("--hidden_dim", type=int, default=2048)
 
@@ -107,12 +108,18 @@ def parse_args():
     # extra simsiam settings
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
 
+    # extra byol settings
+    parser.add_argument('--base_tau_momentum', default=0.99, type=float)
+    parser.add_argument('--final_tau_momentum', default=1.0, type=float)
+
     # multi-head stuff
     parser.add_argument("--n_heads", type=int, default=2)
 
     # wandb
     parser.add_argument("--name")
     parser.add_argument("--project")
+    parser.add_argument('--entity', default=None, type=str)
+    parser.add_argument('--offline', default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -188,11 +195,16 @@ def main():
             model = DaliBarlowTwins(args)
         else:
             model = BarlowTwins(args)
-    else:
+    elif args.method == "simsiam":
         if args.dali:
             model = DaliSimSiam(args)
         else:
             model = SimSiam(args)
+    elif args.method == "byol":
+        if args.dali:
+            model = DaliBYOL(args)
+        else:
+            model = BYOL(args)
 
     # contrastive dataloader
     if not args.dali:
@@ -244,7 +256,11 @@ def main():
     )
 
     # wandb logging
-    wandb_logger = WandbLogger(name=args.name, project=args.project)
+    wandb_logger = WandbLogger(
+        name=args.name,
+        project=args.project,
+        entity=args.entity,
+        offline=args.offline)
     wandb_logger.watch(model, log="gradients", log_freq=100)
     wandb_logger.log_hyperparams(args)
 

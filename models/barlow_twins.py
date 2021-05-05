@@ -26,8 +26,8 @@ class BarlowTwins(Model):
         self.lamb = args.lamb
         self.scale_loss = args.scale_loss
 
-        # projection head
-        self.projection_head = nn.Sequential(
+        # projector
+        self.projector = nn.Sequential(
             nn.Linear(self.features_size, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
@@ -42,13 +42,13 @@ class BarlowTwins(Model):
         if classify_only:
             return y
         else:
-            z = self.projection_head(features)
+            z = self.projector(features)
             return z, y
 
     def training_step(self, batch, batch_idx):
         indexes, (X1, X2), target = batch
 
-        # features, projection head features, class
+        # features, projector features, class
         z1, output = self(X1, classify_only=False)
         z2, _ = self(X2, classify_only=False)
 

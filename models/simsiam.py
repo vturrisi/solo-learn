@@ -24,8 +24,8 @@ class SimSiam(Model):
         output_dim = args.encoding_dim
         pred_hidden_dim = args.pred_hidden_dim
 
-        # projection head
-        self.projection_head = nn.Sequential(
+        # projector
+        self.projector = nn.Sequential(
             nn.Linear(self.features_size, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
@@ -36,8 +36,8 @@ class SimSiam(Model):
             nn.BatchNorm1d(output_dim),
         )
 
-        # prediction head
-        self.prediction_head = nn.Sequential(
+        # predictor
+        self.predictor = nn.Sequential(
             nn.Linear(output_dim, pred_hidden_dim),
             nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(),
@@ -49,14 +49,14 @@ class SimSiam(Model):
         if classify_only:
             return y
         else:
-            z = self.projection_head(feat)
-            p = self.prediction_head(z)
+            z = self.projector(feat)
+            p = self.predictor(z)
             return z, p, y
 
     def training_step(self, batch, batch_idx):
         indexes, (X1, X2), target = batch
 
-        # features, projection head features, class
+        # features, projector features, class
         z1, p1, output = self(X1, classify_only=False)
         z2, p2, _ = self(X2, classify_only=False)
 

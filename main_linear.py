@@ -99,7 +99,7 @@ def parse_args():
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
 
-    args.n_projection_heads = 1
+    args.n_projectors = 1
 
     return args
 
