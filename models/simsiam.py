@@ -12,7 +12,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.neg_cosine_sim import negative_cosine_similarity
+from losses.simsiam import simsiam_loss_func
 from utils.metrics import accuracy_at_k
 
 
@@ -61,9 +61,7 @@ class SimSiam(Model):
         z2, p2, _ = self(X2, classify_only=False)
 
         # ------- contrastive loss -------
-        neg_cos_sim = (
-            negative_cosine_similarity(p1, z2) / 2 + negative_cosine_similarity(p2, z1) / 2
-        )
+        neg_cos_sim = simsiam_loss_func(p1, z2) / 2 + simsiam_loss_func(p2, z1) / 2
 
         # ------- classification loss -------
         # for datasets with unsupervised data

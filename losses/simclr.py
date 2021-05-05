@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def info_nce(x1, x2, extra_pos_mask=None, temperature=0.2, normalize=True):
+def simclr_loss_func(x1, x2, extra_pos_mask=None, temperature=0.2, normalize=True):
     assert x1.size() == x2.size()
 
     # get the current device based on x1
@@ -39,7 +39,7 @@ def info_nce(x1, x2, extra_pos_mask=None, temperature=0.2, normalize=True):
     return loss
 
 
-def manual_info_nce_sava(x, pos_mask, negative_mask, temperature=0.2, normalize=True):
+def manual_simclr_loss_func(x, pos_mask, negative_mask, temperature=0.2, normalize=True):
     if normalize:
         x = F.normalize(x, dim=1)
 

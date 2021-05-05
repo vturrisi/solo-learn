@@ -11,7 +11,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.barlow_twins import barlow_twins_loss
+from losses.barlow import barlow_loss_func
 from utils.metrics import accuracy_at_k
 
 
@@ -53,7 +53,7 @@ class BarlowTwins(Model):
         z2, _ = self(X2, classify_only=False)
 
         # ------- contrastive loss -------
-        barlow_loss = barlow_twins_loss(z1, z2, lamb=self.lamb, scale_loss=self.scale_loss)
+        barlow_loss = barlow_loss_func(z1, z2, lamb=self.lamb, scale_loss=self.scale_loss)
 
         # ------- classification loss -------
         # for datasets with unsupervised data

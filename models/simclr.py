@@ -13,7 +13,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.info_nce import info_nce, manual_info_nce_sava
+from losses.simclr import simclr_loss_func, manual_simclr_loss_func
 from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
@@ -85,7 +85,7 @@ class SimCLR(Model):
                 index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
-            nce_loss = manual_info_nce_sava(
+            nce_loss = manual_simclr_loss_func(
                 z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
             )
         else:
@@ -103,9 +103,11 @@ class SimCLR(Model):
             if self.args.supervised:
                 gathered_target = gather(target)
                 pos_mask = self.gen_extra_positives_gt(gathered_target)
-                nce_loss = info_nce(z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature)
+                nce_loss = simclr_loss_func(
+                    z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
+                )
             else:
-                nce_loss = info_nce(z1, z2, temperature=self.temperature)
+                nce_loss = simclr_loss_func(z1, z2, temperature=self.temperature)
 
         # ------- classification loss -------
         output = torch.chunk(output, 2)[0]

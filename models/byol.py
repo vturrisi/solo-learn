@@ -12,7 +12,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.neg_cosine_sim import negative_cosine_similarity
+from losses.byol import byol_loss_func
 from utils.metrics import accuracy_at_k
 from utils.momentum import initialize_momentum_params, MomentumUpdater
 
@@ -43,12 +43,12 @@ class BYOL(Model):
         )
 
         # instantiate and initialize momentum encoder
-        self.momentum_encoder = self.base_model(
-            zero_init_residual=args.zero_init_residual)
+        self.momentum_encoder = self.base_model(zero_init_residual=args.zero_init_residual)
         self.momentum_encoder.fc = nn.Identity()
         if args.cifar:
             self.momentum_encoder.conv1 = nn.Conv2d(
-                3, 64, kernel_size=3, stride=1, padding=2, bias=False)
+                3, 64, kernel_size=3, stride=1, padding=2, bias=False
+            )
             self.momentum_encoder.maxpool = nn.Identity()
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
@@ -62,8 +62,7 @@ class BYOL(Model):
         initialize_momentum_params(self.projector, self.momentum_projector)
 
         # momentum updater
-        self.momentum_updater = MomentumUpdater(
-            args.base_tau_momentum, args.final_tau_momentum)
+        self.momentum_updater = MomentumUpdater(args.base_tau_momentum, args.final_tau_momentum)
 
     def forward(self, X, classify_only=True):
         features, y = super().forward(X, classify_only=False)
@@ -73,12 +72,12 @@ class BYOL(Model):
             z = self.projector(features)
             p = self.predictor(z)
             return z, p, y
-    
+
     @torch.no_grad()
     def forward_momentum(self, X):
         features_momentum = self.momentum_encoder(X)
         z_momentum = self.momentum_projector(features_momentum)
-        return z_momentum 
+        return z_momentum
 
     def training_step(self, batch, batch_idx):
         indexes, (X1, X2), target = batch
@@ -92,10 +91,7 @@ class BYOL(Model):
         z2_momentum = self.forward_momentum(X2)
 
         # ------- contrastive loss -------
-        neg_cos_sim = (
-            negative_cosine_similarity(p1, z2_momentum) / 2 + \
-            negative_cosine_similarity(p2, z1_momentum) / 2
-        )
+        neg_cos_sim = byol_loss_func(p1, z2_momentum) / 2 + byol_loss_func(p2, z1_momentum) / 2
 
         # ------- classification loss -------
         # for datasets with unsupervised data
@@ -135,5 +131,5 @@ class BYOL(Model):
             online_nets=[self.encoder, self.projector],
             momentum_nets=[self.momentum_encoder, self.momentum_projector],
             cur_step=self.trainer.global_step,
-            max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs
+            max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
         )
