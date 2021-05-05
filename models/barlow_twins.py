@@ -30,10 +30,10 @@ class BarlowTwins(Model):
         self.projection_head = nn.Sequential(
             nn.Linear(self.features_size, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(hidden_dim, output_dim),
         )
 

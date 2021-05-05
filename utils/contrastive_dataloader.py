@@ -1,11 +1,11 @@
 import os
+import random
 
-from PIL import ImageOps
+from PIL import ImageOps, ImageFilter
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
-from PIL import ImageFilter
-import random
 
 
 class ImageFolderWithIndex:
@@ -21,9 +21,7 @@ class ImageFolderWithIndex:
 
 
 class GaussianBlur(object):
-    """Gaussian blur augmentation in SimCLR https://arxiv.org/abs/2002.05709"""
-
-    def __init__(self, sigma=[0.1, 2.0]):
+    def __init__(self, sigma=[.1, 2.]):
         self.sigma = sigma
 
     def __call__(self, x):

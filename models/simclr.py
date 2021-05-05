@@ -34,7 +34,7 @@ class SimCLR(Model):
         else:
             self.projection_head = nn.Sequential(
                 nn.Linear(self.features_size, hidden_dim),
-                nn.ReLU(inplace=True),
+                nn.ReLU(),
                 nn.Linear(hidden_dim, output_dim),
             )
 

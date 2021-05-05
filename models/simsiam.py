@@ -28,10 +28,10 @@ class SimSiam(Model):
         self.projection_head = nn.Sequential(
             nn.Linear(self.features_size, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
             nn.BatchNorm1d(output_dim),
         )
@@ -40,7 +40,7 @@ class SimSiam(Model):
         self.prediction_head = nn.Sequential(
             nn.Linear(output_dim, pred_hidden_dim),
             nn.BatchNorm1d(pred_hidden_dim),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(pred_hidden_dim, output_dim),
         )
 
