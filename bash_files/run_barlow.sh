@@ -24,4 +24,5 @@ python3 ../main_contrastive.py \
     --name barlow \
     --method barlow_twins \
     --dali \
-    --project debug
+    --project contrastive_learning \
+    --wandb

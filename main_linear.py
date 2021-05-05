@@ -69,6 +69,9 @@ def parse_args():
     # wandb
     parser.add_argument("--name")
     parser.add_argument("--project")
+    parser.add_argument("--entity", default=None, type=str)
+    parser.add_argument("--wandb", action="store_true")
+    parser.add_argument("--offline", action="store_true")
 
     # dataset path
     parser.add_argument("--data_folder", default=None)
@@ -151,9 +154,12 @@ def main():
     )
 
     # wandb logging
-    wandb_logger = WandbLogger(name=args.name, project=args.project)
-    wandb_logger.watch(model, log="gradients", log_freq=100)
-    wandb_logger.log_hyperparams(args)
+    if args.wandb:
+        wandb_logger = WandbLogger(
+            name=args.name, project=args.project, entity=args.entity, offline=args.offline
+        )
+        wandb_logger.watch(model, log="gradients", log_freq=100)
+        wandb_logger.log_hyperparams(args)
 
     # lr logging
     lr_monitor = LearningRateMonitor(logging_interval="epoch")
@@ -164,7 +170,7 @@ def main():
     trainer = Trainer(
         max_epochs=args.epochs,
         gpus=[*args.gpus],
-        logger=wandb_logger,
+        logger=wandb_logger if args.wandb else None,
         distributed_backend="ddp",
         precision=16,
         sync_batchnorm=True,

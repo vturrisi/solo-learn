@@ -14,5 +14,7 @@ python3 ../main_contrastive.py \
     --gpus 0 1 \
     --num_workers 8 \
     --hidden_dim 2048 \
-    --name byol --method byol \
-    --project contrastive_learning
+    --name byol \
+    --method byol \
+    --project contrastive_learning \
+    --wandb

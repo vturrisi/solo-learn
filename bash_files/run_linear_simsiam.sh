@@ -15,4 +15,5 @@ python3 ../main_linear.py \
     --num_workers 10 \
     --name simsiam-linear-eval \
     --pretrained_feature_extractor trained_models/PATH \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb

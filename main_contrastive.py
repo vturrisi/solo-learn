@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
-    parser.add_argument("--method", choices=["simclr", "barlow_twins", "simsiam", "byol"], default="simclr")
+    parser.add_argument("--method", choices=["simclr", "barlow_twins", "simsiam", "byol"])
 
     # optimizer
     parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
@@ -109,8 +109,8 @@ def parse_args():
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
 
     # extra byol settings
-    parser.add_argument('--base_tau_momentum', default=0.99, type=float)
-    parser.add_argument('--final_tau_momentum', default=1.0, type=float)
+    parser.add_argument("--base_tau_momentum", default=0.99, type=float)
+    parser.add_argument("--final_tau_momentum", default=1.0, type=float)
 
     # multi-head stuff
     parser.add_argument("--n_heads", type=int, default=2)
@@ -118,8 +118,9 @@ def parse_args():
     # wandb
     parser.add_argument("--name")
     parser.add_argument("--project")
-    parser.add_argument('--entity', default=None, type=str)
-    parser.add_argument('--offline', default=False, action='store_true')
+    parser.add_argument("--entity", default=None, type=str)
+    parser.add_argument("--wandb", action="store_true")
+    parser.add_argument("--offline", action="store_true")
 
     args = parser.parse_args()
 
@@ -256,13 +257,12 @@ def main():
     )
 
     # wandb logging
-    wandb_logger = WandbLogger(
-        name=args.name,
-        project=args.project,
-        entity=args.entity,
-        offline=args.offline)
-    wandb_logger.watch(model, log="gradients", log_freq=100)
-    wandb_logger.log_hyperparams(args)
+    if args.wandb:
+        wandb_logger = WandbLogger(
+            name=args.name, project=args.project, entity=args.entity, offline=args.offline
+        )
+        wandb_logger.watch(model, log="gradients", log_freq=100)
+        wandb_logger.log_hyperparams(args)
 
     callbacks = []
     # lr logging
@@ -273,7 +273,7 @@ def main():
     trainer = Trainer(
         max_epochs=args.epochs,
         gpus=[*args.gpus],
-        logger=wandb_logger,
+        logger=wandb_logger if args.wandb else None,
         distributed_backend="ddp",
         precision=args.precision,
         sync_batchnorm=True,
