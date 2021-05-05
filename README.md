@@ -45,6 +45,8 @@ Third-party pytorch implementations of contrastive learning methods that support
 * lightning-bolts
 * einops
 
+**NOTE:** if you are using CUDA 10.X use `nvidia-dali-cuda100` in `requirements.txt`.
+
 ## Installation
 
 ```
