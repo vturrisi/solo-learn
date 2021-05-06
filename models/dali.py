@@ -10,12 +10,14 @@ try:
     from simclr import SimCLR
     from simsiam import SimSiam
     from byol import BYOL
+    from mocov2plus import MoCoV2Plus
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
     from .barlow_twins import BarlowTwins
     from .simsiam import SimSiam
     from .byol import BYOL
+    from .mocov2plus import MoCoV2Plus
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -294,4 +296,7 @@ class DaliSimSiam(SimSiam, ContrastiveABC):
     pass
 
 class DaliBYOL(BYOL, ContrastiveABC):
+    pass
+
+class DaliMoCoV2Plus(MoCoV2Plus, ContrastiveABC):
     pass
