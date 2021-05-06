@@ -1,4 +1,4 @@
-python3 ../main_linear.py \
+python3 ../main_contrastive.py \
     imagenet100 \
     resnet18 \
     --data_folder /datasets \
@@ -6,14 +6,15 @@ python3 ../main_linear.py \
     --val_dir imagenet-100/test \
     --epochs 100 \
     --optimizer sgd \
-    --scheduler step \
-    --lr 30.0 \
-    --lr_decay_steps 60 80 \
-    --weight_decay 0 \
+    --scheduler warmup_cosine \
+    --lr 1.0 \
+    --classifier_lr 0.03 \
+    --weight_decay 1e-6 \
     --batch_size 128 \
     --gpus 0 1 \
-    --num_workers 10 \
-    --name simsiam-linear-eval \
-    --pretrained_feature_extractor trained_models/PATH \
+    --num_workers 8 \
+    --hidden_dim 2048 \
+    --name byol \
+    --method byol \
     --project contrastive_learning \
     --wandb

@@ -1,7 +1,7 @@
 import torch
 
 
-def barlow_twins_loss(z1, z2, lamb=5e-3, scale_loss=0.025):
+def barlow_loss_func(z1, z2, lamb=5e-3, scale_loss=0.025):
     N, D = z1.size()
 
     # to match the original code

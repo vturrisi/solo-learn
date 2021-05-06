@@ -16,7 +16,9 @@ python3 ../main_contrastive.py \
     --num_workers 8 \
     --hidden_dim 2048 \
     --name simclr \
-    --project contrastive_learning
+    --method simclr \
+    --project contrastive_learning \
+    --wandb
 
 python3 ../main_contrastive.py \
     imagenet100 \
@@ -36,8 +38,10 @@ python3 ../main_contrastive.py \
     --num_workers 4 \
     --hidden_dim 2048 \
     --name simclr-dali \
+    --method simclr \
     --dali \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb
 
 python3 ../main_contrastive.py \
     imagenet100 \
@@ -60,8 +64,10 @@ python3 ../main_contrastive.py \
     --n_crops 2 \
     --n_small_crops 6 \
     --name multi-crop-simclr-dali \
+    --method simclr \
     --dali \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb
 
 python3 ../main_contrastive.py \
     imagenet100 \
@@ -85,5 +91,7 @@ python3 ../main_contrastive.py \
     --n_crops 2 \
     --n_small_crops 6 \
     --name multi-crop-supervised-simclr-dali \
+    --method simclr \
     --dali \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb

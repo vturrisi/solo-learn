@@ -69,6 +69,9 @@ def parse_args():
     # wandb
     parser.add_argument("--name")
     parser.add_argument("--project")
+    parser.add_argument("--entity", default=None, type=str)
+    parser.add_argument("--wandb", action="store_true")
+    parser.add_argument("--offline", action="store_true")
 
     # dataset path
     parser.add_argument("--data_folder", default=None)
@@ -99,7 +102,7 @@ def parse_args():
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
 
-    args.n_projection_heads = 1
+    args.n_projectors = 1
 
     return args
 
@@ -150,26 +153,30 @@ def main():
         num_workers=args.num_workers,
     )
 
-    # wandb logging
-    wandb_logger = WandbLogger(name=args.name, project=args.project)
-    wandb_logger.watch(model, log="gradients", log_freq=100)
-    wandb_logger.log_hyperparams(args)
+    callbacks = []
 
-    # lr logging
-    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+    # wandb logging
+    if args.wandb:
+        wandb_logger = WandbLogger(
+            name=args.name, project=args.project, entity=args.entity, offline=args.offline
+        )
+        wandb_logger.watch(model, log="gradients", log_freq=100)
+        wandb_logger.log_hyperparams(args)
+        # lr logging
+        callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
     # epoch checkpointer
-    checkpointer = EpochCheckpointer(args, frequency=25)
+    callbacks.append(EpochCheckpointer(args, frequency=25))
 
     trainer = Trainer(
         max_epochs=args.epochs,
         gpus=[*args.gpus],
-        logger=wandb_logger,
+        logger=wandb_logger if args.wandb else None,
         distributed_backend="ddp",
         precision=16,
         sync_batchnorm=True,
         resume_from_checkpoint=args.resume_training_from,
-        callbacks=[lr_monitor, checkpointer],
+        callbacks=callbacks,
         num_sanity_val_steps=0 if args.dali else 2,
     )
     if args.dali:

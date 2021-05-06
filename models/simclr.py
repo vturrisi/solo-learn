@@ -13,7 +13,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.info_nce import info_nce, manual_info_nce_sava
+from losses.simclr import simclr_loss_func, manual_simclr_loss_func
 from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
@@ -28,11 +28,11 @@ class SimCLR(Model):
 
         self.temperature = args.temperature
 
-        # projection head
+        # projector
         if hidden_dim == 0:
-            self.projection_head = nn.Linear(self.features_size, output_dim)
+            self.projector = nn.Linear(self.features_size, output_dim)
         else:
-            self.projection_head = nn.Sequential(
+            self.projector = nn.Sequential(
                 nn.Linear(self.features_size, hidden_dim),
                 nn.ReLU(),
                 nn.Linear(hidden_dim, output_dim),
@@ -43,7 +43,7 @@ class SimCLR(Model):
         if classify_only:
             return y
         else:
-            z = self.projection_head(features)
+            z = self.projector(features)
             return features, z, y
 
     @torch.no_grad()
@@ -67,7 +67,7 @@ class SimCLR(Model):
             X = torch.cat(all_X[:n_crops], dim=0)
             X_small = torch.cat(all_X[n_crops:], dim=0)
 
-            # features, projection head features, class
+            # features, projector features, class
             features, z, output = self(X, classify_only=False)
             features_small, z_small, output_small = self(X_small, classify_only=False)
 
@@ -85,14 +85,14 @@ class SimCLR(Model):
                 index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             negative_mask = (~pos_mask).fill_diagonal_(False)
-            nce_loss = manual_info_nce_sava(
+            nce_loss = manual_simclr_loss_func(
                 z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
             )
         else:
             indexes, (X_aug1, X_aug2), target = batch
             X = torch.cat((X_aug1, X_aug2), dim=0)
 
-            # features, projection head features, class
+            # features, projector features, class
             features, z, output = self(X, classify_only=False)
 
             z1, z2 = torch.chunk(z, 2)
@@ -103,9 +103,11 @@ class SimCLR(Model):
             if self.args.supervised:
                 gathered_target = gather(target)
                 pos_mask = self.gen_extra_positives_gt(gathered_target)
-                nce_loss = info_nce(z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature)
+                nce_loss = simclr_loss_func(
+                    z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
+                )
             else:
-                nce_loss = info_nce(z1, z2, temperature=self.temperature)
+                nce_loss = simclr_loss_func(z1, z2, temperature=self.temperature)
 
         # ------- classification loss -------
         output = torch.chunk(output, 2)[0]

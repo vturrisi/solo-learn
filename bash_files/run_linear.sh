@@ -16,4 +16,5 @@ python3 ../main_linear.py \
     --name simclr-linear-eval \
     --dali \
     --pretrained_feature_extractor trained_models/MODEL_PATH \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb

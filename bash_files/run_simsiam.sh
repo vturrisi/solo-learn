@@ -21,7 +21,8 @@ python3 ../main_contrastive.py \
     --method simsiam \
     --no_lr_scheduler_for_pred_head \
     --dali \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb
 
 python3 ../main_contrastive.py \
     imagenet100 \
@@ -46,4 +47,5 @@ python3 ../main_contrastive.py \
     --method simsiam \
     --no_lr_scheduler_for_pred_head \
     --dali \
-    --project contrastive_learning
+    --project contrastive_learning \
+    --wandb

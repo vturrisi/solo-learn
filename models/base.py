@@ -43,20 +43,20 @@ class BaseModel(pl.LightningModule):
             classifier_parameters = self.classifier.parameters()
 
             if args.no_lr_scheduler_for_pred_head:
-                prediction_head_parameters = self.prediction_head.parameters()
+                predictor_parameters = self.predictor.parameters()
                 other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if "classifier" not in name and "prediction_head" not in name
+                    p for name, p in self.named_parameters()
+                    if not any(s in name for s in ["classifier", "predictor", "momentum"])
                 )
                 parameters = [
                     {"params": other_parameters},
                     {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
-                    {"params": prediction_head_parameters},
+                    {"params": predictor_parameters},
                 ]
             else:
                 other_parameters = (
-                    p for name, p in self.named_parameters() if "classifier" not in name
+                    p for name, p in self.named_parameters() 
+                    if not any(s in name for s in ["classifier", "momentum"])
                 )
                 parameters = [
                     {"params": other_parameters},
@@ -64,17 +64,21 @@ class BaseModel(pl.LightningModule):
                 ]
         else:
             if args.no_lr_scheduler_for_pred_head:
-                prediction_head_parameters = self.prediction_head.parameters()
+                predictor_parameters = self.predictor.parameters()
                 other_parameters = (
-                    p for name, p in self.named_parameters() if "prediction_head" not in name
+                    p for name, p in self.named_parameters()
+                    if not any(s in name for s in ["predictor", "momentum"])
                 )
                 parameters = [
                     {"params": other_parameters},
-                    {"params": prediction_head_parameters},
+                    {"params": predictor_parameters},
                 ]
             else:
                 parameters = [
-                    {"params": self.parameters()},
+                    {"params":
+                        (p for name, p in self.named_parameters()
+                         if not any(s in name for s in ["momentum"]))
+                    },
                 ]
 
         optimizer = optimizer(
@@ -152,10 +156,10 @@ class Model(BaseModel):
         assert args.encoder in ["resnet18", "resnet50"]
         from torchvision.models import resnet18, resnet50
 
-        base_model = {"resnet18": resnet18, "resnet50": resnet50}[args.encoder]
+        self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[args.encoder]
 
         # initialize encoder
-        self.encoder = base_model(zero_init_residual=args.zero_init_residual)
+        self.encoder = self.base_model(zero_init_residual=args.zero_init_residual)
         self.features_size = self.encoder.inplanes
         # remove fc layer
         self.encoder.fc = nn.Identity()
