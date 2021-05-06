@@ -153,6 +153,8 @@ def main():
         num_workers=args.num_workers,
     )
 
+    callbacks = []
+
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
@@ -160,12 +162,11 @@ def main():
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
-
-    # lr logging
-    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+        # lr logging
+        callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
     # epoch checkpointer
-    checkpointer = EpochCheckpointer(args, frequency=25)
+    callbacks.append(EpochCheckpointer(args, frequency=25))
 
     trainer = Trainer(
         max_epochs=args.epochs,
@@ -175,7 +176,7 @@ def main():
         precision=16,
         sync_batchnorm=True,
         resume_from_checkpoint=args.resume_training_from,
-        callbacks=[lr_monitor, checkpointer],
+        callbacks=callbacks,
         num_sanity_val_steps=0 if args.dali else 2,
     )
     if args.dali:

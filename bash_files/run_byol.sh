@@ -1,9 +1,9 @@
 python3 ../main_contrastive.py \
     imagenet100 \
     resnet18 \
-    --data_folder /data/datasets \
+    --data_folder /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/val \
+    --val_dir imagenet-100/test \
     --epochs 100 \
     --optimizer sgd \
     --scheduler warmup_cosine \

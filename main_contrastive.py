@@ -47,7 +47,9 @@ def parse_args():
     parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
-    parser.add_argument("--method", choices=["simclr", "barlow_twins", "simsiam", "byol"])
+    parser.add_argument(
+        "--method", choices=["simclr", "barlow_twins", "simsiam", "byol"], default=None
+    )
 
     # optimizer
     parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
@@ -178,6 +180,8 @@ def parse_args():
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
+    assert args.method is not None
+
     return args
 
 
@@ -256,6 +260,8 @@ def main():
         num_workers=args.num_workers,
     )
 
+    callbacks = []
+
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
@@ -263,10 +269,9 @@ def main():
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
+        # lr logging
+        callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
-    callbacks = []
-    # lr logging
-    callbacks.append(LearningRateMonitor(logging_interval="epoch"))
     # epoch checkpointer
     callbacks.append(EpochCheckpointer(args, frequency=25))
 

@@ -10,7 +10,10 @@ class EpochCheckpointer(Callback):
         self.logdir = logdir
 
     def initial_setup(self, trainer):
-        version = str(trainer.logger.version)
+        if trainer.logger is None:
+            version = None
+        else:
+            version = str(trainer.logger.version)
         if version is not None:
             self.path = os.path.join(self.logdir, version)
             self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
