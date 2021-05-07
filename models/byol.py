@@ -102,7 +102,7 @@ class BYOL(Model):
         target = target[index]
 
         # ------- classification loss -------
-        class_loss = F.cross_entropy(output, target)
+        class_loss = F.cross_entropy(output, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model

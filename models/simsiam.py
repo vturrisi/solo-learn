@@ -57,20 +57,16 @@ class SimSiam(Model):
         indexes, (X1, X2), target = batch
 
         # features, projector features, class
-        z1, p1, output = self(X1, classify_only=False)
-        z2, p2, _ = self(X2, classify_only=False)
+        z1, p1, output1 = self(X1, classify_only=False)
+        z2, p2, output2 = self(X2, classify_only=False)
 
         # ------- contrastive loss -------
         neg_cos_sim = simsiam_loss_func(p1, z2) / 2 + simsiam_loss_func(p2, z1) / 2
 
         # ------- classification loss -------
-        # for datasets with unsupervised data
-        index = target >= 0
-        output = output[index]
-        target = target[index]
-
-        # ------- classification loss -------
-        class_loss = F.cross_entropy(output, target)
+        output = torch.cat((output1, output2))
+        target = target.repeat(2)
+        class_loss = F.cross_entropy(output, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
