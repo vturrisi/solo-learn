@@ -87,7 +87,7 @@ class MoCoV2Plus(Model):
     @torch.no_grad()
     def forward_momentum(self, X):
         features_momentum = self.momentum_encoder(X)
-        z = self.projector_momentum(features_momentum)
+        z = self.momentum_projector(features_momentum)
         z = F.normalize(z)
         return z
 
