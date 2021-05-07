@@ -110,14 +110,8 @@ class SimCLR(Model):
                 nce_loss = simclr_loss_func(z1, z2, temperature=self.temperature)
 
         # ------- classification loss -------
-        output = torch.chunk(output, 2)[0]
-        # for datasets with unsupervised data
-        index = target >= 0
-        output = output[index]
-        target = target[index]
-
-        # ------- classification loss -------
-        class_loss = F.cross_entropy(output, target)
+        target = target.repeat(2)
+        class_loss = F.cross_entropy(output, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
