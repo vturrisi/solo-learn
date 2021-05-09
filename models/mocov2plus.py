@@ -4,7 +4,6 @@ import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from einops import repeat
 
 try:
     from base import Model
@@ -32,9 +31,7 @@ class MoCoV2Plus(Model):
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, self.features_size),
-            nn.ReLU(),
-            nn.Linear(self.features_size, output_dim),
+            nn.Linear(self.features_size, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, output_dim),
         )
 
         # instantiate and initialize momentum encoder
@@ -70,8 +67,8 @@ class MoCoV2Plus(Model):
         assert self.queue_size % batch_size == 0  # for simplicity
 
         # replace the keys at ptr (dequeue and enqueue)
-        keys = keys.permute(0,2,1)
-        self.queue[:, :, ptr:ptr + batch_size] = keys
+        keys = keys.permute(0, 2, 1)
+        self.queue[:, :, ptr : ptr + batch_size] = keys
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
         self.queue_ptr[0] = ptr
 
@@ -106,8 +103,8 @@ class MoCoV2Plus(Model):
         # symmetric
         queue = self.queue.clone().detach()
         nce_loss = (
-            moco_loss_func(q1, k2, queue[0], self.temperature) + \
-            moco_loss_func(q2, k1, queue[1], self.temperature)
+            moco_loss_func(q1, k2, queue[0], self.temperature)
+            + moco_loss_func(q2, k1, queue[1], self.temperature)
         ) / 2
 
         # ------- classification loss -------
