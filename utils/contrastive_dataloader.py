@@ -1,7 +1,7 @@
 import os
 import random
 
-from PIL import Image, ImageFilter, ImageOps
+from PIL import ImageFilter, ImageOps
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
@@ -66,7 +66,7 @@ class CifarTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    (32, 32), scale=(0.08, 1.0), interpolation=Image.BICUBIC
+                    (32, 32), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC
                 ),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
@@ -83,7 +83,7 @@ class STLTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    (96, 96), scale=(0.08, 1.0), interpolation=Image.BICUBIC
+                    (96, 96), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC
                 ),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
@@ -101,7 +101,9 @@ class ImagenetTransform(BaseTransform):
         super().__init__()
         self.transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(224, scale=(0.08, 1.0), interpolation=Image.BICUBIC),
+                transforms.RandomResizedCrop(
+                    224, scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC
+                ),
                 transforms.RandomApply(
                     [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
                 ),
@@ -129,7 +131,7 @@ class MulticropAugmentation:
             rrc = transforms.RandomResizedCrop(
                 size_crops[i],
                 scale=(min_scale_crops[i], max_scale_crops[i]),
-                interpolation=Image.BICUBIC,
+                interpolation=transforms.InterpolationMode.BICUBIC,
             )
             full_transform = transforms.Compose([rrc, transform])
             self.transforms.append(full_transform)
