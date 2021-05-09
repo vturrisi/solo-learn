@@ -1,7 +1,6 @@
 import math
 
 import torch
-from pytorch_lightning.callbacks import Callback
 
 
 @torch.no_grad()
@@ -13,7 +12,7 @@ def initialize_momentum_params(online_encoder, momentum_encoder):
         pm.requires_grad = False
 
 
-class MomentumUpdater():
+class MomentumUpdater:
     def __init__(self, base_tau=0.996, final_tau=1.0):
         super().__init__()
         self.base_tau = base_tau
@@ -31,8 +30,10 @@ class MomentumUpdater():
         self.cur_tau = self.update_tau(cur_step, max_steps)
 
     def update_tau(self, cur_step, max_steps):
-        tau = self.final_tau - (self.final_tau - self.base_tau) * \
-              (math.cos(math.pi * cur_step / max_steps) + 1) / 2
+        tau = (
+            self.final_tau
+            - (self.final_tau - self.base_tau) * (math.cos(math.pi * cur_step / max_steps) + 1) / 2
+        )
         return tau
 
     def update_params(self, online_nets, momentum_nets):
