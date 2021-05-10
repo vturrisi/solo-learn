@@ -103,8 +103,8 @@ class MoCoV2Plus(Model):
         # symmetric
         queue = self.queue.clone().detach()
         nce_loss = (
-            moco_loss_func(q1, k2, queue[1], self.temperature) + \
-            moco_loss_func(q2, k1, queue[0], self.temperature)
+            moco_loss_func(q1, k2, queue[1], self.temperature)
+            + moco_loss_func(q2, k1, queue[0], self.temperature)
         ) / 2
 
         # ------- classification loss -------
