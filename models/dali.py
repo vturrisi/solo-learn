@@ -1,4 +1,5 @@
 import math
+from models.swav import SwAV
 import os
 import sys
 
@@ -295,8 +296,14 @@ class DaliBarlowTwins(BarlowTwins, ContrastiveABC):
 class DaliSimSiam(SimSiam, ContrastiveABC):
     pass
 
+
 class DaliBYOL(BYOL, ContrastiveABC):
     pass
 
+
 class DaliMoCoV2Plus(MoCoV2Plus, ContrastiveABC):
+    pass
+
+
+class DaliSwAV(SwAV, ContrastiveABC):
     pass

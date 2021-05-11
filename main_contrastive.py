@@ -1,4 +1,5 @@
 import argparse
+from losses.swav import swav_loss_func
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -6,11 +7,12 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
 from models.barlow_twins import BarlowTwins
-from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam, DaliBYOL, DaliMoCoV2Plus
+from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam, DaliBYOL, DaliMoCoV2Plus, DaliSwAV
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
 from models.byol import BYOL
 from models.mocov2plus import MoCoV2Plus
+from models.swav import SwAV
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -49,7 +51,7 @@ def parse_args():
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
     parser.add_argument(
-        "--method", choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus"], default=None
+        "--method", choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "swav"], default=None
     )
 
     # optimizer
@@ -111,7 +113,14 @@ def parse_args():
     # extra simsiam settings
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
 
-    # extra moco settings
+    # extra swav settings
+    parser.add_argument("--num_prototypes", type=int, default=3000)
+    parser.add_argument("--sk_epsilon", type=float, default=0.05)
+    parser.add_argument("--sk_iters", type=int, default=3)
+    parser.add_argument("--freeze_prototypes_epochs", type=int, default=1)
+    parser.add_argument("--epoch_queue_starts", type=int, default=15)
+
+    # extra queue settings
     parser.add_argument('--queue_size', default=65536, type=int)
 
     # extra momentum settings
@@ -219,6 +228,11 @@ def main():
             model = DaliMoCoV2Plus(args)
         else:
             model = MoCoV2Plus(args)
+    elif args.method == "swav":
+        if args.dali:
+            model = DaliSwAV(args)
+        else:
+            model = SwAV(args)
 
     # contrastive dataloader
     if not args.dali:
