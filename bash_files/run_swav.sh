@@ -13,7 +13,7 @@ python3 ../main_contrastive.py \
     --num_workers 8 \
     --hidden_dim 2048 \
     --queue_size 3840 \
-    --epoch_queue_starts 50 \
+    --epoch_queue_starts 100 \
     --name swav \
     --method swav \
     --project contrastive_learning \

@@ -68,14 +68,14 @@ class SwAV(Model):
             p = self.prototypes(z)
             return p, z, y
 
+    @torch.no_grad()
     def get_assignments(self, preds):
         bs = preds[0].size(0)
         assignments = []
         for i, p in enumerate(preds):
             # optionally use the queue
             if self.queue_size > 0 and self.current_epoch >= self.epoch_queue_starts:
-                with torch.no_grad():
-                    p_queue = self.prototypes(self.queue[i])
+                p_queue = self.prototypes(self.queue[i])
                 p = torch.cat((p, p_queue))
             # compute assignments with sinkhorn-knopp
             assignments.append(self.sk(p)[:bs])
@@ -105,7 +105,7 @@ class SwAV(Model):
         if self.queue_size > 0:
             z = torch.stack((z1, z2))
             self.queue[:,z.size(1):] = self.queue[:,:-z.size(1)].clone()
-            self.queue[:,:z.size(1)] = z
+            self.queue[:,:z.size(1)] = z.detach()
 
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
