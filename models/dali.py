@@ -1,5 +1,4 @@
 import math
-from models.swav import SwAV
 import os
 import sys
 
@@ -12,6 +11,7 @@ try:
     from simsiam import SimSiam
     from byol import BYOL
     from mocov2plus import MoCoV2Plus
+    from swav import SwAV
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
@@ -19,6 +19,7 @@ except:
     from .simsiam import SimSiam
     from .byol import BYOL
     from .mocov2plus import MoCoV2Plus
+    from .swav import SwAV
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
