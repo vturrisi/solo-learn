@@ -34,6 +34,7 @@ class SwAV(Model):
         # projector
         self.projector = nn.Sequential(
             nn.Linear(self.features_size, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, self.output_dim),
         )
