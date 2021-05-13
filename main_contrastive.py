@@ -6,17 +6,25 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
 from models.barlow_twins import BarlowTwins
-from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam, DaliBYOL, DaliMoCoV2Plus
+from models.byol import BYOL
+from models.dali import (
+    DaliBarlowTwins,
+    DaliBYOL,
+    DaliMoCoV2Plus,
+    DaliSimCLR,
+    DaliSimSiam,
+    DaliVICReg,
+)
+from models.mocov2plus import MoCoV2Plus
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
-from models.byol import BYOL
-from models.mocov2plus import MoCoV2Plus
+from models.vigreg import VICReg
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
     prepare_datasets,
-    prepare_n_crop_transform,
     prepare_multicrop_transform,
+    prepare_n_crop_transform,
     prepare_transform,
 )
 from utils.epoch_checkpointer import EpochCheckpointer
@@ -50,7 +58,7 @@ def parse_args():
 
     parser.add_argument(
         "--method",
-        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus"],
+        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "vicreg"],
         default=None,
     )
 
@@ -121,8 +129,10 @@ def parse_args():
     parser.add_argument("--base_tau_momentum", default=0.99, type=float)
     parser.add_argument("--final_tau_momentum", default=1.0, type=float)
 
-    # multi-head stuff
-    parser.add_argument("--n_heads", type=int, default=2)
+    # extra vigreg settings
+    parser.add_argument("--sim_loss_weight", default=25, type=float)
+    parser.add_argument("--var_loss_weight", default=25, type=float)
+    parser.add_argument("--cov_loss_weight", default=1.0, type=float)
 
     # wandb
     parser.add_argument("--name")
@@ -155,6 +165,7 @@ def parse_args():
                     hue=args.hue,
                     gaussian_prob=1.0,
                     solarization_prob=0.0,
+                    min_scale_crop=args.min_scale_crop,
                 ),
                 dict(
                     brightness=args.brightness,
@@ -163,6 +174,7 @@ def parse_args():
                     hue=args.hue,
                     gaussian_prob=0.1,
                     solarization_prob=0.2,
+                    min_scale_crop=args.min_scale_crop,
                 ),
             ]
         else:
@@ -223,6 +235,11 @@ def main():
             model = DaliMoCoV2Plus(args)
         else:
             model = MoCoV2Plus(args)
+    elif args.method == "vicreg":
+        if args.dali:
+            model = VICReg(args)
+        else:
+            model = DaliVICReg(args)
 
     # contrastive dataloader
     if not args.dali:

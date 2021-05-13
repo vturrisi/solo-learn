@@ -11,6 +11,7 @@ try:
     from simsiam import SimSiam
     from byol import BYOL
     from mocov2plus import MoCoV2Plus
+    from vigreg import VICReg
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
@@ -18,6 +19,7 @@ except:
     from .simsiam import SimSiam
     from .byol import BYOL
     from .mocov2plus import MoCoV2Plus
+    from .vigreg import VICReg
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -55,12 +57,7 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self,
-        *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
-        **kwargs,
+        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -282,4 +279,8 @@ class DaliBYOL(BYOL, ContrastiveABC):
 
 
 class DaliMoCoV2Plus(MoCoV2Plus, ContrastiveABC):
+    pass
+
+
+class DaliVICReg(VICReg, ContrastiveABC):
     pass

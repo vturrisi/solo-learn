@@ -1,0 +1,87 @@
+import os
+import sys
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+try:
+    from base import Model
+except:
+    from .base import Model
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from losses.vigreg import covariance_loss, invariance_loss, variance_loss
+from utils.metrics import accuracy_at_k
+
+
+class VICReg(Model):
+    def __init__(self, args):
+        super().__init__(args)
+
+        hidden_dim = args.hidden_dim
+        output_dim = args.encoding_dim
+        assert output_dim > 0
+
+        self.lamb = args.lamb
+        self.scale_loss = args.scale_loss
+
+        # projector
+        self.projector = nn.Sequential(
+            nn.Linear(self.features_size, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim),
+        )
+
+    def forward(self, X, classify_only=True):
+        features, y = super().forward(X, classify_only=False)
+        if classify_only:
+            return y
+        else:
+            z = self.projector(features)
+            return z, y
+
+    def training_step(self, batch, batch_idx):
+        indexes, (X1, X2), target = batch
+
+        # features, projector features, class
+        z1, output1 = self(X1, classify_only=False)
+        z2, output2 = self(X2, classify_only=False)
+
+        # ------- contrastive loss -------
+        sim_loss = invariance_loss(z1, z2)
+        var_loss = variance_loss(z1, z2)
+        cov_loss = covariance_loss(z1, z2)
+
+        args = self.args
+        vigreg_loss = (
+            args.sim_loss_weight * sim_loss
+            + args.var_loss_weight * var_loss
+            + args.cov_loss_weight * cov_loss
+        )
+
+        # ------- classification loss -------
+        output = torch.cat((output1, output2))
+        target = target.repeat(2)
+        class_loss = F.cross_entropy(output, target, ignore_index=-1)
+
+        # just add together the losses to do only one backward()
+        # we have stop gradients on the output y of the model
+        loss = vigreg_loss + class_loss
+
+        # ------- metrics -------
+        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+
+        metrics = {
+            "train_vigreg_loss": vigreg_loss,
+            "train_class_loss": class_loss,
+            "train_acc1": acc1,
+            "train_acc5": acc5,
+        }
+        self.log_dict(metrics, on_epoch=True, sync_dist=True)
+        return loss
