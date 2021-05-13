@@ -49,7 +49,9 @@ def parse_args():
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
     parser.add_argument(
-        "--method", choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus"], default=None
+        "--method",
+        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus"],
+        default=None,
     )
 
     # optimizer
@@ -94,6 +96,7 @@ def parse_args():
     parser.add_argument("--hue", type=float, default=0.2)
     parser.add_argument("--gaussian_prob", type=float, default=0.5)
     parser.add_argument("--solarization_prob", type=float, default=0)
+    parser.add_argument("--min_scale_crop", type=float, default=0.08)
     # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--dali_device", type=str, default="gpu")
@@ -112,7 +115,7 @@ def parse_args():
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
 
     # extra moco settings
-    parser.add_argument('--queue_size', default=65536, type=int)
+    parser.add_argument("--queue_size", default=65536, type=int)
 
     # extra momentum settings
     parser.add_argument("--base_tau_momentum", default=0.99, type=float)
@@ -170,6 +173,7 @@ def parse_args():
                 hue=args.hue,
                 gaussian_prob=args.gaussian_prob,
                 solarization_prob=args.solarization_prob,
+                min_scale_crop=args.min_scale_crop,
             )
 
     if args.asymmetric_augmentations:
