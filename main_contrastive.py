@@ -21,7 +21,7 @@ from models.mocov2plus import MoCoV2Plus
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
 from models.swav import SwAV
-from models.vigreg import VICReg
+from models.vicreg import VICReg
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -139,7 +139,7 @@ def parse_args():
     parser.add_argument("--base_tau_momentum", default=0.99, type=float)
     parser.add_argument("--final_tau_momentum", default=1.0, type=float)
 
-    # extra vigreg settings
+    # extra vicreg settings
     parser.add_argument("--sim_loss_weight", default=25, type=float)
     parser.add_argument("--var_loss_weight", default=25, type=float)
     parser.add_argument("--cov_loss_weight", default=1.0, type=float)

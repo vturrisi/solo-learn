@@ -12,7 +12,7 @@ try:
     from simclr import SimCLR
     from simsiam import SimSiam
     from swav import SwAV
-    from vigreg import VICReg
+    from vicreg import VICReg
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
@@ -21,7 +21,7 @@ except:
     from .byol import BYOL
     from .mocov2plus import MoCoV2Plus
     from .swav import SwAV
-    from .vigreg import VICReg
+    from .vicreg import VICReg
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 

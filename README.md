@@ -3,8 +3,10 @@
 Third-party pytorch implementations of contrastive learning methods that supports extra stuff (see "What is available" section).
 
 ## Methods available:
-* [SimCLR](https://arxiv.org/abs/2002.05709)
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
+* [BYOL](https://arxiv.org/abs/2006.07733)
+* [MoCo-V2](https://arxiv.org/abs/2003.04297)
+* [SimCLR](https://arxiv.org/abs/2002.05709)
 * [SimSiam](https://arxiv.org/abs/2011.10566)
 * SimCLR + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
 
@@ -15,6 +17,13 @@ Third-party pytorch implementations of contrastive learning methods that support
 * Dataloading speed up (at the cost of using more GPU memory) using [Nvidia Dali](https://github.com/NVIDIA/DALI)
 * Multi-resolution crop from [SwAV](https://arxiv.org/abs/2006.09882)
 * Post-pretraining linear evaluation (this usually gives 1-1.5% accuracy points)
+
+## TODO
+* Update results table
+* Run on methods Imagenet
+* Implement supervised versions of the algorithms
+* Improve Nvidia Dali when using cpu
+* Other methods
 
 
 ## Results
