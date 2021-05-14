@@ -7,15 +7,17 @@ Third-party pytorch implementations of contrastive learning methods that support
 * [BYOL](https://arxiv.org/abs/2006.07733)
 * [MoCo-V2](https://arxiv.org/abs/2003.04297)
 * [SimCLR](https://arxiv.org/abs/2002.05709)
-* [SimSiam](https://arxiv.org/abs/2011.10566)
 * SimCLR + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
+* [SimSiam](https://arxiv.org/abs/2011.10566)
+* [Swav](https://arxiv.org/abs/2006.09882)
+* [VICReg](https://arxiv.org/abs/2105.04906)
 
 ## What is available?
 * Online linear evaluation via stop-gradient
 * Pytorch-lightning loggining and default benefits (multi-gpu training, mixed precision, etc)
 * Gathering negatives across gpu devices to simulate larger batch sizes (gradients don't flow across gpus though)
 * Dataloading speed up (at the cost of using more GPU memory) using [Nvidia Dali](https://github.com/NVIDIA/DALI)
-* Multi-resolution crop from [SwAV](https://arxiv.org/abs/2006.09882)
+* Some methods support multi-resolution crop from [SwAV](https://arxiv.org/abs/2006.09882)
 * Post-pretraining linear evaluation (this usually gives 1-1.5% accuracy points)
 
 ## TODO
@@ -38,6 +40,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 | Resnet   	| SimSiam 	| Imagenet-100 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 69.28              	| 72.22                        	|
 | Resnet   	| SimSiam 	| Imagenet 	| 100    	| 256   	| :x:         	| 512              	| 128 |                    	| :heavy_check_mark: 	|                    	| 55.42              	| ~62.5 atm (running, but strenghting the augmentations seem to have a detrimental effect on imagenet)                         	|
 
+**NOTE:** Heavily outdated. Will be updated soon.
 
 ## Notes:
 * Barlow Twins and SimCLR work with basically the same hyperparameters
@@ -63,6 +66,7 @@ pip install -r requirements.txt
 ```
 
 ## Pretraining
+
 ```
 python3 ../main_contrastive.py \
     imagenet100 \
@@ -72,18 +76,30 @@ python3 ../main_contrastive.py \
     --val_dir imagenet-100/test \
     --epochs 100 \
     --optimizer sgd \
+    --lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --temperature 0.2 \
     --gpus 0 1 \
-    --num_workers 8 \
+    --num_workers 4 \
     --hidden_dim 2048 \
-    --name simclr \
-    --project contrastive_learning
+    --encoding_dim 2048 \
+    --brightness 0.4 \
+    --contrast 0.4 \
+    --saturation 0.2 \
+    --hue 0.1 \
+    --scale_loss 0.1 \
+    --asymmetric_augmentations \
+    --name barlow \
+    --method barlow_twins \
+    --dali \
+    --project contrastive_learning \
+    --wandb
 ```
-Or follow `bash_files/run_contrastive.sh`
+Or follow `bash_files`
+
+**NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
 
 ## Linear Evaluation
 ```
@@ -107,3 +123,5 @@ python3 main_linear.py \
     --project contrastive_learning
 ```
 Or follow `bash_files/run_linear.sh`
+
+**NOTE:** Each method requires their own parameters, so be sure to check their original papers. Although, in our experience this doesn't change so much.
