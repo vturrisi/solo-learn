@@ -237,9 +237,9 @@ def main():
             model = MoCoV2Plus(args)
     elif args.method == "vicreg":
         if args.dali:
-            model = VICReg(args)
-        else:
             model = DaliVICReg(args)
+        else:
+            model = VICReg(args)
 
     # contrastive dataloader
     if not args.dali:

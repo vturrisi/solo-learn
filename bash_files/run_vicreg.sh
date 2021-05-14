@@ -12,7 +12,7 @@ python3 ../main_contrastive.py \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --gpus 0 1 \
-    --num_workers 4 \
+    --num_workers 8 \
     --hidden_dim 2048 \
     --encoding_dim 2048 \
     --min_scale_crop 0.2 \
@@ -23,6 +23,5 @@ python3 ../main_contrastive.py \
     --solarization_prob 0.1 \
     --name vicreg \
     --method vicreg \
-    --dali \
     --project debug \
     --wandb
