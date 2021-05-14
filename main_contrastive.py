@@ -1,5 +1,5 @@
 import argparse
-from losses.swav import swav_loss_func
+from pprint import pprint
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -7,18 +7,27 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
 from models.barlow_twins import BarlowTwins
-from models.dali import DaliBarlowTwins, DaliSimCLR, DaliSimSiam, DaliBYOL, DaliMoCoV2Plus, DaliSwAV
+from models.byol import BYOL
+from models.dali import (
+    DaliBarlowTwins,
+    DaliBYOL,
+    DaliMoCoV2Plus,
+    DaliSimCLR,
+    DaliSimSiam,
+    DaliSwAV,
+    DaliVICReg,
+)
+from models.mocov2plus import MoCoV2Plus
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
-from models.byol import BYOL
-from models.mocov2plus import MoCoV2Plus
 from models.swav import SwAV
+from models.vigreg import VICReg
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
     prepare_datasets,
-    prepare_n_crop_transform,
     prepare_multicrop_transform,
+    prepare_n_crop_transform,
     prepare_transform,
 )
 from utils.epoch_checkpointer import EpochCheckpointer
@@ -51,7 +60,9 @@ def parse_args():
     parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
 
     parser.add_argument(
-        "--method", choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "swav"], default=None
+        "--method",
+        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "vicreg", "swav"],
+        default=None,
     )
 
     # optimizer
@@ -96,6 +107,7 @@ def parse_args():
     parser.add_argument("--hue", type=float, default=0.2)
     parser.add_argument("--gaussian_prob", type=float, default=0.5)
     parser.add_argument("--solarization_prob", type=float, default=0)
+    parser.add_argument("--min_scale_crop", type=float, default=0.08)
     # this only works for imagenet
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--dali_device", type=str, default="gpu")
@@ -121,14 +133,16 @@ def parse_args():
     parser.add_argument("--epoch_queue_starts", type=int, default=15)
 
     # extra queue settings
-    parser.add_argument('--queue_size', default=65536, type=int)
+    parser.add_argument("--queue_size", default=65536, type=int)
 
     # extra momentum settings
     parser.add_argument("--base_tau_momentum", default=0.99, type=float)
     parser.add_argument("--final_tau_momentum", default=1.0, type=float)
 
-    # multi-head stuff
-    parser.add_argument("--n_heads", type=int, default=2)
+    # extra vigreg settings
+    parser.add_argument("--sim_loss_weight", default=25, type=float)
+    parser.add_argument("--var_loss_weight", default=25, type=float)
+    parser.add_argument("--cov_loss_weight", default=1.0, type=float)
 
     # wandb
     parser.add_argument("--name")
@@ -161,6 +175,7 @@ def parse_args():
                     hue=args.hue,
                     gaussian_prob=1.0,
                     solarization_prob=0.0,
+                    min_scale_crop=args.min_scale_crop,
                 ),
                 dict(
                     brightness=args.brightness,
@@ -169,6 +184,7 @@ def parse_args():
                     hue=args.hue,
                     gaussian_prob=0.1,
                     solarization_prob=0.2,
+                    min_scale_crop=args.min_scale_crop,
                 ),
             ]
         else:
@@ -179,6 +195,7 @@ def parse_args():
                 hue=args.hue,
                 gaussian_prob=args.gaussian_prob,
                 solarization_prob=args.solarization_prob,
+                min_scale_crop=args.min_scale_crop,
             )
 
     if args.asymmetric_augmentations:
@@ -228,6 +245,11 @@ def main():
             model = DaliMoCoV2Plus(args)
         else:
             model = MoCoV2Plus(args)
+    elif args.method == "vicreg":
+        if args.dali:
+            model = DaliVICReg(args)
+        else:
+            model = VICReg(args)
     elif args.method == "swav":
         if args.dali:
             model = DaliSwAV(args)
@@ -246,6 +268,9 @@ def main():
             transform = prepare_transform(
                 args.dataset, multicrop=args.multicrop, **args.transform_kwargs
             )
+
+        print("Transforms:")
+        pprint(transform)
 
         if args.multicrop:
             assert not args.asymmetric_augmentations

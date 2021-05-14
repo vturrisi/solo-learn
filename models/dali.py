@@ -6,12 +6,13 @@ import torch
 
 try:
     from barlow_twins import BarlowTwins
+    from byol import BYOL
     from linear import LinearModel
+    from mocov2plus import MoCoV2Plus
     from simclr import SimCLR
     from simsiam import SimSiam
-    from byol import BYOL
-    from mocov2plus import MoCoV2Plus
     from swav import SwAV
+    from vigreg import VICReg
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
@@ -20,6 +21,7 @@ except:
     from .byol import BYOL
     from .mocov2plus import MoCoV2Plus
     from .swav import SwAV
+    from .vigreg import VICReg
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -57,7 +59,12 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
+        self,
+        *args,
+        model_batch_size=None,
+        model_rank=None,
+        model_device=None,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -172,7 +179,7 @@ class ContrastiveABC(ABC):
                     gaussian_prob=args.gaussian_prob,
                     solarization_prob=args.solarization_prob,
                     size=224,
-                    min_scale=0.08,
+                    min_scale=args.min_scale_crop,
                     max_scale=1.0,
                 )
             train_pipeline = ContrastivePipeline(
@@ -199,30 +206,6 @@ class ContrastiveABC(ABC):
             model_device=self.device,
         )
         return train_loader
-
-    # def val_dataloader(self):
-    #     device_id = self.local_rank
-    #     shard_id = self.global_rank
-    #     num_shards = self.trainer.world_size
-
-    #     val_pipeline = NormalPipeline(
-    #         os.path.join(self.args.data_folder, self.args.val_dir),
-    #         validation=True,
-    #         batch_size=self.args.batch_size,
-    #         device=args.dali_device,
-    #         device_id=device_id,
-    #         shard_id=shard_id,
-    #         num_shards=num_shards,
-    #         num_threads=self.args.num_workers,
-    #     )
-    #     val_loader = Wrapper(
-    #         val_pipeline,
-    #         output_map=["x", "label"],
-    #         reader_name="Reader",
-    #         last_batch_policy=LastBatchPolicy.PARTIAL,
-    #         auto_reset=True,
-    #     )
-    #     return val_loader
 
 
 class ClassificationABC(ABC):
@@ -303,6 +286,10 @@ class DaliBYOL(BYOL, ContrastiveABC):
 
 
 class DaliMoCoV2Plus(MoCoV2Plus, ContrastiveABC):
+    pass
+
+
+class DaliVICReg(VICReg, ContrastiveABC):
     pass
 
 

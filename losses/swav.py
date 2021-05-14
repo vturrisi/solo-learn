@@ -1,6 +1,5 @@
-import torch
-
 import numpy as np
+import torch
 
 
 def swav_loss_func(preds, assignments, temperature):
