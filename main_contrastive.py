@@ -1,4 +1,5 @@
 import argparse
+from pprint import pprint
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -13,11 +14,13 @@ from models.dali import (
     DaliMoCoV2Plus,
     DaliSimCLR,
     DaliSimSiam,
+    DaliSwAV,
     DaliVICReg,
 )
 from models.mocov2plus import MoCoV2Plus
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
+from models.swav import SwAV
 from models.vigreg import VICReg
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
@@ -58,7 +61,7 @@ def parse_args():
 
     parser.add_argument(
         "--method",
-        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "vicreg"],
+        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "vicreg", "swav"],
         default=None,
     )
 
@@ -122,7 +125,14 @@ def parse_args():
     # extra simsiam settings
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
 
-    # extra moco settings
+    # extra swav settings
+    parser.add_argument("--num_prototypes", type=int, default=3000)
+    parser.add_argument("--sk_epsilon", type=float, default=0.05)
+    parser.add_argument("--sk_iters", type=int, default=3)
+    parser.add_argument("--freeze_prototypes_epochs", type=int, default=1)
+    parser.add_argument("--epoch_queue_starts", type=int, default=15)
+
+    # extra queue settings
     parser.add_argument("--queue_size", default=65536, type=int)
 
     # extra momentum settings
@@ -240,6 +250,11 @@ def main():
             model = DaliVICReg(args)
         else:
             model = VICReg(args)
+    elif args.method == "swav":
+        if args.dali:
+            model = DaliSwAV(args)
+        else:
+            model = SwAV(args)
 
     # contrastive dataloader
     if not args.dali:
@@ -253,6 +268,9 @@ def main():
             transform = prepare_transform(
                 args.dataset, multicrop=args.multicrop, **args.transform_kwargs
             )
+
+        print("Transforms:")
+        pprint(transform)
 
         if args.multicrop:
             assert not args.asymmetric_augmentations
