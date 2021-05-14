@@ -25,3 +25,12 @@ def covariance_loss(z1, z2):
     diag = torch.eye(D, device=z1.device)
     cov_loss = cov_z1[~diag.bool()].pow_(2).sum() / D + cov_z2[~diag.bool()].pow_(2).sum() / D
     return cov_loss
+
+
+def vicreg_loss_func(z1, z2, sim_loss_weight=25.0, var_loss_weight=25.0, cov_loss_weight=1.0):
+    sim_loss = invariance_loss(z1, z2)
+    var_loss = variance_loss(z1, z2)
+    cov_loss = covariance_loss(z1, z2)
+
+    loss = sim_loss_weight * sim_loss + var_loss_weight * var_loss + cov_loss_weight * cov_loss
+    return loss

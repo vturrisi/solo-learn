@@ -12,7 +12,7 @@ except:
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from losses.vigreg import covariance_loss, invariance_loss, variance_loss
+from losses.vigreg import vicreg_loss_func
 from utils.metrics import accuracy_at_k
 
 
@@ -54,15 +54,13 @@ class VICReg(Model):
         z2, output2 = self(X2, classify_only=False)
 
         # ------- contrastive loss -------
-        sim_loss = invariance_loss(z1, z2)
-        var_loss = variance_loss(z1, z2)
-        cov_loss = covariance_loss(z1, z2)
-
         args = self.args
-        vigreg_loss = (
-            args.sim_loss_weight * sim_loss
-            + args.var_loss_weight * var_loss
-            + args.cov_loss_weight * cov_loss
+        vigreg_loss = vicreg_loss_func(
+            z1,
+            z2,
+            sim_loss_weight=args.sim_loss_weight,
+            var_loss_weight=args.var_loss_weight,
+            cov_loss_weight=args.cov_loss_weight,
         )
 
         # ------- classification loss -------
