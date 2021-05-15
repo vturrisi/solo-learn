@@ -140,7 +140,7 @@ class BaseModel(pl.LightningModule):
         val_acc5 = weighted_mean(outputs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
-        self.log_dict(log, prog_bar=True, sync_dist=True)
+        self.log_dict(log, sync_dist=True)
 
 
 class Model(BaseModel):
