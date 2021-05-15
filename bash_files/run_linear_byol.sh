@@ -14,7 +14,7 @@ python3 ../main_linear.py \
     --gpus 0 1 \
     --num_workers 10 \
     --dali \
-    --name swav-linear-eval \
+    --name byol-linear-eval \
     --pretrained_feature_extractor trained_models/PATH \
     --project contrastive_learning \
     --wandb

@@ -15,6 +15,6 @@ python3 ../main_linear.py \
     --num_workers 10 \
     --dali \
     --name mocov2plus-linear-eval \
-    --pretrained_feature_extractor /home/efini/projects/contrastive-learning/bash_files/trained_models/2uy4pcw3/ \
+    --pretrained_feature_extractor trained_models/PATH \
     --project contrastive_learning \
     --wandb
