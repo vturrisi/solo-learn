@@ -11,6 +11,7 @@ Third-party pytorch implementations of contrastive learning methods that support
 * [SimSiam](https://arxiv.org/abs/2011.10566)
 * [Swav](https://arxiv.org/abs/2006.09882)
 * [VICReg](https://arxiv.org/abs/2105.04906)
+* [NNCLR](https://arxiv.org/abs/2104.14548)
 
 ## What is available?
 * Online linear evaluation via stop-gradient
