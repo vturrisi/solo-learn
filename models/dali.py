@@ -13,6 +13,7 @@ try:
     from simsiam import SimSiam
     from swav import SwAV
     from vicreg import VICReg
+    from nnclr import NNCLR
 except:
     from .linear import LinearModel
     from .simclr import SimCLR
@@ -22,6 +23,7 @@ except:
     from .mocov2plus import MoCoV2Plus
     from .swav import SwAV
     from .vicreg import VICReg
+    from .nnclr import NNCLR
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -294,4 +296,8 @@ class DaliVICReg(VICReg, ContrastiveABC):
 
 
 class DaliSwAV(SwAV, ContrastiveABC):
+    pass
+
+
+class DaliNNCLR(NNCLR, ContrastiveABC):
     pass
