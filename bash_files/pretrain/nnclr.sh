@@ -1,28 +1,29 @@
 python3 ../main_contrastive.py \
-    imagenet100 \
-    resnet18 \
+    --dataset imagenet100 \
+    --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
-    --epochs 100 \
+    --epochs 500 \
     --optimizer sgd \
     --lars \
     --scheduler warmup_cosine \
-    --lr 0.3 \
-    --weight_decay 1e-4 \
+    --lr 0.4 \
+    --weight_decay 1e-5 \
     --batch_size 128 \
     --gpus 0 1 \
-    --num_workers 4 \
-    --hidden_dim 2048 \
-    --encoding_dim 2048 \
+    --num_workers 10 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
-    --scale_loss 0.1 \
     --asymmetric_augmentations \
-    --name barlow \
-    --method barlow_twins \
-    --dali \
-    --project contrastive_learning \
-    --wandb
+    --name nnclr-0.2-500ep \
+    --project debug \
+    --wandb \
+    nnclr \
+    --temperature 0.2 \
+    --hidden_dim 2048 \
+    --pred_hidden_dim 4096 \
+    --encoding_dim 256 \
+    --queue_size 65536

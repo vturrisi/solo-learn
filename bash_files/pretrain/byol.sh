@@ -1,6 +1,6 @@
 python3 ../main_contrastive.py \
-    imagenet100 \
-    resnet18 \
+    --dataset imagenet100 \
+    --encoder resnet18 \
     --data_folder /data/datasets/ \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
@@ -21,6 +21,11 @@ python3 ../main_contrastive.py \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name byol \
-    --method byol \
     --project contrastive_learning \
-    --wandb
+    --wandb \
+    byol \
+    --encoding_dim 128 \
+    --hidden_dim 2048 \
+    --pred_hidden_dim 512 \
+    --base_tau_momentum 0.99 \
+    --final_tau_momentum 1.0
