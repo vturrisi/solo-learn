@@ -1,120 +1,28 @@
 import argparse
 import json
 import os
-import sys
 
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
-from models.base import Model
-from models.linear import LinearModel
-from models.dali import DaliLinearModel
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-from utils.epoch_checkpointer import EpochCheckpointer
+from args.setup import parse_args_linear
+from methods.base import Model
+from methods.dali import DaliLinearModel
+from methods.linear import LinearModel
 from utils.classification_dataloader import prepare_data
-
-
-def parse_args():
-    SUPPORTED_DATASETS = [
-        "cifar10",
-        "cifar100",
-        "stl10",
-        "imagenet",
-        "imagenet100",
-    ]
-
-    SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
-
-    SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
-
-    SUPPORTED_SCHEDULERS = [
-        "reduce",
-        "cosine",
-        "warmup_cosine",
-        "step",
-        "exponential",
-        "none",
-    ]
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
-    parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
-
-    # optimizer
-    parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
-    parser.add_argument("--lars", action="store_true")
-
-    # scheduler
-    parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
-    parser.add_argument("--lr_decay_steps", default=[200, 300, 350], type=int, nargs="+")
-
-    # general settings
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--batch_size", type=int, default=256)
-    parser.add_argument("--lr", type=float, default=0.1)
-    parser.add_argument("--weight_decay", type=float, default=0)
-
-    # extra training settings
-    parser.add_argument("--resume_training_from", type=str)
-    parser.add_argument("--num_workers", type=int, default=8)
-    parser.add_argument("--gpus", type=int, nargs="+")
-
-    # pretrained model path
-    parser.add_argument("--pretrained_feature_extractor")
-
-    # wandb
-    parser.add_argument("--name")
-    parser.add_argument("--project")
-    parser.add_argument("--entity", default=None, type=str)
-    parser.add_argument("--wandb", action="store_true")
-    parser.add_argument("--offline", action="store_true")
-
-    # dataset path
-    parser.add_argument("--data_folder", default=None)
-    parser.add_argument("--train_dir", default=None)
-    parser.add_argument("--val_dir", default=None)
-
-    # extra dataloader settings
-    # this only works for imagenet
-    parser.add_argument("--dali", action="store_true")
-    parser.add_argument("--dali_device", type=str, default="gpu")
-
-    args = parser.parse_args()
-
-    if args.dataset == "cifar10":
-        args.n_classes = 10
-    elif args.dataset == "cifar100":
-        args.n_classes = 100
-    elif args.dataset == "stl10":
-        args.n_classes = 10
-    elif args.dataset == "imagenet":
-        args.n_classes = 1000
-    elif args.dataset == "imagenet100":
-        args.n_classes = 100
-
-    args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
-
-    args.extra_optimizer_args = {}
-    if args.optimizer == "sgd":
-        args.extra_optimizer_args["momentum"] = 0.9
-
-    args.n_projectors = 1
-
-    return args
+from utils.epoch_checkpointer import EpochCheckpointer
 
 
 def main():
-    args = parse_args()
+    args = parse_args_linear()
 
     model_args_path = os.path.join(args.pretrained_feature_extractor, "args.json")
     model_args_dict = dict(**json.load(open(model_args_path)))
     model_args = argparse.Namespace(**model_args_dict)
 
-    # compatibility with models created before zero_init_residual was added
+    # compatibility with encoders created before zero_init_residual was added
     if "zero_init_residual" not in model_args:
         model_args.zero_init_residual = False
 

@@ -1,4 +1,3 @@
-import argparse
 from pprint import pprint
 
 from pytorch_lightning import Trainer, seed_everything
@@ -6,24 +5,25 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
-from models.barlow_twins import BarlowTwins
-from models.byol import BYOL
-from models.dali import (
+from args.setup import parse_args_contrastive
+from methods.barlow_twins import BarlowTwins
+from methods.byol import BYOL
+from methods.dali import (
     DaliBarlowTwins,
     DaliBYOL,
     DaliMoCoV2Plus,
+    DaliNNCLR,
     DaliSimCLR,
     DaliSimSiam,
     DaliSwAV,
     DaliVICReg,
-    DaliNNCLR,
 )
-from models.mocov2plus import MoCoV2Plus
-from models.simclr import SimCLR
-from models.simsiam import SimSiam
-from models.swav import SwAV
-from models.vicreg import VICReg
-from models.nnclr import NNCLR
+from methods.mocov2plus import MoCoV2Plus
+from methods.nnclr import NNCLR
+from methods.simclr import SimCLR
+from methods.simsiam import SimSiam
+from methods.swav import SwAV
+from methods.vicreg import VICReg
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -35,201 +35,10 @@ from utils.contrastive_dataloader import (
 from utils.epoch_checkpointer import EpochCheckpointer
 
 
-def parse_args():
-    SUPPORTED_DATASETS = [
-        "cifar10",
-        "cifar100",
-        "stl10",
-        "imagenet",
-        "imagenet100",
-    ]
-
-    SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
-
-    SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
-
-    SUPPORTED_SCHEDULERS = [
-        "reduce",
-        "cosine",
-        "warmup_cosine",
-        "step",
-        "exponential",
-        "none",
-    ]
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("dataset", choices=SUPPORTED_DATASETS, type=str)
-    parser.add_argument("encoder", choices=SUPPORTED_NETWORKS, type=str)
-
-    parser.add_argument(
-        "--method",
-        choices=[
-            "simclr",
-            "barlow_twins",
-            "simsiam",
-            "byol",
-            "mocov2plus",
-            "vicreg",
-            "swav",
-            "nnclr",
-        ],
-        default=None,
-    )
-
-    # optimizer
-    parser.add_argument("--optimizer", default="sgd", choices=SUPPORTED_OPTIMIZERS, type=str)
-    parser.add_argument("--lars", action="store_true")
-
-    # scheduler
-    parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
-    parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
-    parser.add_argument("--no_lr_scheduler_for_pred_head", action="store_true")
-
-    # general settings
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--batch_size", type=int, default=128)
-    parser.add_argument("--lr", type=float, default=0.3)
-    parser.add_argument("--classifier_lr", type=float, default=0.3)
-    parser.add_argument("--weight_decay", type=float, default=0.0001)
-    parser.add_argument("--zero_init_residual", action="store_true")
-
-    # projector
-    parser.add_argument("--encoding_dim", type=int, default=128)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
-
-    # extra training settings
-    parser.add_argument("--resume_training_from", type=str)
-    parser.add_argument("--num_workers", type=int, default=4)
-    parser.add_argument("--gpus", type=int, nargs="+")
-    parser.add_argument("--precision", type=int, default=16)
-
-    # dataset path
-    parser.add_argument("--data_folder", default=None)
-    parser.add_argument("--train_dir", default=None)
-    parser.add_argument("--val_dir", default=None)
-
-    # extra dataloader settings
-    parser.add_argument("--multicrop", action="store_true")
-    parser.add_argument("--n_crops", type=int, default=2)
-    parser.add_argument("--n_small_crops", type=int, default=6)
-    parser.add_argument("--brightness", type=float, default=0.8)
-    parser.add_argument("--contrast", type=float, default=0.8)
-    parser.add_argument("--saturation", type=float, default=0.8)
-    parser.add_argument("--hue", type=float, default=0.2)
-    parser.add_argument("--gaussian_prob", type=float, default=0.5)
-    parser.add_argument("--solarization_prob", type=float, default=0)
-    parser.add_argument("--min_scale_crop", type=float, default=0.08)
-    # this only works for imagenet
-    parser.add_argument("--dali", action="store_true")
-    parser.add_argument("--dali_device", type=str, default="gpu")
-    parser.add_argument("--last_batch_fill", action="store_true")
-
-    # extra simclr/nnclr settings
-    parser.add_argument("--temperature", type=float, default=0.1)
-    parser.add_argument("--supervised", action="store_true")
-
-    # extra barlow twins settings
-    parser.add_argument("--lamb", type=float, default=5e-3)
-    parser.add_argument("--scale_loss", type=float, default=0.025)
-    parser.add_argument("--asymmetric_augmentations", action="store_true")
-
-    # extra simsiam settings
-    parser.add_argument("--pred_hidden_dim", type=int, default=512)
-
-    # extra swav settings
-    parser.add_argument("--num_prototypes", type=int, default=3000)
-    parser.add_argument("--sk_epsilon", type=float, default=0.05)
-    parser.add_argument("--sk_iters", type=int, default=3)
-    parser.add_argument("--freeze_prototypes_epochs", type=int, default=1)
-    parser.add_argument("--epoch_queue_starts", type=int, default=15)
-
-    # extra queue settings
-    parser.add_argument("--queue_size", default=65536, type=int)
-
-    # extra momentum settings
-    parser.add_argument("--base_tau_momentum", default=0.99, type=float)
-    parser.add_argument("--final_tau_momentum", default=1.0, type=float)
-
-    # extra vicreg settings
-    parser.add_argument("--sim_loss_weight", default=25, type=float)
-    parser.add_argument("--var_loss_weight", default=25, type=float)
-    parser.add_argument("--cov_loss_weight", default=1.0, type=float)
-
-    # wandb
-    parser.add_argument("--name")
-    parser.add_argument("--project")
-    parser.add_argument("--entity", default=None, type=str)
-    parser.add_argument("--wandb", action="store_true")
-    parser.add_argument("--offline", action="store_true")
-
-    args = parser.parse_args()
-
-    args.transform_kwargs = {}
-    if args.dataset == "cifar10":
-        args.n_classes = 10
-    elif args.dataset == "cifar100":
-        args.n_classes = 100
-    elif args.dataset == "stl10":
-        args.n_classes = 10
-    else:
-        if args.dataset == "imagenet":
-            args.n_classes = 1000
-        else:
-            args.n_classes = 100
-
-        if args.asymmetric_augmentations:
-            args.transform_kwargs = [
-                dict(
-                    brightness=args.brightness,
-                    contrast=args.contrast,
-                    saturation=args.saturation,
-                    hue=args.hue,
-                    gaussian_prob=1.0,
-                    solarization_prob=0.0,
-                    min_scale_crop=args.min_scale_crop,
-                ),
-                dict(
-                    brightness=args.brightness,
-                    contrast=args.contrast,
-                    saturation=args.saturation,
-                    hue=args.hue,
-                    gaussian_prob=0.1,
-                    solarization_prob=0.2,
-                    min_scale_crop=args.min_scale_crop,
-                ),
-            ]
-        else:
-            args.transform_kwargs = dict(
-                brightness=args.brightness,
-                contrast=args.contrast,
-                saturation=args.saturation,
-                hue=args.hue,
-                gaussian_prob=args.gaussian_prob,
-                solarization_prob=args.solarization_prob,
-                min_scale_crop=args.min_scale_crop,
-            )
-
-    if args.asymmetric_augmentations:
-        assert args.dataset in ["imagenet", "imagenet100"]
-
-    args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
-
-    args.extra_optimizer_args = {}
-    if args.optimizer == "sgd":
-        args.extra_optimizer_args["momentum"] = 0.9
-
-    # adjust lr according to batch size
-    args.lr = args.lr * args.batch_size * len(args.gpus) / 256
-
-    assert args.method is not None
-
-    return args
-
-
 def main():
     seed_everything(5)
 
-    args = parse_args()
+    args = parse_args_contrastive()
 
     if args.method == "simclr":
         if args.dali:
