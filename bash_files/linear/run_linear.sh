@@ -15,6 +15,6 @@ python3 ../../main_linear.py \
     --num_workers 10 \
     --name simclr-linear-eval \
     --dali \
-    --pretrained_feature_extractor ../pretrain/trained_models/1pqoqcxo \
+    --pretrained_feature_extractor ../pretrain/trained_models/PATH \
     --project contrastive_learning \
     --wandb
