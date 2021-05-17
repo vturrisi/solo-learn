@@ -16,12 +16,14 @@ from models.dali import (
     DaliSimSiam,
     DaliSwAV,
     DaliVICReg,
+    DaliNNCLR,
 )
 from models.mocov2plus import MoCoV2Plus
 from models.simclr import SimCLR
 from models.simsiam import SimSiam
 from models.swav import SwAV
 from models.vicreg import VICReg
+from models.nnclr import NNCLR
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -61,7 +63,16 @@ def parse_args():
 
     parser.add_argument(
         "--method",
-        choices=["simclr", "barlow_twins", "simsiam", "byol", "mocov2plus", "vicreg", "swav"],
+        choices=[
+            "simclr",
+            "barlow_twins",
+            "simsiam",
+            "byol",
+            "mocov2plus",
+            "vicreg",
+            "swav",
+            "nnclr",
+        ],
         default=None,
     )
 
@@ -113,7 +124,7 @@ def parse_args():
     parser.add_argument("--dali_device", type=str, default="gpu")
     parser.add_argument("--last_batch_fill", action="store_true")
 
-    # extra simclr settings
+    # extra simclr/nnclr settings
     parser.add_argument("--temperature", type=float, default=0.1)
     parser.add_argument("--supervised", action="store_true")
 
@@ -255,6 +266,11 @@ def main():
             model = DaliSwAV(args)
         else:
             model = SwAV(args)
+    elif args.method == "nnclr":
+        if args.dali:
+            model = DaliNNCLR(args)
+        else:
+            model = NNCLR(args)
 
     # contrastive dataloader
     if not args.dali:
