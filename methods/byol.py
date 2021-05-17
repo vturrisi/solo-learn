@@ -24,7 +24,6 @@ class BYOL(Model):
         proj_hidden_dim = args.hidden_dim
         output_dim = args.encoding_dim
         pred_hidden_dim = args.pred_hidden_dim
-        assert output_dim > 0
 
         # projector
         self.projector = nn.Sequential(

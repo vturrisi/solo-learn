@@ -24,7 +24,6 @@ class MoCoV2Plus(Model):
 
         hidden_dim = args.hidden_dim
         output_dim = args.encoding_dim
-        assert output_dim > 0
 
         self.temperature = args.temperature
         self.queue_size = args.queue_size

@@ -24,7 +24,6 @@ class SimCLR(Model):
 
         hidden_dim = args.hidden_dim
         output_dim = args.encoding_dim
-        assert output_dim > 0
 
         self.temperature = args.temperature
 

@@ -1,18 +1,15 @@
 import argparse
 import json
 import os
-import sys
 
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
-from models.base import Model
-from models.linear import LinearModel
-from models.dali import DaliLinearModel
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from methods.base import Model
+from methods.linear import LinearModel
+from methods.dali import DaliLinearModel
 
 from utils.epoch_checkpointer import EpochCheckpointer
 from utils.classification_dataloader import prepare_data
@@ -114,7 +111,7 @@ def main():
     model_args_dict = dict(**json.load(open(model_args_path)))
     model_args = argparse.Namespace(**model_args_dict)
 
-    # compatibility with models created before zero_init_residual was added
+    # compatibility with encoders created before zero_init_residual was added
     if "zero_init_residual" not in model_args:
         model_args.zero_init_residual = False
 

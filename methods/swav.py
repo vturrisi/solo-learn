@@ -4,12 +4,13 @@ import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from einops import repeat
 
 try:
     from base import Model
 except:
     from .base import Model
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.swav import swav_loss_func
 from utils.metrics import accuracy_at_k
@@ -48,12 +49,17 @@ class SwAV(Model):
         self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, self.trainer.world_size)
         # queue also needs the world size
         if self.queue_size > 0:
-            self.register_buffer('queue', torch.zeros(
-                2, self.queue_size // self.trainer.world_size, self.output_dim,
-                device=self.device
-            ))
+            self.register_buffer(
+                "queue",
+                torch.zeros(
+                    2,
+                    self.queue_size // self.trainer.world_size,
+                    self.output_dim,
+                    device=self.device,
+                ),
+            )
 
-    @ torch.no_grad()
+    @torch.no_grad()
     def normalize_prototypes(self):
         w = self.prototypes.weight.data.clone()
         w = F.normalize(w, dim=1, p=2)
@@ -105,8 +111,8 @@ class SwAV(Model):
         # ------- update queue -------
         if self.queue_size > 0:
             z = torch.stack((z1, z2))
-            self.queue[:,z.size(1):] = self.queue[:,:-z.size(1)].clone()
-            self.queue[:,:z.size(1)] = z.detach()
+            self.queue[:, z.size(1) :] = self.queue[:, : -z.size(1)].clone()
+            self.queue[:, : z.size(1)] = z.detach()
 
         # ------- metrics -------
         acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
