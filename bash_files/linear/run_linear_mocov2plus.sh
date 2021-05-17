@@ -1,7 +1,7 @@
 python3 ../../main_linear.py \
-    imagenet100 \
-    resnet18 \
-    --data_folder /data/datasets \
+    --dataset imagenet100 \
+    --encoder resnet18 \
+    --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --epochs 100 \
@@ -15,6 +15,6 @@ python3 ../../main_linear.py \
     --num_workers 10 \
     --dali \
     --name mocov2plus-linear-eval \
-    --pretrained_feature_extractor trained_models/PATH \
+    --pretrained_feature_extractor ../pretrain/trained_models/PATH \
     --project contrastive_learning \
     --wandb

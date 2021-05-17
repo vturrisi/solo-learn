@@ -1,6 +1,6 @@
 python3 ../../main_linear.py \
-    imagenet100 \
-    resnet18 \
+    --dataset imagenet100 \
+    --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
@@ -15,6 +15,6 @@ python3 ../../main_linear.py \
     --num_workers 10 \
     --name simclr-linear-eval \
     --dali \
-    --pretrained_feature_extractor trained_models/PATH \
+    --pretrained_feature_extractor ../pretrain/trained_models/1pqoqcxo \
     --project contrastive_learning \
     --wandb

@@ -20,7 +20,7 @@ python3 ../../main_contrastive.py \
     --hue 0.1 \
     --solarization_prob 0.1 \
     --name vicreg \
-    --project debug \
+    --project contrastive_learning \
     --wandb \
     vicreg \
     --hidden_dim 2048 \

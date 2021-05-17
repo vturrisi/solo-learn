@@ -1,6 +1,6 @@
 import argparse
 
-from .dataset import dataset_args
+from .dataset import augmentations_args, dataset_args
 from .methods import (
     barlow_args,
     byol_args,
@@ -20,6 +20,7 @@ def parse_args_contrastive():
 
     # add shared arguments
     dataset_args(parser)
+    augmentations_args(parser)
     general_train_args(parser)
     encoder_args(parser)
     optizer_args(parser)
