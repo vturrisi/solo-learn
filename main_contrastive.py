@@ -94,8 +94,9 @@ def main():
                 args.dataset, multicrop=args.multicrop, **args.transform_kwargs
             )
 
-        print("Transforms:")
-        pprint(transform)
+        if args.debug_augmentations:
+            print("Transforms:")
+            pprint(transform)
 
         if args.multicrop:
             assert not args.asymmetric_augmentations

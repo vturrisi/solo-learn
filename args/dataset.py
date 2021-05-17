@@ -34,3 +34,6 @@ def augmentations_args(parser):
     parser.add_argument("--solarization_prob", type=float, default=0)
     parser.add_argument("--min_scale_crop", type=float, default=0.08)
     parser.add_argument("--asymmetric_augmentations", action="store_true")
+
+    # debug
+    parser.add_argument("--debug_augmentations", action="store_true")
