@@ -1,9 +1,9 @@
-python3 ../main_contrastive.py \
+python3 ../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/test \
+    --val_dir imagenet-100/val \
     --epochs 500 \
     --optimizer sgd \
     --lars \

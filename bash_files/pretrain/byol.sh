@@ -1,7 +1,7 @@
-python3 ../main_contrastive.py \
+python3 ../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /data/datasets/ \
+    --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --epochs 100 \
@@ -13,7 +13,6 @@ python3 ../main_contrastive.py \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 8 \
-    --hidden_dim 2048 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \

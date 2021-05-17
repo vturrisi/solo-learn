@@ -11,7 +11,7 @@ from .methods import (
     swav_args,
     vicreg_args,
 )
-from .train import encoder, general_train_args, optizer_args, scheduler_args
+from .train import encoder_args, general_train_args, optizer_args, scheduler_args
 from .utils import additional_setup_contrastive, additional_setup_linear
 
 
@@ -21,12 +21,12 @@ def parse_args_contrastive():
     # add shared arguments
     dataset_args(parser)
     general_train_args(parser)
-    encoder(parser)
+    encoder_args(parser)
     optizer_args(parser)
     scheduler_args(parser)
 
     # add method-specific arguments
-    subparser = parser.add_subparsers()
+    subparser = parser.add_subparsers(dest="method")
     method_parser = subparser.add_parser("barlow_twins")
     barlow_args(method_parser)
 
@@ -67,7 +67,7 @@ def parse_args_linear():
     # add shared arguments
     dataset_args(parser)
     general_train_args(parser)
-    encoder(parser)
+    encoder_args(parser)
     optizer_args(parser)
     scheduler_args(parser)
 

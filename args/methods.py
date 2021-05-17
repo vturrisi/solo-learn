@@ -78,7 +78,11 @@ def swav_args(parser):
     parser.add_argument("--encoding_dim", type=int, default=128)
     parser.add_argument("--hidden_dim", type=int, default=2048)
 
+    # queue settings
+    parser.add_argument("--queue_size", default=3840, type=int)
+
     # parameters
+    parser.add_argument("--temperature", type=float, default=0.1)
     parser.add_argument("--num_prototypes", type=int, default=3000)
     parser.add_argument("--sk_epsilon", type=float, default=0.05)
     parser.add_argument("--sk_iters", type=int, default=3)

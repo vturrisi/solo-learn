@@ -1,9 +1,9 @@
-python3 ../main_contrastive.py \
+python3 ../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/test \
+    --val_dir imagenet-100/val \
     --epochs 100 \
     --optimizer sgd \
     --scheduler warmup_cosine \
@@ -13,6 +13,11 @@ python3 ../main_contrastive.py \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 4 \
+    --brightness 0.4 \
+    --contrast 0.4 \
+    --saturation 0.4 \
+    --hue 0.1 \
+    --min_scale_crop 0.2 \
     --zero_init_residual \
     --name simsiam \
     --no_lr_scheduler_for_pred_head \

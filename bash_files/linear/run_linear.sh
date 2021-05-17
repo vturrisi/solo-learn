@@ -1,9 +1,9 @@
-python3 ../main_linear.py \
+python3 ../../main_linear.py \
     imagenet100 \
     resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/test \
+    --val_dir imagenet-100/val \
     --epochs 100 \
     --optimizer sgd \
     --scheduler step \
@@ -15,6 +15,6 @@ python3 ../main_linear.py \
     --num_workers 10 \
     --name simclr-linear-eval \
     --dali \
-    --pretrained_feature_extractor trained_models/MODEL_PATH \
+    --pretrained_feature_extractor trained_models/PATH \
     --project contrastive_learning \
     --wandb

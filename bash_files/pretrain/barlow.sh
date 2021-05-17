@@ -1,9 +1,9 @@
-python3 ../main_contrastive.py \
+python3 ../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/test \
+    --val_dir imagenet-100/val \
     --epochs 100 \
     --optimizer sgd \
     --lars \
@@ -19,7 +19,6 @@ python3 ../main_contrastive.py \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name barlow \
-    --method barlow_twins \
     --dali \
     --project contrastive_learning \
     --wandb \

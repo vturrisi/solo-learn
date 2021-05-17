@@ -1,7 +1,7 @@
-python3 ../main_contrastive.py \
+python3 ../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /data/datasets \
+    --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --epochs 100 \
@@ -10,7 +10,6 @@ python3 ../main_contrastive.py \
     --lr 0.03 \
     --classifier_lr 0.03 \
     --weight_decay 1e-4 \
-    --hidden_dim 512 \
     --batch_size 128 \
     --gpus 0 1 \
     --num_workers 8 \
@@ -23,6 +22,7 @@ python3 ../main_contrastive.py \
     --project contrastive_learning \
     --wandb \
     mocov2plus \
+    --hidden_dim 512 \
     --queue_size 65536 \
     --temperature 0.07 \
     --base_tau_momentum 0.999 \
