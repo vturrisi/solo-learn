@@ -19,8 +19,8 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name barlow-exclude \
-    --project contrastive_learning \
+    --name barlow \
+    --project debug \
     --wandb \
     barlow_twins \
     --hidden_dim 2048 \
