@@ -4,7 +4,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 20 \
+    --epochs 100 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
