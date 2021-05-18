@@ -20,7 +20,7 @@ python3 ../../main_contrastive.py \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name barlow \
-    --project debug \
+    --project contrastive_learning \
     --wandb \
     barlow_twins \
     --hidden_dim 2048 \
