@@ -88,10 +88,13 @@ class BaseModel(pl.LightningModule):
                 ]
 
         optimizer = optimizer(
-            parameters, lr=args.lr, weight_decay=args.weight_decay, **args.extra_optimizer_args,
+            parameters,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+            **args.extra_optimizer_args,
         )
         if args.lars:
-            optimizer = LARSWrapper(optimizer)
+            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
 
         if args.scheduler == "none":
             return optimizer
@@ -100,7 +103,10 @@ class BaseModel(pl.LightningModule):
 
             if args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer, warmup_epochs=10, max_epochs=args.epochs, warmup_start_lr=0.003,
+                    optimizer,
+                    warmup_epochs=10,
+                    max_epochs=args.epochs,
+                    warmup_start_lr=0.003,
                 )
             elif args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, args.epochs)

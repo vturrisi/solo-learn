@@ -31,6 +31,7 @@ def optizer_args(parser):
 
     parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
     parser.add_argument("--lars", action="store_true")
+    parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
 
 def scheduler_args(parser):

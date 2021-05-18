@@ -7,6 +7,7 @@ python3 ../../main_contrastive.py \
     --epochs 100 \
     --optimizer sgd \
     --lars \
+    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \

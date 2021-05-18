@@ -4,9 +4,10 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --epochs 20 \
     --optimizer sgd \
     --lars \
+    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
@@ -18,8 +19,7 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name barlow \
-    --dali \
+    --name barlow-exclude \
     --project contrastive_learning \
     --wandb \
     barlow_twins \

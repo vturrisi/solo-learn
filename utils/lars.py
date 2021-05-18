@@ -13,7 +13,7 @@ class LARSWrapper:
     Wrapper that adds LARS scheduling to any optimizer. This helps stability with huge batch sizes.
     """
 
-    def __init__(self, optimizer, eta=0.02, clip=True, eps=1e-8):
+    def __init__(self, optimizer, eta=0.02, clip=True, eps=1e-8, exclude_bias_n_norm=False):
         """
         Args:
             optimizer: torch optimizer
@@ -25,6 +25,7 @@ class LARSWrapper:
         self.eta = eta
         self.eps = eps
         self.clip = clip
+        self.exclude_bias_n_norm = exclude_bias_n_norm
 
         # transfer optim methods
         self.state_dict = self.optim.state_dict
@@ -81,18 +82,19 @@ class LARSWrapper:
             group["weight_decay"] = weight_decays[group_idx]
 
     def update_p(self, p, group, weight_decay):
-        # calculate new norms
-        p_norm = torch.norm(p.data)
-        g_norm = torch.norm(p.grad.data)
+        if p.ndim != 1 or not self.exclude_bias_n_norm:
+            # calculate new norms
+            p_norm = torch.norm(p.data)
+            g_norm = torch.norm(p.grad.data)
 
-        if p_norm != 0 and g_norm != 0:
-            # calculate new lr
-            new_lr = (self.eta * p_norm) / (g_norm + p_norm * weight_decay + self.eps)
+            if p_norm != 0 and g_norm != 0:
+                # calculate new lr
+                new_lr = (self.eta * p_norm) / (g_norm + p_norm * weight_decay + self.eps)
 
-            # clip lr
-            if self.clip:
-                new_lr = min(new_lr / group["lr"], 1)
+                # clip lr
+                if self.clip:
+                    new_lr = min(new_lr / group["lr"], 1)
 
-            # update params with clipped lr
-            p.grad.data += weight_decay * p.data
-            p.grad.data *= new_lr
+                # update params with clipped lr
+                p.grad.data += weight_decay * p.data
+                p.grad.data *= new_lr

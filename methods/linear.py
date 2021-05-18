@@ -49,7 +49,7 @@ class LinearModel(pl.LightningModule):
             **args.extra_optimizer_args,
         )
         if args.lars:
-            optimizer = LARSWrapper(optimizer)
+            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
 
         # select scheduler
         if args.scheduler == "none":
