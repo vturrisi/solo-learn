@@ -5,7 +5,9 @@ python3 ../../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --epochs 100 \
-    --optimizer sgd --lars \
+    --optimizer sgd \
+    --lars \
+    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 1.0 \
     --classifier_lr 0.1 \

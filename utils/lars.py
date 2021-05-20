@@ -13,7 +13,7 @@ class LARSWrapper:
     Wrapper that adds LARS scheduling to any optimizer. This helps stability with huge batch sizes.
     """
 
-    def __init__(self, optimizer, eta=0.02, clip=True, eps=1e-8):
+    def __init__(self, optimizer, eta=0.02, clip=True, eps=1e-8, exclude_bias_n_norm=False):
         """
         Args:
             optimizer: torch optimizer
@@ -25,6 +25,7 @@ class LARSWrapper:
         self.eta = eta
         self.eps = eps
         self.clip = clip
+        self.exclude_bias_n_norm = exclude_bias_n_norm
 
         # transfer optim methods
         self.state_dict = self.optim.state_dict
@@ -71,7 +72,9 @@ class LARSWrapper:
             group["weight_decay"] = 0
 
             # update the parameters
-            [self.update_p(p, group, weight_decay) for p in group["params"] if p.grad is not None]
+            for p in group["params"]:
+                if p.grad is not None and (p.ndim != 1 or not self.exclude_bias_n_norm):
+                    self.update_p(p, group, weight_decay)
 
         # update the optimizer
         self.optim.step(closure=closure)
