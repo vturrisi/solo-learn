@@ -8,16 +8,18 @@ from pytorch_lightning.plugins import DDPPlugin
 from args.setup import parse_args_contrastive
 from methods.barlow_twins import BarlowTwins
 from methods.byol import BYOL
-from methods.dali import (
-    DaliBarlowTwins,
-    DaliBYOL,
-    DaliMoCoV2Plus,
-    DaliNNCLR,
-    DaliSimCLR,
-    DaliSimSiam,
-    DaliSwAV,
-    DaliVICReg,
-)
+
+# from methods.dali import (
+#     DaliBarlowTwins,
+#     DaliBYOL,
+#     DaliMoCoV2Plus,
+#     DaliNNCLR,
+#     DaliSimCLR,
+#     DaliSimSiam,
+#     DaliSwAV,
+#     DaliVICReg,
+# )
+from methods.dali import ContrastiveABC
 from methods.mocov2plus import MoCoV2Plus
 from methods.nnclr import NNCLR
 from methods.simclr import SimCLR
@@ -41,45 +43,26 @@ def main():
     args = parse_args_contrastive()
 
     if args.method == "simclr":
-        if args.dali:
-            model = DaliSimCLR(args)
-        else:
-            model = SimCLR(args)
+        Method = SimCLR
     elif args.method == "barlow_twins":
-        if args.dali:
-            model = DaliBarlowTwins(args)
-        else:
-            model = BarlowTwins(args)
+        Method = BarlowTwins
     elif args.method == "simsiam":
-        if args.dali:
-            model = DaliSimSiam(args)
-        else:
-            model = SimSiam(args)
+        Method = SimSiam
     elif args.method == "byol":
-        if args.dali:
-            model = DaliBYOL(args)
-        else:
-            model = BYOL(args)
+        Method = BYOL
     elif args.method == "mocov2plus":
-        if args.dali:
-            model = DaliMoCoV2Plus(args)
-        else:
-            model = MoCoV2Plus(args)
+        Method = MoCoV2Plus
     elif args.method == "vicreg":
-        if args.dali:
-            model = DaliVICReg(args)
-        else:
-            model = VICReg(args)
+        Method = VICReg
     elif args.method == "swav":
-        if args.dali:
-            model = DaliSwAV(args)
-        else:
-            model = SwAV(args)
+        Method = SwAV
     elif args.method == "nnclr":
-        if args.dali:
-            model = DaliNNCLR(args)
-        else:
-            model = NNCLR(args)
+        Method = NNCLR
+
+    if args.dali:
+        Method = type("DaliNNCLR", (Method, ContrastiveABC), {})
+
+    model = Method(args)
 
     # contrastive dataloader
     if not args.dali:
