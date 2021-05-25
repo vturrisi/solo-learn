@@ -43,7 +43,7 @@ class SimCLR(Model):
             return y
         else:
             z = self.projector(features)
-            return features, z, y
+            return z, y
 
     @torch.no_grad()
     def gen_extra_positives_gt(self, Y):
@@ -66,9 +66,9 @@ class SimCLR(Model):
             X = torch.cat(all_X[:n_crops], dim=0)
             X_small = torch.cat(all_X[n_crops:], dim=0)
 
-            # features, projector features, class
-            features, z, output = self(X, classify_only=False)
-            features_small, z_small, output_small = self(X_small, classify_only=False)
+            # projector features, class
+            z, output = self(X, classify_only=False)
+            z_small, _ = self(X_small, classify_only=False)
 
             z = [gather(part) for part in torch.chunk(z, n_crops)]
             z_small = [gather(part) for part in torch.chunk(z_small, n_small_crops)]
@@ -78,21 +78,21 @@ class SimCLR(Model):
             if self.args.supervised:
                 gathered_target = gather(target)
                 pos_mask = self.gen_extra_positives_gt(gathered_target)
-
             else:
                 indexes = gather(indexes)
                 index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
-            negative_mask = (~pos_mask).fill_diagonal_(False)
+            neg_mask = (~pos_mask).fill_diagonal_(False)
+
             nce_loss = manual_simclr_loss_func(
-                z, pos_mask=pos_mask, negative_mask=negative_mask, temperature=self.temperature,
+                z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
             )
         else:
             indexes, (X_aug1, X_aug2), target = batch
             X = torch.cat((X_aug1, X_aug2), dim=0)
 
-            # features, projector features, class
-            features, z, output = self(X, classify_only=False)
+            # projector features, class
+            z, output = self(X, classify_only=False)
 
             z1, z2 = torch.chunk(z, 2)
             z1 = gather(z1)

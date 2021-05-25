@@ -2,18 +2,18 @@ import torch
 import torch.nn.functional as F
 
 
-def simclr_loss_func(x1, x2, extra_pos_mask=None, temperature=0.2, normalize=True):
-    assert x1.size() == x2.size()
+def simclr_loss_func(z1, z2, extra_pos_mask=None, temperature=0.2, normalize=True):
+    assert z1.size() == z2.size()
 
-    # get the current device based on x1
-    device = x1.device
+    # get the current device based on z1
+    device = z1.device
 
-    b = x1.size(0)
-    x = torch.cat((x1, x2), dim=0)
+    b = z1.size(0)
+    z = torch.cat((z1, z2), dim=0)
     if normalize:
-        x = F.normalize(x, dim=1)
+        z = F.normalize(z, dim=1)
 
-    logits = torch.einsum("if, jf -> ij", x, x) / temperature
+    logits = torch.einsum("if, jf -> ij", z, z) / temperature
     logits_max, _ = torch.max(logits, dim=1, keepdim=True)
     logits = logits - logits_max.detach()
 
@@ -39,15 +39,15 @@ def simclr_loss_func(x1, x2, extra_pos_mask=None, temperature=0.2, normalize=Tru
     return loss
 
 
-def manual_simclr_loss_func(x, pos_mask, negative_mask, temperature=0.2, normalize=True):
+def manual_simclr_loss_func(z, pos_mask, neg_mask, temperature=0.2, normalize=True):
     if normalize:
-        x = F.normalize(x, dim=1)
+        z = F.normalize(z, dim=1)
 
-    logits = torch.einsum("if, jf -> ij", x, x) / temperature
+    logits = torch.einsum("if, jf -> ij", z, z) / temperature
     logits_max, _ = torch.max(logits, dim=1, keepdim=True)
     logits = logits - logits_max.detach()
 
-    negatives = torch.sum(torch.exp(logits) * negative_mask, dim=1, keepdim=True)
+    negatives = torch.sum(torch.exp(logits) * neg_mask, dim=1, keepdim=True)
     exp_logits = torch.exp(logits)
     log_prob = torch.log(exp_logits / (exp_logits + negatives))
 
@@ -58,7 +58,6 @@ def manual_simclr_loss_func(x, pos_mask, negative_mask, temperature=0.2, normali
     pos_mask = pos_mask[indexes]
     mean_log_prob_pos = mean_log_prob_pos[indexes] / pos_mask.sum(1)
 
-    # mean_log_prob_pos = (pos_mask * log_prob).sum(1) / pos_mask.sum(1)
     # loss
     loss = -mean_log_prob_pos.mean()
     return loss
