@@ -24,9 +24,9 @@ def main():
 
     args = parse_args_contrastive()
 
-    assert args.method in METHODS.keys(), f"Choose from {METHODS.keys()}"
-    MethodClass = METHODS[args.method]
+    assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
+    MethodClass = METHODS[args.method]
     if args.dali:
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, ContrastiveABC), {})
 
