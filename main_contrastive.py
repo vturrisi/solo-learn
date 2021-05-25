@@ -6,15 +6,8 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
 from args.setup import parse_args_contrastive
-from methods.barlow_twins import BarlowTwins
-from methods.byol import BYOL
+from methods import METHODS
 from methods.dali import ContrastiveABC
-from methods.mocov2plus import MoCoV2Plus
-from methods.nnclr import NNCLR
-from methods.simclr import SimCLR
-from methods.simsiam import SimSiam
-from methods.swav import SwAV
-from methods.vicreg import VICReg
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -31,27 +24,13 @@ def main():
 
     args = parse_args_contrastive()
 
-    if args.method == "simclr":
-        Method = SimCLR
-    elif args.method == "barlow_twins":
-        Method = BarlowTwins
-    elif args.method == "simsiam":
-        Method = SimSiam
-    elif args.method == "byol":
-        Method = BYOL
-    elif args.method == "mocov2plus":
-        Method = MoCoV2Plus
-    elif args.method == "vicreg":
-        Method = VICReg
-    elif args.method == "swav":
-        Method = SwAV
-    elif args.method == "nnclr":
-        Method = NNCLR
+    assert args.method in METHODS.keys(), f"Choose from {METHODS.keys()}"
+    MethodClass = METHODS[args.method]
 
     if args.dali:
-        Method = type(f"Dali{Method.__name__}", (Method, ContrastiveABC), {})
+        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, ContrastiveABC), {})
 
-    model = Method(args)
+    model = MethodClass(args)
 
     # contrastive dataloader
     if not args.dali:

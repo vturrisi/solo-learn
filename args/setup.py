@@ -1,29 +1,10 @@
 import argparse
 
 from .dataset import augmentations_args, dataset_args
-from .methods import (
-    barlow_args,
-    byol_args,
-    mocov2plus_args,
-    nnclr_args,
-    simclr_args,
-    simsiam_args,
-    swav_args,
-    vicreg_args,
-)
+from methods import METHODS
+from . import methods as methods_addargs_funcs
 from .train import encoder_args, general_train_args, optizer_args, scheduler_args
 from .utils import additional_setup_contrastive, additional_setup_linear
-
-method_parsers = {
-    "barlow_twins": barlow_args,
-    "byol": byol_args,
-    "mocov2plus": mocov2plus_args,
-    "nnclr": nnclr_args,
-    "simclr": simclr_args,
-    "simsiam": simsiam_args,
-    "swav": swav_args,
-    "vicreg": vicreg_args,
-}
 
 
 def parse_args_contrastive():
@@ -39,9 +20,14 @@ def parse_args_contrastive():
 
     # add method-specific arguments
     subparser = parser.add_subparsers(dest="method")
-    for name, method_args in method_parsers.items():
+    for name in METHODS.keys():
         method_parser = subparser.add_parser(name)
-        method_args(method_parser)
+        method_addarg_func = name + "_args"
+        assert (
+            method_addarg_func in methods_addargs_funcs.__dict__.keys(),
+            f"Missing addargs function {method_addarg_func}"
+        )
+        methods_addargs_funcs.__dict__[method_addarg_func](method_parser)
 
     args = parser.parse_args()
 

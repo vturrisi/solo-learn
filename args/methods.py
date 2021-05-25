@@ -1,4 +1,4 @@
-def barlow_args(parser):
+def barlow_twins_args(parser):
     # projector
     parser.add_argument("--encoding_dim", type=int, default=2048)
     parser.add_argument("--hidden_dim", type=int, default=2048)
