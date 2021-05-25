@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 
-from . import methods as methods_addargs_funcs
+from . import methods as methods_args
 from .dataset import augmentations_args, dataset_args
 from .train import encoder_args, general_train_args, optizer_args, scheduler_args
 from .utils import additional_setup_contrastive, additional_setup_linear
@@ -27,13 +27,11 @@ def parse_args_contrastive():
     subparser = parser.add_subparsers(dest="method")
     for name in METHODS:
         method_parser = subparser.add_parser(name)
-        method_addarg_func = name + "_args"
+        method_args = name + "_args"
 
-        assert (
-            method_addarg_func in methods_addargs_funcs.__dict__.keys()
-        ), f"Missing addargs function {method_addarg_func}"
+        assert method_args in methods_args.__dict__, f"Missing args function {method_args}"
 
-        methods_addargs_funcs.__dict__[method_addarg_func](method_parser)
+        methods_args.__dict__[method_args](method_parser)
 
     args = parser.parse_args()
 
