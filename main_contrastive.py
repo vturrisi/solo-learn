@@ -49,7 +49,7 @@ def main():
         Method = NNCLR
 
     if args.dali:
-        Method = type("DaliNNCLR", (Method, ContrastiveABC), {})
+        Method = type(f"Dali{Method.__name__}", (Method, ContrastiveABC), {})
 
     model = Method(args)
 
