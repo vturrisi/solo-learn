@@ -51,6 +51,7 @@ def main():
         Method = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
     else:
         Method = LinearModel
+
     model = Method(model, args)
 
     train_loader, val_loader = prepare_data(
