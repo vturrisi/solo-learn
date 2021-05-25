@@ -8,17 +8,6 @@ from pytorch_lightning.plugins import DDPPlugin
 from args.setup import parse_args_contrastive
 from methods.barlow_twins import BarlowTwins
 from methods.byol import BYOL
-
-# from methods.dali import (
-#     DaliBarlowTwins,
-#     DaliBYOL,
-#     DaliMoCoV2Plus,
-#     DaliNNCLR,
-#     DaliSimCLR,
-#     DaliSimSiam,
-#     DaliSwAV,
-#     DaliVICReg,
-# )
 from methods.dali import ContrastiveABC
 from methods.mocov2plus import MoCoV2Plus
 from methods.nnclr import NNCLR
