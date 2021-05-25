@@ -9,7 +9,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 from args.setup import parse_args_linear
 from methods.base import Model
-from methods.dali import DaliLinearModel
+from methods.dali import ClassificationABC
 from methods.linear import LinearModel
 from utils.classification_dataloader import prepare_data
 from utils.epoch_checkpointer import EpochCheckpointer
@@ -48,9 +48,11 @@ def main():
     model.load_state_dict(state, strict=False)
 
     if args.dali:
-        model = DaliLinearModel(model, args)
+        Method = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
     else:
-        model = LinearModel(model, args)
+        Method = LinearModel
+
+    model = Method(model, args)
 
     train_loader, val_loader = prepare_data(
         args.dataset,

@@ -6,24 +6,8 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
 from args.setup import parse_args_contrastive
-from methods.barlow_twins import BarlowTwins
-from methods.byol import BYOL
-from methods.dali import (
-    DaliBarlowTwins,
-    DaliBYOL,
-    DaliMoCoV2Plus,
-    DaliNNCLR,
-    DaliSimCLR,
-    DaliSimSiam,
-    DaliSwAV,
-    DaliVICReg,
-)
-from methods.mocov2plus import MoCoV2Plus
-from methods.nnclr import NNCLR
-from methods.simclr import SimCLR
-from methods.simsiam import SimSiam
-from methods.swav import SwAV
-from methods.vicreg import VICReg
+from methods import METHODS
+from methods.dali import ContrastiveABC
 from utils.classification_dataloader import prepare_data as prepare_data_classification
 from utils.contrastive_dataloader import (
     prepare_dataloaders,
@@ -40,46 +24,13 @@ def main():
 
     args = parse_args_contrastive()
 
-    if args.method == "simclr":
-        if args.dali:
-            model = DaliSimCLR(args)
-        else:
-            model = SimCLR(args)
-    elif args.method == "barlow_twins":
-        if args.dali:
-            model = DaliBarlowTwins(args)
-        else:
-            model = BarlowTwins(args)
-    elif args.method == "simsiam":
-        if args.dali:
-            model = DaliSimSiam(args)
-        else:
-            model = SimSiam(args)
-    elif args.method == "byol":
-        if args.dali:
-            model = DaliBYOL(args)
-        else:
-            model = BYOL(args)
-    elif args.method == "mocov2plus":
-        if args.dali:
-            model = DaliMoCoV2Plus(args)
-        else:
-            model = MoCoV2Plus(args)
-    elif args.method == "vicreg":
-        if args.dali:
-            model = DaliVICReg(args)
-        else:
-            model = VICReg(args)
-    elif args.method == "swav":
-        if args.dali:
-            model = DaliSwAV(args)
-        else:
-            model = SwAV(args)
-    elif args.method == "nnclr":
-        if args.dali:
-            model = DaliNNCLR(args)
-        else:
-            model = NNCLR(args)
+    assert args.method in METHODS, f"Choose from {METHODS.keys()}"
+
+    MethodClass = METHODS[args.method]
+    if args.dali:
+        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, ContrastiveABC), {})
+
+    model = MethodClass(args)
 
     # contrastive dataloader
     if not args.dali:

@@ -4,26 +4,6 @@ import sys
 
 import torch
 
-try:
-    from barlow_twins import BarlowTwins
-    from byol import BYOL
-    from linear import LinearModel
-    from mocov2plus import MoCoV2Plus
-    from simclr import SimCLR
-    from simsiam import SimSiam
-    from swav import SwAV
-    from vicreg import VICReg
-    from nnclr import NNCLR
-except:
-    from .linear import LinearModel
-    from .simclr import SimCLR
-    from .barlow_twins import BarlowTwins
-    from .simsiam import SimSiam
-    from .byol import BYOL
-    from .mocov2plus import MoCoV2Plus
-    from .swav import SwAV
-    from .vicreg import VICReg
-    from .nnclr import NNCLR
 
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 
@@ -61,12 +41,7 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self,
-        *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
-        **kwargs,
+        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -265,39 +240,3 @@ class ClassificationABC(ABC):
             auto_reset=True,
         )
         return val_loader
-
-
-class DaliSimCLR(SimCLR, ContrastiveABC):
-    pass
-
-
-class DaliLinearModel(LinearModel, ClassificationABC):
-    pass
-
-
-class DaliBarlowTwins(BarlowTwins, ContrastiveABC):
-    pass
-
-
-class DaliSimSiam(SimSiam, ContrastiveABC):
-    pass
-
-
-class DaliBYOL(BYOL, ContrastiveABC):
-    pass
-
-
-class DaliMoCoV2Plus(MoCoV2Plus, ContrastiveABC):
-    pass
-
-
-class DaliVICReg(VICReg, ContrastiveABC):
-    pass
-
-
-class DaliSwAV(SwAV, ContrastiveABC):
-    pass
-
-
-class DaliNNCLR(NNCLR, ContrastiveABC):
-    pass

@@ -1,18 +1,15 @@
 import argparse
+import os
+import sys
 
+from . import methods as methods_args
 from .dataset import augmentations_args, dataset_args
-from .methods import (
-    barlow_args,
-    byol_args,
-    mocov2plus_args,
-    nnclr_args,
-    simclr_args,
-    simsiam_args,
-    swav_args,
-    vicreg_args,
-)
 from .train import encoder_args, general_train_args, optizer_args, scheduler_args
 from .utils import additional_setup_contrastive, additional_setup_linear
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from methods import METHODS
 
 
 def parse_args_contrastive():
@@ -28,29 +25,13 @@ def parse_args_contrastive():
 
     # add method-specific arguments
     subparser = parser.add_subparsers(dest="method")
-    method_parser = subparser.add_parser("barlow_twins")
-    barlow_args(method_parser)
+    for name in METHODS:
+        method_parser = subparser.add_parser(name)
+        method_args = name + "_args"
 
-    method_parser = subparser.add_parser("byol")
-    byol_args(method_parser)
+        assert method_args in methods_args.__dict__, f"Missing args function {method_args}"
 
-    method_parser = subparser.add_parser("mocov2plus")
-    mocov2plus_args(method_parser)
-
-    method_parser = subparser.add_parser("nnclr")
-    nnclr_args(method_parser)
-
-    method_parser = subparser.add_parser("simclr")
-    simclr_args(method_parser)
-
-    method_parser = subparser.add_parser("simsiam")
-    simsiam_args(method_parser)
-
-    method_parser = subparser.add_parser("swav")
-    swav_args(method_parser)
-
-    method_parser = subparser.add_parser("vicreg")
-    vicreg_args(method_parser)
+        methods_args.__dict__[method_args](method_parser)
 
     args = parser.parse_args()
 
