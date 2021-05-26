@@ -1,3 +1,5 @@
+# This README is heavily outdated and we are planning on releasing a much clearer one, together with pretrained models.
+
 # Contrastive learning methods
 
 Third-party pytorch implementations of contrastive learning methods that supports extra stuff (see "What is available" section).
