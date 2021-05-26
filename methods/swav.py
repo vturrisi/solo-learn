@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 try:
-    from base import Model
+    from base import BaseModel
 except:
-    from .base import Model
+    from .base import BaseModel
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -17,7 +17,7 @@ from utils.metrics import accuracy_at_k
 from utils.sinkhorn_knopp import SinkhornKnopp
 
 
-class SwAV(Model):
+class SwAV(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 

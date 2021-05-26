@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os
 import sys
 from functools import partial
@@ -23,13 +24,65 @@ def static_lr(get_lr, param_group_indexes, lrs_to_replace):
 
 
 class BaseModel(pl.LightningModule):
+
     def __init__(self, args):
         super().__init__()
 
         self.args = args
 
+        assert args.encoder in ["resnet18", "resnet50"]
+        from torchvision.models import resnet18, resnet50
+
+        self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[args.encoder]
+
+        # initialize encoder
+        self.encoder = self.base_model(zero_init_residual=args.zero_init_residual)
+        self.features_size = self.encoder.inplanes
+        # remove fc layer
+        self.encoder.fc = nn.Identity()
+        if args.cifar:
+            self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
+            self.encoder.maxpool = nn.Identity()
+
+        self.classifier = nn.Linear(self.features_size, args.n_classes)
+
+    @property
+    def base_learnable_modules(self):
+        return [
+            self.encoder,
+            {
+                "module": self.classifier,
+                "lr": self.args.classifier_lr,
+                "weight_decay": 0
+            }
+        ]
+
+    @property
+    @abstractmethod
+    def extra_learnable_modules(self):
+        pass
+
     def configure_optimizers(self):
         args = self.args
+
+        # collect learnable parameters
+        learnable_params = []
+        idxs_no_scheduler = []
+        base_learnable_modules = list(self.base_learnable_modules)
+        extra_learnable_modules = list(self.extra_learnable_modules)
+        learnable_modules = base_learnable_modules + extra_learnable_modules
+        for idx, module in enumerate(learnable_modules):
+            if isinstance(module, nn.Module) or isinstance(module, nn.Parameter):
+                learnable_params.append({"params": module.parameters()})
+            elif isinstance(module, dict):
+                module["params"] = module.pop("module").parameters()
+                learnable_params.append(module)
+                if module.pop("static_lr", False):
+                    idxs_no_scheduler.append(idx)
+            else:
+                raise ValueError(f"{type(module)} cannot be parsed")
+
+        print(idxs_no_scheduler)
 
         # select optimizer
         if args.optimizer == "sgd":
@@ -39,68 +92,20 @@ class BaseModel(pl.LightningModule):
         else:
             raise ValueError(f"{args.optimizer} not in (sgd, adam)")
 
-        if hasattr(self, "classifier"):
-            classifier_parameters = self.classifier.parameters()
-
-            if args.no_lr_scheduler_for_pred_head:
-                predictor_parameters = self.predictor.parameters()
-                other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if not any(s in name for s in ["classifier", "predictor", "momentum"])
-                )
-                parameters = [
-                    {"params": other_parameters},
-                    {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
-                    {"params": predictor_parameters},
-                ]
-            else:
-                other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if not any(s in name for s in ["classifier", "momentum"])
-                )
-                parameters = [
-                    {"params": other_parameters},
-                    {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
-                ]
-        else:
-            if args.no_lr_scheduler_for_pred_head:
-                predictor_parameters = self.predictor.parameters()
-                other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if not any(s in name for s in ["predictor", "momentum"])
-                )
-                parameters = [
-                    {"params": other_parameters},
-                    {"params": predictor_parameters},
-                ]
-            else:
-                parameters = [
-                    {
-                        "params": (
-                            p
-                            for name, p in self.named_parameters()
-                            if not any(s in name for s in ["momentum"])
-                        )
-                    },
-                ]
-
+        # create optimizer
         optimizer = optimizer(
-            parameters,
+            learnable_params,
             lr=args.lr,
             weight_decay=args.weight_decay,
             **args.extra_optimizer_args,
         )
+        # optionally wrap with lars
         if args.lars:
             optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
 
         if args.scheduler == "none":
             return optimizer
         else:
-            assert args.scheduler in ["warmup_cosine", "cosine", "step"]
-
             if args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
                     optimizer,
@@ -110,18 +115,30 @@ class BaseModel(pl.LightningModule):
                 )
             elif args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, args.epochs)
-            else:
+            elif args.scheduler == "step":
                 scheduler = MultiStepLR(optimizer, args.lr_decay_steps)
+            else:
+                raise ValueError(f"{args.scheduler} not in (warmup_cosine, cosine, step)")
 
             if args.no_lr_scheduler_for_pred_head:
                 partial_fn = partial(
                     static_lr,
                     get_lr=scheduler.get_lr,
-                    param_group_indexes=(2,),
-                    lrs_to_replace=(args.lr,),
+                    param_group_indexes=idxs_no_scheduler,
+                    lrs_to_replace=[args.lr] * len(idxs_no_scheduler),
                 )
                 scheduler.get_lr = partial_fn
             return [optimizer], [scheduler]
+
+    def forward(self, X, classify_only=True):
+        feat = self.encoder(X)
+        # stop gradients from the classifier
+        y = self.classifier(feat.detach())
+
+        if classify_only:
+            return y
+
+        return feat, y
 
     def validation_step(self, batch, batch_idx):
         X, target = batch
@@ -147,40 +164,3 @@ class BaseModel(pl.LightningModule):
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
         self.log_dict(log, sync_dist=True)
-
-
-class Model(BaseModel):
-    """
-    Implementation of the base model that automatically
-    creates a linear classifier for online evaluation.
-    The linear classifier is automatically detached from the computational graph.
-    """
-
-    def __init__(self, args):
-        super().__init__(args)
-
-        assert args.encoder in ["resnet18", "resnet50"]
-        from torchvision.models import resnet18, resnet50
-
-        self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[args.encoder]
-
-        # initialize encoder
-        self.encoder = self.base_model(zero_init_residual=args.zero_init_residual)
-        self.features_size = self.encoder.inplanes
-        # remove fc layer
-        self.encoder.fc = nn.Identity()
-        if args.cifar:
-            self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
-            self.encoder.maxpool = nn.Identity()
-
-        self.classifier = nn.Linear(self.features_size, args.n_classes)
-
-    def forward(self, X, classify_only=True):
-        feat = self.encoder(X)
-        # stop gradients from the classifier
-        y = self.classifier(feat.detach())
-
-        if classify_only:
-            return y
-
-        return feat, y

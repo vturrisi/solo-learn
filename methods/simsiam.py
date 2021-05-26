@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 try:
-    from base import Model
+    from base import BaseModel
 except:
-    from .base import Model
+    from .base import BaseModel
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -16,7 +16,7 @@ from losses.simsiam import simsiam_loss_func
 from utils.metrics import accuracy_at_k
 
 
-class SimSiam(Model):
+class SimSiam(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 
@@ -43,6 +43,16 @@ class SimSiam(Model):
             nn.ReLU(),
             nn.Linear(pred_hidden_dim, output_dim),
         )
+
+    @property
+    def extra_learnable_modules(self):
+        return [
+            self.projector,
+            {
+                "module": self.predictor,
+                "static_lr": True
+            }
+        ]
 
     def forward(self, X, classify_only=True):
         feat, y = super().forward(X, classify_only=False)

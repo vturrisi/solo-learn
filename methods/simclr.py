@@ -7,9 +7,9 @@ import torch.nn.functional as F
 from einops import repeat
 
 try:
-    from base import Model
+    from base import BaseModel
 except:
-    from .base import Model
+    from .base import BaseModel
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -18,7 +18,7 @@ from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
 
-class SimCLR(Model):
+class SimCLR(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 

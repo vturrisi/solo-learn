@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 try:
-    from base import Model
+    from base import BaseModel
 except:
-    from .base import Model
+    from .base import BaseModel
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -17,7 +17,7 @@ from utils.metrics import accuracy_at_k
 from utils.momentum import initialize_momentum_params, MomentumUpdater
 
 
-class BYOL(Model):
+class BYOL(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 
@@ -62,6 +62,10 @@ class BYOL(Model):
 
         # momentum updater
         self.momentum_updater = MomentumUpdater(args.base_tau_momentum, args.final_tau_momentum)
+
+    @property
+    def extra_learnable_modules(self):
+        return self.projector, self.predictor
 
     def forward(self, X, classify_only=True):
         features, y = super().forward(X, classify_only=False)

@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 try:
-    from base import Model
+    from base import BaseModel
 except:
-    from .base import Model
+    from .base import BaseModel
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -18,7 +18,7 @@ from utils.momentum import initialize_momentum_params, MomentumUpdater
 from losses.moco import moco_loss_func
 
 
-class MoCoV2Plus(Model):
+class MoCoV2Plus(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 
