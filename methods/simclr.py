@@ -73,7 +73,7 @@ class SimCLR(BaseModel):
             out_small = self(X_small)
             z_small = out_small["z"]
 
-            z = torch.cat((*z, *z_small), dim=0)
+            z = torch.cat((z, z_small), dim=0)
 
             # ------- contrastive loss -------
             if self.args.supervised:
