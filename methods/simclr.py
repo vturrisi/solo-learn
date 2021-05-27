@@ -37,6 +37,10 @@ class SimCLR(BaseModel):
                 nn.Linear(hidden_dim, output_dim),
             )
 
+    @property
+    def extra_learnable_params(self):
+        return [{"params": self.projector.parameters()}]
+
     def forward(self, X, classify_only=True):
         features, y = super().forward(X, classify_only=False)
         if classify_only:

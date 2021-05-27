@@ -66,7 +66,6 @@ class BaseModel(pl.LightningModule):
         args = self.args
 
         # collect learnable parameters
-        learnable_params = []
         base_learnable_params = list(self.base_learnable_params)
         extra_learnable_params = list(self.extra_learnable_params)
         learnable_params = base_learnable_params + extra_learnable_params
@@ -108,7 +107,7 @@ class BaseModel(pl.LightningModule):
             else:
                 raise ValueError(f"{args.scheduler} not in (warmup_cosine, cosine, step)")
 
-            if args.no_lr_scheduler_for_pred_head:
+            if idxs_no_scheduler:
                 partial_fn = partial(
                     static_lr,
                     get_lr=scheduler.get_lr,
@@ -116,6 +115,7 @@ class BaseModel(pl.LightningModule):
                     lrs_to_replace=[args.lr] * len(idxs_no_scheduler),
                 )
                 scheduler.get_lr = partial_fn
+
             return [optimizer], [scheduler]
 
     def forward(self, X, classify_only=True):

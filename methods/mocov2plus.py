@@ -59,6 +59,10 @@ class MoCoV2Plus(BaseModel):
         self.queue = nn.functional.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
+    @property
+    def extra_learnable_params(self):
+        return [{"params": self.projector.parameters()}]
+
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
         batch_size = keys.shape[1]

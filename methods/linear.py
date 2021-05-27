@@ -48,6 +48,7 @@ class LinearModel(pl.LightningModule):
             weight_decay=args.weight_decay,
             **args.extra_optimizer_args,
         )
+
         if args.lars:
             optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
 
@@ -65,6 +66,9 @@ class LinearModel(pl.LightningModule):
                 scheduler = MultiStepLR(optimizer, args.lr_decay_steps, gamma=0.1)
             elif args.scheduler == "exponential":
                 scheduler = ExponentialLR(optimizer, args.weight_decay)
+            else:
+                raise ValueError(f"{args.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)")
+
             return [optimizer], [scheduler]
 
     def on_train_epoch_start(self):

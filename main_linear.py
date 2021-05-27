@@ -8,7 +8,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
 from args.setup import parse_args_linear
-from methods.base import Model
+from methods.base import BaseModel
 from methods.dali import ClassificationABC
 from methods.linear import LinearModel
 from utils.classification_dataloader import prepare_data
@@ -26,7 +26,7 @@ def main():
     if "zero_init_residual" not in model_args:
         model_args.zero_init_residual = False
 
-    model = Model(model_args)
+    model = BaseModel(model_args)
     if (
         args.pretrained_feature_extractor.endswith(".ckpt")
         or args.pretrained_feature_extractor.endswith(".pth")
@@ -48,11 +48,11 @@ def main():
     model.load_state_dict(state, strict=False)
 
     if args.dali:
-        Method = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
+        MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
     else:
-        Method = LinearModel
+        MethodClass = LinearModel
 
-    model = Method(model, args)
+    model = MethodClass(model, args)
 
     train_loader, val_loader = prepare_data(
         args.dataset,

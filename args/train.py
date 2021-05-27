@@ -46,4 +46,3 @@ def scheduler_args(parser):
 
     parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
     parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
-    parser.add_argument("--no_lr_scheduler_for_pred_head", action="store_true")

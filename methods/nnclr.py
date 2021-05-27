@@ -54,6 +54,14 @@ class NNCLR(BaseModel):
         self.queue = F.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
+    @property
+    def extra_learnable_params(self):
+        return [
+            {"params": self.projector.parameters()},
+            {"params": self.predictor.parameters()}
+        ]
+
+
     @torch.no_grad()
     def dequeue_and_enqueue(self, z, y):
         z = gather(z)

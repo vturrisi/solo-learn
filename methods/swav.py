@@ -41,8 +41,15 @@ class SwAV(BaseModel):
         )
 
         # prototypes
-        self.prototypes = nn.Linear(self.output_dim, num_prototypes)
+        self.prototypes = nn.Linear(self.output_dim, num_prototypes, bias=False)
         self.normalize_prototypes()
+
+    @property
+    def extra_learnable_params(self):
+        return [
+            {"params": self.projector.parameters()},
+            {"params": self.prototypes.parameters()}
+        ]
 
     def on_train_start(self):
         # sinkhorn-knopp needs the world size
