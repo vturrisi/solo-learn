@@ -25,8 +25,10 @@ class LinearModel(pl.LightningModule):
 
         self.args = args
         self.model = model
-        # reset fc
-        self.model.fc = nn.Linear(self.model.inplanes, args.n_classes)
+        self.classifier = nn.Linear(self.model.inplanes, args.n_classes)
+
+        for param in self.model.parameters():
+            param.requires_grad = False
 
     def forward(self, x):
         out = self.model(x)
@@ -43,7 +45,7 @@ class LinearModel(pl.LightningModule):
             raise ValueError(f"{args.optimizer} not in (sgd, adam)")
 
         optimizer = optimizer(
-            self.model.fc.parameters(),
+            self.classifier.parameters(),
             lr=args.lr,
             weight_decay=args.weight_decay,
             **args.extra_optimizer_args,
@@ -73,29 +75,23 @@ class LinearModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def on_train_epoch_start(self):
-        # set encoder to eval mode and fc to train mode
-        self.model.eval()
-
-        for param in self.model.parameters():
-            param.requires_grad = False
-
-        self.model.fc.train()
-
-        for param in self.model.fc.parameters():
-            param.requires_grad = True
-
     def shared_step(self, batch, batch_idx):
         X, target = batch
         batch_size = X.size(0)
 
-        output = self(X)
-        loss = F.cross_entropy(output, target)
+        with torch.no_grad():
+            feat = self.model(X)
+        out = self.classifier(feat)
 
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+        loss = F.cross_entropy(out, target)
+
+        acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
         return batch_size, loss, acc1, acc5
 
     def training_step(self, batch, batch_idx):
+        # set encoder to eval mode
+        self.model.eval()
+
         _, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": acc5}
@@ -113,10 +109,10 @@ class LinearModel(pl.LightningModule):
         }
         return results
 
-    def validation_epoch_end(self, outputs):
-        val_loss = weighted_mean(outputs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outputs, "val_acc1", "batch_size")
-        val_acc5 = weighted_mean(outputs, "val_acc5", "batch_size")
+    def validation_epoch_end(self, outs):
+        val_loss = weighted_mean(outs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
         self.log_dict(log, prog_bar=True, sync_dist=True)
