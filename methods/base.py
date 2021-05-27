@@ -114,24 +114,20 @@ class BaseModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def forward(self, X, classify_only=True):
+    def forward(self, X):
         feat = self.encoder(X)
         # stop gradients from the classifier
-        y = self.classifier(feat.detach())
-
-        if classify_only:
-            return y
-
-        return feat, y
+        logits = self.classifier(feat.detach())
+        return {"logits": logits, "feat": feat}
 
     def validation_step(self, batch, batch_idx):
         X, target = batch
         batch_size = X.size(0)
 
-        output = self(X)
-        loss = F.cross_entropy(output, target)
+        logits = self(X)["logits"]
+        loss = F.cross_entropy(logits, target)
 
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
 
         results = {
             "batch_size": batch_size,
@@ -141,10 +137,10 @@ class BaseModel(pl.LightningModule):
         }
         return results
 
-    def validation_epoch_end(self, outputs):
-        val_loss = weighted_mean(outputs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outputs, "val_acc1", "batch_size")
-        val_acc5 = weighted_mean(outputs, "val_acc5", "batch_size")
+    def validation_epoch_end(self, outs):
+        val_loss = weighted_mean(outs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
         self.log_dict(log, sync_dist=True)

@@ -40,13 +40,10 @@ class SimCLR(BaseModel):
     def extra_learnable_params(self):
         return [{"params": self.projector.parameters()}]
 
-    def forward(self, X, classify_only=True):
-        features, y = super().forward(X, classify_only=False)
-        if classify_only:
-            return y
-        else:
-            z = self.projector(features)
-            return z, y
+    def forward(self, X):
+        out = super().forward(X)
+        z = self.projector(out["feat"])
+        return {**out, "z": z}
 
     @torch.no_grad()
     def gen_extra_positives_gt(self, Y):
@@ -69,9 +66,12 @@ class SimCLR(BaseModel):
             X = torch.cat(all_X[:n_crops], dim=0)
             X_small = torch.cat(all_X[n_crops:], dim=0)
 
-            # projector features, class
-            z, output = self(X, classify_only=False)
-            z_small, _ = self(X_small, classify_only=False)
+            out = self(X)
+            z = out["z"]
+            logits = out["logits"]
+
+            out_small = self(X_small)
+            z_small = out_small["z"]
 
             z = torch.cat((*z, *z_small), dim=0)
 
@@ -87,13 +87,16 @@ class SimCLR(BaseModel):
                 z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
             )
         else:
-            indexes, (X_aug1, X_aug2), target = batch
-            X = torch.cat((X_aug1, X_aug2), dim=0)
+            indexes, (X1, X2), target = batch
 
-            # projector features, class
-            z, output = self(X, classify_only=False)
+            out1 = self(X1)
+            out2 = self(X2)
 
-            z1, z2 = torch.chunk(z, 2)
+            z1 = out1["z"]
+            z2 = out2["z"]
+            logits1 = out1["logits"]
+            logits2 = out2["logits"]
+            logits = torch.cat((logits1, logits2))
 
             # ------- contrastive loss -------
             if self.args.supervised:
@@ -106,14 +109,14 @@ class SimCLR(BaseModel):
 
         # ------- classification loss -------
         target = target.repeat(2)
-        class_loss = F.cross_entropy(output, target, ignore_index=-1)
+        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
         loss = nce_loss + class_loss
 
         # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
         # compute number of extra positives
         n_positives = (
             (pos_mask != 0).sum().float()

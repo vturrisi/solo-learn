@@ -80,21 +80,24 @@ class NNCLR(BaseModel):
         nn = self.queue[idx]
         return idx, nn
 
-    def forward(self, X, classify_only=True):
-        features, y = super().forward(X, classify_only=False)
-        if classify_only:
-            return y
-        else:
-            z = self.projector(features)
-            p = self.predictor(z)
-            return z, p, y
+    def forward(self, X):
+        out = super().forward(X)
+        z = self.projector(out["feat"])
+        p = self.predictor(z)
+        return {**out, "z": z, "p": p}
 
     def training_step(self, batch, batch_idx):
         _, (X1, X2), target = batch
 
-        # forward online encoder
-        z1, p1, output1 = self(X1, classify_only=False)
-        z2, p2, output2 = self(X2, classify_only=False)
+        out1 = self(X1)
+        out2 = self(X2)
+
+        z1 = out1["z"]
+        z2 = out2["z"]
+        p1 = out1["p"]
+        p2 = out2["p"]
+        logits1 = out1["logits"]
+        logits2 = out2["logits"]
 
         z1 = F.normalize(z1)
         z2 = F.normalize(z2)
@@ -117,18 +120,18 @@ class NNCLR(BaseModel):
         self.dequeue_and_enqueue(z1, target)
 
         # ------- classification loss -------
-        output = torch.cat((output1, output2))
+        logits = torch.cat((logits1, logits2))
         target = target.repeat(2)
 
         # ------- classification loss -------
-        class_loss = F.cross_entropy(output, target, ignore_index=-1)
+        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
         loss = nnclr_loss + class_loss
 
         # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
 
         metrics = {
             "train_nnclr_loss": nnclr_loss,

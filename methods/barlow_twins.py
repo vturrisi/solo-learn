@@ -41,35 +41,36 @@ class BarlowTwins(BaseModel):
     def extra_learnable_params(self):
         return [{"params": self.projector.parameters()}]
 
-    def forward(self, X, classify_only=True):
-        features, y = super().forward(X, classify_only=False)
-        if classify_only:
-            return y
-        else:
-            z = self.projector(features)
-            return z, y
+    def forward(self, X):
+        out = super().forward(X)
+        z = self.projector(out["feat"])
+        return {**out, "z": z}
 
     def training_step(self, batch, batch_idx):
         indexes, (X1, X2), target = batch
 
-        # features, projector features, class
-        z1, output1 = self(X1, classify_only=False)
-        z2, output2 = self(X2, classify_only=False)
+        out1 = self(X1)
+        out2 = self(X2)
+
+        z1 = out1["z"]
+        z2 = out2["z"]
+        logits1 = out1["logits"]
+        logits2 = out2["logits"]
 
         # ------- contrastive loss -------
         barlow_loss = barlow_loss_func(z1, z2, lamb=self.lamb, scale_loss=self.scale_loss)
 
         # ------- classification loss -------
-        output = torch.cat((output1, output2))
+        logits = torch.cat((logits1, logits2))
         target = target.repeat(2)
-        class_loss = F.cross_entropy(output, target, ignore_index=-1)
+        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
         loss = barlow_loss + class_loss
 
         # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
 
         metrics = {
             "train_barlow_loss": barlow_loss,
