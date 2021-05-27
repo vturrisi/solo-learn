@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 try:
-    from base import Model
+    from base import BaseModel
 except:
-    from .base import Model
+    from .base import BaseModel
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -18,7 +18,7 @@ from utils.momentum import initialize_momentum_params, MomentumUpdater
 from losses.moco import moco_loss_func
 
 
-class MoCoV2Plus(Model):
+class MoCoV2Plus(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 
@@ -59,6 +59,10 @@ class MoCoV2Plus(Model):
         self.queue = nn.functional.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
+    @property
+    def extra_learnable_params(self):
+        return [{"params": self.projector.parameters()}]
+
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
         batch_size = keys.shape[1]
@@ -71,28 +75,28 @@ class MoCoV2Plus(Model):
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
         self.queue_ptr[0] = ptr
 
-    def forward(self, X, classify_only=True):
-        features, y = super().forward(X, classify_only=False)
-        if classify_only:
-            return y
-        else:
-            z = self.projector(features)
-            z = F.normalize(z)
-            return z, y
+    def forward(self, X):
+        out = super().forward(X)
+        q = F.normalize(self.projector(out["feat"]))
+        return {**out, "q": q}
 
     @torch.no_grad()
     def forward_momentum(self, X):
         features_momentum = self.momentum_encoder(X)
-        z = self.momentum_projector(features_momentum)
-        z = F.normalize(z)
-        return z
+        k = self.momentum_projector(features_momentum)
+        k = F.normalize(k)
+        return k
 
     def training_step(self, batch, batch_idx):
         indexes, (X1, X2), target = batch
 
-        # forward online encoder
-        q1, output1 = self(X1, classify_only=False)
-        q2, output2 = self(X2, classify_only=False)
+        out1 = self(X1)
+        out2 = self(X2)
+
+        q1 = out1["q"]
+        q2 = out2["q"]
+        logits1 = out1["logits"]
+        logits2 = out2["logits"]
 
         # forward momentum encoder
         k1 = self.forward_momentum(X1)
@@ -107,9 +111,9 @@ class MoCoV2Plus(Model):
         ) / 2
 
         # ------- classification loss -------
-        output = torch.cat((output1, output2))
+        logits = torch.cat((logits1, logits2))
         target = target.repeat(2)
-        class_loss = F.cross_entropy(output, target, ignore_index=-1)
+        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
 
         # just add together the losses to do only one backward()
         # we have stop gradients on the output y of the model
@@ -120,7 +124,7 @@ class MoCoV2Plus(Model):
         self._dequeue_and_enqueue(keys)
 
         # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
+        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
 
         metrics = {
             "train_nce_loss": nce_loss,

@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os
 import sys
 from functools import partial
@@ -28,137 +29,6 @@ class BaseModel(pl.LightningModule):
 
         self.args = args
 
-    def configure_optimizers(self):
-        args = self.args
-
-        # select optimizer
-        if args.optimizer == "sgd":
-            optimizer = torch.optim.SGD
-        elif args.optimizer == "adam":
-            optimizer = torch.optim.Adam
-        else:
-            raise ValueError(f"{args.optimizer} not in (sgd, adam)")
-
-        if hasattr(self, "classifier"):
-            classifier_parameters = self.classifier.parameters()
-
-            if args.no_lr_scheduler_for_pred_head:
-                predictor_parameters = self.predictor.parameters()
-                other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if not any(s in name for s in ["classifier", "predictor", "momentum"])
-                )
-                parameters = [
-                    {"params": other_parameters},
-                    {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
-                    {"params": predictor_parameters},
-                ]
-            else:
-                other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if not any(s in name for s in ["classifier", "momentum"])
-                )
-                parameters = [
-                    {"params": other_parameters},
-                    {"params": classifier_parameters, "lr": args.classifier_lr, "weight_decay": 0},
-                ]
-        else:
-            if args.no_lr_scheduler_for_pred_head:
-                predictor_parameters = self.predictor.parameters()
-                other_parameters = (
-                    p
-                    for name, p in self.named_parameters()
-                    if not any(s in name for s in ["predictor", "momentum"])
-                )
-                parameters = [
-                    {"params": other_parameters},
-                    {"params": predictor_parameters},
-                ]
-            else:
-                parameters = [
-                    {
-                        "params": (
-                            p
-                            for name, p in self.named_parameters()
-                            if not any(s in name for s in ["momentum"])
-                        )
-                    },
-                ]
-
-        optimizer = optimizer(
-            parameters,
-            lr=args.lr,
-            weight_decay=args.weight_decay,
-            **args.extra_optimizer_args,
-        )
-        if args.lars:
-            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
-
-        if args.scheduler == "none":
-            return optimizer
-        else:
-            assert args.scheduler in ["warmup_cosine", "cosine", "step"]
-
-            if args.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=10,
-                    max_epochs=args.epochs,
-                    warmup_start_lr=0.003,
-                )
-            elif args.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, args.epochs)
-            else:
-                scheduler = MultiStepLR(optimizer, args.lr_decay_steps)
-
-            if args.no_lr_scheduler_for_pred_head:
-                partial_fn = partial(
-                    static_lr,
-                    get_lr=scheduler.get_lr,
-                    param_group_indexes=(2,),
-                    lrs_to_replace=(args.lr,),
-                )
-                scheduler.get_lr = partial_fn
-            return [optimizer], [scheduler]
-
-    def validation_step(self, batch, batch_idx):
-        X, target = batch
-        batch_size = X.size(0)
-
-        output = self(X)
-        loss = F.cross_entropy(output, target)
-
-        acc1, acc5 = accuracy_at_k(output, target, top_k=(1, 5))
-
-        results = {
-            "batch_size": batch_size,
-            "val_loss": loss,
-            "val_acc1": acc1,
-            "val_acc5": acc5,
-        }
-        return results
-
-    def validation_epoch_end(self, outputs):
-        val_loss = weighted_mean(outputs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outputs, "val_acc1", "batch_size")
-        val_acc5 = weighted_mean(outputs, "val_acc5", "batch_size")
-
-        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
-        self.log_dict(log, sync_dist=True)
-
-
-class Model(BaseModel):
-    """
-    Implementation of the base model that automatically
-    creates a linear classifier for online evaluation.
-    The linear classifier is automatically detached from the computational graph.
-    """
-
-    def __init__(self, args):
-        super().__init__(args)
-
         assert args.encoder in ["resnet18", "resnet50"]
         from torchvision.models import resnet18, resnet50
 
@@ -175,12 +45,102 @@ class Model(BaseModel):
 
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
-    def forward(self, X, classify_only=True):
+    @property
+    def base_learnable_params(self):
+        return [
+            {"params": self.encoder.parameters()},
+            {
+                "params": self.classifier.parameters(),
+                "lr": self.args.classifier_lr,
+                "weight_decay": 0,
+            },
+        ]
+
+    @property
+    @abstractmethod
+    def extra_learnable_params(self):
+        pass
+
+    def configure_optimizers(self):
+        args = self.args
+
+        # collect learnable parameters
+        base_learnable_params = list(self.base_learnable_params)
+        extra_learnable_params = list(self.extra_learnable_params)
+        learnable_params = base_learnable_params + extra_learnable_params
+        idxs_no_scheduler = [i for i, m in enumerate(learnable_params) if m.pop("static_lr", False)]
+
+        # select optimizer
+        if args.optimizer == "sgd":
+            optimizer = torch.optim.SGD
+        elif args.optimizer == "adam":
+            optimizer = torch.optim.Adam
+        else:
+            raise ValueError(f"{args.optimizer} not in (sgd, adam)")
+
+        # create optimizer
+        optimizer = optimizer(
+            learnable_params,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+            **args.extra_optimizer_args,
+        )
+        # optionally wrap with lars
+        if args.lars:
+            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
+
+        if args.scheduler == "none":
+            return optimizer
+        else:
+            if args.scheduler == "warmup_cosine":
+                scheduler = LinearWarmupCosineAnnealingLR(
+                    optimizer, warmup_epochs=10, max_epochs=args.epochs, warmup_start_lr=0.003,
+                )
+            elif args.scheduler == "cosine":
+                scheduler = CosineAnnealingLR(optimizer, args.epochs)
+            elif args.scheduler == "step":
+                scheduler = MultiStepLR(optimizer, args.lr_decay_steps)
+            else:
+                raise ValueError(f"{args.scheduler} not in (warmup_cosine, cosine, step)")
+
+            if idxs_no_scheduler:
+                partial_fn = partial(
+                    static_lr,
+                    get_lr=scheduler.get_lr,
+                    param_group_indexes=idxs_no_scheduler,
+                    lrs_to_replace=[args.lr] * len(idxs_no_scheduler),
+                )
+                scheduler.get_lr = partial_fn
+
+            return [optimizer], [scheduler]
+
+    def forward(self, X):
         feat = self.encoder(X)
         # stop gradients from the classifier
-        y = self.classifier(feat.detach())
+        logits = self.classifier(feat.detach())
+        return {"logits": logits, "feat": feat}
 
-        if classify_only:
-            return y
+    def validation_step(self, batch, batch_idx):
+        X, target = batch
+        batch_size = X.size(0)
 
-        return feat, y
+        logits = self(X)["logits"]
+        loss = F.cross_entropy(logits, target)
+
+        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
+
+        results = {
+            "batch_size": batch_size,
+            "val_loss": loss,
+            "val_acc1": acc1,
+            "val_acc5": acc5,
+        }
+        return results
+
+    def validation_epoch_end(self, outs):
+        val_loss = weighted_mean(outs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
+
+        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
+        self.log_dict(log, sync_dist=True)

@@ -33,7 +33,7 @@ def additional_setup_contrastive(args):
                     min_scale_crop=args.min_scale_crop,
                 ),
             ]
-        else:
+        elif not args.multicrop:
             args.transform_kwargs = dict(
                 brightness=args.brightness,
                 contrast=args.contrast,
@@ -42,6 +42,15 @@ def additional_setup_contrastive(args):
                 gaussian_prob=args.gaussian_prob,
                 solarization_prob=args.solarization_prob,
                 min_scale_crop=args.min_scale_crop,
+            )
+        else:
+            args.transform_kwargs = dict(
+                brightness=args.brightness,
+                contrast=args.contrast,
+                saturation=args.saturation,
+                hue=args.hue,
+                gaussian_prob=args.gaussian_prob,
+                solarization_prob=args.solarization_prob,
             )
 
     if args.asymmetric_augmentations:
