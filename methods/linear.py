@@ -25,8 +25,8 @@ class LinearModel(pl.LightningModule):
 
         self.args = args
         self.model = model
-        # reset classifier
-        self.model.fc = nn.Linear(self.model.features_size, args.n_classes)
+        # reset fc
+        self.model.fc = nn.Linear(self.model.inplanes, args.n_classes)
 
     def forward(self, x):
         out = self.model(x)
@@ -43,7 +43,7 @@ class LinearModel(pl.LightningModule):
             raise ValueError(f"{args.optimizer} not in (sgd, adam)")
 
         optimizer = optimizer(
-            self.model.classifier.parameters(),
+            self.model.fc.parameters(),
             lr=args.lr,
             weight_decay=args.weight_decay,
             **args.extra_optimizer_args,
@@ -74,12 +74,16 @@ class LinearModel(pl.LightningModule):
             return [optimizer], [scheduler]
 
     def on_train_epoch_start(self):
-        # set encoder to eval mode and classifier to train mode
-        self.model.encoder.eval()
-        self.model.classifier.train()
+        # set encoder to eval mode and fc to train mode
+        self.model.eval()
 
-        for param in self.model.encoder.parameters():
+        for param in self.model.parameters():
             param.requires_grad = False
+
+        self.model.fc.train()
+
+        for param in self.model.fc.parameters():
+            param.requires_grad = True
 
     def shared_step(self, batch, batch_idx):
         X, target = batch

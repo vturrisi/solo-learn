@@ -65,10 +65,7 @@ class BYOL(BaseModel):
 
     @property
     def extra_learnable_params(self):
-        return [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters()}
-        ]
+        return [{"params": self.projector.parameters()}, {"params": self.predictor.parameters()}]
 
     def forward(self, X, classify_only=True):
         features, y = super().forward(X, classify_only=False)

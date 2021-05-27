@@ -24,7 +24,6 @@ def static_lr(get_lr, param_group_indexes, lrs_to_replace):
 
 
 class BaseModel(pl.LightningModule):
-
     def __init__(self, args):
         super().__init__()
 
@@ -53,8 +52,8 @@ class BaseModel(pl.LightningModule):
             {
                 "params": self.classifier.parameters(),
                 "lr": self.args.classifier_lr,
-                "weight_decay": 0
-            }
+                "weight_decay": 0,
+            },
         ]
 
     @property
@@ -95,10 +94,7 @@ class BaseModel(pl.LightningModule):
         else:
             if args.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=10,
-                    max_epochs=args.epochs,
-                    warmup_start_lr=0.003,
+                    optimizer, warmup_epochs=10, max_epochs=args.epochs, warmup_start_lr=0.003,
                 )
             elif args.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, args.epochs)

@@ -56,11 +56,7 @@ class NNCLR(BaseModel):
 
     @property
     def extra_learnable_params(self):
-        return [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters()}
-        ]
-
+        return [{"params": self.projector.parameters()}, {"params": self.predictor.parameters()}]
 
     @torch.no_grad()
     def dequeue_and_enqueue(self, z, y):

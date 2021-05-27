@@ -48,10 +48,7 @@ class SimSiam(BaseModel):
     def extra_learnable_params(self):
         return [
             {"params": self.projector.parameters()},
-            {
-                "params": self.predictor.parameters(),
-                "static_lr": True
-            }
+            {"params": self.predictor.parameters(), "static_lr": True},
         ]
 
     def forward(self, X, classify_only=True):

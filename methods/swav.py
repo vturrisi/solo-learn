@@ -46,10 +46,7 @@ class SwAV(BaseModel):
 
     @property
     def extra_learnable_params(self):
-        return [
-            {"params": self.projector.parameters()},
-            {"params": self.prototypes.parameters()}
-        ]
+        return [{"params": self.projector.parameters()}, {"params": self.prototypes.parameters()}]
 
     def on_train_start(self):
         # sinkhorn-knopp needs the world size
