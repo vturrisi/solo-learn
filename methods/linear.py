@@ -26,7 +26,7 @@ class LinearModel(pl.LightningModule):
         self.args = args
         self.model = model
         # reset classifier
-        self.model.fc = nn.Linear(self.model.features_size, args.n_classes)
+        self.model.fc = nn.Linear(self.model.inplanes, args.n_classes)
 
     def forward(self, x):
         out = self.model(x)
