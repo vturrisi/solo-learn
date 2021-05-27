@@ -14,7 +14,6 @@ except:
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from losses.simclr import simclr_loss_func, manual_simclr_loss_func
-from utils.gather_layer import gather
 from utils.metrics import accuracy_at_k
 
 
@@ -74,16 +73,12 @@ class SimCLR(BaseModel):
             z, output = self(X, classify_only=False)
             z_small, _ = self(X_small, classify_only=False)
 
-            z = [gather(part) for part in torch.chunk(z, n_crops)]
-            z_small = [gather(part) for part in torch.chunk(z_small, n_small_crops)]
             z = torch.cat((*z, *z_small), dim=0)
 
             # ------- contrastive loss -------
             if self.args.supervised:
-                gathered_target = gather(target)
-                pos_mask = self.gen_extra_positives_gt(gathered_target)
+                pos_mask = self.gen_extra_positives_gt(target)
             else:
-                indexes = gather(indexes)
                 index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
                 pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
             neg_mask = (~pos_mask).fill_diagonal_(False)
@@ -99,13 +94,10 @@ class SimCLR(BaseModel):
             z, output = self(X, classify_only=False)
 
             z1, z2 = torch.chunk(z, 2)
-            z1 = gather(z1)
-            z2 = gather(z2)
 
             # ------- contrastive loss -------
             if self.args.supervised:
-                gathered_target = gather(target)
-                pos_mask = self.gen_extra_positives_gt(gathered_target)
+                pos_mask = self.gen_extra_positives_gt(target)
                 nce_loss = simclr_loss_func(
                     z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
                 )

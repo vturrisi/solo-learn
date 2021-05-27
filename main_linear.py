@@ -3,12 +3,13 @@ import json
 import os
 
 import torch
+import torch.nn as nn
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
+from torchvision.models import resnet18, resnet50
 
 from args.setup import parse_args_linear
-from methods.base import BaseModel
 from methods.dali import ClassificationABC
 from methods.linear import LinearModel
 from utils.classification_dataloader import prepare_data
@@ -22,11 +23,15 @@ def main():
     model_args_dict = dict(**json.load(open(model_args_path)))
     model_args = argparse.Namespace(**model_args_dict)
 
-    # compatibility with encoders created before zero_init_residual was added
-    if "zero_init_residual" not in model_args:
-        model_args.zero_init_residual = False
+    if model_args.encoder == "resnet18":
+        model = resnet18()
+    elif model_args.encoder == "resnet50":
+        model = resnet50()
+    else:
+        raise ValueError("Only [resnet18, resnet50] are currently supported.")
 
-    model = BaseModel(model_args)
+    model.fc = nn.Identity()
+
     if (
         args.pretrained_feature_extractor.endswith(".ckpt")
         or args.pretrained_feature_extractor.endswith(".pth")
@@ -43,9 +48,14 @@ def main():
         checkpoints.sort(key=lambda ckpt: int(ckpt[:-5].split("ep=")[1]), reverse=True)
         ckpt_path = os.path.join(args.pretrained_feature_extractor, checkpoints[0])
 
-    print(f"loaded {ckpt_path}")
     state = torch.load(ckpt_path)["state_dict"]
+    for k in list(state.keys()):
+        if "encoder" in k:
+            state[k.replace("encoder.", "")] = state[k]
+        del state[k]
     model.load_state_dict(state, strict=False)
+
+    print(f"loaded {ckpt_path}")
 
     if args.dali:
         MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})

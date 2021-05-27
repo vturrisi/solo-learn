@@ -26,7 +26,7 @@ class LinearModel(pl.LightningModule):
         self.args = args
         self.model = model
         # reset classifier
-        self.model.classifier = nn.Linear(self.model.features_size, args.n_classes)
+        self.model.fc = nn.Linear(self.model.features_size, args.n_classes)
 
     def forward(self, x):
         out = self.model(x)
@@ -67,7 +67,9 @@ class LinearModel(pl.LightningModule):
             elif args.scheduler == "exponential":
                 scheduler = ExponentialLR(optimizer, args.weight_decay)
             else:
-                raise ValueError(f"{args.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)")
+                raise ValueError(
+                    f"{args.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)"
+                )
 
             return [optimizer], [scheduler]
 
