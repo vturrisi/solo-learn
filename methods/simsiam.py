@@ -45,11 +45,11 @@ class SimSiam(BaseModel):
         )
 
     @property
-    def extra_learnable_modules(self):
+    def extra_learnable_params(self):
         return [
-            self.projector,
+            {"params": self.projector.parameters()},
             {
-                "module": self.predictor,
+                "params": self.predictor.parameters(),
                 "static_lr": True
             }
         ]

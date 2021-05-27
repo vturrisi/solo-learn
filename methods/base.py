@@ -47,11 +47,11 @@ class BaseModel(pl.LightningModule):
         self.classifier = nn.Linear(self.features_size, args.n_classes)
 
     @property
-    def base_learnable_modules(self):
+    def base_learnable_params(self):
         return [
-            self.encoder,
+            {"params": self.encoder.parameters()},
             {
-                "module": self.classifier,
+                "params": self.classifier.parameters(),
                 "lr": self.args.classifier_lr,
                 "weight_decay": 0
             }
@@ -59,7 +59,7 @@ class BaseModel(pl.LightningModule):
 
     @property
     @abstractmethod
-    def extra_learnable_modules(self):
+    def extra_learnable_params(self):
         pass
 
     def configure_optimizers(self):
@@ -67,22 +67,10 @@ class BaseModel(pl.LightningModule):
 
         # collect learnable parameters
         learnable_params = []
-        idxs_no_scheduler = []
-        base_learnable_modules = list(self.base_learnable_modules)
-        extra_learnable_modules = list(self.extra_learnable_modules)
-        learnable_modules = base_learnable_modules + extra_learnable_modules
-        for idx, module in enumerate(learnable_modules):
-            if isinstance(module, nn.Module) or isinstance(module, nn.Parameter):
-                learnable_params.append({"params": module.parameters()})
-            elif isinstance(module, dict):
-                module["params"] = module.pop("module").parameters()
-                learnable_params.append(module)
-                if module.pop("static_lr", False):
-                    idxs_no_scheduler.append(idx)
-            else:
-                raise ValueError(f"{type(module)} cannot be parsed")
-
-        print(idxs_no_scheduler)
+        base_learnable_params = list(self.base_learnable_params)
+        extra_learnable_params = list(self.extra_learnable_params)
+        learnable_params = base_learnable_params + extra_learnable_params
+        idxs_no_scheduler = [i for i, m in enumerate(learnable_params) if m.pop("static_lr", False)]
 
         # select optimizer
         if args.optimizer == "sgd":

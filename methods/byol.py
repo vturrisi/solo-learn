@@ -64,8 +64,11 @@ class BYOL(BaseModel):
         self.momentum_updater = MomentumUpdater(args.base_tau_momentum, args.final_tau_momentum)
 
     @property
-    def extra_learnable_modules(self):
-        return self.projector, self.predictor
+    def extra_learnable_params(self):
+        return [
+            {"params": self.projector.parameters()},
+            {"params": self.predictor.parameters()}
+        ]
 
     def forward(self, X, classify_only=True):
         features, y = super().forward(X, classify_only=False)
