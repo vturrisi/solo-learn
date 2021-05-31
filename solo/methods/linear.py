@@ -1,22 +1,16 @@
-import os
-import sys
-
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+from solo.utils.lars import LARSWrapper
+from solo.utils.metrics import accuracy_at_k, weighted_mean
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
     ExponentialLR,
     MultiStepLR,
     ReduceLROnPlateau,
 )
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-from utils.lars import LARSWrapper
-from utils.metrics import accuracy_at_k, weighted_mean
 
 
 class LinearModel(pl.LightningModule):

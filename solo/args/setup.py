@@ -1,15 +1,10 @@
 import argparse
-import os
-import sys
 
-from . import methods as methods_args
-from .dataset import augmentations_args, dataset_args
-from .train import encoder_args, general_train_args, optizer_args, scheduler_args
-from .utils import additional_setup_contrastive, additional_setup_linear
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-from methods import METHODS
+from solo.args import methods as methods_args
+from solo.args.dataset import augmentations_args, dataset_args
+from solo.args.train import encoder_args, general_train_args, optizer_args, scheduler_args
+from solo.args.utils import additional_setup_contrastive, additional_setup_linear
+from solo.methods import METHODS
 
 
 def parse_args_contrastive():

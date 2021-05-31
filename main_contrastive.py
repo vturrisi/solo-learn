@@ -5,18 +5,18 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
-from args.setup import parse_args_contrastive
-from methods import METHODS
-from methods.dali import ContrastiveABC
-from utils.classification_dataloader import prepare_data as prepare_data_classification
-from utils.contrastive_dataloader import (
+from solo.args.setup import parse_args_contrastive
+from solo.methods import METHODS
+from solo.methods.dali import ContrastiveABC
+from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
+from solo.utils.contrastive_dataloader import (
     prepare_dataloaders,
     prepare_datasets,
     prepare_multicrop_transform,
     prepare_n_crop_transform,
     prepare_transform,
 )
-from utils.epoch_checkpointer import EpochCheckpointer
+from solo.utils.epoch_checkpointer import EpochCheckpointer
 
 
 def main():

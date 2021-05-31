@@ -9,11 +9,11 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from torchvision.models import resnet18, resnet50
 
-from args.setup import parse_args_linear
-from methods.dali import ClassificationABC
-from methods.linear import LinearModel
-from utils.classification_dataloader import prepare_data
-from utils.epoch_checkpointer import EpochCheckpointer
+from solo.args.setup import parse_args_linear
+from solo.methods.dali import ClassificationABC
+from solo.methods.linear import LinearModel
+from solo.utils.classification_dataloader import prepare_data
+from solo.utils.epoch_checkpointer import EpochCheckpointer
 
 
 def main():

@@ -1,7 +1,7 @@
+import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
 from nvidia.dali.pipeline import Pipeline
-import nvidia.dali.fn as fn
 
 
 class Mux:

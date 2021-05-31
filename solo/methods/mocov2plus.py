@@ -1,21 +1,11 @@
-import os
-import sys
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-try:
-    from base import BaseModel
-except:
-    from .base import BaseModel
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-from utils.gather_layer import gather
-from utils.metrics import accuracy_at_k
-from utils.momentum import initialize_momentum_params, MomentumUpdater
-from losses.moco import moco_loss_func
+from solo.losses.moco import moco_loss_func
+from solo.methods.base import BaseModel
+from solo.utils.gather_layer import gather
+from solo.utils.metrics import accuracy_at_k
+from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 
 
 class MoCoV2Plus(BaseModel):

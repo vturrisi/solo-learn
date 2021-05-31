@@ -1,17 +1,10 @@
 import math
 import os
-import sys
-
-import torch
-
-
-from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
 from abc import ABC
 
-from utils.dali_dataloader import (
+import torch
+from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
+from solo.utils.dali_dataloader import (
     ContrastivePipeline,
     ImagenetTransform,
     MulticropContrastivePipeline,

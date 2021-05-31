@@ -3,7 +3,6 @@ import torch.distributed as dist
 
 
 class SinkhornKnopp(torch.nn.Module):
-
     def __init__(self, num_iters=3, epsilon=0.05, world_size=1):
         super().__init__()
         self.num_iters = num_iters
@@ -14,7 +13,7 @@ class SinkhornKnopp(torch.nn.Module):
     def forward(self, Q):
         Q = torch.exp(Q / self.epsilon).t()
         B = Q.shape[1] * self.world_size
-        K = Q.shape[0] # num prototypes
+        K = Q.shape[0]  # num prototypes
 
         # make the matrix sums to 1
         sum_Q = torch.sum(Q)
@@ -32,5 +31,5 @@ class SinkhornKnopp(torch.nn.Module):
             Q /= torch.sum(Q, dim=0, keepdim=True)
             Q /= B
 
-        Q *= B # the colomns must sum to 1 so that Q is an assignment
+        Q *= B  # the colomns must sum to 1 so that Q is an assignment
         return Q.t()
