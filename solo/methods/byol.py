@@ -16,7 +16,7 @@ class BYOL(BaseModel):
         base_tau_momentum,
         final_tau_momentum,
         **kwargs,
-        ):
+    ):
         super().__init__(**kwargs)
 
         self.last_step = 0
