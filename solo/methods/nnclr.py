@@ -9,13 +9,7 @@ from solo.utils.metrics import accuracy_at_k
 
 class NNCLR(BaseModel):
     def __init__(
-        self,
-        output_dim,
-        proj_hidden_dim,
-        pred_hidden_dim,
-        temperature,
-        queue_size,
-        **kwargs
+        self, output_dim, proj_hidden_dim, pred_hidden_dim, temperature, queue_size, **kwargs
     ):
         super().__init__(**kwargs)
 

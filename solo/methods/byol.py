@@ -38,8 +38,7 @@ class BYOL(BaseModel):
         )
 
         # instantiate and initialize momentum encoder
-        self.momentum_encoder = self.base_model(
-            zero_init_residual=self.zero_init_residual)
+        self.momentum_encoder = self.base_model(zero_init_residual=self.zero_init_residual)
         self.momentum_encoder.fc = nn.Identity()
         if self.cifar:
             self.momentum_encoder.conv1 = nn.Conv2d(

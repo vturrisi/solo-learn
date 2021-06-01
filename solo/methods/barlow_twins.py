@@ -7,13 +7,7 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class BarlowTwins(BaseModel):
-    def __init__(
-        self, 
-        proj_hidden_dim,
-        output_dim,
-        lamb,
-        scale_loss,
-        **kwargs):
+    def __init__(self, proj_hidden_dim, output_dim, lamb, scale_loss, **kwargs):
         super().__init__(**kwargs)
 
         self.lamb = lamb

@@ -7,12 +7,7 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class VICReg(BaseModel):
-    def __init__(
-        self,
-        output_dim,
-        proj_hidden_dim,
-        **kwargs
-    ):
+    def __init__(self, output_dim, proj_hidden_dim, **kwargs):
         super().__init__(**kwargs)
 
         # projector

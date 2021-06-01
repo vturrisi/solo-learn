@@ -8,12 +8,7 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class SimCLR(BaseModel):
-    def __init__(
-        self,
-        output_dim,
-        proj_hidden_dim,
-        temperature,
-        **kwargs):
+    def __init__(self, output_dim, proj_hidden_dim, temperature, **kwargs):
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -76,7 +71,10 @@ class SimCLR(BaseModel):
             neg_mask = (~pos_mask).fill_diagonal_(False)
 
             nce_loss = manual_simclr_loss_func(
-                z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
+                z,
+                pos_mask=pos_mask,
+                neg_mask=neg_mask,
+                temperature=self.temperature,
             )
         else:
             indexes, (X1, X2), target = batch

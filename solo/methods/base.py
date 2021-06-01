@@ -35,7 +35,7 @@ class BaseModel(pl.LightningModule):
         extra_optimizer_args,
         scheduler,
         lr_decay_steps,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
 
@@ -116,10 +116,7 @@ class BaseModel(pl.LightningModule):
         else:
             if self.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=10,
-                    max_epochs=self.max_epochs,
-                    warmup_start_lr=0.003
+                    optimizer, warmup_epochs=10, max_epochs=self.max_epochs, warmup_start_lr=0.003
                 )
             elif self.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
