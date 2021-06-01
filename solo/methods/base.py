@@ -22,35 +22,41 @@ class BaseModel(pl.LightningModule):
     def __init__(
         self,
         encoder,
-        zero_init_residual,
         n_classes,
         cifar,
-        lr,
-        weight_decay,
+        zero_init_residual,
         max_epochs,
-        classifier_lr,
         optimizer,
         lars,
+        lr,
+        weight_decay,
+        classifier_lr,
         exclude_bias_n_norm,
         extra_optimizer_args,
         scheduler,
-        lr_decay_steps,
+        lr_decay_steps=None,
         **kwargs,
     ):
         super().__init__()
 
+        # back-bone related
         self.cifar = cifar
         self.zero_init_residual = zero_init_residual
-        self.lr = lr
-        self.weight_decay = weight_decay
+
+        # training related
         self.max_epochs = max_epochs
-        self.classifier_lr = classifier_lr
         self.optimizer = optimizer
         self.lars = lars
+        self.lr = lr
+        self.weight_decay = weight_decay
+        self.classifier_lr = classifier_lr
         self.exclude_bias_n_norm = exclude_bias_n_norm
         self.extra_optimizer_args = extra_optimizer_args
         self.scheduler = scheduler
         self.lr_decay_steps = lr_decay_steps
+
+        # all the other parameters
+        self.extra_args = kwargs
 
         assert encoder in ["resnet18", "resnet50"]
         from torchvision.models import resnet18, resnet50
@@ -85,7 +91,6 @@ class BaseModel(pl.LightningModule):
         pass
 
     def configure_optimizers(self):
-
         # collect learnable parameters
         base_learnable_params = list(self.base_learnable_params)
         extra_learnable_params = list(self.extra_learnable_params)

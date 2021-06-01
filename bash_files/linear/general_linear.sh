@@ -4,16 +4,17 @@ python3 ../../main_linear.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
     --optimizer sgd \
     --scheduler step \
-    --lr 30.0 \
+    --lr 0.1 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 10 \
-    --name simsiam-linear-eval \
-    --pretrained_feature_extractor ../pretrain/trained_models/PATH \
+    --name simclr-linear-eval \
+    --pretrained_feature_extractor PATH \
     --project contrastive_learning \
     --wandb

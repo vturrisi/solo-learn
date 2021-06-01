@@ -14,57 +14,82 @@ from torch.optim.lr_scheduler import (
 
 
 class LinearModel(pl.LightningModule):
-    def __init__(self, model, args):
+    def __init__(
+        self,
+        backbone,
+        n_classes,
+        max_epochs,
+        optimizer,
+        lars,
+        lr,
+        weight_decay,
+        exclude_bias_n_norm,
+        extra_optimizer_args,
+        scheduler,
+        lr_decay_steps=None,
+        **kwargs,
+    ):
         super().__init__()
 
-        self.args = args
-        self.model = model
-        self.classifier = nn.Linear(self.model.inplanes, args.n_classes)
+        self.backbone = backbone
+        self.classifier = nn.Linear(self.backbone.inplanes, n_classes)
 
-        for param in self.model.parameters():
+        # training related
+        self.max_epochs = max_epochs
+        self.optimizer = optimizer
+        self.lars = lars
+        self.lr = lr
+        self.weight_decay = weight_decay
+        self.exclude_bias_n_norm = exclude_bias_n_norm
+        self.extra_optimizer_args = extra_optimizer_args
+        self.scheduler = scheduler
+        self.lr_decay_steps = lr_decay_steps
+
+        # all the other parameters
+        self.extra_args = kwargs
+
+        for param in self.backbone.parameters():
             param.requires_grad = False
 
     def forward(self, x):
-        out = self.model(x)
+        out = self.backbone(x)
         return out
 
     def configure_optimizers(self):
-        args = self.args
-
-        if args.optimizer == "sgd":
+        if self.optimizer == "sgd":
             optimizer = torch.optim.SGD
-        elif args.optimizer == "adam":
+        elif self.optimizer == "adam":
             optimizer = torch.optim.Adam
         else:
-            raise ValueError(f"{args.optimizer} not in (sgd, adam)")
+            raise ValueError(f"{self.optimizer} not in (sgd, adam)")
 
         optimizer = optimizer(
             self.classifier.parameters(),
-            lr=args.lr,
-            weight_decay=args.weight_decay,
-            **args.extra_optimizer_args,
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+            **self.extra_optimizer_args,
         )
 
-        if args.lars:
-            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=args.exclude_bias_n_norm)
+        if self.lars:
+            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=self.exclude_bias_n_norm)
 
         # select scheduler
-        if args.scheduler == "none":
+        if self.scheduler == "none":
             return optimizer
         else:
-            if args.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, args.epochs)
-            if args.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, args.epochs)
-            elif args.scheduler == "reduce":
+            if self.scheduler == "warmup_cosine":
+                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.epochs)
+            if self.scheduler == "cosine":
+                scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
+            elif self.scheduler == "reduce":
                 scheduler = ReduceLROnPlateau(optimizer)
-            elif args.scheduler == "step":
-                scheduler = MultiStepLR(optimizer, args.lr_decay_steps, gamma=0.1)
-            elif args.scheduler == "exponential":
-                scheduler = ExponentialLR(optimizer, args.weight_decay)
+            elif self.scheduler == "step":
+                scheduler = MultiStepLR(optimizer, self.lr_decay_steps, gamma=0.1)
+            elif self.scheduler == "exponential":
+                scheduler = ExponentialLR(optimizer, self.weight_decay)
             else:
                 raise ValueError(
-                    f"{args.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)"
+                    f"{self.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)"
                 )
 
             return [optimizer], [scheduler]
@@ -74,7 +99,7 @@ class LinearModel(pl.LightningModule):
         batch_size = X.size(0)
 
         with torch.no_grad():
-            feat = self.model(X)
+            feat = self.backbone(X)
         out = self.classifier(feat)
 
         loss = F.cross_entropy(out, target)
@@ -84,7 +109,7 @@ class LinearModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         # set encoder to eval mode
-        self.model.eval()
+        self.backbone.eval()
 
         _, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
 
@@ -109,4 +134,4 @@ class LinearModel(pl.LightningModule):
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
-        self.log_dict(log, prog_bar=True, sync_dist=True)
+        self.log_dict(log, sync_dist=True)

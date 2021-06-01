@@ -73,10 +73,28 @@ class ContrastiveABC(ABC):
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
-        args = self.args
 
-        if args.multicrop:
-            n_crops = [self.args.n_crops, self.args.n_small_crops]
+        # get data arguments from model
+        multicrop = self.extra_args["multicrop"]
+        n_crops = self.extra_args["n_crops"]
+        n_small_crops = self.extra_args["n_crops"]
+        dali_device = self.extra_args["dali_device"]
+        brightness = self.extra_args["brightness"]
+        contrast = self.extra_args["contrast"]
+        saturation = self.extra_args["saturation"]
+        hue = self.extra_args["hue"]
+        gaussian_prob = self.extra_args["gaussian_prob"]
+        solarization_prob = self.extra_args["solarization_prob"]
+        asymmetric_augmentations = self.extra_args["asymmetric_augmentations"]
+        last_batch_fill = self.extra_args["last_batch_fill"]
+
+        batch_size = self.extra_args["batch_size"]
+        num_workers = self.extra_args["num_workers"]
+        data_folder = self.extra_args["data_folder"]
+        train_dir = self.extra_args["train_dir"]
+
+        if multicrop:
+            n_crops = [n_crops, n_small_crops]
             size_crops = [224, 96]
             min_scale_crops = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]
@@ -84,99 +102,101 @@ class ContrastiveABC(ABC):
             transforms = []
             for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
                 transform = ImagenetTransform(
-                    device=args.dali_device,
-                    brightness=args.brightness,
-                    contrast=args.contrast,
-                    saturation=args.saturation,
-                    hue=args.hue,
-                    gaussian_prob=args.gaussian_prob,
-                    solarization_prob=args.solarization_prob,
+                    device=dali_device,
+                    brightness=brightness,
+                    contrast=contrast,
+                    saturation=saturation,
+                    hue=hue,
+                    gaussian_prob=gaussian_prob,
+                    solarization_prob=solarization_prob,
                     size=size,
                     min_scale=min_scale,
                     max_scale=max_scale,
                 )
                 transforms.append(transform)
             train_pipeline = MulticropContrastivePipeline(
-                os.path.join(self.args.data_folder, self.args.train_dir),
-                batch_size=self.args.batch_size,
+                os.path.join(data_folder, train_dir),
+                batch_size=batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
                 size_crops=size_crops,
                 min_scale_crops=min_scale_crops,
                 max_scale_crops=max_scale_crops,
-                device=args.dali_device,
+                device=dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                num_threads=self.args.num_workers,
+                num_threads=num_workers,
             )
-            self.output_map = [
+            output_map = [
                 *[f"large{i}" for i in range(n_crops[0])],
                 *[f"small{i}" for i in range(n_crops[1])],
                 "label",
             ]
 
         else:
-            if args.asymmetric_augmentations:
+            min_scale_crop = self.extra_args["min_scale_crop"]
+
+            if asymmetric_augmentations:
                 transform = [
                     ImagenetTransform(
-                        device=args.dali_device,
-                        brightness=args.brightness,
-                        contrast=args.contrast,
-                        saturation=args.saturation,
-                        hue=args.hue,
+                        device=dali_device,
+                        brightness=brightness,
+                        contrast=contrast,
+                        saturation=saturation,
+                        hue=hue,
                         gaussian_prob=1.0,
                         solarization_prob=0.0,
                         size=224,
-                        min_scale=0.08,
+                        min_scale=min_scale_crop,
                         max_scale=1.0,
                     ),
                     ImagenetTransform(
-                        device=args.dali_device,
-                        brightness=args.brightness,
-                        contrast=args.contrast,
-                        saturation=args.saturation,
-                        hue=args.hue,
+                        device=dali_device,
+                        brightness=brightness,
+                        contrast=contrast,
+                        saturation=saturation,
+                        hue=hue,
                         gaussian_prob=0.1,
                         solarization_prob=0.2,
                         size=224,
-                        min_scale=0.08,
+                        min_scale=min_scale_crop,
                         max_scale=1.0,
                     ),
                 ]
             else:
                 transform = ImagenetTransform(
-                    device=args.dali_device,
-                    brightness=args.brightness,
-                    contrast=args.contrast,
-                    saturation=args.saturation,
-                    hue=args.hue,
-                    gaussian_prob=args.gaussian_prob,
-                    solarization_prob=args.solarization_prob,
+                    device=dali_device,
+                    brightness=brightness,
+                    contrast=contrast,
+                    saturation=saturation,
+                    hue=hue,
+                    gaussian_prob=gaussian_prob,
+                    solarization_prob=solarization_prob,
                     size=224,
-                    min_scale=args.min_scale_crop,
+                    min_scale=min_scale_crop,
                     max_scale=1.0,
                 )
             train_pipeline = ContrastivePipeline(
-                os.path.join(self.args.data_folder, self.args.train_dir),
-                batch_size=self.args.batch_size,
+                os.path.join(data_folder, train_dir),
+                batch_size=batch_size,
                 transform=transform,
-                device=args.dali_device,
+                device=dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                num_threads=self.args.num_workers,
+                num_threads=num_workers,
             )
-            self.output_map = ["large1", "large2", "label"]
+            output_map = ["large1", "large2", "label"]
 
-        policy = LastBatchPolicy.FILL if self.args.last_batch_fill else LastBatchPolicy.DROP
+        policy = LastBatchPolicy.FILL if last_batch_fill else LastBatchPolicy.DROP
         train_loader = ContrastiveWrapper(
             train_pipeline,
-            output_map=self.output_map,
+            output_map=output_map,
             reader_name="Reader",
             last_batch_policy=policy,
             auto_reset=True,
-            model_batch_size=self.args.batch_size,
+            model_batch_size=batch_size,
             model_rank=device_id,
             model_device=self.device,
         )
@@ -192,17 +212,22 @@ class ClassificationABC(ABC):
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
-        args = self.args
+
+        batch_size = self.extra_args["batch_size"]
+        num_workers = self.extra_args["num_workers"]
+        dali_device = self.extra_args["dali_device"]
+        data_folder = self.extra_args["data_folder"]
+        train_dir = self.extra_args["train_dir"]
 
         train_pipeline = NormalPipeline(
-            os.path.join(self.args.data_folder, self.args.train_dir),
+            os.path.join(data_folder, train_dir),
             validation=False,
-            batch_size=self.args.batch_size,
-            device=args.dali_device,
+            batch_size=batch_size,
+            device=dali_device,
             device_id=device_id,
             shard_id=shard_id,
             num_shards=num_shards,
-            num_threads=self.args.num_workers,
+            num_threads=num_workers,
         )
         train_loader = Wrapper(
             train_pipeline,
@@ -217,17 +242,22 @@ class ClassificationABC(ABC):
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
-        args = self.args
+
+        batch_size = self.extra_args["batch_size"]
+        num_workers = self.extra_args["num_workers"]
+        dali_device = self.extra_args["dali_device"]
+        data_folder = self.extra_args["data_folder"]
+        val_dir = self.extra_args["val_dir"]
 
         val_pipeline = NormalPipeline(
-            os.path.join(self.args.data_folder, self.args.val_dir),
+            os.path.join(data_folder, val_dir),
             validation=True,
-            batch_size=self.args.batch_size,
-            device=args.dali_device,
+            batch_size=batch_size,
+            device=dali_device,
             device_id=device_id,
             shard_id=shard_id,
             num_shards=num_shards,
-            num_threads=self.args.num_workers,
+            num_threads=num_workers,
         )
 
         val_loader = Wrapper(
