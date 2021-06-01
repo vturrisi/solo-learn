@@ -19,7 +19,7 @@ class SimCLR(BaseModel):
         self.temperature = temperature
 
         # projector
-        if hidden_dim == 0:
+        if proj_hidden_dim == 0:
             self.projector = nn.Linear(self.features_size, output_dim)
         else:
             self.projector = nn.Sequential(

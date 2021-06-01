@@ -16,9 +16,10 @@ class MoCoV2Plus(BaseModel):
         temperature,
         queue_size,
         base_tau_momentum,
-        final_tau_momentums
+        final_tau_momentum,
+        **kwargs
     ):
-        super().__init__(args)
+        super().__init__(**kwargs)
 
         self.temperature = temperature
         self.queue_size = queue_size

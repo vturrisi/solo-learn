@@ -10,20 +10,20 @@ class VICReg(BaseModel):
     def __init__(
         self,
         output_dim,
-        pred_hidden_dim,
+        proj_hidden_dim,
         **kwargs
     ):
-        super().__init__(args)
+        super().__init__(**kwargs)
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, pred_hidden_dim),
-            nn.BatchNorm1d(pred_hidden_dim),
+            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(pred_hidden_dim, pred_hidden_dim),
-            nn.BatchNorm1d(pred_hidden_dim),
+            nn.Linear(proj_hidden_dim, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(pred_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, output_dim),
         )
 
     @property
