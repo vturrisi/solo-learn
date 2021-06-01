@@ -75,7 +75,6 @@ def main():
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
-        plugins=DDPPlugin(find_unused_parameters=False),
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
