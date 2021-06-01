@@ -15,7 +15,6 @@ python3 ../../main_contrastive.py \
     --classifier_lr 0.03 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 8 \
     --dali \
     --brightness 0.4 \
