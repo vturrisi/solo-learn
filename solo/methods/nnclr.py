@@ -8,14 +8,19 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class NNCLR(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        pred_hidden_dim,
+        temperature,
+        queue_size,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
 
-        proj_hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-        pred_hidden_dim = args.pred_hidden_dim
-
-        self.temperature = args.temperature
+        self.temperature = temperature
+        self.queue_size = queue_size
 
         # projector
         self.projector = nn.Sequential(
@@ -38,7 +43,6 @@ class NNCLR(BaseModel):
         )
 
         # queue
-        self.queue_size = args.queue_size
         self.register_buffer("queue", torch.randn(self.queue_size, output_dim))
         self.register_buffer("queue_y", -torch.ones(self.queue_size, dtype=torch.long))
         self.queue = F.normalize(self.queue, dim=1)

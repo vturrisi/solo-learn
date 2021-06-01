@@ -8,22 +8,24 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class SimCLR(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        temperature,
+        **kwargs):
+        super().__init__(**kwargs)
 
-        hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-
-        self.temperature = args.temperature
+        self.temperature = temperature
 
         # projector
         if hidden_dim == 0:
             self.projector = nn.Linear(self.features_size, output_dim)
         else:
             self.projector = nn.Sequential(
-                nn.Linear(self.features_size, hidden_dim),
+                nn.Linear(self.features_size, proj_hidden_dim),
                 nn.ReLU(),
-                nn.Linear(hidden_dim, output_dim),
+                nn.Linear(proj_hidden_dim, output_dim),
             )
 
     @property

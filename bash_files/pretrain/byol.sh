@@ -4,7 +4,11 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0 1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
@@ -13,7 +17,6 @@ python3 ../../main_contrastive.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-6 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 8 \
     --dali \
     --brightness 0.4 \
@@ -25,7 +28,7 @@ python3 ../../main_contrastive.py \
     --project contrastive_learning \
     --wandb \
     byol \
-    --encoding_dim 128 \
+    --output_dim 256 \
     --hidden_dim 2048 \
     --pred_hidden_dim 512 \
     --base_tau_momentum 0.99 \

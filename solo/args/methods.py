@@ -1,7 +1,7 @@
 def barlow_twins_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=2048)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=2048)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # parameters
     parser.add_argument("--lamb", type=float, default=5e-3)
@@ -10,8 +10,8 @@ def barlow_twins_args(parser):
 
 def byol_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=128)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=256)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # predictor
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
@@ -23,8 +23,8 @@ def byol_args(parser):
 
 def mocov2plus_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=128)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=128)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # parameters
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -39,8 +39,8 @@ def mocov2plus_args(parser):
 
 def nnclr_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=256)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=256)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # predictor
     parser.add_argument("--pred_hidden_dim", type=int, default=4096)
@@ -54,8 +54,8 @@ def nnclr_args(parser):
 
 def simclr_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=128)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=128)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # parameters
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -66,8 +66,8 @@ def simclr_args(parser):
 
 def simsiam_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=128)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=128)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # predictor
     parser.add_argument("--pred_hidden_dim", type=int, default=512)
@@ -75,8 +75,8 @@ def simsiam_args(parser):
 
 def swav_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=128)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=128)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # queue settings
     parser.add_argument("--queue_size", default=3840, type=int)
@@ -92,8 +92,8 @@ def swav_args(parser):
 
 def vicreg_args(parser):
     # projector
-    parser.add_argument("--encoding_dim", type=int, default=2048)
-    parser.add_argument("--hidden_dim", type=int, default=2048)
+    parser.add_argument("--output_dim", type=int, default=2048)
+    parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
     # parameters
     parser.add_argument("--sim_loss_weight", default=25, type=float)

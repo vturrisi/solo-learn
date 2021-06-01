@@ -1,4 +1,5 @@
 import argparse
+import pytorch_lightning as pl
 
 from solo.args import methods as methods_args
 from solo.args.dataset import augmentations_args, dataset_args
@@ -18,6 +19,9 @@ def parse_args_contrastive():
     optizer_args(parser)
     scheduler_args(parser)
 
+    # add pytorch lightning trainer args
+    parser = pl.Trainer.add_argparse_args(parser)
+
     # add method-specific arguments
     subparser = parser.add_subparsers(dest="method")
     for name in METHODS:
@@ -28,6 +32,7 @@ def parse_args_contrastive():
 
         methods_args.__dict__[method_args](method_parser)
 
+    # parse args
     args = parser.parse_args()
 
     # prepare arguments with additional setup
@@ -48,6 +53,10 @@ def parse_args_linear():
     optizer_args(parser)
     scheduler_args(parser)
 
+    # add pytorch lightning trainer args
+    parser = pl.Trainer.add_argparse_args(parser)
+
+    # parse args
     args = parser.parse_args()
     additional_setup_linear(args)
 

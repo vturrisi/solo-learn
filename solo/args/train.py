@@ -6,17 +6,11 @@ def encoder_args(parser):
 
 
 def general_train_args(parser):
-    parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=0.3)
     parser.add_argument("--classifier_lr", type=float, default=0.3)
     parser.add_argument("--weight_decay", type=float, default=0.0001)
-
-    # extra training settings
-    parser.add_argument("--resume_training_from", type=str)
     parser.add_argument("--num_workers", type=int, default=4)
-    parser.add_argument("--gpus", type=int, nargs="+", required=True)
-    parser.add_argument("--precision", type=int, default=16)
 
     # wandb
     parser.add_argument("--name")

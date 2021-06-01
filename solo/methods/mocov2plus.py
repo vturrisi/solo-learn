@@ -9,24 +9,31 @@ from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 
 
 class MoCoV2Plus(BaseModel):
-    def __init__(self, args):
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        temperature,
+        queue_size,
+        base_tau_momentum,
+        final_tau_momentums
+    ):
         super().__init__(args)
 
-        hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-
-        self.temperature = args.temperature
-        self.queue_size = args.queue_size
+        self.temperature = temperature
+        self.queue_size = queue_size
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, output_dim),
+            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(proj_hidden_dim, output_dim),
         )
 
         # instantiate and initialize momentum encoder
-        self.momentum_encoder = self.base_model(zero_init_residual=args.zero_init_residual)
+        self.momentum_encoder = self.base_model(zero_init_residual=self.zero_init_residual)
         self.momentum_encoder.fc = nn.Identity()
-        if args.cifar:
+        if self.cifar:
             self.momentum_encoder.conv1 = nn.Conv2d(
                 3, 64, kernel_size=3, stride=1, padding=2, bias=False
             )
@@ -42,10 +49,10 @@ class MoCoV2Plus(BaseModel):
         initialize_momentum_params(self.projector, self.momentum_projector)
 
         # momentum updater
-        self.momentum_updater = MomentumUpdater(args.base_tau_momentum, args.final_tau_momentum)
+        self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
         # create the queue
-        self.register_buffer("queue", torch.randn(2, output_dim, args.queue_size))
+        self.register_buffer("queue", torch.randn(2, output_dim, queue_size))
         self.queue = nn.functional.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 

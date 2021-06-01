@@ -4,7 +4,11 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0 1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
     --optimizer sgd \
     --scheduler cosine \
     --lr 0.03 \

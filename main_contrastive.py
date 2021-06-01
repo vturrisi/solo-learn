@@ -16,7 +16,6 @@ from solo.utils.contrastive_dataloader import (
     prepare_n_crop_transform,
     prepare_transform,
 )
-from solo.utils.epoch_checkpointer import EpochCheckpointer
 
 
 def main():
@@ -30,7 +29,7 @@ def main():
     if args.dali:
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, ContrastiveABC), {})
 
-    model = MethodClass(args)
+    model = MethodClass(**args.__dict__)
 
     # contrastive dataloader
     if not args.dali:
@@ -90,27 +89,23 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
         # lr logging
         callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
-    # epoch checkpointer
-    callbacks.append(EpochCheckpointer(args, frequency=25))
-
-    trainer = Trainer(
-        max_epochs=args.epochs,
-        gpus=[*args.gpus],
+    trainer = Trainer.from_argparse_args(
+        args,
         logger=wandb_logger if args.wandb else None,
-        distributed_backend="ddp",
-        precision=args.precision,
-        sync_batchnorm=True,
-        resume_from_checkpoint=args.resume_training_from,
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=False),
     )
+
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
     else:

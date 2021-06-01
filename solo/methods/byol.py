@@ -8,12 +8,18 @@ from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 
 
 class BYOL(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        pred_hidden_dim,
+        base_tau_momentum,
+        final_tau_momentum,
+        **kwargs,
+        ):
+        super().__init__(**kwargs)
 
-        proj_hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-        pred_hidden_dim = args.pred_hidden_dim
+        self.last_step = 0
 
         # projector
         self.projector = nn.Sequential(
@@ -32,9 +38,10 @@ class BYOL(BaseModel):
         )
 
         # instantiate and initialize momentum encoder
-        self.momentum_encoder = self.base_model(zero_init_residual=args.zero_init_residual)
+        self.momentum_encoder = self.base_model(
+            zero_init_residual=self.zero_init_residual)
         self.momentum_encoder.fc = nn.Identity()
-        if args.cifar:
+        if self.cifar:
             self.momentum_encoder.conv1 = nn.Conv2d(
                 3, 64, kernel_size=3, stride=1, padding=2, bias=False
             )
@@ -51,7 +58,7 @@ class BYOL(BaseModel):
         initialize_momentum_params(self.projector, self.momentum_projector)
 
         # momentum updater
-        self.momentum_updater = MomentumUpdater(args.base_tau_momentum, args.final_tau_momentum)
+        self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
     @property
     def extra_learnable_params(self):
@@ -115,12 +122,14 @@ class BYOL(BaseModel):
         return loss
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
-        # log tau momentum
-        self.log("tau", self.momentum_updater.cur_tau)
-        # update momentum encoder
-        self.momentum_updater.update(
-            online_nets=[self.encoder, self.projector],
-            momentum_nets=[self.momentum_encoder, self.momentum_projector],
-            cur_step=self.trainer.global_step,
-            max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
-        )
+        if self.trainer.global_step > self.last_step:
+            # log tau momentum
+            self.log("tau", self.momentum_updater.cur_tau)
+            # update momentum encoder
+            self.momentum_updater.update(
+                online_nets=[self.encoder, self.projector],
+                momentum_nets=[self.momentum_encoder, self.momentum_projector],
+                cur_step=self.trainer.global_step * self.trainer.accumulate_grad_batches,
+                max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
+            )
+        self.last_step = self.trainer.global_step

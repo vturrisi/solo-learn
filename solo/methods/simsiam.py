@@ -7,12 +7,14 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class SimSiam(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
-
-        proj_hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-        pred_hidden_dim = args.pred_hidden_dim
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        pred_hidden_dim,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
 
         # projector
         self.projector = nn.Sequential(

@@ -8,30 +8,39 @@ from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
 
 class SwAV(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        num_prototypes,
+        sk_iters,
+        sk_epsilon,
+        temperature,
+        queue_size,
+        epoch_queue_starts,
+        freeze_prototypes_epochs,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
 
-        hidden_dim = args.hidden_dim
-        num_prototypes = args.num_prototypes
-
-        self.output_dim = args.encoding_dim
-        self.sk_iters = args.sk_iters
-        self.sk_epsilon = args.sk_epsilon
-        self.temperature = args.temperature
-        self.queue_size = args.queue_size
-        self.epoch_queue_starts = args.epoch_queue_starts
-        self.freeze_prototypes_epochs = args.freeze_prototypes_epochs
+        self.output_dim = output_dim
+        self.sk_iters = sk_iters
+        self.sk_epsilon = sk_epsilon
+        self.temperature = temperature
+        self.queue_size = queue_size
+        self.epoch_queue_starts = epoch_queue_starts
+        self.freeze_prototypes_epochs = freeze_prototypes_epochs
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.BatchNorm1d([proj_hidden_dim]),
             nn.ReLU(),
-            nn.Linear(hidden_dim, self.output_dim),
+            nn.Linear(proj_hidden_dim, output_dim),
         )
 
         # prototypes
-        self.prototypes = nn.Linear(self.output_dim, num_prototypes, bias=False)
+        self.prototypes = nn.Linear(output_dim, num_prototypes, bias=False)
         self.normalize_prototypes()
 
     @property
