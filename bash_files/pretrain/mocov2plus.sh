@@ -5,7 +5,7 @@ python3 ../../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0 1 \
+    --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
     --precision 16 \
@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --project contrastive_learning \
     --wandb \
     mocov2plus \
-    --hidden_dim 512 \
+    --proj_hidden_dim 512 \
     --queue_size 65536 \
     --temperature 0.07 \
     --base_tau_momentum 0.999 \

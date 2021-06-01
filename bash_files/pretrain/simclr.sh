@@ -5,7 +5,7 @@ python3 ../../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0 1 \
+    --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
     --precision 16 \
@@ -57,7 +57,7 @@ python3 ../../main_contrastive.py \
     --wandb \
     simclr \
     --temperature 0.2 \
-    --hidden_dim 2048
+    --proj_hidden_dim 2048
 
 python3 ../../main_contrastive.py \
     --dataset imagenet100 \
@@ -90,7 +90,7 @@ python3 ../../main_contrastive.py \
     --project contrastive_learning \
     --wandb \
     simclr \
-    --hidden_dim 2048 \
+    --proj_hidden_dim 2048 \
     --temperature 0.1
 
 python3 ../../main_contrastive.py \
@@ -122,5 +122,5 @@ python3 ../../main_contrastive.py \
     --wandb \
     simclr \
     --temperature 0.1 \
-    --hidden_dim 2048
-    --supervised \
+    --proj_hidden_dim 2048 \
+    --supervised

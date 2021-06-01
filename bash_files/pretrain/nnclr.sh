@@ -5,7 +5,7 @@ python3 ../../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 500 \
-    --gpus 0 1 \
+    --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
     --precision 16 \
@@ -28,7 +28,7 @@ python3 ../../main_contrastive.py \
     --wandb \
     nnclr \
     --temperature 0.2 \
-    --hidden_dim 2048 \
+    --proj_hidden_dim 2048 \
     --pred_hidden_dim 4096 \
     --output_dim 256 \
     --queue_size 65536

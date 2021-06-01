@@ -5,7 +5,7 @@ python3 ../../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0 1 \
+    --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
     --precision 16 \
@@ -27,7 +27,7 @@ python3 ../../main_contrastive.py \
     --project contrastive_learning \
     --wandb \
     swav \
-    --hidden_dim 2048 \
+    --proj_hidden_dim 2048 \
     --queue_size 3840 \
     --output_dim 128 \
     --num_prototypes 3000 \

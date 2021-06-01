@@ -1,11 +1,11 @@
 python3 ../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /datasets \
+    --data_folder /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0 1 \
+    --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
     --precision 16 \
@@ -29,7 +29,7 @@ python3 ../../main_contrastive.py \
     --wandb \
     byol \
     --output_dim 256 \
-    --hidden_dim 2048 \
-    --pred_hidden_dim 512 \
+    --proj_hidden_dim 4096 \
+    --pred_hidden_dim 4096 \
     --base_tau_momentum 0.99 \
     --final_tau_momentum 1.0
