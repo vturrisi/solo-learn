@@ -27,7 +27,7 @@ python3 ../../main_contrastive.py \
     --name byol \
     --project contrastive_learning \
     --wandb \
-    byol \
+    --method byol \
     --output_dim 256 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \

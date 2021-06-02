@@ -33,6 +33,19 @@ class VICReg(BaseModel):
             nn.Linear(proj_hidden_dim, output_dim),
         )
 
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("vicreg")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=2048)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # parameters
+        parser.add_argument("--sim_loss_weight", default=25, type=float)
+        parser.add_argument("--var_loss_weight", default=25, type=float)
+        parser.add_argument("--cov_loss_weight", default=1.0, type=float)
+        return parent_parser
+
     @property
     def extra_learnable_params(self):
         return [{"params": self.projector.parameters()}]

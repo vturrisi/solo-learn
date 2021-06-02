@@ -42,6 +42,23 @@ class NNCLR(BaseModel):
         self.queue = F.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("nnclr")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # predictor
+        parser.add_argument("--pred_hidden_dim", type=int, default=4096)
+
+        # queue settings
+        parser.add_argument("--queue_size", default=65536, type=int)
+
+        # parameters
+        parser.add_argument("--temperature", type=float, default=0.2)
+        return parent_parser
+
     @property
     def extra_learnable_params(self):
         return [{"params": self.projector.parameters()}, {"params": self.predictor.parameters()}]

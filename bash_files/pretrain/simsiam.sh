@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simsiam \
+    --method simsiam \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 512 \
     --output_dim 2048

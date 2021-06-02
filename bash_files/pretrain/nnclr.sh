@@ -25,7 +25,7 @@ python3 ../../main_contrastive.py \
     --name nnclr-0.2-500ep \
     --project debug \
     --wandb \
-    nnclr \
+    --method nnclr \
     --temperature 0.2 \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 4096 \

@@ -57,6 +57,24 @@ class MoCoV2Plus(BaseModel):
         self.queue = nn.functional.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("mocov2plus")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # parameters
+        parser.add_argument("--temperature", type=float, default=0.1)
+
+        # queue settings
+        parser.add_argument("--queue_size", default=65536, type=int)
+
+        # momentum settings
+        parser.add_argument("--base_tau_momentum", default=0.99, type=float)
+        parser.add_argument("--final_tau_momentum", default=1.0, type=float)
+        return parent_parser
+
     @property
     def extra_learnable_params(self):
         return [{"params": self.projector.parameters()}]

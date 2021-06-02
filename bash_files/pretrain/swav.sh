@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --name swav \
     --project contrastive_learning \
     --wandb \
-    swav \
+    --method swav \
     --proj_hidden_dim 2048 \
     --queue_size 3840 \
     --output_dim 128 \

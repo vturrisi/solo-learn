@@ -24,7 +24,7 @@ python3 ../../main_contrastive.py \
     --name mocov2plus \
     --project contrastive_learning \
     --wandb \
-    mocov2plus \
+    --method mocov2plus \
     --proj_hidden_dim 512 \
     --queue_size 65536 \
     --temperature 0.07 \

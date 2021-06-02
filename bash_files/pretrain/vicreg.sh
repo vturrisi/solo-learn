@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --name vicreg \
     --project contrastive_learning \
     --wandb \
-    vicreg \
+    --method vicreg \
     --proj_hidden_dim 2048 \
     --output_dim 2048 \
     --sim_loss_weight 25.0 \

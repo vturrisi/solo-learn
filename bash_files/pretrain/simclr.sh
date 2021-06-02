@@ -24,7 +24,7 @@ python3 ../../main_contrastive.py \
     --name simclr \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --temperature 0.2 \
     --proj_hidden_dim 2048
 
@@ -55,7 +55,7 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --temperature 0.2 \
     --proj_hidden_dim 2048
 
@@ -89,7 +89,7 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --proj_hidden_dim 2048 \
     --temperature 0.1
 
@@ -124,7 +124,7 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --temperature 0.1 \
     --proj_hidden_dim 2048 \
     --supervised

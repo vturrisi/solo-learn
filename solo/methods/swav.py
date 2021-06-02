@@ -43,6 +43,25 @@ class SwAV(BaseModel):
         self.prototypes = nn.Linear(output_dim, num_prototypes, bias=False)
         self.normalize_prototypes()
 
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("swav")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # queue settings
+        parser.add_argument("--queue_size", default=3840, type=int)
+
+        # parameters
+        parser.add_argument("--temperature", type=float, default=0.1)
+        parser.add_argument("--num_prototypes", type=int, default=3000)
+        parser.add_argument("--sk_epsilon", type=float, default=0.05)
+        parser.add_argument("--sk_iters", type=int, default=3)
+        parser.add_argument("--freeze_prototypes_epochs", type=int, default=1)
+        parser.add_argument("--epoch_queue_starts", type=int, default=15)
+        return parent_parser
+
     @property
     def extra_learnable_params(self):
         return [{"params": self.projector.parameters()}, {"params": self.prototypes.parameters()}]

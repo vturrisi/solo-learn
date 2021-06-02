@@ -36,6 +36,17 @@ class SimSiam(BaseModel):
             nn.Linear(pred_hidden_dim, output_dim),
         )
 
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("simsiam")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # predictor
+        parser.add_argument("--pred_hidden_dim", type=int, default=512)
+        return parent_parser
+
     @property
     def extra_learnable_params(self):
         return [
