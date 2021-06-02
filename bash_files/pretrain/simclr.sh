@@ -100,6 +100,11 @@ python3 ../../main_contrastive.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
+    --optimizer sgd \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \

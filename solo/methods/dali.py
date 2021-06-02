@@ -77,7 +77,7 @@ class ContrastiveABC(ABC):
         # get data arguments from model
         multicrop = self.extra_args["multicrop"]
         n_crops = self.extra_args["n_crops"]
-        n_small_crops = self.extra_args["n_crops"]
+        n_small_crops = self.extra_args["n_small_crops"]
         dali_device = self.extra_args["dali_device"]
         brightness = self.extra_args["brightness"]
         contrast = self.extra_args["contrast"]
