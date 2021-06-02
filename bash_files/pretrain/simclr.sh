@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --wandb \
     simclr \
     --temperature 0.2 \
-    --hidden_dim 2048
+    --proj_hidden_dim 2048
 
 python3 ../../main_contrastive.py \
     --dataset imagenet100 \
@@ -34,7 +34,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -65,7 +65,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -99,7 +99,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \

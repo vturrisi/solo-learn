@@ -23,7 +23,6 @@ python3 ../../main_contrastive.py \
     --min_scale_crop 0.2 \
     --zero_init_residual \
     --name simsiam \
-    --no_lr_scheduler_for_pred_head \
     --dali \
     --project contrastive_learning \
     --wandb \
