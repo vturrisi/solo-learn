@@ -16,7 +16,6 @@ python3 ../../main_contrastive.py \
     --lr 0.4 \
     --weight_decay 1e-5 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 10 \
     --brightness 0.4 \
     --contrast 0.4 \
