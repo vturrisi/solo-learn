@@ -4,7 +4,11 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
@@ -12,7 +16,6 @@ python3 ../../main_contrastive.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 8 \
     --brightness 0.8 \
     --contrast 0.8 \
@@ -21,9 +24,9 @@ python3 ../../main_contrastive.py \
     --name simclr \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --temperature 0.2 \
-    --hidden_dim 2048
+    --proj_hidden_dim 2048
 
 python3 ../../main_contrastive.py \
     --dataset imagenet100 \
@@ -31,7 +34,11 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
@@ -39,7 +46,6 @@ python3 ../../main_contrastive.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 4 \
     --brightness 0.8 \
     --contrast 0.8 \
@@ -49,9 +55,9 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --temperature 0.2 \
-    --hidden_dim 2048
+    --proj_hidden_dim 2048
 
 python3 ../../main_contrastive.py \
     --dataset imagenet100 \
@@ -59,7 +65,11 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
@@ -67,7 +77,6 @@ python3 ../../main_contrastive.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 4 \
     --brightness 0.8 \
     --contrast 0.8 \
@@ -80,8 +89,8 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simclr \
-    --hidden_dim 2048 \
+    --method simclr \
+    --proj_hidden_dim 2048 \
     --temperature 0.1
 
 python3 ../../main_contrastive.py \
@@ -90,7 +99,12 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 100 \
+    --max_epochs 100 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
+    --optimizer sgd \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
@@ -98,7 +112,6 @@ python3 ../../main_contrastive.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 4 \
     --brightness 0.8 \
     --contrast 0.8 \
@@ -111,7 +124,7 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    simclr \
+    --method simclr \
     --temperature 0.1 \
-    --hidden_dim 2048
-    --supervised \
+    --proj_hidden_dim 2048 \
+    --supervised

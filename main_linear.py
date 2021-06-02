@@ -1,12 +1,9 @@
-import argparse
-import json
-import os
-
 import torch
 import torch.nn as nn
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.plugins import DDPPlugin
 from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
@@ -19,41 +16,28 @@ from solo.utils.epoch_checkpointer import EpochCheckpointer
 def main():
     args = parse_args_linear()
 
-    model_args_path = os.path.join(args.pretrained_feature_extractor, "args.json")
-    model_args_dict = dict(**json.load(open(model_args_path)))
-    model_args = argparse.Namespace(**model_args_dict)
-
-    if model_args.encoder == "resnet18":
-        model = resnet18()
-    elif model_args.encoder == "resnet50":
-        model = resnet50()
+    if args.encoder == "resnet18":
+        backbone = resnet18()
+    elif args.encoder == "resnet50":
+        backbone = resnet50()
     else:
         raise ValueError("Only [resnet18, resnet50] are currently supported.")
 
-    model.fc = nn.Identity()
+    backbone.fc = nn.Identity()
 
-    if (
+    assert (
         args.pretrained_feature_extractor.endswith(".ckpt")
         or args.pretrained_feature_extractor.endswith(".pth")
         or args.pretrained_feature_extractor.endswith(".pt")
-    ):
-        ckpt_path = args.pretrained_feature_extractor
-    else:
-        # load pretrained model (i.e., feature extractor)
-        checkpoints = [
-            f
-            for f in os.listdir(args.pretrained_feature_extractor)
-            if f.endswith(".ckpt") or f.endswith(".pth") or f.endswith(".pt")
-        ]
-        checkpoints.sort(key=lambda ckpt: int(ckpt[:-5].split("ep=")[1]), reverse=True)
-        ckpt_path = os.path.join(args.pretrained_feature_extractor, checkpoints[0])
+    )
+    ckpt_path = args.pretrained_feature_extractor
 
     state = torch.load(ckpt_path)["state_dict"]
     for k in list(state.keys()):
         if "encoder" in k:
             state[k.replace("encoder.", "")] = state[k]
         del state[k]
-    model.load_state_dict(state, strict=False)
+    backbone.load_state_dict(state, strict=False)
 
     print(f"loaded {ckpt_path}")
 
@@ -62,7 +46,7 @@ def main():
     else:
         MethodClass = LinearModel
 
-    model = MethodClass(model, args)
+    model = MethodClass(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(
         args.dataset,
@@ -88,16 +72,11 @@ def main():
     # epoch checkpointer
     callbacks.append(EpochCheckpointer(args, frequency=25))
 
-    trainer = Trainer(
-        max_epochs=args.epochs,
-        gpus=[*args.gpus],
+    trainer = Trainer.from_argparse_args(
+        args,
         logger=wandb_logger if args.wandb else None,
-        distributed_backend="ddp",
-        precision=16,
-        sync_batchnorm=True,
-        resume_from_checkpoint=args.resume_training_from,
         callbacks=callbacks,
-        num_sanity_val_steps=0 if args.dali else 2,
+        plugins=DDPPlugin(find_unused_parameters=False)
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)

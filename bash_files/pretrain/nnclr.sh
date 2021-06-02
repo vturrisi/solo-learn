@@ -4,7 +4,11 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --epochs 500 \
+    --max_epochs 500 \
+    --gpus 0,1 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
+    --precision 16 \
     --optimizer sgd \
     --lars \
     --exclude_bias_n_norm \
@@ -12,7 +16,6 @@ python3 ../../main_contrastive.py \
     --lr 0.4 \
     --weight_decay 1e-5 \
     --batch_size 128 \
-    --gpus 0 1 \
     --num_workers 10 \
     --brightness 0.4 \
     --contrast 0.4 \
@@ -22,9 +25,9 @@ python3 ../../main_contrastive.py \
     --name nnclr-0.2-500ep \
     --project debug \
     --wandb \
-    nnclr \
+    --method nnclr \
     --temperature 0.2 \
-    --hidden_dim 2048 \
+    --proj_hidden_dim 2048 \
     --pred_hidden_dim 4096 \
-    --encoding_dim 256 \
+    --output_dim 256 \
     --queue_size 65536

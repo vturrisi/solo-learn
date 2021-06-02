@@ -7,22 +7,44 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class VICReg(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        sim_loss_weight,
+        var_loss_weight,
+        cov_loss_weight,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
 
-        hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
+        self.sim_loss_weight = sim_loss_weight
+        self.var_loss_weight = var_loss_weight
+        self.cov_loss_weight = cov_loss_weight
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(proj_hidden_dim, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, output_dim),
         )
+
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("vicreg")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=2048)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # parameters
+        parser.add_argument("--sim_loss_weight", default=25, type=float)
+        parser.add_argument("--var_loss_weight", default=25, type=float)
+        parser.add_argument("--cov_loss_weight", default=1.0, type=float)
+        return parent_parser
 
     @property
     def extra_learnable_params(self):
@@ -44,14 +66,13 @@ class VICReg(BaseModel):
         logits1 = out1["logits"]
         logits2 = out2["logits"]
 
-        # ------- contrastive loss -------
-        args = self.args
+        # ------- loss -------
         vicreg_loss = vicreg_loss_func(
             z1,
             z2,
-            sim_loss_weight=args.sim_loss_weight,
-            var_loss_weight=args.var_loss_weight,
-            cov_loss_weight=args.cov_loss_weight,
+            sim_loss_weight=self.sim_loss_weight,
+            var_loss_weight=self.var_loss_weight,
+            cov_loss_weight=self.cov_loss_weight,
         )
 
         # ------- classification loss -------

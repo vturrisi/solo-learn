@@ -40,6 +40,7 @@ class NCropAugmentation:
 
         if isinstance(transform, list):
             self.one_transform_per_crop = True
+            assert n_crops == len(transform)
         else:
             self.one_transform_per_crop = False
             self.n_crops = n_crops
@@ -114,7 +115,8 @@ class ImagenetTransform(BaseTransform):
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -128,7 +130,12 @@ class ImagenetTransform(BaseTransform):
 
 class MulticropAugmentation:
     def __init__(
-        self, transform, size_crops, n_crops, min_scale_crops, max_scale_crops,
+        self,
+        transform,
+        size_crops,
+        n_crops,
+        min_scale_crops,
+        max_scale_crops,
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -189,7 +196,8 @@ class MulticropImagenetTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -236,7 +244,11 @@ def prepare_multicrop_transform(
 
 
 def prepare_datasets(
-    dataset, data_folder=None, train_dir=None, transform=None, with_index=True,
+    dataset,
+    data_folder=None,
+    train_dir=None,
+    transform=None,
+    with_index=True,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -252,12 +264,18 @@ def prepare_datasets(
 
     if dataset == "cifar10":
         train_dataset = CIFAR10(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "cifar100":
         train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "stl10":

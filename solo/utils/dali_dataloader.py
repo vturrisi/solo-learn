@@ -31,7 +31,13 @@ class RandomGrayScaleConversion:
 
 class RandomColorJitter:
     def __init__(
-        self, brightness=0.8, contrast=0.8, saturation=0.8, hue=0.2, prob=0.8, device="gpu",
+        self,
+        brightness=0.8,
+        contrast=0.8,
+        saturation=0.8,
+        hue=0.2,
+        prob=0.8,
+        device="gpu",
     ):
         assert 0 <= hue <= 0.5
 
@@ -123,7 +129,9 @@ class NormalPipeline(Pipeline):
         # crop operations
         if self.validation:
             self.resize = ops.Resize(
-                device=self.device, resize_shorter=256, interp_type=types.INTERP_CUBIC,
+                device=self.device,
+                resize_shorter=256,
+                interp_type=types.INTERP_CUBIC,
             )
             # center crop and normalize
             self.cmn = ops.CropMirrorNormalize(
@@ -253,7 +261,10 @@ class ContrastivePipeline(Pipeline):
     ):
         seed += device_id
         super().__init__(
-            batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=seed,
+            batch_size=batch_size,
+            num_threads=num_threads,
+            device_id=device_id,
+            seed=seed,
         )
 
         self.device = device
@@ -323,7 +334,10 @@ class MulticropContrastivePipeline(Pipeline):
     ):
         seed += device_id
         super().__init__(
-            batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=seed,
+            batch_size=batch_size,
+            num_threads=num_threads,
+            device_id=device_id,
+            seed=seed,
         )
 
         self.device = device

@@ -7,25 +7,34 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class BarlowTwins(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(self, proj_hidden_dim, output_dim, lamb, scale_loss, **kwargs):
+        super().__init__(**kwargs)
 
-        hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-
-        self.lamb = args.lamb
-        self.scale_loss = args.scale_loss
+        self.lamb = lamb
+        self.scale_loss = scale_loss
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(proj_hidden_dim, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, output_dim),
         )
+
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("barlow_twins")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=2048)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # parameters
+        parser.add_argument("--lamb", type=float, default=5e-3)
+        parser.add_argument("--scale_loss", type=float, default=0.025)
+        return parent_parser
 
     @property
     def extra_learnable_params(self):

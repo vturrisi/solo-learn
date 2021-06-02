@@ -8,14 +8,13 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class NNCLR(BaseModel):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(
+        self, output_dim, proj_hidden_dim, pred_hidden_dim, temperature, queue_size, **kwargs
+    ):
+        super().__init__(**kwargs)
 
-        proj_hidden_dim = args.hidden_dim
-        output_dim = args.encoding_dim
-        pred_hidden_dim = args.pred_hidden_dim
-
-        self.temperature = args.temperature
+        self.temperature = temperature
+        self.queue_size = queue_size
 
         # projector
         self.projector = nn.Sequential(
@@ -38,11 +37,27 @@ class NNCLR(BaseModel):
         )
 
         # queue
-        self.queue_size = args.queue_size
         self.register_buffer("queue", torch.randn(self.queue_size, output_dim))
         self.register_buffer("queue_y", -torch.ones(self.queue_size, dtype=torch.long))
         self.queue = F.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group("nnclr")
+        # projector
+        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+
+        # predictor
+        parser.add_argument("--pred_hidden_dim", type=int, default=4096)
+
+        # queue settings
+        parser.add_argument("--queue_size", default=65536, type=int)
+
+        # parameters
+        parser.add_argument("--temperature", type=float, default=0.2)
+        return parent_parser
 
     @property
     def extra_learnable_params(self):

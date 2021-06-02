@@ -1,3 +1,3 @@
-from solo.args import dataset, methods, setup, train, utils
+from solo.args import dataset, setup, utils
 
-__all__ = ["dataset", "methods", "setup", "train", "utils"]
+__all__ = ["dataset", "setup", "utils"]
