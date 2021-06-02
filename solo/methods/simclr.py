@@ -43,9 +43,9 @@ class SimCLR(BaseModel):
         return labels_matrix
 
     def training_step(self, batch, batch_idx):
-        if self.args.multicrop:
-            n_crops = self.args.n_crops
-            n_small_crops = self.args.n_small_crops
+        if self.extra_args["multicrop"]:
+            n_crops = self.extra_args["n_crops"]
+            n_small_crops = self.extra_args["n_small_crops"]
             n_augs = n_crops + n_small_crops
 
             indexes, all_X, target = batch
@@ -63,7 +63,7 @@ class SimCLR(BaseModel):
             z = torch.cat((z, z_small), dim=0)
 
             # ------- contrastive loss -------
-            if self.args.supervised:
+            if self.extra_args["supervised"]:
                 pos_mask = self.gen_extra_positives_gt(target)
             else:
                 index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
@@ -89,7 +89,7 @@ class SimCLR(BaseModel):
             logits = torch.cat((logits1, logits2))
 
             # ------- contrastive loss -------
-            if self.args.supervised:
+            if self.extra_args["supervised"]:
                 pos_mask = self.gen_extra_positives_gt(target)
                 nce_loss = simclr_loss_func(
                     z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
@@ -110,7 +110,7 @@ class SimCLR(BaseModel):
         # compute number of extra positives
         n_positives = (
             (pos_mask != 0).sum().float()
-            if self.args.supervised
+            if self.extra_args["supervised"]
             else torch.tensor(0.0, device=self.device)
         )
 

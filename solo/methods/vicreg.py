@@ -7,8 +7,20 @@ from solo.utils.metrics import accuracy_at_k
 
 
 class VICReg(BaseModel):
-    def __init__(self, output_dim, proj_hidden_dim, **kwargs):
+    def __init__(
+        self,
+        output_dim,
+        proj_hidden_dim,
+        sim_loss_weight,
+        var_loss_weight,
+        cov_loss_weight,
+        **kwargs
+    ):
         super().__init__(**kwargs)
+
+        self.sim_loss_weight = sim_loss_weight
+        self.var_loss_weight = var_loss_weight
+        self.cov_loss_weight = cov_loss_weight
 
         # projector
         self.projector = nn.Sequential(
@@ -41,14 +53,13 @@ class VICReg(BaseModel):
         logits1 = out1["logits"]
         logits2 = out2["logits"]
 
-        # ------- contrastive loss -------
-        args = self.args
+        # ------- loss -------
         vicreg_loss = vicreg_loss_func(
             z1,
             z2,
-            sim_loss_weight=args.sim_loss_weight,
-            var_loss_weight=args.var_loss_weight,
-            cov_loss_weight=args.cov_loss_weight,
+            sim_loss_weight=self.sim_loss_weight,
+            var_loss_weight=self.var_loss_weight,
+            cov_loss_weight=self.cov_loss_weight,
         )
 
         # ------- classification loss -------
