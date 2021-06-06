@@ -4,6 +4,7 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 from solo.args.setup import parse_args_contrastive
 from solo.methods import METHODS
@@ -89,18 +90,24 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
+            log_model=False,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
         # lr logging
         callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
+    callbacks.append(ModelCheckpoint(save_last=True, save_top_k=0))
+
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
-        plugins=DDPPlugin(find_unused_parameters=False)
+        plugins=DDPPlugin(find_unused_parameters=False),
     )
 
     if args.dali:
