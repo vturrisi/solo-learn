@@ -184,7 +184,7 @@ class BaseModel(pl.LightningModule):
                     eta_min=self.min_lr,
                 )
             elif self.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
+                scheduler = CosineAnnealingLR(optimizer, self.max_epochs, eta_min=self.min_lr)
             elif self.scheduler == "step":
                 scheduler = MultiStepLR(optimizer, self.lr_decay_steps)
             else:
