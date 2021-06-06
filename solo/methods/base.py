@@ -32,8 +32,11 @@ class BaseModel(pl.LightningModule):
         weight_decay,
         classifier_lr,
         exclude_bias_n_norm,
+        accumulate_grad_batches,
         extra_optimizer_args,
         scheduler,
+        min_lr,
+        warmup_start_lr,
         lr_decay_steps=None,
         **kwargs,
     ):
@@ -51,12 +54,21 @@ class BaseModel(pl.LightningModule):
         self.weight_decay = weight_decay
         self.classifier_lr = classifier_lr
         self.exclude_bias_n_norm = exclude_bias_n_norm
+        self.accumulate_grad_batches = accumulate_grad_batches
         self.extra_optimizer_args = extra_optimizer_args
         self.scheduler = scheduler
         self.lr_decay_steps = lr_decay_steps
+        self.min_lr = min_lr
+        self.warmup_start_lr = warmup_start_lr
 
         # all the other parameters
         self.extra_args = kwargs
+
+        # if accumulating gradient then scale lr
+        self.lr = self.lr * self.accumulate_grad_batches
+        self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
+        self.min_lr = self.min_lr * self.accumulate_grad_batches
+        self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
         assert encoder in ["resnet18", "resnet50"]
         from torchvision.models import resnet18, resnet50
@@ -117,6 +129,8 @@ class BaseModel(pl.LightningModule):
 
         parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
+        parser.add_argument("--min_lr", default=0.0, type=float)
+        parser.add_argument("--warmup_start_lr", default=0.003, type=float)
 
         return parent_parser
 
@@ -124,11 +138,7 @@ class BaseModel(pl.LightningModule):
     def base_learnable_params(self):
         return [
             {"params": self.encoder.parameters()},
-            {
-                "params": self.classifier.parameters(),
-                "lr": self.classifier_lr,
-                "weight_decay": 0,
-            },
+            {"params": self.classifier.parameters(), "lr": self.classifier_lr, "weight_decay": 0},
         ]
 
     @property
@@ -167,7 +177,11 @@ class BaseModel(pl.LightningModule):
         else:
             if self.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer, warmup_epochs=10, max_epochs=self.max_epochs, warmup_start_lr=0.003
+                    optimizer,
+                    warmup_epochs=10,
+                    max_epochs=self.max_epochs,
+                    warmup_start_lr=self.warmup_start_lr,
+                    eta_min=self.min_lr,
                 )
             elif self.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
