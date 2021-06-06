@@ -101,6 +101,7 @@ def main():
         # lr logging
         callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
+    # save checkpoint on last epoch only
     callbacks.append(ModelCheckpoint(save_last=True, save_top_k=0))
 
     trainer = Trainer.from_argparse_args(
