@@ -5,4 +5,4 @@ pytorch-lightning
 lightning-bolts
 tqdm
 wandb
-nvidia-dali-cuda110
+--extra-index-url https://developer.download.nvidia.com/compute/redist nvidia-dali-cuda110
