@@ -1,4 +1,5 @@
 from pprint import pprint
+from solo.utils.checkpointer import Checkpointer
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -10,6 +11,7 @@ from solo.args.setup import parse_args_contrastive
 from solo.methods import METHODS
 from solo.methods.dali import ContrastiveABC
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
+from solo.utils.checkpointer import Checkpointer
 from solo.utils.contrastive_dataloader import (
     prepare_dataloaders,
     prepare_datasets,
@@ -101,8 +103,10 @@ def main():
         # lr logging
         callbacks.append(LearningRateMonitor(logging_interval="epoch"))
 
-    # save checkpoint on last epoch only
-    callbacks.append(ModelCheckpoint(save_last=True, save_top_k=0))
+        # save checkpoint on last epoch only
+        callbacks.append(
+            Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
+        )
 
     trainer = Trainer.from_argparse_args(
         args,

@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 from solo.args.dataset import augmentations_args, dataset_args
 from solo.args.utils import additional_setup_contrastive, additional_setup_linear
 from solo.methods import METHODS
+from solo.utils.checkpointer import Checkpointer
 
 
 def parse_args_contrastive():
@@ -25,7 +26,12 @@ def parse_args_contrastive():
     # THIS LINE IS KEY TO PULL THE MODEL NAME
     temp_args, _ = parser.parse_known_args()
 
+    # add model specific args
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
+
+    # add checkpointer args (only if logging is enabled)
+    if temp_args.wandb:
+        parser = Checkpointer.add_checkpointer_args(parser)
 
     # parse args
     args = parser.parse_args()
@@ -49,6 +55,10 @@ def parse_args_linear():
 
     # linear model
     parser = METHODS["linear"].add_model_specific_args(parser)
+
+    # add checkpointer args (only if logging is enabled)
+    if temp_args.wandb:
+        parser = Checkpointer.add_checkpointer_args(parser)
 
     # parse args
     args = parser.parse_args()
