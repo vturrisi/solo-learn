@@ -1,17 +1,15 @@
 from pprint import pprint
-from solo.utils.checkpointer import Checkpointer
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
-from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 from solo.args.setup import parse_args_contrastive
 from solo.methods import METHODS
 from solo.methods.dali import ContrastiveABC
-from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.checkpointer import Checkpointer
+from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.contrastive_dataloader import (
     prepare_dataloaders,
     prepare_datasets,
@@ -92,21 +90,18 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name,
-            project=args.project,
-            entity=args.entity,
-            offline=args.offline,
-            log_model=False,
+            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
+
         # lr logging
-        callbacks.append(LearningRateMonitor(logging_interval="epoch"))
+        lr_monitor = LearningRateMonitor(logging_interval="epoch")
+        callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        callbacks.append(
-            Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
-        )
+        ckpt = Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
+        callbacks.append(ckpt)
 
     trainer = Trainer.from_argparse_args(
         args,
