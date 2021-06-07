@@ -14,7 +14,8 @@ python3 ../../main_contrastive.py \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.6 \
-    --classifier_lr 0.03 \
+    --min_lr 0.0006 \
+    --classifier_lr 0.1 \
     --weight_decay 1e-6 \
     --batch_size 128 \
     --num_workers 8 \
