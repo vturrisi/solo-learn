@@ -10,7 +10,7 @@ from solo.args.setup import parse_args_linear
 from solo.methods.dali import ClassificationABC
 from solo.methods.linear import LinearModel
 from solo.utils.classification_dataloader import prepare_data
-from solo.utils.epoch_checkpointer import Checkpointer
+from solo.utils.checkpointer import Checkpointer
 
 
 def main():
@@ -66,19 +66,21 @@ def main():
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
+
         # lr logging
-        callbacks.append(LearningRateMonitor(logging_interval="epoch"))
+        lr_monitor = LearningRateMonitor(logging_interval="epoch")
+        callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        callbacks.append(
-            Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
-        )
+        ckpt = Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
+        callbacks.append(ckpt)
 
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=False),
+        checkpoint_callback=False,
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
