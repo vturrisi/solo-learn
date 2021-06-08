@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 from pytorch_lightning import Trainer
@@ -72,7 +74,11 @@ def main():
         callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        ckpt = Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
+        ckpt = Checkpointer(
+            args,
+            logdir=os.path.join(args.checkpoint_dir, "linear"),
+            frequency=args.checkpoint_frequency,
+        )
         callbacks.append(ckpt)
 
     trainer = Trainer.from_argparse_args(

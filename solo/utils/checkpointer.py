@@ -4,7 +4,9 @@ from pytorch_lightning.callbacks import Callback
 
 
 class Checkpointer(Callback):
-    def __init__(self, args, logdir="trained_models", frequency=1, keep_previous_checkpoints=False):
+    def __init__(
+        self, args, logdir="trained_models", frequency=1, keep_previous_checkpoints=False,
+    ):
         self.args = args
         self.logdir = logdir
         self.frequency = frequency
@@ -23,10 +25,10 @@ class Checkpointer(Callback):
         else:
             version = str(trainer.logger.version)
         if version is not None:
-            self.path = os.path.join(self.logdir, self.args.method, version)
+            self.path = os.path.join(self.logdir, version)
             self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
         else:
-            self.path = os.path.join(self.logdir, self.args.method)
+            self.path = self.logdir
             self.ckpt_placeholder = f"{self.args.name}" + "-ep={}.ckpt"
         self.last_ckpt = None
 

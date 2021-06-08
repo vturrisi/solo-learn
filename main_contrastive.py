@@ -1,4 +1,5 @@
 from pprint import pprint
+import os
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -100,7 +101,11 @@ def main():
         callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        ckpt = Checkpointer(args, logdir=args.checkpoint_dir, frequency=args.checkpoint_frequency)
+        ckpt = Checkpointer(
+            args,
+            logdir=os.path.join(args.checkpoint_dir, args.method),
+            frequency=args.checkpoint_frequency,
+        )
         callbacks.append(ckpt)
 
     trainer = Trainer.from_argparse_args(
