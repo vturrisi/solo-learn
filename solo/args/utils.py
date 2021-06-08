@@ -6,55 +6,57 @@ def additional_setup_contrastive(args):
         args.n_classes = 100
     elif args.dataset == "stl10":
         args.n_classes = 10
+    elif args.dataset == "imagenet":
+        args.n_classes = 1000
     else:
-        if args.dataset == "imagenet":
-            args.n_classes = 1000
-        else:
-            args.n_classes = 100
-
-        if args.asymmetric_augmentations:
-            args.transform_kwargs = [
-                dict(
-                    brightness=args.brightness,
-                    contrast=args.contrast,
-                    saturation=args.saturation,
-                    hue=args.hue,
-                    gaussian_prob=1.0,
-                    solarization_prob=0.0,
-                    min_scale_crop=args.min_scale_crop,
-                ),
-                dict(
-                    brightness=args.brightness,
-                    contrast=args.contrast,
-                    saturation=args.saturation,
-                    hue=args.hue,
-                    gaussian_prob=0.1,
-                    solarization_prob=0.2,
-                    min_scale_crop=args.min_scale_crop,
-                ),
-            ]
-        elif not args.multicrop:
-            args.transform_kwargs = dict(
-                brightness=args.brightness,
-                contrast=args.contrast,
-                saturation=args.saturation,
-                hue=args.hue,
-                gaussian_prob=args.gaussian_prob,
-                solarization_prob=args.solarization_prob,
-                min_scale_crop=args.min_scale_crop,
-            )
-        else:
-            args.transform_kwargs = dict(
-                brightness=args.brightness,
-                contrast=args.contrast,
-                saturation=args.saturation,
-                hue=args.hue,
-                gaussian_prob=args.gaussian_prob,
-                solarization_prob=args.solarization_prob,
-            )
+        args.n_classes = 100
 
     if args.asymmetric_augmentations:
-        assert args.dataset in ["imagenet", "imagenet100"]
+        if args.dataset in ["cifar10", "cifar100"]:
+            gaussian_probs = [0.0, 0.0]
+        else:
+            gaussian_probs = [1.0, 0.1]
+        solarization_probs = [0.0, 0.2]
+
+        args.transform_kwargs = [
+            dict(
+                brightness=args.brightness,
+                contrast=args.contrast,
+                saturation=args.saturation,
+                hue=args.hue,
+                gaussian_prob=gaussian_probs[0],
+                solarization_prob=solarization_probs[0],
+                min_scale_crop=args.min_scale_crop,
+            ),
+            dict(
+                brightness=args.brightness,
+                contrast=args.contrast,
+                saturation=args.saturation,
+                hue=args.hue,
+                gaussian_prob=gaussian_probs[1],
+                solarization_prob=solarization_probs[1],
+                min_scale_crop=args.min_scale_crop,
+            ),
+        ]
+    elif not args.multicrop:
+        args.transform_kwargs = dict(
+            brightness=args.brightness,
+            contrast=args.contrast,
+            saturation=args.saturation,
+            hue=args.hue,
+            gaussian_prob=args.gaussian_prob,
+            solarization_prob=args.solarization_prob,
+            min_scale_crop=args.min_scale_crop,
+        )
+    else:
+        args.transform_kwargs = dict(
+            brightness=args.brightness,
+            contrast=args.contrast,
+            saturation=args.saturation,
+            hue=args.hue,
+            gaussian_prob=args.gaussian_prob,
+            solarization_prob=args.solarization_prob,
+        )
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 

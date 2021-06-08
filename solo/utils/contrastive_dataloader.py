@@ -61,17 +61,32 @@ class BaseTransform:
 
 
 class CifarTransform(BaseTransform):
-    def __init__(self):
+    def __init__(
+        self,
+        brightness,
+        contrast,
+        saturation,
+        hue,
+        gaussian_prob=0.0,
+        solarization_prob=0.0,
+        min_scale_crop=0.08,
+    ):
         super().__init__()
 
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    (32, 32), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC
+                    (32, 32),
+                    scale=(min_scale_crop, 1.0),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                transforms.RandomApply(
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8
+                ),
                 transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
             ]
@@ -79,16 +94,31 @@ class CifarTransform(BaseTransform):
 
 
 class STLTransform(BaseTransform):
-    def __init__(self):
+    def __init__(
+        self,
+        brightness,
+        contrast,
+        saturation,
+        hue,
+        gaussian_prob=0.0,
+        solarization_prob=0.0,
+        min_scale_crop=0.08,
+    ):
         super().__init__()
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    (96, 96), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC
+                    (96, 96),
+                    scale=(min_scale_crop, 1.0),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                transforms.RandomApply(
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8
+                ),
                 transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
             ]
@@ -103,7 +133,7 @@ class ImagenetTransform(BaseTransform):
         saturation,
         hue,
         gaussian_prob=0.5,
-        solarization_prob=0,
+        solarization_prob=0.0,
         min_scale_crop=0.08,
     ):
         super().__init__()
@@ -115,8 +145,7 @@ class ImagenetTransform(BaseTransform):
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
-                    p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -130,12 +159,7 @@ class ImagenetTransform(BaseTransform):
 
 class MulticropAugmentation:
     def __init__(
-        self,
-        transform,
-        size_crops,
-        n_crops,
-        min_scale_crops,
-        max_scale_crops,
+        self, transform, size_crops, n_crops, min_scale_crops, max_scale_crops,
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -196,8 +220,7 @@ class MulticropImagenetTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
-                    p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -211,9 +234,9 @@ class MulticropImagenetTransform(BaseTransform):
 
 def prepare_transform(dataset, multicrop=False, **kwargs):
     if dataset in ["cifar10", "cifar100"]:
-        return CifarTransform() if not multicrop else MulticropCifarTransform()
+        return CifarTransform(**kwargs) if not multicrop else MulticropCifarTransform()
     elif dataset == "stl10":
-        return STLTransform() if not multicrop else MulticropSTLTransform()
+        return STLTransform(**kwargs) if not multicrop else MulticropSTLTransform()
     elif dataset in ["imagenet", "imagenet100"]:
         return (
             ImagenetTransform(**kwargs) if not multicrop else MulticropImagenetTransform(**kwargs)
@@ -244,11 +267,7 @@ def prepare_multicrop_transform(
 
 
 def prepare_datasets(
-    dataset,
-    data_folder=None,
-    train_dir=None,
-    transform=None,
-    with_index=True,
+    dataset, data_folder=None, train_dir=None, transform=None, with_index=True,
 ):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
@@ -264,18 +283,12 @@ def prepare_datasets(
 
     if dataset == "cifar10":
         train_dataset = CIFAR10(
-            os.path.join(data_folder, train_dir),
-            train=True,
-            download=True,
-            transform=transform,
+            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "cifar100":
         train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir),
-            train=True,
-            download=True,
-            transform=transform,
+            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "stl10":
