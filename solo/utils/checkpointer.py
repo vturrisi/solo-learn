@@ -4,10 +4,11 @@ from pytorch_lightning.callbacks import Callback
 
 
 class Checkpointer(Callback):
-    def __init__(self, args, logdir="trained_models", frequency=1):
+    def __init__(self, args, logdir="trained_models", frequency=1, replace_last_checkpoint=True):
         self.args = args
         self.logdir = logdir
         self.frequency = frequency
+        self.replace_last_checkpoint = replace_last_checkpoint
 
     @staticmethod
     def add_checkpointer_args(parent_parser):
@@ -23,10 +24,10 @@ class Checkpointer(Callback):
             version = str(trainer.logger.version)
         if version is not None:
             self.path = os.path.join(self.logdir, version)
-            self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep{}.ckpt"
+            self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
         else:
             self.path = self.logdir
-            self.ckpt_placeholder = f"{self.args.name}" + "-ep{}.ckpt"
+            self.ckpt_placeholder = f"{self.args.name}" + "-ep={}.ckpt"
         self.last_ckpt = None
 
         # create logging dirs
@@ -41,7 +42,7 @@ class Checkpointer(Callback):
 
     def save(self, trainer):
         if trainer.is_global_zero:
-            if self.last_ckpt:
+            if self.last_ckpt and self.replace_last_checkpoint:
                 os.remove(self.last_ckpt)
             epoch = trainer.current_epoch
             ckpt = os.path.join(self.path, self.ckpt_placeholder.format(epoch))
