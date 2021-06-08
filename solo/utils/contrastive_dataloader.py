@@ -67,8 +67,8 @@ class CifarTransform(BaseTransform):
         contrast,
         saturation,
         hue,
-        gaussian_prob=0.5,
-        solarization_prob=0,
+        gaussian_prob=0.0,
+        solarization_prob=0.0,
         min_scale_crop=0.08,
     ):
         super().__init__()
@@ -100,15 +100,17 @@ class STLTransform(BaseTransform):
         contrast,
         saturation,
         hue,
-        gaussian_prob=0.5,
-        solarization_prob=0,
+        gaussian_prob=0.0,
+        solarization_prob=0.0,
         min_scale_crop=0.08,
     ):
         super().__init__()
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    (96, 96), scale=(0.08, 1.0), interpolation=transforms.InterpolationMode.BICUBIC
+                    (96, 96),
+                    scale=(min_scale_crop, 1.0),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
                     [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8
@@ -131,7 +133,7 @@ class ImagenetTransform(BaseTransform):
         saturation,
         hue,
         gaussian_prob=0.5,
-        solarization_prob=0,
+        solarization_prob=0.0,
         min_scale_crop=0.08,
     ):
         super().__init__()

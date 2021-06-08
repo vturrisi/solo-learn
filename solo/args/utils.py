@@ -12,14 +12,20 @@ def additional_setup_contrastive(args):
         args.n_classes = 100
 
     if args.asymmetric_augmentations:
+        if args.dataset in ["cifar10", "cifar100"]:
+            gaussian_probs = [0.0, 0.0]
+        else:
+            gaussian_probs = [1.0, 0.1]
+        solarization_probs = [0.0, 0.2]
+
         args.transform_kwargs = [
             dict(
                 brightness=args.brightness,
                 contrast=args.contrast,
                 saturation=args.saturation,
                 hue=args.hue,
-                gaussian_prob=1.0,
-                solarization_prob=0.0,
+                gaussian_prob=gaussian_probs[0],
+                solarization_prob=solarization_probs[0],
                 min_scale_crop=args.min_scale_crop,
             ),
             dict(
@@ -27,8 +33,8 @@ def additional_setup_contrastive(args):
                 contrast=args.contrast,
                 saturation=args.saturation,
                 hue=args.hue,
-                gaussian_prob=0.1,
-                solarization_prob=0.2,
+                gaussian_prob=gaussian_probs[1],
+                solarization_prob=solarization_probs[1],
                 min_scale_crop=args.min_scale_crop,
             ),
         ]
