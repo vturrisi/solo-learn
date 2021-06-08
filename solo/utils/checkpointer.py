@@ -4,11 +4,11 @@ from pytorch_lightning.callbacks import Callback
 
 
 class Checkpointer(Callback):
-    def __init__(self, args, logdir="trained_models", frequency=1, replace_last_checkpoint=True):
+    def __init__(self, args, logdir="trained_models", frequency=1, keep_previous_checkpoints=False):
         self.args = args
         self.logdir = logdir
         self.frequency = frequency
-        self.replace_last_checkpoint = replace_last_checkpoint
+        self.keep_previous_checkpoints = keep_previous_checkpoints
 
     @staticmethod
     def add_checkpointer_args(parent_parser):
@@ -42,11 +42,12 @@ class Checkpointer(Callback):
 
     def save(self, trainer):
         if trainer.is_global_zero:
-            if self.last_ckpt and self.replace_last_checkpoint:
-                os.remove(self.last_ckpt)
             epoch = trainer.current_epoch
             ckpt = os.path.join(self.path, self.ckpt_placeholder.format(epoch))
             trainer.save_checkpoint(ckpt)
+
+            if self.last_ckpt and self.last_ckpt != ckpt and not self.keep_previous_checkpoints:
+                os.remove(self.last_ckpt)
             self.last_ckpt = ckpt
 
     def on_train_start(self, trainer, _):
