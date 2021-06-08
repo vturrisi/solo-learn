@@ -62,6 +62,8 @@ def additional_setup_contrastive(args):
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
 
+    if isinstance(args.gpus, int):
+        args.gpus = [args.gpus]
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 

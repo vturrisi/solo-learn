@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 with open("requirements.txt") as f:
-    requirements = [p.strip() for p in f.readlines()]
+    requirements = [p.strip().split()[-1] for p in f.readlines()]
 
 KW = ["artificial intelligence", "deep learning", "unsupervised learning", "contrastive learning"]
 
