@@ -23,10 +23,10 @@ class Checkpointer(Callback):
         else:
             version = str(trainer.logger.version)
         if version is not None:
-            self.path = os.path.join(self.logdir, version)
+            self.path = os.path.join(self.logdir, self.args.method, version)
             self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
         else:
-            self.path = self.logdir
+            self.path = os.path.join(self.logdir, self.args.method)
             self.ckpt_placeholder = f"{self.args.name}" + "-ep={}.ckpt"
         self.last_ckpt = None
 
@@ -41,7 +41,7 @@ class Checkpointer(Callback):
             json.dump(args, open(json_path, "w"))
 
     def save(self, trainer):
-        if trainer.is_global_zero:
+        if trainer.is_global_zero and not trainer.running_sanity_check:
             epoch = trainer.current_epoch
             ckpt = os.path.join(self.path, self.ckpt_placeholder.format(epoch))
             trainer.save_checkpoint(ckpt)
@@ -56,7 +56,7 @@ class Checkpointer(Callback):
 
     def on_validation_end(self, trainer, _):
         epoch = trainer.current_epoch
-        if epoch % self.frequency == 0 and epoch != 0:
+        if epoch % self.frequency == 0:
             self.save(trainer)
 
     def on_train_end(self, trainer, _):
