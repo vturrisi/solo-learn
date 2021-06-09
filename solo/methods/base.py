@@ -201,28 +201,58 @@ class BaseModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def forward(self, X):
-        feat = self.encoder(X)
-        # stop gradients from the classifier
-        logits = self.classifier(feat.detach())
-        return {"logits": logits, "feat": feat}
+    def forward(self, *args, **kwargs):
+        return self._forward_impl(*args, **kwargs)
+
+    def _forward_impl(self, X, detach_feats=True):
+        feats = self.encoder(X)
+        logits = self.classifier(feats.detach() if detach_feats else feats)
+        return logits, feats
+
+    def shared_step(self, X, targets):
+        logits, feats = self._forward_impl(X)
+        loss = F.cross_entropy(logits, targets, ignore_index=-1)
+        acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
+        return {
+            "loss": loss,
+            "logits": logits,
+            "feats": feats,
+            "acc1": acc1,
+            "acc5": acc5,
+        }
+
+    def training_step(self, batch, batch_idx):
+        _, (X1, X2), targets = batch
+
+        out1 = self.shared_step(X1, targets)
+        out2 = self.shared_step(X2, targets)
+
+        loss = (out1["loss"] + out2["loss"]) / 2
+        acc1 = (out1["acc1"] + out2["acc1"]) / 2
+        acc5 = (out1["acc5"] + out2["acc5"]) / 2
+        feats = (out1["feats"], out2["feats"])
+
+        metrics = {
+            "train_acc1": acc1,
+            "train_acc5": acc5,
+            "train_class_loss": loss,
+        }
+        self.log_dict(metrics, on_epoch=True, sync_dist=True)
+
+        return {"loss": loss, "feats": feats}
 
     def validation_step(self, batch, batch_idx):
-        X, target = batch
-        batch_size = X.size(0)
+        X, targets = batch
 
-        logits = self(X)["logits"]
-        loss = F.cross_entropy(logits, target)
+        out = self.shared_step(X, targets)
 
-        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
-
-        results = {
-            "batch_size": batch_size,
-            "val_loss": loss,
-            "val_acc1": acc1,
-            "val_acc5": acc5,
+        metrics = {
+            "batch_size": batch[0].size(0),
+            "val_loss": out["loss"],
+            "val_acc1": out["acc1"],
+            "val_acc5": out["acc5"],
         }
-        return results
+        return metrics
 
     def validation_epoch_end(self, outs):
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
