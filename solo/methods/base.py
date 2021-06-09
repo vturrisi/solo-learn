@@ -202,18 +202,21 @@ class BaseModel(pl.LightningModule):
             return [optimizer], [scheduler]
 
     def forward(self, *args, **kwargs):
-        return self._forward_impl(*args, **kwargs)
+        return self._base_forward(*args, **kwargs)
 
-    def _forward_impl(self, X, detach_feats=True):
+    def _base_forward(self, X, detach_feats=True):
         feats = self.encoder(X)
         logits = self.classifier(feats.detach() if detach_feats else feats)
         return logits, feats
 
-    def shared_step(self, X, targets):
-        logits, feats = self._forward_impl(X)
+    def _shared_step(self, X, targets):
+        batch_size = X.size(0)
+        logits, feats = self._base_forward(X)
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
+
         return {
+            "batch_size": batch_size,
             "loss": loss,
             "logits": logits,
             "feats": feats,
@@ -222,15 +225,22 @@ class BaseModel(pl.LightningModule):
         }
 
     def training_step(self, batch, batch_idx):
-        _, (X1, X2), targets = batch
+        _, X, targets = batch
 
-        out1 = self.shared_step(X1, targets)
-        out2 = self.shared_step(X2, targets)
+        X = [X] if isinstance(X, torch.Tensor) else X
 
-        loss = (out1["loss"] + out2["loss"]) / 2
-        acc1 = (out1["acc1"] + out2["acc1"]) / 2
-        acc5 = (out1["acc5"] + out2["acc5"]) / 2
-        feats = (out1["feats"], out2["feats"])
+        outs = [self._shared_step(x, targets) for x in X]
+
+        loss = sum(out["loss"] for out in outs) / len(outs)
+
+        # data
+        logits = [out["logits"] for out in outs]
+        feats = [out["feats"] for out in outs]
+
+        # statistics
+        batch_size = sum(out["batch_size"] for out in outs)
+        acc1 = sum(out["acc1"] for out in outs) / len(outs)
+        acc5 = sum(out["acc5"] for out in outs) / len(outs)
 
         metrics = {
             "train_acc1": acc1,
@@ -239,15 +249,15 @@ class BaseModel(pl.LightningModule):
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-        return {"loss": loss, "feats": feats}
+        return {"loss": loss, "feats": feats, "logits": logits, "batch_size": batch_size}
 
     def validation_step(self, batch, batch_idx):
         X, targets = batch
 
-        out = self.shared_step(X, targets)
+        out = self._shared_step(X, targets)
 
         metrics = {
-            "batch_size": batch[0].size(0),
+            "batch_size": out["batch_size"],
             "val_loss": out["loss"],
             "val_acc1": out["acc1"],
             "val_acc5": out["acc5"],

@@ -24,6 +24,7 @@ class BarlowTwins(BaseModel):
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group("barlow_twins")
+
         # projector
         parser.add_argument("--output_dim", type=int, default=2048)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
@@ -38,9 +39,9 @@ class BarlowTwins(BaseModel):
         return [{"params": self.projector.parameters()}]
 
     def forward(self, X):
-        logits, feats = super().forward(X)
-        z = self.projector(feats)
-        return logits, feats, z
+        out = super().forward(X)
+        z = self.projector(out["feat"])
+        return {**out, "z": z}
 
     def training_step(self, batch, batch_idx):
         out = super().training_step(batch, batch_idx)
@@ -53,6 +54,6 @@ class BarlowTwins(BaseModel):
         # ------- barlow twins loss -------
         barlow_loss = barlow_loss_func(z1, z2, lamb=self.lamb, scale_loss=self.scale_loss)
 
-        self.log("barlow_loss", barlow_loss, on_epoch=True, sync_dist=True)
+        self.log("train_barlow_loss", barlow_loss, on_epoch=True, sync_dist=True)
 
         return barlow_loss + class_loss

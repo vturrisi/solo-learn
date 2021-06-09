@@ -62,6 +62,7 @@ class BYOL(BaseModel):
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group("byol")
+
         # projector
         parser.add_argument("--output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
