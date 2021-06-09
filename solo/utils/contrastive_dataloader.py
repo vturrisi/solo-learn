@@ -7,16 +7,13 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
 
 
-class ImageFolderWithIndex:
-    def __init__(self, dataset):
-        self.dataset = dataset
+def dataset_with_index(DatasetClass):
+    class DatasetWithIndex(DatasetClass):
+        def __getitem__(self, index):
+            data = super().__getitem__(index)
+            return (index, *data)
 
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, index):
-        data = self.dataset[index]
-        return (index, *data)
+    return DatasetWithIndex
 
 
 class GaussianBlur(object):
@@ -266,9 +263,7 @@ def prepare_multicrop_transform(
     )
 
 
-def prepare_datasets(
-    dataset, data_folder=None, train_dir=None, transform=None, with_index=True,
-):
+def prepare_datasets(dataset, data_folder=None, train_dir=None, transform=None):
     if data_folder is None:
         if os.path.isdir("/data/datasets"):
             data_folder = "/data/datasets"
@@ -282,17 +277,17 @@ def prepare_datasets(
         train_dir = f"{dataset}/train"
 
     if dataset == "cifar10":
-        train_dataset = CIFAR10(
+        train_dataset = dataset_with_index(CIFAR10)(
             os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "cifar100":
-        train_dataset = CIFAR100(
+        train_dataset = dataset_with_index(CIFAR100)(
             os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "stl10":
-        train_dataset = STL10(
+        train_dataset = dataset_with_index(STL10)(
             os.path.join(data_folder, train_dir),
             split="train+unlabeled",
             download=True,
@@ -301,10 +296,7 @@ def prepare_datasets(
 
     elif dataset in ["imagenet", "imagenet100"]:
         train_dir = os.path.join(data_folder, train_dir)
-        train_dataset = ImageFolder(train_dir, transform)
-
-    if with_index:
-        train_dataset = ImageFolderWithIndex(train_dataset)
+        train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
 
     return train_dataset
 
