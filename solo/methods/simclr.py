@@ -1,10 +1,8 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from einops import repeat
 from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
 from solo.methods.base import BaseModel
-from solo.utils.metrics import accuracy_at_k
 
 
 class SimCLR(BaseModel):
@@ -62,23 +60,20 @@ class SimCLR(BaseModel):
         return labels_matrix
 
     def training_step(self, batch, batch_idx):
+        indexes, *_, target = batch
+
         if self.extra_args["multicrop"]:
             n_crops = self.extra_args["n_crops"]
             n_small_crops = self.extra_args["n_small_crops"]
             n_augs = n_crops + n_small_crops
 
-            indexes, all_X, target = batch
+            out = super().training_step(batch, batch_idx)
+            class_loss = out["loss"]
+            feats = out["feats"][:n_crops]
+            feats_small = out["feats"][n_crops:]
 
-            X = torch.cat(all_X[:n_crops], dim=0)
-            X_small = torch.cat(all_X[n_crops:], dim=0)
-
-            out = self(X)
-            z = out["z"]
-            logits = out["logits"]
-
-            out_small = self(X_small)
-            z_small = out_small["z"]
-
+            z = torch.cat([self.projector(f) for f in feats])
+            z_small = torch.cat([self.projector(f) for f in feats_small])
             z = torch.cat((z, z_small), dim=0)
 
             # ------- contrastive loss -------
@@ -93,16 +88,12 @@ class SimCLR(BaseModel):
                 z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
             )
         else:
-            indexes, (X1, X2), target = batch
+            out = super().training_step(batch, batch_idx)
+            class_loss = out["loss"]
+            feats1, feats2 = out["feats"]
 
-            out1 = self(X1)
-            out2 = self(X2)
-
-            z1 = out1["z"]
-            z2 = out2["z"]
-            logits1 = out1["logits"]
-            logits2 = out2["logits"]
-            logits = torch.cat((logits1, logits2))
+            z1 = self.projector(feats1)
+            z2 = self.projector(feats2)
 
             # ------- contrastive loss -------
             if self.extra_args["supervised"]:
@@ -113,16 +104,6 @@ class SimCLR(BaseModel):
             else:
                 nce_loss = simclr_loss_func(z1, z2, temperature=self.temperature)
 
-        # ------- classification loss -------
-        target = target.repeat(2)
-        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
-
-        # just add together the losses to do only one backward()
-        # we have stop gradients on the output y of the model
-        loss = nce_loss + class_loss
-
-        # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
         # compute number of extra positives
         n_positives = (
             (pos_mask != 0).sum().float()
@@ -132,10 +113,8 @@ class SimCLR(BaseModel):
 
         metrics = {
             "train_nce_loss": nce_loss,
-            "train_class_loss": class_loss,
-            "train_acc1": acc1,
-            "train_acc5": acc5,
             "train_n_positives": n_positives,
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
-        return loss
+
+        return nce_loss + class_loss
