@@ -231,16 +231,21 @@ class BaseModel(pl.LightningModule):
 
         outs = [self._shared_step(x, targets) for x in X]
 
-        loss = sum(out["loss"] for out in outs) / len(outs)
-
         # data
         logits = [out["logits"] for out in outs]
         feats = [out["feats"] for out in outs]
 
+        # handle multicrop
+        if self.extra_args["multicrop"]:
+            n_crops = self.extra_args["n_crops"]
+        else:
+            n_crops = 2
+
+        loss = sum(out["loss"] for out in outs[:n_crops]) / n_crops
         # statistics
         batch_size = sum(out["batch_size"] for out in outs)
-        acc1 = sum(out["acc1"] for out in outs) / len(outs)
-        acc5 = sum(out["acc5"] for out in outs) / len(outs)
+        acc1 = sum(out["acc1"] for out in outs[:n_crops]) / n_crops
+        acc5 = sum(out["acc5"] for out in outs[:n_crops]) / n_crops
 
         metrics = {
             "train_acc1": acc1,
