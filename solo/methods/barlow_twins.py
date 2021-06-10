@@ -23,6 +23,7 @@ class BarlowTwins(BaseModel):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
+        parent_parser = super(BarlowTwins, BarlowTwins).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("barlow_twins")
 
         # projector
@@ -35,8 +36,9 @@ class BarlowTwins(BaseModel):
         return parent_parser
 
     @property
-    def extra_learnable_params(self):
-        return [{"params": self.projector.parameters()}]
+    def learnable_params(self):
+        extra_learnable_params = [{"params": self.projector.parameters()}]
+        return super().learnable_params + extra_learnable_params
 
     def forward(self, X):
         out = super().forward(X)

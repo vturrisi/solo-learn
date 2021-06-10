@@ -17,9 +17,6 @@ def parse_args_contrastive():
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
 
-    # base model
-    parser = METHODS["base"].add_model_specific_args(parser)
-
     # add method-specific arguments
     parser.add_argument("--method", type=str)
 
@@ -30,6 +27,7 @@ def parse_args_contrastive():
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
 
     # add checkpointer args (only if logging is enabled)
+    temp_args, _ = parser.parse_known_args()
     if temp_args.wandb:
         parser = Checkpointer.add_checkpointer_args(parser)
 
