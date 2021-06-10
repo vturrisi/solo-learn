@@ -62,19 +62,17 @@ class SimCLR(BaseModel):
     def training_step(self, batch, batch_idx):
         indexes, *_, target = batch
 
+        out = super().training_step(batch, batch_idx)
+        class_loss = out["loss"]
+
         if self.extra_args["multicrop"]:
             n_crops = self.extra_args["n_crops"]
             n_small_crops = self.extra_args["n_small_crops"]
             n_augs = n_crops + n_small_crops
 
-            out = super().training_step(batch, batch_idx)
-            class_loss = out["loss"]
-            feats = out["feats"][:n_crops]
-            feats_small = out["feats"][n_crops:]
+            feats = out["feats"]
 
             z = torch.cat([self.projector(f) for f in feats])
-            z_small = torch.cat([self.projector(f) for f in feats_small])
-            z = torch.cat((z, z_small), dim=0)
 
             # ------- contrastive loss -------
             if self.extra_args["supervised"]:
@@ -88,8 +86,6 @@ class SimCLR(BaseModel):
                 z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
             )
         else:
-            out = super().training_step(batch, batch_idx)
-            class_loss = out["loss"]
             feats1, feats2 = out["feats"]
 
             z1 = self.projector(feats1)
