@@ -214,10 +214,11 @@ class BaseModel(pl.LightningModule):
     def _base_forward(self, X, detach_feats=True):
         feats = self.encoder(X)
         logits = self.classifier(feats.detach() if detach_feats else feats)
-        return logits, feats
+        return {"logits": logits, "feats": feats}
 
     def _shared_step(self, X, targets):
-        logits, feats = self._base_forward(X)
+        out = self._base_forward(X)
+        logits, feats = out["logits"], out["feats"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
         return {
@@ -247,7 +248,7 @@ class BaseModel(pl.LightningModule):
         acc5 = sum(out["acc5"] for out in outs) / self.n_crops
 
         if self.multicrop:
-            feats.append([self.encoder(x) for x in X[-self.n_small_crops :]])
+            feats.extend([self.encoder(x) for x in X[self.n_crops :]])
 
         metrics = {
             "train_acc1": acc1,

@@ -47,12 +47,8 @@ class SimCLR(BaseModel):
 
     @torch.no_grad()
     def gen_extra_positives_gt(self, Y):
-        multicrop = self.extra_args["multicrop"]
-        n_crops = self.extra_args["n_crops"]
-        n_small_crops = self.extra_args["n_small_crops"]
-
-        if multicrop:
-            n_augs = n_crops + n_small_crops
+        if self.multicrop:
+            n_augs = self.n_crops + self.n_small_crops
         else:
             n_augs = 2
         labels_matrix = repeat(Y, "b -> c (d b)", c=n_augs * Y.size(0), d=n_augs)
@@ -65,10 +61,8 @@ class SimCLR(BaseModel):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
 
-        if self.extra_args["multicrop"]:
-            n_crops = self.extra_args["n_crops"]
-            n_small_crops = self.extra_args["n_small_crops"]
-            n_augs = n_crops + n_small_crops
+        if self.multicrop:
+            n_augs = self.n_crops + self.n_small_crops
 
             feats = out["feats"]
 
