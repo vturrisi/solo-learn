@@ -60,7 +60,7 @@ class BYOL(BaseMomentumModel):
     @property
     def momentum_pairs(self):
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
-        return super().momenutm_pairs + extra_momentum_pairs
+        return super().momentum_pairs + extra_momentum_pairs
 
     def forward(self, X):
         out = super().forward(X)

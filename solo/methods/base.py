@@ -296,7 +296,7 @@ class BaseMomentumModel(BaseModel):
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
-        self.momenutm_classifier = nn.Linear(self.features_size, self.n_classes)
+        self.momentum_classifier = nn.Linear(self.features_size, self.n_classes)
 
         # momentum updater
         self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
@@ -310,7 +310,7 @@ class BaseMomentumModel(BaseModel):
                 "weight_decay": 0,
             }
         ]
-        return super().learnable_parameters + momentum_learnable_parameters
+        return super().learnable_params + momentum_learnable_parameters
 
     @property
     def momentum_pairs(self):
@@ -355,7 +355,7 @@ class BaseMomentumModel(BaseModel):
         # remove small crops
         X = X[: self.n_crops]
 
-        outs = [self.forward_momentum(x) for x in X]
+        outs = [self.forward_momentum(x, targets) for x in X]
 
         # collect data
         logits = [out["logits"] for out in outs]
