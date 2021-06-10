@@ -59,6 +59,7 @@ class MoCoV2Plus(BaseModel):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
+        parent_parser = super(MoCoV2Plus, MoCoV2Plus).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("mocov2plus")
 
         # projector

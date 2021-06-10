@@ -17,9 +17,6 @@ def parse_args_contrastive():
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
 
-    # base model
-    parser = METHODS["base"].add_model_specific_args(parser)
-
     # add method-specific arguments
     parser.add_argument("--method", type=str)
 
