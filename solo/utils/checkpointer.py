@@ -40,7 +40,7 @@ class Checkpointer(Callback):
         if trainer.is_global_zero:
             args = vars(self.args)
             json_path = os.path.join(self.path, "args.json")
-            json.dump(args, open(json_path, "w"))
+            json.dump(args, open(json_path, "w"), default=lambda o: "<not serializable>")
 
     def save(self, trainer):
         if trainer.is_global_zero and not trainer.running_sanity_check:
