@@ -78,8 +78,9 @@ class MoCoV2Plus(BaseModel):
         return parent_parser
 
     @property
-    def extra_learnable_params(self):
-        return [{"params": self.projector.parameters()}]
+    def learnable_params(self):
+        extra_learnable_params = [{"params": self.projector.parameters()}]
+        return super().learnable_params + extra_learnable_params
 
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):

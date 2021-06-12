@@ -45,11 +45,12 @@ class SimSiam(BaseModel):
         return parent_parser
 
     @property
-    def extra_learnable_params(self):
-        return [
+    def learnable_params(self):
+        extra_learnable_params = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters(), "static_lr": True},
         ]
+        return super().learnable_params + extra_learnable_params
 
     def forward(self, X):
         out = super().forward(X)
