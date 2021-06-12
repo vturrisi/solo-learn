@@ -2,23 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.moco import moco_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMomentumModel
 from solo.utils.gather_layer import gather
-from solo.utils.metrics import accuracy_at_k
-from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from solo.utils.momentum import initialize_momentum_params
 
 
-class MoCoV2Plus(BaseModel):
-    def __init__(
-        self,
-        output_dim,
-        proj_hidden_dim,
-        temperature,
-        queue_size,
-        base_tau_momentum,
-        final_tau_momentum,
-        **kwargs
-    ):
+class MoCoV2Plus(BaseMomentumModel):
+    def __init__(self, output_dim, proj_hidden_dim, temperature, queue_size, **kwargs):
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -31,26 +21,13 @@ class MoCoV2Plus(BaseModel):
             nn.Linear(proj_hidden_dim, output_dim),
         )
 
-        # instantiate and initialize momentum encoder
-        self.momentum_encoder = self.base_model(zero_init_residual=self.zero_init_residual)
-        self.momentum_encoder.fc = nn.Identity()
-        if self.cifar:
-            self.momentum_encoder.conv1 = nn.Conv2d(
-                3, 64, kernel_size=3, stride=1, padding=2, bias=False
-            )
-            self.momentum_encoder.maxpool = nn.Identity()
-        initialize_momentum_params(self.encoder, self.momentum_encoder)
-
-        # instantiate and initialize momentum projector
+        # momentum projector
         self.momentum_projector = nn.Sequential(
             nn.Linear(self.features_size, self.features_size),
             nn.ReLU(),
             nn.Linear(self.features_size, output_dim),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
-
-        # momentum updater
-        self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
         # create the queue
         self.register_buffer("queue", torch.randn(2, output_dim, queue_size))
@@ -72,15 +49,17 @@ class MoCoV2Plus(BaseModel):
         # queue settings
         parser.add_argument("--queue_size", default=65536, type=int)
 
-        # momentum settings
-        parser.add_argument("--base_tau_momentum", default=0.99, type=float)
-        parser.add_argument("--final_tau_momentum", default=1.0, type=float)
         return parent_parser
 
     @property
     def learnable_params(self):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
+
+    @property
+    def momentum_pairs(self):
+        extra_momentum_pairs = [(self.projector, self.momentum_projector)]
+        return super().momentum_pairs + extra_momentum_pairs
 
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
@@ -99,27 +78,22 @@ class MoCoV2Plus(BaseModel):
         q = F.normalize(self.projector(out["feat"]))
         return {**out, "q": q}
 
-    @torch.no_grad()
-    def forward_momentum(self, X):
-        features_momentum = self.momentum_encoder(X)
-        k = self.momentum_projector(features_momentum)
-        k = F.normalize(k)
-        return k
-
     def training_step(self, batch, batch_idx):
-        indexes, (X1, X2), target = batch
+        out = super().training_step(batch, batch_idx)
+        class_loss = out["loss"]
+        feats1, feats2 = out["feats"]
+        feats1_momentum, feats2_momentum = out["feats_momentum"]
 
-        out1 = self(X1)
-        out2 = self(X2)
+        q1 = self.projector(feats1)
+        q2 = self.projector(feats2)
+        q1 = F.normalize(q1)
+        q2 = F.normalize(q2)
 
-        q1 = out1["q"]
-        q2 = out2["q"]
-        logits1 = out1["logits"]
-        logits2 = out2["logits"]
-
-        # forward momentum encoder
-        k1 = self.forward_momentum(X1)
-        k2 = self.forward_momentum(X2)
+        with torch.no_grad():
+            k1 = self.momentum_projector(feats1_momentum)
+            k2 = self.momentum_projector(feats2_momentum)
+            k1 = F.normalize(k1)
+            k2 = F.normalize(k2)
 
         # ------- contrastive loss -------
         # symmetric
@@ -129,38 +103,10 @@ class MoCoV2Plus(BaseModel):
             + moco_loss_func(q2, k1, queue[0], self.temperature)
         ) / 2
 
-        # ------- classification loss -------
-        logits = torch.cat((logits1, logits2))
-        target = target.repeat(2)
-        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
-
-        # just add together the losses to do only one backward()
-        # we have stop gradients on the output y of the model
-        loss = nce_loss + class_loss
-
         # ------- update queue -------
         keys = torch.stack((gather(k1), gather(k2)))
         self._dequeue_and_enqueue(keys)
 
-        # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
+        self.log("train_nce_loss", nce_loss, on_epoch=True, sync_dist=True)
 
-        metrics = {
-            "train_nce_loss": nce_loss,
-            "train_class_loss": class_loss,
-            "train_acc1": acc1,
-            "train_acc5": acc5,
-        }
-        self.log_dict(metrics, on_epoch=True, sync_dist=True)
-        return loss
-
-    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
-        # log tau momentum
-        self.log("tau", self.momentum_updater.cur_tau)
-        # update momentum encoder
-        self.momentum_updater.update(
-            online_nets=[self.encoder, self.projector],
-            momentum_nets=[self.momentum_encoder, self.momentum_projector],
-            cur_step=self.trainer.global_step,
-            max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
-        )
+        return nce_loss + class_loss

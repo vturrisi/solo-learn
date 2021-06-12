@@ -333,7 +333,7 @@ class BaseMomentumModel(BaseModel):
     def on_train_start(self):
         self.last_step = 0
 
-    def forward_momentum(self, X, targets):
+    def _shared_step_momentum(self, X, targets):
         with torch.no_grad():
             feats = self.momentum_encoder(X)
         logits = self.momentum_classifier(feats)
@@ -356,7 +356,7 @@ class BaseMomentumModel(BaseModel):
         # remove small crops
         X = X[: self.n_crops]
 
-        outs = [self.forward_momentum(x, targets) for x in X]
+        outs = [self._shared_step_momentum(x, targets) for x in X]
 
         # collect data
         logits = [out["logits"] for out in outs]
@@ -393,3 +393,35 @@ class BaseMomentumModel(BaseModel):
                 max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
             )
         self.last_step = self.trainer.global_step
+
+    def validation_step(self, batch, batch_idx):
+        parent_metrics = super().validation_step(batch, batch_idx)
+
+        X, targets = batch
+        batch_size = targets.size(0)
+
+        out = self._shared_step_momentum(X, targets)
+
+        metrics = {
+            "batch_size": batch_size,
+            "momentum_val_loss": out["loss"],
+            "momentum_val_acc1": out["acc1"],
+            "momentum_val_acc5": out["acc5"],
+        }
+        return parent_metrics, metrics
+
+    def validation_epoch_end(self, outs):
+        parent_outs = [out[0] for out in outs]
+        momentum_outs = [out[1] for out in outs]
+
+        super().validation_epoch_end(parent_outs)
+        val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
+        val_acc1 = weighted_mean(momentum_outs, "momentum_val_acc1", "batch_size")
+        val_acc5 = weighted_mean(momentum_outs, "momentum_val_acc5", "batch_size")
+
+        log = {
+            "momentum_val_loss": val_loss,
+            "momentum_val_acc1": val_acc1,
+            "momentum_val_acc5": val_acc5,
+        }
+        self.log_dict(log, sync_dist=True)

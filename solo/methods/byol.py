@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumModel
@@ -80,8 +81,9 @@ class BYOL(BaseMomentumModel):
         p2 = self.predictor(z2)
 
         # forward momentum encoder
-        z1_momentum = self.momentum_projector(feats1_momentum)
-        z2_momentum = self.momentum_projector(feats2_momentum)
+        with torch.no_grad():
+            z1_momentum = self.momentum_projector(feats1_momentum)
+            z2_momentum = self.momentum_projector(feats2_momentum)
 
         # ------- contrastive loss -------
         neg_cos_sim = byol_loss_func(p1, z2_momentum) / 2 + byol_loss_func(p2, z1_momentum) / 2
