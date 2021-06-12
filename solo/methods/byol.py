@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumModel
 from solo.utils.momentum import initialize_momentum_params
@@ -89,7 +90,7 @@ class BYOL(BaseMomentumModel):
         neg_cos_sim = byol_loss_func(p1, z2_momentum) / 2 + byol_loss_func(p2, z1_momentum) / 2
 
         # calculate std of features
-        z_std = (z1.std(dim=0).mean() + z2.std(dim=0).mean()) / 2
+        z_std = (F.normalize(z1).std(dim=0).mean() + F.normalize(z2).std(dim=0).mean()) / 2
 
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,
