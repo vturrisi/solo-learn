@@ -44,7 +44,7 @@ class LARSWrapper:
     def defaults(self, defaults):
         self.optim.defaults = defaults
 
-    @property
+    @property  # type: ignore
     def __class__(self):
         return Optimizer
 
