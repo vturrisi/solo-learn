@@ -47,7 +47,7 @@ class VICReg(BaseModel):
 
     @property
     def learnable_params(self):
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X):

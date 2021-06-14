@@ -47,8 +47,8 @@ class SimSiam(BaseModel):
     @property
     def learnable_params(self):
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters(), "static_lr": True},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters(), "static_lr": True},
         ]
         return super().learnable_params + extra_learnable_params
 

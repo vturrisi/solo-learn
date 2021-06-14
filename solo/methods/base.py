@@ -150,8 +150,13 @@ class BaseModel(pl.LightningModule):
     @property
     def learnable_params(self):
         return [
-            {"params": self.encoder.parameters()},
-            {"params": self.classifier.parameters(), "lr": self.classifier_lr, "weight_decay": 0},
+            {"name": "encoder", "params": self.encoder.parameters()},
+            {
+                "name": "classifier",
+                "params": self.classifier.parameters(),
+                "lr": self.classifier_lr,
+                "weight_decay": 0,
+            },
         ]
 
     def configure_optimizers(self):
@@ -306,6 +311,7 @@ class BaseMomentumModel(BaseModel):
     def learnable_params(self):
         momentum_learnable_parameters = [
             {
+                "name": "momentum_classifier",
                 "params": self.momentum_classifier.parameters(),
                 "lr": self.classifier_lr,
                 "weight_decay": 0,

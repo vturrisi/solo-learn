@@ -63,6 +63,14 @@ class SwAV(BaseModel):
         parser.add_argument("--epoch_queue_starts", type=int, default=15)
         return parent_parser
 
+    @property
+    def learnable_params(self):
+        extra_learnable_params = [
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "prototypes", "params": self.prototypes.parameters()},
+        ]
+        return super().learnable_params + extra_learnable_params
+
     def on_train_start(self):
         # sinkhorn-knopp needs the world size
         self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, self.trainer.world_size)
