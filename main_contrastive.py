@@ -1,5 +1,5 @@
-from pprint import pprint
 import os
+from pprint import pprint
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -8,7 +8,14 @@ from pytorch_lightning.plugins import DDPPlugin
 
 from solo.args.setup import parse_args_contrastive
 from solo.methods import METHODS
-from solo.methods.dali import ContrastiveABC
+
+try:
+    from solo.methods.dali import ContrastiveABC
+except ImportError:
+    _dali_avaliable = False
+else:
+    _dali_avaliable = True
+
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.contrastive_dataloader import (
@@ -29,6 +36,7 @@ def main():
 
     MethodClass = METHODS[args.method]
     if args.dali:
+        assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, ContrastiveABC), {})
 
     model = MethodClass(**args.__dict__)

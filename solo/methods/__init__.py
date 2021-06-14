@@ -24,15 +24,33 @@ METHODS = {
     "vicreg": VICReg,
 }
 
-__all__ = [
-    "BarlowTwins",
-    "BYOL",
-    "BaseModel",
-    "LinearModel",
-    "MoCoV2Plus",
-    "NNCLR",
-    "SimCLR",
-    "SimSiam",
-    "SwAV",
-    "VICReg",
-]
+
+try:
+    from solo.methods import dali
+except ImportError:
+    __all__ = [
+        "BarlowTwins",
+        "BYOL",
+        "BaseModel",
+        "LinearModel",
+        "MoCoV2Plus",
+        "NNCLR",
+        "SimCLR",
+        "SimSiam",
+        "SwAV",
+        "VICReg",
+    ]
+else:
+    __all__ = [
+        "BarlowTwins",
+        "BYOL",
+        "BaseModel",
+        "LinearModel",
+        "MoCoV2Plus",
+        "NNCLR",
+        "SimCLR",
+        "SimSiam",
+        "SwAV",
+        "VICReg",
+        "dali",
+    ]
