@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def simclr_loss_func(z1, z2, extra_pos_mask=None, temperature=0.2, normalize=True):
+def simclr_loss_func(z1, z2, temperature=0.1, extra_pos_mask=None, normalize=True):
     assert z1.size() == z2.size()
 
     # get the current device based on z1
@@ -39,7 +39,7 @@ def simclr_loss_func(z1, z2, extra_pos_mask=None, temperature=0.2, normalize=Tru
     return loss
 
 
-def manual_simclr_loss_func(z, pos_mask, neg_mask, temperature=0.2, normalize=True):
+def manual_simclr_loss_func(z, pos_mask, neg_mask, temperature=0.1, normalize=True):
     if normalize:
         z = F.normalize(z, dim=1)
 
