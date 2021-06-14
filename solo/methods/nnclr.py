@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from solo.losses.nnclr import nnclr_loss_func
 from solo.methods.base import BaseModel
 from solo.utils.gather_layer import gather
-from solo.utils.metrics import accuracy_at_k
 
 
 class NNCLR(BaseModel):
@@ -44,7 +43,9 @@ class NNCLR(BaseModel):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
+        parent_parser = super(NNCLR, NNCLR).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("nnclr")
+
         # projector
         parser.add_argument("--output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
@@ -60,8 +61,12 @@ class NNCLR(BaseModel):
         return parent_parser
 
     @property
-    def extra_learnable_params(self):
-        return [{"params": self.projector.parameters()}, {"params": self.predictor.parameters()}]
+    def learnable_params(self):
+        extra_learnable_params = [
+            {"params": self.projector.parameters()},
+            {"params": self.predictor.parameters()},
+        ]
+        return super().learnable_params + extra_learnable_params
 
     @torch.no_grad()
     def dequeue_and_enqueue(self, z, y):
@@ -92,17 +97,17 @@ class NNCLR(BaseModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch, batch_idx):
-        _, (X1, X2), target = batch
+        targets = batch[-1]
 
-        out1 = self(X1)
-        out2 = self(X2)
+        out = super().training_step(batch, batch_idx)
+        class_loss = out["loss"]
+        feats1, feats2 = out["feats"]
 
-        z1 = out1["z"]
-        z2 = out2["z"]
-        p1 = out1["p"]
-        p2 = out2["p"]
-        logits1 = out1["logits"]
-        logits2 = out2["logits"]
+        z1 = self.projector(feats1)
+        z2 = self.projector(feats2)
+
+        p1 = self.predictor(z1)
+        p2 = self.predictor(z2)
 
         z1 = F.normalize(z1)
         z2 = F.normalize(z2)
@@ -118,32 +123,16 @@ class NNCLR(BaseModel):
         )
 
         # compute nn accuracy
-        b = target.size(0)
-        nn_acc = (target == self.queue_y[idx1]).sum() / b
+        b = targets.size(0)
+        nn_acc = (targets == self.queue_y[idx1]).sum() / b
 
         # dequeue and enqueue
-        self.dequeue_and_enqueue(z1, target)
-
-        # ------- classification loss -------
-        logits = torch.cat((logits1, logits2))
-        target = target.repeat(2)
-
-        # ------- classification loss -------
-        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
-
-        # just add together the losses to do only one backward()
-        # we have stop gradients on the output y of the model
-        loss = nnclr_loss + class_loss
-
-        # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
+        self.dequeue_and_enqueue(z1, targets)
 
         metrics = {
             "train_nnclr_loss": nnclr_loss,
-            "train_class_loss": class_loss,
             "train_nn_acc": nn_acc,
-            "train_acc1": acc1,
-            "train_acc5": acc5,
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
-        return loss
+
+        return nnclr_loss + class_loss

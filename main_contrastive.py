@@ -35,7 +35,7 @@ def main():
 
     # contrastive dataloader
     if not args.dali:
-        # asymmetric augmentations on barlow twins
+        # asymmetric augmentations
         if args.asymmetric_augmentations:
             transform = [
                 prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)

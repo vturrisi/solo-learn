@@ -34,12 +34,7 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self,
-        *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
-        **kwargs,
+        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -75,9 +70,6 @@ class ContrastiveABC(ABC):
         num_shards = self.trainer.world_size
 
         # get data arguments from model
-        multicrop = self.extra_args["multicrop"]
-        n_crops = self.extra_args["n_crops"]
-        n_small_crops = self.extra_args["n_small_crops"]
         dali_device = self.extra_args["dali_device"]
         brightness = self.extra_args["brightness"]
         contrast = self.extra_args["contrast"]
@@ -93,8 +85,8 @@ class ContrastiveABC(ABC):
         data_folder = self.extra_args["data_folder"]
         train_dir = self.extra_args["train_dir"]
 
-        if multicrop:
-            n_crops = [n_crops, n_small_crops]
+        if self.multicrop:
+            n_crops = [self.n_crops, self.n_small_crops]
             size_crops = [224, 96]
             min_scale_crops = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]

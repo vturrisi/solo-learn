@@ -60,12 +60,17 @@ def additional_setup_contrastive(args):
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
+    if args.dali:
+        assert args.dataset in ["imagenet100", "imagenet"]
+
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
 
     if isinstance(args.gpus, int):
         args.gpus = [args.gpus]
+    elif isinstance(args.gpus, str):
+        args.gpus = args.gpus.split(",")
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
@@ -83,6 +88,9 @@ def additional_setup_linear(args):
         args.n_classes = 100
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
+
+    if args.dali:
+        assert args.dataset in ["imagenet100", "imagenet"]
 
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":

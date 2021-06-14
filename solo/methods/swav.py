@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.swav import swav_loss_func
 from solo.methods.base import BaseModel
-from solo.utils.metrics import accuracy_at_k
 from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
 
@@ -45,7 +44,9 @@ class SwAV(BaseModel):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
+        parent_parser = super(SwAV, SwAV).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("swav")
+
         # projector
         parser.add_argument("--output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
@@ -63,8 +64,12 @@ class SwAV(BaseModel):
         return parent_parser
 
     @property
-    def extra_learnable_params(self):
-        return [{"params": self.projector.parameters()}, {"params": self.prototypes.parameters()}]
+    def learnable_params(self):
+        extra_learnable_params = [
+            {"params": self.projector.parameters()},
+            {"params": self.prototypes.parameters()},
+        ]
+        return super().learnable_params + extra_learnable_params
 
     def on_train_start(self):
         # sinkhorn-knopp needs the world size
@@ -108,31 +113,20 @@ class SwAV(BaseModel):
         return assignments
 
     def training_step(self, batch, batch_idx):
-        indexes, (X1, X2), target = batch
+        out = super().training_step(batch, batch_idx)
+        class_loss = out["loss"]
+        feats1, feats2 = out["feats"]
 
-        out1 = self(X1)
-        out2 = self(X2)
+        z1 = self.projector(feats1)
+        z2 = self.projector(feats2)
 
-        z1 = out1["z"]
-        z2 = out2["z"]
-        p1 = out1["p"]
-        p2 = out2["p"]
-        logits1 = out1["logits"]
-        logits2 = out2["logits"]
+        p1 = self.prototypes(z1)
+        p2 = self.prototypes(z2)
 
         # ------- swav loss -------
         preds = [p1, p2]
         assignments = self.get_assignments(preds)
         swav_loss = swav_loss_func(preds, assignments, self.temperature)
-
-        # ------- classification loss -------
-        logits = torch.cat((logits1, logits2))
-        target = target.repeat(2)
-        class_loss = F.cross_entropy(logits, target, ignore_index=-1)
-
-        # just add together the losses to do only one backward()
-        # we have stop gradients on the output y of the model
-        loss = swav_loss + class_loss
 
         # ------- update queue -------
         if self.queue_size > 0:
@@ -140,17 +134,9 @@ class SwAV(BaseModel):
             self.queue[:, z.size(1) :] = self.queue[:, : -z.size(1)].clone()
             self.queue[:, : z.size(1)] = z.detach()
 
-        # ------- metrics -------
-        acc1, acc5 = accuracy_at_k(logits, target, top_k=(1, 5))
+        self.log("train_swav_loss", swav_loss, on_epoch=True, sync_dist=True)
 
-        metrics = {
-            "train_ce_loss": swav_loss,
-            "train_class_loss": class_loss,
-            "train_acc1": acc1,
-            "train_acc5": acc5,
-        }
-        self.log_dict(metrics, on_epoch=True, sync_dist=True)
-        return loss
+        return swav_loss + class_loss
 
     def on_after_backward(self):
         if self.current_epoch < self.freeze_prototypes_epochs:
