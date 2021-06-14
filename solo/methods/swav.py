@@ -66,8 +66,8 @@ class SwAV(BaseModel):
     @property
     def learnable_params(self):
         extra_learnable_params = [
-            {"name": "projector", "params": self.projector.parameters()},
-            {"name": "prototypes", "params": self.prototypes.parameters()},
+            {"params": self.projector.parameters()},
+            {"params": self.prototypes.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

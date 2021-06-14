@@ -54,8 +54,8 @@ class BYOL(BaseMomentumModel):
     @property
     def learnable_params(self):
         extra_learnable_params = [
-            {"name": "projector", "params": self.projector.parameters()},
-            {"name": "predictor", "params": self.predictor.parameters()},
+            {"params": self.projector.parameters()},
+            {"params": self.predictor.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 
