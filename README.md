@@ -1,5 +1,9 @@
 # This README is heavily outdated and we are planning on releasing a much clearer one, together with pretrained models.
 
+
+[![Build Status](https://travis-ci.com/vturrisi/solo-learn.svg?branch=main)](https://travis-ci.com/vturrisi/solo-learn)
+[![codecov](https://codecov.io/gh/vturrisi/solo-learn/branch/main/graph/badge.svg?token=WLU9UU17XZ)](https://codecov.io/gh/vturrisi/solo-learn)
+
 # Contrastive learning methods
 
 Third-party pytorch implementations of contrastive learning methods that supports extra stuff (see "What is available" section).
