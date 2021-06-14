@@ -23,9 +23,9 @@ class MoCoV2Plus(BaseMomentumModel):
 
         # momentum projector
         self.momentum_projector = nn.Sequential(
-            nn.Linear(self.features_size, self.features_size),
+            nn.Linear(self.features_size, proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(self.features_size, output_dim),
+            nn.Linear(proj_hidden_dim, output_dim),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
