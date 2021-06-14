@@ -1,0 +1,26 @@
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+install:
+  - pip install mypy codecov pytest-cov
+  - python setup.py install
+
+env:
+  global:
+      - SOURCE_FILES=`find ./solo/ -name '*.py'`
+
+script:
+  - mypy $SOURCE_FILES --ignore-missing-imports
+  - pytest test/ --cov=solo
+
+notifications:
+  email:
+    on_success: never
+    on_failure: never
+
+after_success:
+  - codecov
