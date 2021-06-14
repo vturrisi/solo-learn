@@ -17,13 +17,15 @@ class SinkhornKnopp(torch.nn.Module):
 
         # make the matrix sums to 1
         sum_Q = torch.sum(Q)
-        dist.all_reduce(sum_Q)
+        if dist.is_available() and dist.is_initialized():
+            dist.all_reduce(sum_Q)
         Q /= sum_Q
 
         for it in range(self.num_iters):
             # normalize each row: total weight per prototype must be 1/K
             sum_of_rows = torch.sum(Q, dim=1, keepdim=True)
-            dist.all_reduce(sum_of_rows)
+            if dist.is_available() and dist.is_initialized():
+                dist.all_reduce(sum_of_rows)
             Q /= sum_of_rows
             Q /= K
 
