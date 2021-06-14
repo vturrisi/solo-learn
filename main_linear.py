@@ -9,7 +9,13 @@ from pytorch_lightning.plugins import DDPPlugin
 from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
-from solo.methods.dali import ClassificationABC
+
+try:
+    from solo.methods.dali import ClassificationABC
+except ImportError:
+    _dali_avaliable = False
+else:
+    _dali_avaliable = True
 from solo.methods.linear import LinearModel
 from solo.utils.classification_dataloader import prepare_data
 from solo.utils.checkpointer import Checkpointer
@@ -47,6 +53,7 @@ def main():
     print(f"loaded {ckpt_path}")
 
     if args.dali:
+        assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
         MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
     else:
         MethodClass = LinearModel
