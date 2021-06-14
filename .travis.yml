@@ -15,7 +15,7 @@ env:
 
 script:
   - mypy $SOURCE_FILES --ignore-missing-imports
-  - pytest --cov=solo test/
+  - pytest --cov=solo tests/
 
 notifications:
   email:
