@@ -73,17 +73,13 @@ class SwAV(BaseModel):
 
     def on_train_start(self):
         # sinkhorn-knopp needs the world size
-        self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, self.trainer.world_size)
+        world_size = self.trainer.world_size if self.trainer else 1
+        self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, world_size)
         # queue also needs the world size
         if self.queue_size > 0:
             self.register_buffer(
                 "queue",
-                torch.zeros(
-                    2,
-                    self.queue_size // self.trainer.world_size,
-                    self.output_dim,
-                    device=self.device,
-                ),
+                torch.zeros(2, self.queue_size // world_size, self.output_dim, device=self.device,),
             )
 
     @torch.no_grad()
@@ -92,9 +88,9 @@ class SwAV(BaseModel):
         w = F.normalize(w, dim=1, p=2)
         self.prototypes.weight.copy_(w)
 
-    def forward(self, X):
-        out = super().forward(X)
-        z = self.projector(out["feat"])
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        z = self.projector(out["feats"])
         z = F.normalize(z)
         p = self.prototypes(z)
         return {**out, "z": z, "p": p}

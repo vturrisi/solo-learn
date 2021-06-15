@@ -64,9 +64,9 @@ class BYOL(BaseMomentumModel):
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    def forward(self, X):
-        out = super().forward(X)
-        z = self.projector(out["feat"])
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        z = self.projector(out["feats"])
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 

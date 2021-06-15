@@ -40,9 +40,9 @@ class BarlowTwins(BaseModel):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X):
-        out = super().forward(X)
-        z = self.projector(out["feat"])
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        z = self.projector(out["feats"])
         return {**out, "z": z}
 
     def training_step(self, batch, batch_idx):

@@ -6,10 +6,11 @@ from solo.methods.base import BaseModel
 
 
 class SimCLR(BaseModel):
-    def __init__(self, output_dim, proj_hidden_dim, temperature, **kwargs):
+    def __init__(self, output_dim, proj_hidden_dim, temperature, supervised=False, **kwargs):
         super().__init__(**kwargs)
 
         self.temperature = temperature
+        self.supervised = supervised
 
         # projector
         if proj_hidden_dim == 0:
@@ -42,9 +43,9 @@ class SimCLR(BaseModel):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X):
-        out = super().forward(X)
-        z = self.projector(out["feat"])
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        z = self.projector(out["feats"])
         return {**out, "z": z}
 
     @torch.no_grad()
@@ -71,7 +72,7 @@ class SimCLR(BaseModel):
             z = torch.cat([self.projector(f) for f in feats])
 
             # ------- contrastive loss -------
-            if self.extra_args["supervised"]:
+            if self.supervised:
                 pos_mask = self.gen_extra_positives_gt(target)
             else:
                 index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
@@ -88,7 +89,7 @@ class SimCLR(BaseModel):
             z2 = self.projector(feats2)
 
             # ------- contrastive loss -------
-            if self.extra_args["supervised"]:
+            if self.supervised:
                 pos_mask = self.gen_extra_positives_gt(target)
                 nce_loss = simclr_loss_func(
                     z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
@@ -99,7 +100,7 @@ class SimCLR(BaseModel):
         # compute number of extra positives
         n_positives = (
             (pos_mask != 0).sum().float()
-            if self.extra_args["supervised"]
+            if self.supervised
             else torch.tensor(0.0, device=self.device)
         )
 

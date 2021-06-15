@@ -52,9 +52,9 @@ class SimSiam(BaseModel):
         ]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X):
-        out = super().forward(X)
-        z = self.projector(out["feat"])
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        z = self.projector(out["feats"])
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
