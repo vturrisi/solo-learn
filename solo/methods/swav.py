@@ -73,17 +73,13 @@ class SwAV(BaseModel):
 
     def on_train_start(self):
         # sinkhorn-knopp needs the world size
-        self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, self.trainer.world_size)
+        world_size = self.trainer.world_size if self.trainer else 1
+        self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, world_size)
         # queue also needs the world size
         if self.queue_size > 0:
             self.register_buffer(
                 "queue",
-                torch.zeros(
-                    2,
-                    self.queue_size // self.trainer.world_size,
-                    self.output_dim,
-                    device=self.device,
-                ),
+                torch.zeros(2, self.queue_size // world_size, self.output_dim, device=self.device,),
             )
 
     @torch.no_grad()

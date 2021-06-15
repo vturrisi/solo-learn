@@ -14,7 +14,7 @@ DATA_KWARGS = {
 }
 
 
-def gen_base_kwargs(cifar):
+def gen_base_kwargs(cifar=False, momentum=False):
     BASE_KWARGS = {
         "encoder": "resnet18",
         "n_classes": 10,
@@ -45,10 +45,13 @@ def gen_base_kwargs(cifar):
         "train_dir": "cifar10/train",
         "val_dir": "cifar10/val",
     }
+    if momentum:
+        BASE_KWARGS["base_tau_momentum"] = 0.99
+        BASE_KWARGS["final_tau_momentum"] = 1.0
     return BASE_KWARGS
 
 
-def gen_batch(b, dataset):
+def gen_batch(b, n_classes, dataset):
     assert dataset in ["cifar10", "imagenet100"]
 
     if dataset == "cifar10":
@@ -61,11 +64,11 @@ def gen_batch(b, dataset):
     T = prepare_transform(dataset, multicrop=False, **DATA_KWARGS)
     T = prepare_n_crop_transform(T, n_crops=2)
     x1, x2 = T(im)
-    b = 10
     x1 = x1.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
     x2 = x2.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
+
     idx = torch.arange(b)
-    label = torch.arange(b)
+    label = torch.randint(low=0, high=n_classes, size=(b,))
 
     batch, batch_idx = [idx, (x1, x2), label], 1
 
