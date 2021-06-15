@@ -88,9 +88,9 @@ class SwAV(BaseModel):
         w = F.normalize(w, dim=1, p=2)
         self.prototypes.weight.copy_(w)
 
-    def forward(self, X):
-        out = super().forward(X)
-        z = self.projector(out["feat"])
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        z = self.projector(out["feats"])
         z = F.normalize(z)
         p = self.prototypes(z)
         return {**out, "z": z, "p": p}

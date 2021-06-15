@@ -73,9 +73,9 @@ class MoCoV2Plus(BaseMomentumModel):
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
         self.queue_ptr[0] = ptr
 
-    def forward(self, X):
-        out = super().forward(X)
-        q = F.normalize(self.projector(out["feat"]))
+    def forward(self, X, *args, **kwargs):
+        out = super().forward(X, *args, **kwargs)
+        q = F.normalize(self.projector(out["feats"]))
         return {**out, "q": q}
 
     def training_step(self, batch, batch_idx):

@@ -1,4 +1,9 @@
+import argparse
+
+import pytorch_lightning as pl
+import torch
 from solo.methods import SimSiam
+
 from .utils import gen_base_kwargs, DATA_KWARGS, gen_batch
 
 
@@ -26,3 +31,33 @@ def test_simsiam():
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
+
+    # test arguments
+    parser = argparse.ArgumentParser()
+    parser = pl.Trainer.add_argparse_args(parser)
+    assert model.add_model_specific_args(parser) is not None
+
+    # test parameters
+    assert model.learnable_params is not None
+
+    out = model(batch[1][0])
+    assert (
+        "logits" in out
+        and isinstance(out["logits"], torch.Tensor)
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"])
+    )
+    assert (
+        "feats" in out
+        and isinstance(out["feats"], torch.Tensor)
+        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_size)
+    )
+    assert (
+        "z" in out
+        and isinstance(out["z"], torch.Tensor)
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+    )
+    assert (
+        "p" in out
+        and isinstance(out["p"], torch.Tensor)
+        and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+    )
