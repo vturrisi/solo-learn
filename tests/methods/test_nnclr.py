@@ -2,9 +2,10 @@ import argparse
 
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning import Trainer
 from solo.methods import NNCLR
 
-from .utils import gen_base_kwargs, DATA_KWARGS, gen_batch
+from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
 def test_nnclr():
@@ -63,3 +64,12 @@ def test_nnclr():
         and isinstance(out["p"], torch.Tensor)
         and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
     )
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(
+        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+    )
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "imagenet100", BASE_KWARGS["n_crops"], BASE_KWARGS["n_classes"], multicrop=False
+    )
+    trainer.fit(model, train_dl, val_dl)
