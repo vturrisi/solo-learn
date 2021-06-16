@@ -7,7 +7,6 @@ from solo.methods import BYOL
 
 from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
-
 def test_byol():
     method_kwargs = {"output_dim": 256, "proj_hidden_dim": 2048, "pred_hidden_dim": 2048}
 
