@@ -1,8 +1,15 @@
 import numpy as np
 import torch
 from PIL import Image
-from solo.utils.contrastive_dataloader import prepare_n_crop_transform, prepare_transform
-
+from solo.utils.contrastive_dataloader import (
+    dataset_with_index,
+    prepare_dataloaders,
+    prepare_n_crop_transform,
+    prepare_transform,
+)
+from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.datasets import FakeData
 
 DATA_KWARGS = {
     "brightness": 0.4,
@@ -17,10 +24,10 @@ DATA_KWARGS = {
 def gen_base_kwargs(cifar=False, momentum=False):
     BASE_KWARGS = {
         "encoder": "resnet18",
-        "n_classes": 10,
+        "n_classes": 10 if cifar else 100,
         "cifar": cifar,
         "zero_init_residual": True,
-        "max_epochs": 10,
+        "max_epochs": 2,
         "optimizer": "sgd",
         "lars": True,
         "lr": 0.3,
@@ -73,3 +80,25 @@ def gen_batch(b, n_classes, dataset):
     batch, batch_idx = [idx, (x1, x2), label], 1
 
     return batch, batch_idx
+
+
+def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False):
+    T = prepare_n_crop_transform(
+        prepare_transform(dataset, multicrop=multicrop, **DATA_KWARGS), n_crops
+    )
+    dataset = dataset_with_index(FakeData)(
+        image_size=(3, 224, 224), num_classes=n_classes, transform=T
+    )
+    train_dl = prepare_dataloaders(dataset, batch_size=2, num_workers=0)
+
+    # normal dataloader
+    T_val = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
+        ]
+    )
+    dataset = FakeData(image_size=(3, 224, 224), num_classes=n_classes, transform=T_val)
+    val_dl = DataLoader(dataset, batch_size=2, num_workers=0, drop_last=False)
+
+    return train_dl, val_dl
