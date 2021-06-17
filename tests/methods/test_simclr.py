@@ -83,3 +83,39 @@ def test_simclr():
         "imagenet100", BASE_KWARGS["n_crops"], BASE_KWARGS["n_classes"], multicrop=False
     )
     trainer.fit(model, train_dl, val_dl)
+
+    # normal training
+    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = SimCLR(**kwargs)
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(
+        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+    )
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "imagenet100",
+        n_crops=BASE_KWARGS["n_crops"],
+        n_small_crops=0,
+        n_classes=BASE_KWARGS["n_classes"],
+        multicrop=False,
+    )
+    trainer.fit(model, train_dl, val_dl)
+
+    # multicrop
+    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, n_small_crops=6)
+    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = SimCLR(**kwargs)
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(
+        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+    )
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "imagenet100",
+        n_crops=BASE_KWARGS["n_crops"],
+        n_small_crops=6,
+        n_classes=BASE_KWARGS["n_classes"],
+        multicrop=True,
+    )
+    trainer.fit(model, train_dl, val_dl)

@@ -5,6 +5,7 @@ from solo.utils.contrastive_dataloader import (
     dataset_with_index,
     prepare_dataloaders,
     prepare_n_crop_transform,
+    prepare_multicrop_transform,
     prepare_transform,
 )
 from torch.utils.data import DataLoader
@@ -21,7 +22,7 @@ DATA_KWARGS = {
 }
 
 
-def gen_base_kwargs(cifar=False, momentum=False):
+def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_small_crops=0):
     BASE_KWARGS = {
         "encoder": "resnet18",
         "n_classes": 10 if cifar else 100,
@@ -39,9 +40,9 @@ def gen_base_kwargs(cifar=False, momentum=False):
         "scheduler": "warmup_cosine",
         "min_lr": 0.0,
         "warmup_start_lr": 0.0,
-        "multicrop": False,
+        "multicrop": multicrop,
         "n_crops": 2,
-        "n_small_crops": 0,
+        "n_small_crops": n_small_crops,
         "lr_decay_steps": None,
         "dali_device": "gpu",
         "asymmetric_augmentations": False,
@@ -82,10 +83,13 @@ def gen_batch(b, n_classes, dataset):
     return batch, batch_idx
 
 
-def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False):
-    T = prepare_n_crop_transform(
-        prepare_transform(dataset, multicrop=multicrop, **DATA_KWARGS), n_crops
-    )
+def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False, n_small_crops=0):
+    T = prepare_transform(dataset, multicrop=multicrop, **DATA_KWARGS)
+    if multicrop:
+        size_crops = [224, 96] if dataset == "imagenet100" else [32, 24]
+        T = prepare_multicrop_transform(T, size_crops=size_crops, n_crops=[n_crops, n_small_crops])
+    else:
+        T = prepare_n_crop_transform(T, n_crops)
     dataset = dataset_with_index(FakeData)(
         image_size=(3, 224, 224), num_classes=n_classes, transform=T
     )
@@ -100,5 +104,19 @@ def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False):
     )
     dataset = FakeData(image_size=(3, 224, 224), num_classes=n_classes, transform=T_val)
     val_dl = DataLoader(dataset, batch_size=2, num_workers=0, drop_last=False)
+
+    return train_dl, val_dl
+
+
+def prepare_classification_dummy_dataloaders(dataset, n_classes):
+    # normal dataloader
+    T_val = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
+        ]
+    )
+    dataset = FakeData(image_size=(3, 224, 224), num_classes=n_classes, transform=T_val)
+    train_dl = val_dl = DataLoader(dataset, batch_size=2, num_workers=0, drop_last=False)
 
     return train_dl, val_dl
