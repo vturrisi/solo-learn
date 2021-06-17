@@ -124,8 +124,8 @@ class LinearModel(pl.LightningModule):
             return optimizer
         else:
             if self.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.epochs)
-            if self.scheduler == "cosine":
+                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.max_epochs)
+            elif self.scheduler == "cosine":
                 scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
             elif self.scheduler == "reduce":
                 scheduler = ReduceLROnPlateau(optimizer)

@@ -13,14 +13,11 @@ class SimCLR(BaseModel):
         self.supervised = supervised
 
         # projector
-        if proj_hidden_dim == 0:
-            self.projector = nn.Linear(self.features_size, output_dim)
-        else:
-            self.projector = nn.Sequential(
-                nn.Linear(self.features_size, proj_hidden_dim),
-                nn.ReLU(),
-                nn.Linear(proj_hidden_dim, output_dim),
-            )
+        self.projector = nn.Sequential(
+            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(proj_hidden_dim, output_dim),
+        )
 
     @staticmethod
     def add_model_specific_args(parent_parser):
