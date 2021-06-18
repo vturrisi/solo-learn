@@ -30,7 +30,7 @@ def test_linear():
         BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "imagenet100"
     )
     out = model(batch[0])
-    print(out)
+
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
