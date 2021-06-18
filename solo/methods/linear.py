@@ -98,8 +98,10 @@ class LinearModel(pl.LightningModule):
         return parent_parser
 
     def forward(self, x):
-        out = self.backbone(x)
-        return out
+        with torch.no_grad():
+            feats = self.backbone(x)
+        logits = self.classifier(feats)
+        return {"logits": logits, "feats": feats}
 
     def configure_optimizers(self):
         if self.optimizer == "sgd":
@@ -144,9 +146,7 @@ class LinearModel(pl.LightningModule):
         X, target = batch
         batch_size = X.size(0)
 
-        with torch.no_grad():
-            feat = self.backbone(X)
-        out = self.classifier(feat)
+        out = self(X)["logits"]
 
         loss = F.cross_entropy(out, target)
 
