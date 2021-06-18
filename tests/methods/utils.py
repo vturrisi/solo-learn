@@ -83,6 +83,32 @@ def gen_batch(b, n_classes, dataset):
     return batch, batch_idx
 
 
+def gen_classification_batch(b, n_classes, dataset):
+    assert dataset in ["cifar10", "imagenet100"]
+
+    if dataset == "cifar10":
+        size = 32
+    else:
+        size = 224
+
+    im = np.random.rand(size, size, 3) * 255
+    im = Image.fromarray(im.astype("uint8")).convert("RGB")
+    T = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
+        ]
+    )
+    x = T(im)
+    x = x.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
+
+    label = torch.randint(low=0, high=n_classes, size=(b,))
+
+    batch, batch_idx = (x, label), 1
+
+    return batch, batch_idx
+
+
 def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False, n_small_crops=0):
     T = prepare_transform(dataset, multicrop=multicrop, **DATA_KWARGS)
     if multicrop:
