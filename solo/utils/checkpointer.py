@@ -60,6 +60,3 @@ class Checkpointer(Callback):
         epoch = trainer.current_epoch
         if epoch % self.frequency == 0:
             self.save(trainer)
-
-    def on_train_end(self, trainer, _):
-        self.save(trainer)
