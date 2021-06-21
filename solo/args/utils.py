@@ -70,7 +70,7 @@ def additional_setup_contrastive(args):
     if isinstance(args.gpus, int):
         args.gpus = [args.gpus]
     elif isinstance(args.gpus, str):
-        args.gpus = args.gpus.split(",")
+        args.gpus = [int(s) for s in args.gpus.split(",")]
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
