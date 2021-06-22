@@ -5,7 +5,7 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, ImageFolder, STL10
 
 
-def prepare_transformations(dataset, normalize=True):
+def prepare_transforms(dataset, normalize=True):
     if dataset in ["cifar10", "cifar100"]:
         T_train = transforms.Compose(
             [
@@ -60,11 +60,8 @@ def prepare_transformations(dataset, normalize=True):
 
 def prepare_datasets(dataset, T_train, T_val, data_folder=None, train_dir=None, val_dir=None):
     if data_folder is None:
-        if os.path.isdir("/data/datasets"):
-            data_folder = "/data/datasets"
-        else:
-            sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            data_folder = os.path.join(sandbox_folder, "datasets")
+        sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        data_folder = os.path.join(sandbox_folder, "datasets")
 
     if train_dir is None:
         train_dir = f"{dataset}/train"
@@ -142,7 +139,7 @@ def prepare_data(
     num_workers=4,
     normalize=True,
 ):
-    T_train, T_val = prepare_transformations(dataset, normalize=normalize)
+    T_train, T_val = prepare_transforms(dataset, normalize=normalize)
     train_dataset, val_dataset = prepare_datasets(
         dataset, T_train, T_val, data_folder=data_folder, train_dir=train_dir, val_dir=val_dir,
     )
