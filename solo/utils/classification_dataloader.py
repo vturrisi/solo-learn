@@ -32,7 +32,7 @@ def prepare_transforms(dataset, normalize=True):
         )
         T_val = transforms.Compose(
             [
-                transforms.Resize(96),
+                transforms.Resize((96, 96)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
             ]

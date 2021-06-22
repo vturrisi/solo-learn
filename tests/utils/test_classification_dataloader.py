@@ -8,16 +8,19 @@ from torch.utils.data import DataLoader
 
 def test_transforms():
 
-    im = np.random.rand(100, 100, 3) * 255
+    im = np.random.rand(32, 32, 3) * 255
     im = Image.fromarray(im.astype("uint8")).convert("RGB")
 
     T_train, T_val = prepare_transforms("cifar10")
     assert T_train(im).size(1) == 32
-    assert T_val(im).size(1) == 100
+    assert T_val(im).size(1) == 32
 
     T_train, T_val = prepare_transforms("cifar100")
     assert T_train(im).size(1) == 32
-    assert T_val(im).size(1) == 100
+    assert T_val(im).size(1) == 32
+
+    im = np.random.rand(500, 300, 3) * 255
+    im = Image.fromarray(im.astype("uint8")).convert("RGB")
 
     T_train, T_val = prepare_transforms("stl10")
     assert T_train(im).size(1) == 96
