@@ -1,8 +1,9 @@
 import os
 
 from torch.utils.data import DataLoader
+import torchvision
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, ImageFolder, STL10
+from torchvision.datasets import ImageFolder, STL10
 
 
 def prepare_transforms(dataset, normalize=True):
@@ -68,21 +69,13 @@ def prepare_datasets(dataset, T_train, T_val, data_folder=None, train_dir=None, 
     if val_dir is None:
         val_dir = f"{dataset}/test"
 
-    if dataset == "cifar10":
-        train_dataset = CIFAR10(
+    if dataset in ["cifar10", "cifar100"]:
+        DatasetClass = vars(torchvision.datasets)[dataset.upper()]
+        train_dataset = DatasetClass(
             os.path.join(data_folder, train_dir), train=True, download=True, transform=T_train,
         )
 
-        val_dataset = CIFAR10(
-            os.path.join(data_folder, val_dir), train=False, download=True, transform=T_val,
-        )
-
-    elif dataset == "cifar100":
-        train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=T_train,
-        )
-
-        val_dataset = CIFAR100(
+        val_dataset = DatasetClass(
             os.path.join(data_folder, val_dir), train=False, download=True, transform=T_val,
         )
 

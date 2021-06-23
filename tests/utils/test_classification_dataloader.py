@@ -2,7 +2,7 @@ import math
 import numpy as np
 from PIL import Image
 from solo.utils.classification_dataloader import prepare_transforms, prepare_datasets, prepare_data
-from torchvision.datasets import CIFAR10, CIFAR100
+from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 
 
@@ -40,13 +40,6 @@ def test_datasets():
     assert len(train_dataset[0]) == 2
     assert len(val_dataset[0]) == 2
 
-    T_train, T_val = prepare_transforms("cifar100")
-    train_dataset, val_dataset = prepare_datasets("cifar100", T_train, T_val)
-    assert isinstance(train_dataset, CIFAR100)
-    assert isinstance(val_dataset, CIFAR100)
-    assert len(train_dataset[0]) == 2
-    assert len(val_dataset[0]) == 2
-
 
 def test_data():
 
@@ -57,12 +50,6 @@ def test_data():
     num_batches_val = math.ceil(num_samples_val / bs)
 
     train_loader, val_loader = prepare_data("cifar10", batch_size=bs, num_workers=0)
-    assert isinstance(train_loader, DataLoader)
-    assert isinstance(val_loader, DataLoader)
-    assert num_batches_train == len(train_loader)
-    assert num_batches_val == len(val_loader)
-
-    train_loader, val_loader = prepare_data("cifar100", batch_size=bs, num_workers=0)
     assert isinstance(train_loader, DataLoader)
     assert isinstance(val_loader, DataLoader)
     assert num_batches_train == len(train_loader)
