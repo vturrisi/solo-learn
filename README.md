@@ -58,8 +58,9 @@ pip3 install -e .[dali]
 
 If no dali support is needed, the repository can be installed as:
 ```
-pip install .
+pip3 install .
 ```
+
 **NOTE:** Soon to be on pip.
 
 ---
