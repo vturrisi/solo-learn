@@ -301,7 +301,7 @@ class BaseMomentumModel(BaseModel):
             self.momentum_encoder.maxpool = nn.Identity()
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
-        # momentum classifier'
+        # momentum classifier
         if momentum_classifier:
             self.momentum_classifier = nn.Linear(self.features_size, self.n_classes)
         else:
@@ -313,7 +313,7 @@ class BaseMomentumModel(BaseModel):
     @property
     def learnable_params(self):
         momentum_learnable_parameters = []
-        if self.momentum_classifier:
+        if self.momentum_classifier is not None:
             momentum_learnable_parameters.append(
                 {
                     "name": "momentum_classifier",
@@ -350,7 +350,7 @@ class BaseMomentumModel(BaseModel):
             feats = self.momentum_encoder(X)
         out = {"feats": feats}
 
-        if self.momentum_classifier:
+        if self.momentum_classifier is not None:
             logits = self.momentum_classifier(feats)
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
@@ -370,11 +370,10 @@ class BaseMomentumModel(BaseModel):
         outs = [self._shared_step_momentum(x, targets) for x in X]
 
         # collect features
-        feats = [out["feats"] for out in outs]
-        parent_outs["feats_momentum"] = feats
+        parent_outs["feats_momentum"] = [out["feats"] for out in outs]
 
-        if self.momentum_classifier:
-            # collect data
+        if self.momentum_classifier is not None:
+            # collect logits
             logits = [out["logits"] for out in outs]
 
             # momentum loss and stats
@@ -418,7 +417,7 @@ class BaseMomentumModel(BaseModel):
         out = self._shared_step_momentum(X, targets)
 
         metrics = None
-        if self.momentum_classifier:
+        if self.momentum_classifier is not None:
             metrics = {
                 "batch_size": batch_size,
                 "momentum_val_loss": out["loss"],
@@ -432,7 +431,7 @@ class BaseMomentumModel(BaseModel):
         parent_outs = [out[0] for out in outs]
         super().validation_epoch_end(parent_outs)
 
-        if self.momentum_classifier:
+        if self.momentum_classifier is not None:
             momentum_outs = [out[1] for out in outs]
 
             val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
