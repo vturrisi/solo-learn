@@ -14,6 +14,7 @@ def test_mocov2plus():
         "proj_hidden_dim": 2048,
         "temperature": 0.2,
         "queue_size": 65536,
+        "momentum_classifier": False,
     }
 
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)
@@ -62,6 +63,23 @@ def test_mocov2plus():
     # normal training
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, multicrop=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = MoCoV2Plus(**kwargs)
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(
+        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+    )
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "imagenet100",
+        n_crops=BASE_KWARGS["n_crops"],
+        n_small_crops=0,
+        n_classes=BASE_KWARGS["n_classes"],
+        multicrop=False,
+    )
+    trainer.fit(model, train_dl, val_dl)
+
+    # test momentum classifier
+    kwargs["momentum_classifier"] = True
     model = MoCoV2Plus(**kwargs)
 
     args = argparse.Namespace(**kwargs)

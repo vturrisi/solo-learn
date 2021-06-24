@@ -288,7 +288,7 @@ class BaseModel(pl.LightningModule):
 
 
 class BaseMomentumModel(BaseModel):
-    def __init__(self, base_tau_momentum, final_tau_momentum, **kwargs):
+    def __init__(self, base_tau_momentum, final_tau_momentum, momentum_classifier, **kwargs):
         super().__init__(**kwargs)
 
         # momentum encoder
@@ -301,22 +301,27 @@ class BaseMomentumModel(BaseModel):
             self.momentum_encoder.maxpool = nn.Identity()
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
-        # momentum classifier
-        self.momentum_classifier = nn.Linear(self.features_size, self.n_classes)
+        # momentum classifier'
+        if momentum_classifier:
+            self.momentum_classifier = nn.Linear(self.features_size, self.n_classes)
+        else:
+            self.momentum_classifier = None
 
         # momentum updater
         self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
     @property
     def learnable_params(self):
-        momentum_learnable_parameters = [
-            {
-                "name": "momentum_classifier",
-                "params": self.momentum_classifier.parameters(),
-                "lr": self.classifier_lr,
-                "weight_decay": 0,
-            }
-        ]
+        momentum_learnable_parameters = []
+        if self.momentum_classifier:
+            momentum_learnable_parameters.append(
+                {
+                    "name": "momentum_classifier",
+                    "params": self.momentum_classifier.parameters(),
+                    "lr": self.classifier_lr,
+                    "weight_decay": 0,
+                }
+            )
         return super().learnable_params + momentum_learnable_parameters
 
     @property
@@ -333,6 +338,7 @@ class BaseMomentumModel(BaseModel):
         # momentum settings
         parser.add_argument("--base_tau_momentum", default=0.99, type=float)
         parser.add_argument("--final_tau_momentum", default=1.0, type=float)
+        parser.add_argument("--momentum_classifier", action="store_true")
 
         return parent_parser
 
@@ -342,16 +348,15 @@ class BaseMomentumModel(BaseModel):
     def _shared_step_momentum(self, X, targets):
         with torch.no_grad():
             feats = self.momentum_encoder(X)
-        logits = self.momentum_classifier(feats)
-        loss = F.cross_entropy(logits, targets, ignore_index=-1)
-        acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
-        return {
-            "loss": loss,
-            "logits": logits,
-            "feats": feats,
-            "acc1": acc1,
-            "acc5": acc5,
-        }
+        out = {"feats": feats}
+
+        if self.momentum_classifier:
+            logits = self.momentum_classifier(feats)
+            loss = F.cross_entropy(logits, targets, ignore_index=-1)
+            acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
+            out.update({"logits": logits, "loss": loss, "acc1": acc1, "acc5": acc5})
+
+        return out
 
     def training_step(self, batch, batch_idx):
         parent_outs = super().training_step(batch, batch_idx)
@@ -364,25 +369,29 @@ class BaseMomentumModel(BaseModel):
 
         outs = [self._shared_step_momentum(x, targets) for x in X]
 
-        # collect data
-        logits = [out["logits"] for out in outs]
+        # collect features
         feats = [out["feats"] for out in outs]
-
-        # momentum loss and stats
-        loss = sum(out["loss"] for out in outs) / self.n_crops
-        acc1 = sum(out["acc1"] for out in outs) / self.n_crops
-        acc5 = sum(out["acc5"] for out in outs) / self.n_crops
-
-        metrics = {
-            "train_momentum_acc1": acc1,
-            "train_momentum_acc5": acc5,
-            "train_momentum_class_loss": loss,
-        }
-        self.log_dict(metrics, on_epoch=True, sync_dist=True)
-
-        parent_outs["loss"] += loss
         parent_outs["feats_momentum"] = feats
-        parent_outs["logits_momentum"] = logits
+
+        if self.momentum_classifier:
+            # collect data
+            logits = [out["logits"] for out in outs]
+
+            # momentum loss and stats
+            loss = sum(out["loss"] for out in outs) / self.n_crops
+            acc1 = sum(out["acc1"] for out in outs) / self.n_crops
+            acc5 = sum(out["acc5"] for out in outs) / self.n_crops
+
+            metrics = {
+                "train_momentum_acc1": acc1,
+                "train_momentum_acc5": acc5,
+                "train_momentum_class_loss": loss,
+            }
+            self.log_dict(metrics, on_epoch=True, sync_dist=True)
+
+            parent_outs["loss"] += loss
+            parent_outs["logits_momentum"] = logits
+
         return parent_outs
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
@@ -408,26 +417,31 @@ class BaseMomentumModel(BaseModel):
 
         out = self._shared_step_momentum(X, targets)
 
-        metrics = {
-            "batch_size": batch_size,
-            "momentum_val_loss": out["loss"],
-            "momentum_val_acc1": out["acc1"],
-            "momentum_val_acc5": out["acc5"],
-        }
+        metrics = None
+        if self.momentum_classifier:
+            metrics = {
+                "batch_size": batch_size,
+                "momentum_val_loss": out["loss"],
+                "momentum_val_acc1": out["acc1"],
+                "momentum_val_acc5": out["acc5"],
+            }
+
         return parent_metrics, metrics
 
     def validation_epoch_end(self, outs):
         parent_outs = [out[0] for out in outs]
-        momentum_outs = [out[1] for out in outs]
-
         super().validation_epoch_end(parent_outs)
-        val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
-        val_acc1 = weighted_mean(momentum_outs, "momentum_val_acc1", "batch_size")
-        val_acc5 = weighted_mean(momentum_outs, "momentum_val_acc5", "batch_size")
 
-        log = {
-            "momentum_val_loss": val_loss,
-            "momentum_val_acc1": val_acc1,
-            "momentum_val_acc5": val_acc5,
-        }
-        self.log_dict(log, sync_dist=True)
+        if self.momentum_classifier:
+            momentum_outs = [out[1] for out in outs]
+
+            val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
+            val_acc1 = weighted_mean(momentum_outs, "momentum_val_acc1", "batch_size")
+            val_acc5 = weighted_mean(momentum_outs, "momentum_val_acc5", "batch_size")
+
+            log = {
+                "momentum_val_loss": val_loss,
+                "momentum_val_acc1": val_acc1,
+                "momentum_val_acc5": val_acc5,
+            }
+            self.log_dict(log, sync_dist=True)

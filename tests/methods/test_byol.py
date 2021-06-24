@@ -9,7 +9,12 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 
 def test_byol():
-    method_kwargs = {"output_dim": 256, "proj_hidden_dim": 2048, "pred_hidden_dim": 2048}
+    method_kwargs = {
+        "output_dim": 256,
+        "proj_hidden_dim": 2048,
+        "pred_hidden_dim": 2048,
+        "momentum_classifier": False,
+    }
 
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
@@ -62,6 +67,23 @@ def test_byol():
     # normal training
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, multicrop=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = BYOL(**kwargs)
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(
+        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+    )
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "imagenet100",
+        n_crops=BASE_KWARGS["n_crops"],
+        n_small_crops=0,
+        n_classes=BASE_KWARGS["n_classes"],
+        multicrop=False,
+    )
+    trainer.fit(model, train_dl, val_dl)
+
+    # test momentum classifier
+    kwargs["momentum_classifier"] = True
     model = BYOL(**kwargs)
 
     args = argparse.Namespace(**kwargs)
