@@ -24,8 +24,6 @@ While the library is self contained, it is possible to use the models outside of
 ## Extra flavor
 ### Data
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI)
-* Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
-    * **Note**: currently, only SimCLR supports this
 * Asymmetric and symmetric augmentations
 ### Evaluation and logging
 * Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well)
@@ -34,7 +32,9 @@ While the library is self contained, it is possible to use the models outside of
 * Easy-to-extend modular code structure
 * Custom model logging with a simpler file organization
 * Common metrics and more to come (auto TSNE)
-### Training
+### Training tricks
+* Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
+    * **Note**: currently, only SimCLR supports this
 * Exclude batchnorm and biases from LARS
 * No LR scheduler for the projection head in SimSiam
 ---
