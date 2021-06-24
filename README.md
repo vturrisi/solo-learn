@@ -5,7 +5,7 @@
 
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
-While the library is self contained, it is possible to use the models outside of solo-learn environment.
+While the library is self contained, it is possible to use the models outside of solo-learn.
 
 ---
 
@@ -80,63 +80,75 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 ### CIFAR-10
 
-| Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
-|----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
-| resnet18 	| Barlow Twins 	|        	|      	|                    	|                     	|            	|
-| resnet18 	| BYOL         	|        	|      	|                    	|                     	|            	|
-| resnet18 	| MoCo V2+     	|        	|      	|                    	|                     	|            	|
-| resnet18 	| NNCLR        	|        	|      	|                    	|                     	|            	|
-| resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
-| resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
-| resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
-
+| Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
+|--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
+| Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| VICReg       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 
 ### CIFAR-100
 
-| Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
-|----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
-| resnet18 	| Barlow Twins 	|        	|      	|                    	|                     	|            	|
-| resnet18 	| BYOL         	|        	|      	|                    	|                     	|            	|
-| resnet18 	| MoCo V2+     	|        	|      	|                    	|                     	|            	|
-| resnet18 	| NNCLR        	|        	|      	|                    	|                     	|            	|
-| resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
-| resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
-| resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
-
+| Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
+|--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
+| Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| VICReg       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 
 ### STL-10
 
-| Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
-|----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
-| resnet18 	| Barlow Twins 	|        	|      	|                    	|                     	|            	|
-| resnet18 	| BYOL         	|        	|      	|                    	|                     	|            	|
-| resnet18 	| MoCo V2+     	|        	|      	|                    	|                     	|            	|
-| resnet18 	| NNCLR        	|        	|      	|                    	|                     	|            	|
-| resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
-| resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
-| resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
+| Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
+|--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
+| Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| VICReg       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+
+### ImageNet-100
 
 
-### Imagenet-100
-
-| Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
-|----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
-| resnet18 	| Barlow Twins 	| 500    	|      	|                    	|                     	|            	|
-| resnet18 	| BYOL         	| 500    	|      	|                    	|                     	|            	|
-| resnet18 	| MoCo V2+     	| 500    	|      	|                    	|                     	|            	|
-| resnet18 	| NNCLR        	| 500    	|      	|                    	|                     	|            	|
-| resnet18 	| SimCLR       	| 500    	|      	|                    	|                     	|            	|
-| resnet18 	| Simsiam      	| 500    	|      	|                    	|                     	|            	|
-| resnet18 	| VICReg       	| 500    	|      	|                    	|                     	|            	|
-### Imagenet
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet50 |        |                    |                |                 |                |                 |            |
+| Barlow Twins | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| BYOL         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| MoCo V2+     | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| NNCLR        | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| SimCLR       | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| Simsiam      | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| VICReg       | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+
+### ImageNet
+| Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
+|--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
+| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6      |                 |      86.7      |                 |            |
-| MoCo V2+     | ResNet50 |        |                    |                |                 |                |                 |            |
-| NNCLR        | ResNet50 |        |                    |                |                 |                |                 |            |
-| SimCLR       | ResNet50 |        |                    |                |                 |                |                 |            |
-| Simsiam      | ResNet50 |        |                    |                |                 |                |                 |            |
-| VICReg       | ResNet50 |        |                    |                |                 |                |                 |            |
+| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| Simsiam      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+
+## Training efficiency
+Our standardized implementation enables a fair comparison of training efficiency. Here we report the training time and memory usage on ImageNet-100 using ResNet50 and running on 2 Quadro RTX 6000.
+
+| Method       | Dali | Parameters | Learnable parameters | Time for 1 epoch | GPU memory |
+|--------------|------|------------|----------------------|------------------|------------|
+| Barlow Twins |      |            |                      |                  |            |
+| BYOL         |      |            |                      |                  |            |
+| MoCo V2+     |      |            |                      |                  |            |
+| NNCLR        |      |            |                      |                  |            |
+| SimCLR       |      |            |                      |                  |            |
+| Simsiam      |      |            |                      |                  |            |
+| VICReg       |      |            |                      |                  |            |
 <br>
 
