@@ -34,7 +34,9 @@ While the library is self contained, it is possible to use the models outside of
 * Easy-to-extend modular code structure
 * Custom model logging with a simpler file organization
 * Common metrics and more to come (auto TSNE)
-
+### Training
+* Exclude batchnorm and biases from LARS
+* No LR scheduler for the projection head in SimSiam
 ---
 ## Requirements
 * torch
