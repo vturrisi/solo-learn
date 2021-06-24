@@ -38,18 +38,25 @@ While the library is self contained, it is possible to use the models outside of
 ## Requirements
 * torch
 * tqdm
+* einops
 * wandb
-* nvidia-dali
 * pytorch-lightning
 * lightning-bolts
-* einops
+
+**Optional**:
+* nvidia-dali
 
 **NOTE:** if you are using CUDA 10.X use `nvidia-dali-cuda100` in `requirements.txt`.
 
 ---
 
 ## Installation
+To install the repository with dali support, use:
+```
+pip3 install -e .[dali]
+```
 
+If no dali support is needed, the repository can be installed as:
 ```
 pip install .
 ```
@@ -80,7 +87,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
 | resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
 | resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
-<br>
+
+
 ### CIFAR-100
 
 | Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
@@ -92,7 +100,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
 | resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
 | resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
-<br>
+
+
 ### STL-10
 
 | Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
@@ -104,8 +113,10 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
 | resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
 | resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
-<br>
+
+
 ### Imagenet-100
+
 | Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
 |----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
 | resnet18 	| Barlow Twins 	|        	|      	|                    	|                     	|            	|
