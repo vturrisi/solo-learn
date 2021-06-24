@@ -265,13 +265,8 @@ def prepare_multicrop_transform(
 
 def prepare_datasets(dataset, data_folder=None, train_dir=None, transform=None):
     if data_folder is None:
-        if os.path.isdir("/data/datasets"):
-            data_folder = "/data/datasets"
-        elif os.path.isdir("/datasets"):
-            data_folder = "/datasets/"
-        else:
-            sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            data_folder = os.path.join(sandbox_folder, "datasets")
+        sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        data_folder = os.path.join(sandbox_folder, "datasets")
 
     if train_dir is None:
         train_dir = f"{dataset}/train"

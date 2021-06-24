@@ -1,11 +1,12 @@
 import os
 
 from torch.utils.data import DataLoader
+import torchvision
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, ImageFolder, STL10
+from torchvision.datasets import ImageFolder, STL10
 
 
-def prepare_transformations(dataset, normalize=True):
+def prepare_transforms(dataset, normalize=True):
     if dataset in ["cifar10", "cifar100"]:
         T_train = transforms.Compose(
             [
@@ -32,7 +33,7 @@ def prepare_transformations(dataset, normalize=True):
         )
         T_val = transforms.Compose(
             [
-                transforms.Resize(96),
+                transforms.Resize((96, 96)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
             ]
@@ -60,32 +61,21 @@ def prepare_transformations(dataset, normalize=True):
 
 def prepare_datasets(dataset, T_train, T_val, data_folder=None, train_dir=None, val_dir=None):
     if data_folder is None:
-        if os.path.isdir("/data/datasets"):
-            data_folder = "/data/datasets"
-        else:
-            sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            data_folder = os.path.join(sandbox_folder, "datasets")
+        sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        data_folder = os.path.join(sandbox_folder, "datasets")
 
     if train_dir is None:
         train_dir = f"{dataset}/train"
     if val_dir is None:
         val_dir = f"{dataset}/test"
 
-    if dataset == "cifar10":
-        train_dataset = CIFAR10(
+    if dataset in ["cifar10", "cifar100"]:
+        DatasetClass = vars(torchvision.datasets)[dataset.upper()]
+        train_dataset = DatasetClass(
             os.path.join(data_folder, train_dir), train=True, download=True, transform=T_train,
         )
 
-        val_dataset = CIFAR10(
-            os.path.join(data_folder, val_dir), train=False, download=True, transform=T_val,
-        )
-
-    elif dataset == "cifar100":
-        train_dataset = CIFAR100(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=T_train,
-        )
-
-        val_dataset = CIFAR100(
+        val_dataset = DatasetClass(
             os.path.join(data_folder, val_dir), train=False, download=True, transform=T_val,
         )
 
@@ -142,7 +132,7 @@ def prepare_data(
     num_workers=4,
     normalize=True,
 ):
-    T_train, T_val = prepare_transformations(dataset, normalize=normalize)
+    T_train, T_val = prepare_transforms(dataset, normalize=normalize)
     train_dataset, val_dataset = prepare_datasets(
         dataset, T_train, T_val, data_folder=data_folder, train_dir=train_dir, val_dir=val_dir,
     )
