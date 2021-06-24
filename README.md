@@ -3,7 +3,7 @@
 
 # solo-learn
 
-A library of self-supervised methods for unsupervised visual representation learning powered by Pytorch Lightning.
+A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
 While the library is self contained, it is possible to use the models outside of solo-learn environment.
 
@@ -21,17 +21,18 @@ While the library is self contained, it is possible to use the models outside of
 
 ---
 
-## Extra flavour
+## Extra flavor
 ### Data
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI)
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
     * **Note**: currently, only SimCLR supports this
 * Asymmetric and symmetric augmentations
 ### Evaluation and logging
-* Online linear evaluation via stop-gradient for easier debugging and prototyping
+* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well)
 * Normal offline linear evaluation
-* Everything related to pytorch-lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
-* Custom model logging with an easier file structure
+* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
+* Easy-to-extend modular code structure
+* Custom model logging with a simpler file organization
 * Common metrics and more to come (auto TSNE)
 
 ---
@@ -120,22 +121,22 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 | Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
 |----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
-| resnet18 	| Barlow Twins 	|        	|      	|                    	|                     	|            	|
-| resnet18 	| BYOL         	|        	|      	|                    	|                     	|            	|
-| resnet18 	| MoCo V2+     	|        	|      	|                    	|                     	|            	|
-| resnet18 	| NNCLR        	|        	|      	|                    	|                     	|            	|
-| resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
-| resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
-| resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
+| resnet18 	| Barlow Twins 	| 500    	|      	|                    	|                     	|            	|
+| resnet18 	| BYOL         	| 500    	|      	|                    	|                     	|            	|
+| resnet18 	| MoCo V2+     	| 500    	|      	|                    	|                     	|            	|
+| resnet18 	| NNCLR        	| 500    	|      	|                    	|                     	|            	|
+| resnet18 	| SimCLR       	| 500    	|      	|                    	|                     	|            	|
+| resnet18 	| Simsiam      	| 500    	|      	|                    	|                     	|            	|
+| resnet18 	| VICReg       	| 500    	|      	|                    	|                     	|            	|
 ### Imagenet
-| Backbone 	| Method       	| Epochs 	| Dali 	| Online linear eval 	| Offline linear eval 	| Checkpoint 	|
-|----------	|--------------	|--------	|------	|--------------------	|---------------------	|------------	|
-| resnet18 	| Barlow Twins 	|        	|      	|                    	|                     	|            	|
-| resnet18 	| BYOL         	|        	|      	|                    	|                     	|            	|
-| resnet18 	| MoCo V2+     	|        	|      	|                    	|                     	|            	|
-| resnet18 	| NNCLR        	|        	|      	|                    	|                     	|            	|
-| resnet18 	| SimCLR       	|        	|      	|                    	|                     	|            	|
-| resnet18 	| Simsiam      	|        	|      	|                    	|                     	|            	|
-| resnet18 	| VICReg       	|        	|      	|                    	|                     	|            	|
+| Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
+|--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
+| Barlow Twins | ResNet50 |        |                    |                |                 |                |                 |            |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6      |                 |      86.7      |                 |            |
+| MoCo V2+     | ResNet50 |        |                    |                |                 |                |                 |            |
+| NNCLR        | ResNet50 |        |                    |                |                 |                |                 |            |
+| SimCLR       | ResNet50 |        |                    |                |                 |                |                 |            |
+| Simsiam      | ResNet50 |        |                    |                |                 |                |                 |            |
+| VICReg       | ResNet50 |        |                    |                |                 |                |                 |            |
 <br>
 
