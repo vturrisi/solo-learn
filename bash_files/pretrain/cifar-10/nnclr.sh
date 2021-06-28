@@ -1,7 +1,7 @@
 python3 ../../../main_contrastive.py \
     --dataset cifar10 \
     --encoder resnet18 \
-    --data_folder ./datasets \
+    --data_folder /data/datasets \
     --max_epochs 1000 \
     --gpus 0 \
     --precision 16 \
