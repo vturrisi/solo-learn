@@ -90,7 +90,9 @@ class BYOL(BaseMomentumModel):
         neg_cos_sim = byol_loss_func(p1, z2_momentum) / 2 + byol_loss_func(p2, z1_momentum) / 2
 
         # calculate std of features
-        z_std = (F.normalize(z1).std(dim=0).mean() + F.normalize(z2).std(dim=0).mean()) / 2
+        z1_std = F.normalize(z1, dim=-1).std(dim=0).mean()
+        z2_std = F.normalize(z2, dim=-1).std(dim=0).mean()
+        z_std = (z1_std + z2_std) / 2
 
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,
