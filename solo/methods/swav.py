@@ -39,8 +39,7 @@ class SwAV(BaseModel):
         )
 
         # prototypes
-        self.prototypes = nn.Linear(output_dim, num_prototypes, bias=False)
-        self.normalize_prototypes()
+        self.prototypes = nn.utils.weight_norm(nn.Linear(output_dim, num_prototypes, bias=False))
 
     @staticmethod
     def add_model_specific_args(parent_parser):
@@ -79,14 +78,13 @@ class SwAV(BaseModel):
         if self.queue_size > 0:
             self.register_buffer(
                 "queue",
-                torch.zeros(2, self.queue_size // world_size, self.output_dim, device=self.device,),
+                torch.zeros(
+                    2,
+                    self.queue_size // world_size,
+                    self.output_dim,
+                    device=self.device,
+                ),
             )
-
-    @torch.no_grad()
-    def normalize_prototypes(self):
-        w = self.prototypes.weight.data.clone()
-        w = F.normalize(w, dim=1, p=2)
-        self.prototypes.weight.copy_(w)
 
     def forward(self, X, *args, **kwargs):
         out = super().forward(X, *args, **kwargs)
@@ -113,8 +111,8 @@ class SwAV(BaseModel):
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]
 
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
+        z1 = F.normalize(self.projector(feats1))
+        z2 = F.normalize(self.projector(feats2))
 
         p1 = self.prototypes(z1)
         p2 = self.prototypes(z2)
@@ -138,6 +136,3 @@ class SwAV(BaseModel):
         if self.current_epoch < self.freeze_prototypes_epochs:
             for p in self.prototypes.parameters():
                 p.grad = None
-
-    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
-        self.normalize_prototypes()

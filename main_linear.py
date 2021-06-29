@@ -97,6 +97,7 @@ def main():
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=False),
         checkpoint_callback=False,
+        terminate_on_nan=True,
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
