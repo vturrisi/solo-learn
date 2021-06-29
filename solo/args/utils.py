@@ -95,3 +95,8 @@ def additional_setup_linear(args):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
+
+    if isinstance(args.gpus, int):
+        args.gpus = [args.gpus]
+    elif isinstance(args.gpus, str):
+        args.gpus = [int(s) for s in args.gpus.split(",")]
