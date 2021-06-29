@@ -12,6 +12,7 @@ While the library is self contained, it is possible to use the models outside of
 ## Methods available:
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
 * [BYOL](https://arxiv.org/abs/2006.07733)
+* [DINO](https://arxiv.org/abs/2104.14294)
 * [MoCo-V2](https://arxiv.org/abs/2003.04297)
 * [NNCLR](https://arxiv.org/abs/2104.14548)
 * [SimCLR](https://arxiv.org/abs/2002.05709) + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
@@ -86,6 +87,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| DINO         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
@@ -98,6 +100,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| DINO         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
@@ -110,6 +113,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| DINO         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
 | SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
@@ -123,6 +127,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | BYOL         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| DINO         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
@@ -134,6 +139,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6      |                 |      86.7      |                 |            |
+| DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
@@ -147,6 +153,7 @@ Our standardized implementation enables a fair comparison of training efficiency
 |--------------|------|------------|----------------------|------------------|------------|
 | Barlow Twins |      |            |                      |                  |            |
 | BYOL         |      |            |                      |                  |            |
+| DINO         |      |            |                      |                  |            |
 | MoCo V2+     |      |            |                      |                  |            |
 | NNCLR        |      |            |                      |                  |            |
 | SimCLR       |      |            |                      |                  |            |
