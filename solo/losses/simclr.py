@@ -11,7 +11,7 @@ def simclr_loss_func(z1, z2, temperature=0.1, extra_pos_mask=None, normalize=Tru
     b = z1.size(0)
     z = torch.cat((z1, z2), dim=0)
     if normalize:
-        z = F.normalize(z, dim=1)
+        z = F.normalize(z, dim=-1)
 
     logits = torch.einsum("if, jf -> ij", z, z) / temperature
     logits_max, _ = torch.max(logits, dim=1, keepdim=True)
@@ -41,7 +41,7 @@ def simclr_loss_func(z1, z2, temperature=0.1, extra_pos_mask=None, normalize=Tru
 
 def manual_simclr_loss_func(z, pos_mask, neg_mask, temperature=0.1, normalize=True):
     if normalize:
-        z = F.normalize(z, dim=1)
+        z = F.normalize(z, dim=-1)
 
     logits = torch.einsum("if, jf -> ij", z, z) / temperature
     logits_max, _ = torch.max(logits, dim=1, keepdim=True)
