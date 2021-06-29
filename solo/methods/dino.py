@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from solo.losses.dino import DINOLoss
 from solo.methods.base import BaseMomentumModel
 from solo.utils.momentum import initialize_momentum_params
@@ -51,7 +52,7 @@ class DINOHead(nn.Module):
 
     def forward(self, x):
         x = self.mlp(x)
-        x = nn.functional.normalize(x, dim=-1, p=2)
+        x = F.normalize(x, dim=-1, p=2)
         x = self.last_layer(x)
         return x
 
@@ -146,7 +147,7 @@ class DINO(BaseMomentumModel):
                 if clip_coef < 1:
                     p.grad.data.mul_(clip_coef)
 
-    def on_train_epoch_start(self,):
+    def on_train_epoch_start(self):
         self.dino_loss_func.epoch = self.current_epoch
 
     def forward(self, X, *args, **kwargs):
