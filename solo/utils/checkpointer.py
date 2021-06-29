@@ -5,7 +5,11 @@ from pytorch_lightning.callbacks import Callback
 
 class Checkpointer(Callback):
     def __init__(
-        self, args, logdir="trained_models", frequency=1, keep_previous_checkpoints=False,
+        self,
+        args,
+        logdir="trained_models",
+        frequency=1,
+        keep_previous_checkpoints=False,
     ):
         self.args = args
         self.logdir = logdir

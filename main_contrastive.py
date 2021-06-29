@@ -99,7 +99,10 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
@@ -122,6 +125,7 @@ def main():
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=False),
         checkpoint_callback=False,
+        terminate_on_nan=True,
     )
 
     if args.dali:
