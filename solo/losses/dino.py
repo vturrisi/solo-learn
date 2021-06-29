@@ -12,29 +12,29 @@ class DINOLoss(nn.Module):
         warmup_teacher_temp,
         teacher_temp,
         warmup_teacher_temp_epochs,
-        nepochs,
+        num_epochs,
         student_temp=0.1,
-        ncrops=2,
+        num_crops=2,
         center_momentum=0.9,
     ):
         super().__init__()
         self.epoch = 0
         self.student_temp = student_temp
         self.center_momentum = center_momentum
-        self.ncrops = ncrops
+        self.num_crops = num_crops
         self.register_buffer("center", torch.zeros(1, out_dim))
         # we apply a warm up for the teacher temperature because
         # a too high temperature makes the training instable at the beginning
         self.teacher_temp_schedule = np.concatenate(
             (
                 np.linspace(warmup_teacher_temp, teacher_temp, warmup_teacher_temp_epochs),
-                np.ones(nepochs - warmup_teacher_temp_epochs) * teacher_temp,
+                np.ones(num_epochs - warmup_teacher_temp_epochs) * teacher_temp,
             )
         )
 
     def forward(self, student_output, teacher_output):
         student_out = student_output / self.student_temp
-        student_out = student_out.chunk(self.ncrops)
+        student_out = student_out.chunk(self.num_crops)
 
         # teacher centering and sharpening
         temp = self.teacher_temp_schedule[self.epoch]
@@ -58,8 +58,9 @@ class DINOLoss(nn.Module):
     @torch.no_grad()
     def update_center(self, teacher_output):
         batch_center = torch.sum(teacher_output, dim=0, keepdim=True)
-        dist.all_reduce(batch_center)
-        batch_center = batch_center / (len(teacher_output) * dist.get_world_size())
+        if dist.is_available() and dist.is_initialized():
+            dist.all_reduce(batch_center)
+            batch_center = batch_center / (len(teacher_output) * dist.get_world_size())
 
         # ema update
         self.center = self.center * self.center_momentum + batch_center * (1 - self.center_momentum)

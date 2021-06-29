@@ -102,7 +102,7 @@ class DINO(BaseMomentumModel):
             warmup_teacher_temp=warmup_teacher_temperature,
             teacher_temp=teacher_temperature,
             warmup_teacher_temp_epochs=warmup_teacher_temperature_epochs,
-            nepochs=self.max_epochs,
+            num_epochs=self.max_epochs,
         )
 
     @staticmethod
