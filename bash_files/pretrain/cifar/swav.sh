@@ -18,7 +18,7 @@ python3 ../../../main_contrastive.py \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
-    --name swav \
+    --name swav-$1 \
     --wandb \
     --project solo-learn \
     --entity unitn-mhug \

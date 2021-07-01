@@ -4,7 +4,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --name vicreg \
     --project contrastive_learning \
     --wandb \
-    --method vicreg \
+    --method vicreg-400ep-imagenet100 \
     --proj_hidden_dim 2048 \
     --output_dim 2048 \
     --sim_loss_weight 25.0 \

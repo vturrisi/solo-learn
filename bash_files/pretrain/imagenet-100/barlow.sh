@@ -4,7 +4,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -23,7 +23,7 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name barlow \
+    --name barlow-imagenet100 \
     --project contrastive_learning \
     --wandb \
     --method barlow_twins \

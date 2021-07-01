@@ -4,7 +4,7 @@ python3 ../../main_contrastive.py \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --dali \
     --project contrastive_learning \
     --wandb \
-    --method simsiam \
+    --method simsiam-400ep-imagenet100 \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 512 \
     --output_dim 2048

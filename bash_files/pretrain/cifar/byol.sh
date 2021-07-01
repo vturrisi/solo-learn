@@ -19,7 +19,7 @@ python3 ../../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name byol-cifar10 \
+    --name byol-$1 \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \

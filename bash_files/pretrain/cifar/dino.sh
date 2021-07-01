@@ -26,7 +26,7 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name dino \
+    --name dino-$1 \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \

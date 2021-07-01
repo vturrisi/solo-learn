@@ -4,7 +4,7 @@ python3 ../../main_contrastive.py \
     --data_folder /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -27,7 +27,7 @@ python3 ../../main_contrastive.py \
     --name byol \
     --project contrastive_learning \
     --wandb \
-    --method byol \
+    --method byol-400ep-imagenet100 \
     --output_dim 256 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \

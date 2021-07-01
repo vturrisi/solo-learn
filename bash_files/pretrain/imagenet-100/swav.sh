@@ -4,7 +4,7 @@ python3 ../../main_contrastive.py \
     --data_folder /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -24,7 +24,7 @@ python3 ../../main_contrastive.py \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
-    --name swav \
+    --name swav-400ep-imagenet100 \
     --project contrastive_learning \
     --wandb \
     --method swav \
