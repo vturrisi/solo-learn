@@ -102,7 +102,7 @@ def additional_setup_contrastive(args: Namespace):
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
 
-def additional_setup_linear(args):
+def additional_setup_linear(args: Namespace):
     """
     Provides final setup for linear evaluation to non-user given parameters by changing args.
 
