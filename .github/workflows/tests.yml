@@ -37,11 +37,11 @@ jobs:
           pip install git+git://github.com/psf/black
           pip install -e . codecov mypy pytest-cov
       
-      # - name: Cache datasets
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ~/datasets
-      #     key: ${{ runner.os }}
+      - name: Cache datasets
+        uses: actions/cache@v2
+        with:
+          path: ~/datasets
+          key: ${{ runner.os }}
 
       - name: pytest
         run: pytest --cov=solo tests/
