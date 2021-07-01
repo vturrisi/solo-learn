@@ -3,8 +3,8 @@ import torch.nn.functional as F
 
 
 def nnclr_loss_func(nn, p, temperature=0.1):
-    nn = F.normalize(nn, dim=1)
-    p = F.normalize(p, dim=1)
+    nn = F.normalize(nn, dim=-1)
+    p = F.normalize(p, dim=-1)
 
     logits = nn @ p.T / temperature
 

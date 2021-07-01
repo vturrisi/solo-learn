@@ -109,8 +109,8 @@ class NNCLR(BaseModel):
         p1 = self.predictor(z1)
         p2 = self.predictor(z2)
 
-        z1 = F.normalize(z1)
-        z2 = F.normalize(z2)
+        z1 = F.normalize(z1, dim=-1)
+        z2 = F.normalize(z2, dim=-1)
 
         # find nn
         idx1, nn1 = self.find_nn(z1)

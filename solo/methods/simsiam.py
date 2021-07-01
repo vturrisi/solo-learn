@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.simsiam import simsiam_loss_func
@@ -72,7 +71,10 @@ class SimSiam(BaseModel):
         # ------- contrastive loss -------
         neg_cos_sim = simsiam_loss_func(p1, z2) / 2 + simsiam_loss_func(p2, z1) / 2
 
-        z_std = F.normalize(torch.cat((z1, z2), dim=0), dim=1).std(dim=0).mean()
+        # calculate std of features
+        z1_std = F.normalize(z1, dim=-1).std(dim=0).mean()
+        z2_std = F.normalize(z2, dim=-1).std(dim=0).mean()
+        z_std = (z1_std + z2_std) / 2
 
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,

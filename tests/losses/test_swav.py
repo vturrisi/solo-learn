@@ -1,5 +1,5 @@
 import torch
-import torch.nn.functional as F
+import torch.nn as nn
 from solo.losses import swav_loss_func
 from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
@@ -15,15 +15,9 @@ def get_assignments(preds):
     return assignments
 
 
-def normalize_prototypes(self):
-    w = self.prototypes.weight.data.clone()
-    w = F.normalize(w, dim=1, p=2)
-    self.prototypes.weight.copy_(w)
-
-
 def test_swav_loss():
     b, f = 256, 128
-    prototypes = torch.nn.Linear(f, f, bias=False)
+    prototypes = nn.utils.weight_norm(torch.nn.Linear(f, f, bias=False))
 
     z = torch.zeros(2, b, f).uniform_(-2, 2).requires_grad_()
     preds = prototypes(z)

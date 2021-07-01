@@ -75,7 +75,7 @@ class MoCoV2Plus(BaseMomentumModel):
 
     def forward(self, X, *args, **kwargs):
         out = super().forward(X, *args, **kwargs)
-        q = F.normalize(self.projector(out["feats"]))
+        q = F.normalize(self.projector(out["feats"]), dim=-1)
         return {**out, "q": q}
 
     def training_step(self, batch, batch_idx):
@@ -86,14 +86,14 @@ class MoCoV2Plus(BaseMomentumModel):
 
         q1 = self.projector(feats1)
         q2 = self.projector(feats2)
-        q1 = F.normalize(q1)
-        q2 = F.normalize(q2)
+        q1 = F.normalize(q1, dim=-1)
+        q2 = F.normalize(q2, dim=-1)
 
         with torch.no_grad():
             k1 = self.momentum_projector(feats1_momentum)
             k2 = self.momentum_projector(feats2_momentum)
-            k1 = F.normalize(k1)
-            k2 = F.normalize(k2)
+            k1 = F.normalize(k1, dim=-1)
+            k2 = F.normalize(k2, dim=-1)
 
         # ------- contrastive loss -------
         # symmetric
