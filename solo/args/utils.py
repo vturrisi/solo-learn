@@ -9,6 +9,8 @@ N_CLASSES_PER_DATASET = {
 
 def additional_setup_contrastive(args):
     args.transform_kwargs = {}
+
+    assert args.dataset in N_CLASSES_PER_DATASET
     args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
 
     if args.asymmetric_augmentations:
@@ -76,6 +78,7 @@ def additional_setup_contrastive(args):
 
 
 def additional_setup_linear(args):
+    assert args.dataset in N_CLASSES_PER_DATASET
     args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
