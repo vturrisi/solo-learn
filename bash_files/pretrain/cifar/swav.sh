@@ -1,28 +1,31 @@
 python3 ../../../main_contrastive.py \
-    --dataset cifar100 \
+    --dataset $1 \
     --encoder resnet18 \
-    --data_folder /data/datasets \
+    --data_folder ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
     --precision 16 \
     --optimizer sgd \
     --lars \
-    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 0.4 \
+    --lr 0.6 \
+    --min_lr 0.0006 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-5 \
+    --weight_decay 1e-6 \
     --batch_size 256 \
-    --num_workers 5 \
+    --num_workers 3 \
     --brightness 0.8 \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
-    --name simclr-cifar100 \
+    --name swav \
+    --wandb \
     --project solo-learn \
     --entity unitn-mhug \
-    --wandb \
-    --method simclr \
-    --temperature 0.2 \
+    --method swav \
     --proj_hidden_dim 2048 \
-    --output_dim 256
+    --queue_size 3840 \
+    --output_dim 128 \
+    --num_prototypes 3000 \
+    --epoch_queue_starts 50 \
+    --freeze_prototypes_epochs 2

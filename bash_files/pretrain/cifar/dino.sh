@@ -1,5 +1,5 @@
-python3 ../../../main_contrastive.py \
-    --dataset cifar10 \
+python3 ../../main_contrastive.py \
+    --dataset $1 \
     --encoder resnet18 \
     --data_folder ./datasets \
     --max_epochs 1000 \
@@ -9,24 +9,31 @@ python3 ../../../main_contrastive.py \
     --lars \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 1.0 \
+    --max_epochs 1000 \
+    --gpus 0 \
+    --precision 16 \
+    --optimizer sgd \
+    --lars \
+    --exclude_bias_n_norm \
+    --scheduler warmup_cosine \
+    --lr 0.3 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-5 \
+    --weight_decay 1e-6 \
     --batch_size 256 \
-    --num_workers 5 \
+    --num_workers 8 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name byol-cifar10 \
-    --project solo-learn \
+    --name dino \
     --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
-    --method byol \
+    --method dino \
     --output_dim 256 \
-    --proj_hidden_dim 4096 \
-    --pred_hidden_dim 4096 \
-    --base_tau_momentum 0.99 \
+    --proj_hidden_dim 2048 \
+    --num_prototypes 4096 \
+    --base_tau_momentum 0.9995 \
     --final_tau_momentum 1.0 \
     --momentum_classifier

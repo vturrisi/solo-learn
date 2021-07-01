@@ -1,5 +1,5 @@
 python3 ../../../main_contrastive.py \
-    --dataset cifar10 \
+    --dataset $1 \
     --encoder resnet18 \
     --data_folder /data/datasets \
     --max_epochs 1000 \
