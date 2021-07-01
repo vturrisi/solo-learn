@@ -1,15 +1,15 @@
+N_CLASSES_PER_DATASET = {
+    "cifar10": 10,
+    "cifar100": 100,
+    "stl10": 10,
+    "imagenet": 1000,
+    "imagenet100": 100,
+}
+
+
 def additional_setup_contrastive(args):
     args.transform_kwargs = {}
-    if args.dataset == "cifar10":
-        args.n_classes = 10
-    elif args.dataset == "cifar100":
-        args.n_classes = 100
-    elif args.dataset == "stl10":
-        args.n_classes = 10
-    elif args.dataset == "imagenet":
-        args.n_classes = 1000
-    else:
-        args.n_classes = 100
+    args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
 
     if args.asymmetric_augmentations:
         if args.dataset in ["cifar10", "cifar100"]:
@@ -76,16 +76,7 @@ def additional_setup_contrastive(args):
 
 
 def additional_setup_linear(args):
-    if args.dataset == "cifar10":
-        args.n_classes = 10
-    elif args.dataset == "cifar100":
-        args.n_classes = 100
-    elif args.dataset == "stl10":
-        args.n_classes = 10
-    elif args.dataset == "imagenet":
-        args.n_classes = 1000
-    elif args.dataset == "imagenet100":
-        args.n_classes = 100
+    args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
