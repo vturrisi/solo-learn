@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/vturrisi/solo-learn.svg?branch=main)](https://travis-ci.com/vturrisi/solo-learn)
+[![unit-tests](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml/badge.svg)](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/vturrisi/solo-learn/branch/main/graph/badge.svg?token=WLU9UU17XZ)](https://codecov.io/gh/vturrisi/solo-learn)
 
 # solo-learn
@@ -57,7 +57,7 @@ While the library is self contained, it is possible to use the models outside of
 ## Installation
 To install the repository with dali support, use:
 ```
-pip3 install -e .[dali]
+pip3 install .[dali]
 ```
 
 If no dali support is needed, the repository can be installed as:
@@ -65,7 +65,9 @@ If no dali support is needed, the repository can be installed as:
 pip3 install .
 ```
 
-**NOTE:** Soon to be on pip.
+**NOTE:** If you want to modify the library, install it in dev mode with `-e`.
+
+**NOTE 2:** Soon to be on pip.
 
 ---
 
