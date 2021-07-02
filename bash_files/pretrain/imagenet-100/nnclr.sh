@@ -23,7 +23,8 @@ python3 ../../../main_contrastive.py \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name nnclr-400ep-imagenet100 \
-    --project debug \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method nnclr \
     --temperature 0.2 \

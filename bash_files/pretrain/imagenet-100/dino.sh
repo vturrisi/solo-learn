@@ -25,7 +25,7 @@ python3 ../../../main_contrastive.py \
     --asymmetric_augmentations \
     --name dino-400ep-imagenet100 \
     --entity unitn-mhug \
-    --project contrastive_learning \
+    --project solo-learn \
     --wandb \
     --method dino \
     --output_dim 256 \

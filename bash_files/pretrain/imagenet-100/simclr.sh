@@ -23,7 +23,8 @@ python3 ../../../main_contrastive.py \
     --hue 0.2 \
     --name simclr-400ep-imagenet100 \
     --dali \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method simclr \
     --temperature 0.2 \
@@ -57,7 +58,8 @@ python3 ../../../main_contrastive.py \
     --n_small_crops 6 \
     --name multicrop-simclr-400ep-imagenet100 \
     --dali \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method simclr \
     --proj_hidden_dim 2048 \
@@ -92,7 +94,8 @@ python3 ../../../main_contrastive.py \
     --n_small_crops 6 \
     --name multicrop-supervised-simclr-400ep-imagenet100 \
     --dali \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method simclr \
     --temperature 0.1 \

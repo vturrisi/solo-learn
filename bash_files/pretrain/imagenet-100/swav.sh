@@ -25,7 +25,8 @@ python3 ../../../main_contrastive.py \
     --saturation 0.8 \
     --hue 0.2 \
     --name swav-400ep-imagenet100 \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method swav \
     --proj_hidden_dim 2048 \
