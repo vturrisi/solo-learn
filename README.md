@@ -100,7 +100,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 | Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| Barlow Twins | ResNet18 |  1000  |  :x: |      70.90     |                 |                |                 |            |
 | BYOL         | ResNet18 |  1000  |  :x: |      70.46     |                 |     91.96      |                 |            |
 | DINO         | ResNet18 |  1000  |  :x: |      66.76     |                 |     90.34      |                 |            |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
@@ -114,8 +114,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
-| BYOL         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| Barlow Twins | ResNet50 |   500  | :heavy_check_mark: |      79.80     |                 |      95.28     |                 |            |
+| BYOL         | ResNet50 |   500  | :heavy_check_mark: |      78.88     |                 |      94.52     |                 |            |
 | DINO         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
