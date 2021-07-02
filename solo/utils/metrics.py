@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 import torch
 
 
-def accuracy_at_k(output, target, top_k: Union[List[int], Tuple[int]] = (1, 5)):
+def accuracy_at_k(output, target, top_k: Union[List[int], Tuple[int, ...]] = (1, 5)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
     with torch.no_grad():
         maxk = max(top_k)

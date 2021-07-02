@@ -198,8 +198,8 @@ class MulticropAugmentation:
     def __init__(
         self,
         transform: Callable,
-        size_crops: Union[List[int], Tuple[int]],
-        n_crops: Union[List[int], Tuple[int]],
+        size_crops: Union[List[int], Tuple[int, ...]],
+        n_crops: Union[List[int], Tuple[int, ...]],
         min_scale_crops: Union[List[float], Tuple[float]],
         max_scale_crops: Union[List[float], Tuple[float]],
     ):
@@ -298,8 +298,8 @@ def prepare_n_crop_transform(transform: Callable, n_crops: Optional[int] = None)
 
 def prepare_multicrop_transform(
     transform: Callable,
-    size_crops: Union[List[int], Tuple[int]],
-    n_crops: Optional[Union[List[int], Tuple[int]]] = None,
+    size_crops: Union[List[int], Tuple[int, ...]],
+    n_crops: Optional[Union[List[int], Tuple[int, ...]]] = None,
     min_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
     max_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
 ):

@@ -1,6 +1,5 @@
 import argparse
 
-import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
 from solo.methods.base import BaseModel
@@ -45,7 +44,7 @@ class BarlowTwins(BaseModel):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X: torch.Tensor, *args, **kwargs):
+    def forward(self, X, *args, **kwargs):
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         return {**out, "z": z}
