@@ -94,6 +94,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |                 |     99.78      |                 |            |
 | SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |                 |     99.75      |                 |            |
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| SwAV         | ResNet18 |  1000  |  :x: |      89.17     |                 |     99.68      |                 |            |
 | VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 |            |
 
 ### CIFAR-100
@@ -107,6 +108,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |                 |     91.52      |                 |            |
 | SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |                 |     89.04      |                 |            |
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| SwAV         | ResNet18 |  1000  |  :x: |      64.88     |                 |     88.78      |                 |            |
 | VICReg       | ResNet18 |  1000  |  :x: |      68.54     |                 |     90.83      |                 |            |
 
 ### ImageNet-100
@@ -121,6 +123,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | NNCLR        | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | Simsiam      | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| SwAV         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | VICReg       | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 
 ### ImageNet
@@ -133,6 +136,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | Simsiam      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| SwAV         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
 | VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 
 ## Training efficiency
@@ -147,6 +151,7 @@ Our standardized implementation enables a fair comparison of training efficiency
 | NNCLR        |      |            |                      |                  |            |
 | SimCLR       |      |            |                      |                  |            |
 | Simsiam      |      |            |                      |                  |            |
+| SwAV         |      |            |                      |                  |            |
 | VICReg       |      |            |                      |                  |            |
 <br>
 
