@@ -1,10 +1,10 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -12,7 +12,7 @@ python3 ../../main_contrastive.py \
     --optimizer sgd \
     --scheduler warmup_cosine \
     --lr 0.3 \
-    --classifier_lr 30.0 \
+    --classifier_lr 0.1 \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --num_workers 4 \
@@ -22,9 +22,10 @@ python3 ../../main_contrastive.py \
     --hue 0.1 \
     --min_scale_crop 0.2 \
     --zero_init_residual \
-    --name simsiam \
+    --name simsiam-400ep-imagenet100 \
     --dali \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method simsiam \
     --proj_hidden_dim 2048 \

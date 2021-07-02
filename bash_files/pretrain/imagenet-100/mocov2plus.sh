@@ -1,10 +1,10 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -21,7 +21,7 @@ python3 ../../main_contrastive.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
-    --name mocov2plus \
+    --name mocov2plus-400ep-imagenet100 \
     --project contrastive_learning \
     --wandb \
     --method mocov2plus \

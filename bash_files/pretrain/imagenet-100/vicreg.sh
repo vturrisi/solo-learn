@@ -1,10 +1,10 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
@@ -23,8 +23,9 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --solarization_prob 0.1 \
-    --name vicreg \
-    --project contrastive_learning \
+    --name vicreg-400ep-imagenet100 \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method vicreg \
     --proj_hidden_dim 2048 \
