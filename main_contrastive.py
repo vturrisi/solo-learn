@@ -19,7 +19,7 @@ else:
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.contrastive_dataloader import (
-    prepare_dataloaders,
+    prepare_train_dataloader,
     prepare_datasets,
     prepare_multicrop_transform,
     prepare_n_crop_transform,
@@ -76,11 +76,11 @@ def main():
 
         train_dataset = prepare_datasets(
             args.dataset,
+            transform,
             data_folder=args.data_folder,
             train_dir=args.train_dir,
-            transform=transform,
         )
-        train_loader = prepare_dataloaders(
+        train_loader = prepare_train_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
@@ -99,7 +99,10 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)

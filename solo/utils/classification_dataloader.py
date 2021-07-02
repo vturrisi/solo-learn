@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Callable, Optional
 
 import torchvision
 from torch.utils.data import DataLoader, Dataset
@@ -13,6 +13,9 @@ def prepare_transforms(dataset: str):
 
     Args:
         dataset: dataset name
+    Returns:
+        T_train: training transformation pipeline
+        T_val: validation transformation pipeline
 
     """
 
@@ -89,8 +92,8 @@ def prepare_transforms(dataset: str):
 
 def prepare_datasets(
     dataset: str,
-    T_train: transforms.Compose,
-    T_val: transforms.Compose,
+    T_train: Callable,
+    T_val: Callable,
     data_dir: Optional[str] = None,
     train_dir: Optional[str] = None,
     val_dir: Optional[str] = None,
@@ -105,6 +108,9 @@ def prepare_datasets(
         data_dir: path where to download/locate the dataset
         train_dir: subpath where the training data is located
         val_dir: subpath where the validation data is located
+    Returns:
+        train_dataset: training dataset
+        val_dataset: validation dataset
 
     """
 
@@ -175,6 +181,9 @@ def prepare_dataloaders(
         val_dataset: Dataset object containing validation data
         batch_size: batch size :)
         num_workers: number of parallel workers
+    Returns:
+        train_loader: training dataset wrapped in a dataloader
+        val_loader: validation dataset wrapped in a dataloader
 
     """
 
@@ -214,6 +223,9 @@ def prepare_data(
         val_dir: subpath where the validation data is located
         batch_size: bash size :)
         num_workers: number of parallel workers
+    Returns:
+        train_loader: prepared training dataloader
+        val_loader: prepared validation dataloader
 
     """
     T_train, T_val = prepare_transforms(dataset)

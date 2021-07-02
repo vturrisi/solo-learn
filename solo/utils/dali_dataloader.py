@@ -1,3 +1,5 @@
+from typing import Callable, Iterable, Union
+
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
@@ -5,8 +7,15 @@ from nvidia.dali.pipeline import Pipeline
 
 
 class Mux:
-    # DALI doesn't support probabilistic augmentations, so we use muxing.
-    def __init__(self, prob):
+    def __init__(self, prob: float):
+        """
+        Implements mutex operation for dali in order to support probabilitics augmentations
+
+        Args:
+            prob: probability value
+
+        """
+
         self.to_bool = ops.Cast(dtype=types.DALIDataType.BOOL)
         self.rng = ops.random.CoinFlip(probability=prob)
 
@@ -17,7 +26,7 @@ class Mux:
 
 
 class RandomGrayScaleConversion:
-    def __init__(self, prob=0.2, device="gpu"):
+    def __init__(self, prob: float = 0.2, device: str = "gpu"):
         self.mux = Mux(prob=prob)
         self.grayscale = ops.ColorSpaceConversion(
             device=device, image_type=types.RGB, output_type=types.GRAY
@@ -32,12 +41,12 @@ class RandomGrayScaleConversion:
 class RandomColorJitter:
     def __init__(
         self,
-        brightness=0.8,
-        contrast=0.8,
-        saturation=0.8,
-        hue=0.2,
-        prob=0.8,
-        device="gpu",
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        prob: float = 0.8,
+        device: str = "gpu",
     ):
         assert 0 <= hue <= 0.5
 
@@ -66,7 +75,7 @@ class RandomColorJitter:
 
 
 class RandomGaussianBlur:
-    def __init__(self, prob=0.5, device="gpu"):
+    def __init__(self, prob: float = 0.5, device: str = "gpu"):
         self.mux = Mux(prob=prob)
         # gaussian blur
         self.gaussian_blur = ops.GaussianBlur(device=device, window_size=(23, 23))
@@ -79,7 +88,7 @@ class RandomGaussianBlur:
 
 
 class RandomSolarize:
-    def __init__(self, threshold=128, prob=0.0):
+    def __init__(self, threshold: int = 128, prob: float = 0.0):
         self.mux = Mux(prob=prob)
 
         self.threshold = threshold
@@ -95,14 +104,14 @@ class NormalPipeline(Pipeline):
     def __init__(
         self,
         data_path,
-        batch_size,
-        device,
-        validation=False,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
+        batch_size: int,
+        device: str,
+        validation: bool = False,
+        device_id: int = 0,
+        shard_id: int = 0,
+        num_shards: int = 1,
+        num_threads: int = 4,
+        seed: int = 12,
     ):
         seed += device_id
         super().__init__(batch_size, num_threads, device_id, seed)
@@ -186,16 +195,16 @@ class NormalPipeline(Pipeline):
 class ImagenetTransform:
     def __init__(
         self,
-        device,
-        brightness=0.8,
-        contrast=0.8,
-        saturation=0.8,
-        hue=0.2,
-        gaussian_prob=0.5,
-        solarization_prob=0.0,
-        size=224,
-        min_scale=0.08,
-        max_scale=1.0,
+        device: str,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
+        size: int = 224,
+        min_scale: float = 0.08,
+        max_scale: float = 1.0,
     ):
         # random crop
         self.random_crop = ops.RandomResizedCrop(
@@ -247,17 +256,17 @@ class ImagenetTransform:
 class ContrastivePipeline(Pipeline):
     def __init__(
         self,
-        data_path,
-        batch_size,
-        device,
-        transform,
-        n_crops=2,
-        random_shuffle=True,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
+        data_path: str,
+        batch_size: int,
+        device: str,
+        transform: Union[Callable, Iterable],
+        n_crops: int = 2,
+        random_shuffle: bool = True,
+        device_id: int = 0,
+        shard_id: int = 0,
+        num_shards: int = 1,
+        num_threads: int = 4,
+        seed: int = 12,
     ):
         seed += device_id
         super().__init__(
@@ -290,7 +299,7 @@ class ContrastivePipeline(Pipeline):
         # transformations
         self.transform = transform
 
-        if isinstance(transform, list):
+        if isinstance(transform, Iterable):
             self.one_transform_per_crop = True
         else:
             self.one_transform_per_crop = False
@@ -317,20 +326,20 @@ class ContrastivePipeline(Pipeline):
 class MulticropContrastivePipeline(Pipeline):
     def __init__(
         self,
-        data_path,
-        batch_size,
-        device,
-        transforms,
-        n_crops,
-        size_crops,
-        min_scale_crops,
-        max_scale_crops,
-        random_shuffle=True,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
+        data_path: str,
+        batch_size: int,
+        device: str,
+        transforms: Callable,
+        n_crops: Iterable[int],
+        size_crops: Iterable[int],
+        min_scale_crops: Iterable[float],
+        max_scale_crops: Iterable[float],
+        random_shuffle: bool = True,
+        device_id: int = 0,
+        shard_id: int = 0,
+        num_shards: int = 1,
+        num_threads: int = 4,
+        seed: int = 12,
     ):
         seed += device_id
         super().__init__(

@@ -1,13 +1,23 @@
 import os
 import random
+from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 from PIL import ImageFilter, ImageOps
 from torch.utils.data import DataLoader
+from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
 
 
 def dataset_with_index(DatasetClass):
+    """
+    Factory for datasets that also returns the data index.
+
+    Args:
+        DatasetClass: Dataset class to be wrapped
+
+    """
+
     class DatasetWithIndex(DatasetClass):
         def __getitem__(self, index):
             data = super().__getitem__(index)
@@ -16,8 +26,16 @@ def dataset_with_index(DatasetClass):
     return DatasetWithIndex
 
 
-class GaussianBlur(object):
-    def __init__(self, sigma=[0.1, 2.0]):
+class GaussianBlur:
+    def __init__(self, sigma: Union[List[float], Tuple[float]] = [0.1, 2.0]):
+        """
+        Gaussian blur as a callable object.
+
+        Args:
+            sigma: range to sample the radius of the guassian blur filter
+
+        """
+
         self.sigma = sigma
 
     def __call__(self, x):
@@ -27,15 +45,31 @@ class GaussianBlur(object):
 
 
 class Solarization:
+    """
+    Solarization as a callable object.
+
+    """
+
     def __call__(self, img):
         return ImageOps.solarize(img)
 
 
 class NCropAugmentation:
-    def __init__(self, transform, n_crops=None):
+    def __init__(self, transform: Union[Callable, List, Tuple], n_crops: Optional[int] = None):
+        """
+        Creates a pipeline that apply a transformation pipeline multiple times.
+
+        Args:
+            transform: transformation pipeline or list of transformation pipelines
+            n_crops: if transformation pipeline is not a list, applies the same
+                pipeline n_crops times, if it is a list, this is ignored and each
+                element of the list is applied once
+
+        """
+
         self.transform = transform
 
-        if isinstance(transform, list):
+        if isinstance(transform, Iterable):
             self.one_transform_per_crop = True
             assert n_crops == len(transform)
         else:
@@ -46,10 +80,15 @@ class NCropAugmentation:
         if self.one_transform_per_crop:
             return [transform(x) for transform in self.transform]
         else:
-            return [self.transform(x) for i in range(self.n_crops)]
+            return [self.transform(x) for _ in range(self.n_crops)]
 
 
 class BaseTransform:
+    """
+    Adds callable base class to implement different transformation pipelines.
+
+    """
+
     def __call__(self, x):
         return self.transform(x)
 
@@ -60,13 +99,13 @@ class BaseTransform:
 class CifarTransform(BaseTransform):
     def __init__(
         self,
-        brightness,
-        contrast,
-        saturation,
-        hue,
-        gaussian_prob=0.0,
-        solarization_prob=0.0,
-        min_scale_crop=0.08,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.0,
+        solarization_prob: float = 0.0,
+        min_scale_crop: float = 0.08,
     ):
         super().__init__()
 
@@ -93,13 +132,13 @@ class CifarTransform(BaseTransform):
 class STLTransform(BaseTransform):
     def __init__(
         self,
-        brightness,
-        contrast,
-        saturation,
-        hue,
-        gaussian_prob=0.0,
-        solarization_prob=0.0,
-        min_scale_crop=0.08,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.0,
+        solarization_prob: float = 0.0,
+        min_scale_crop: float = 0.08,
     ):
         super().__init__()
         self.transform = transforms.Compose(
@@ -125,13 +164,13 @@ class STLTransform(BaseTransform):
 class ImagenetTransform(BaseTransform):
     def __init__(
         self,
-        brightness,
-        contrast,
-        saturation,
-        hue,
-        gaussian_prob=0.5,
-        solarization_prob=0.0,
-        min_scale_crop=0.08,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
+        min_scale_crop: float = 0.08,
     ):
         super().__init__()
         self.transform = transforms.Compose(
@@ -158,11 +197,11 @@ class ImagenetTransform(BaseTransform):
 class MulticropAugmentation:
     def __init__(
         self,
-        transform,
-        size_crops,
-        n_crops,
-        min_scale_crops,
-        max_scale_crops,
+        transform: Callable,
+        size_crops: Union[List[int], Tuple[int]],
+        n_crops: Union[List[int], Tuple[int]],
+        min_scale_crops: Union[List[float], Tuple[float]],
+        max_scale_crops: Union[List[float], Tuple[float]],
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -217,7 +256,13 @@ class MulticropSTLTransform(BaseTransform):
 
 class MulticropImagenetTransform(BaseTransform):
     def __init__(
-        self, brightness, contrast, saturation, hue, gaussian_prob=0.5, solarization_prob=0
+        self,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
     ):
         super().__init__()
         self.transform = transforms.Compose(
@@ -236,7 +281,7 @@ class MulticropImagenetTransform(BaseTransform):
         )
 
 
-def prepare_transform(dataset, multicrop=False, **kwargs):
+def prepare_transform(dataset, multicrop: bool = False, **kwargs):
     if dataset in ["cifar10", "cifar100"]:
         return CifarTransform(**kwargs) if not multicrop else MulticropCifarTransform()
     elif dataset == "stl10":
@@ -247,12 +292,16 @@ def prepare_transform(dataset, multicrop=False, **kwargs):
         )
 
 
-def prepare_n_crop_transform(transform, n_crops=None):
+def prepare_n_crop_transform(transform: Callable, n_crops: Optional[int] = None):
     return NCropAugmentation(transform, n_crops)
 
 
 def prepare_multicrop_transform(
-    transform, size_crops, n_crops=None, min_scale_crops=None, max_scale_crops=None
+    transform: Callable,
+    size_crops: Union[List[int], Tuple[int]],
+    n_crops: Optional[Union[List[int], Tuple[int]]] = None,
+    min_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
+    max_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
 ):
     if n_crops is None:
         n_crops = [2, 6]
@@ -270,7 +319,12 @@ def prepare_multicrop_transform(
     )
 
 
-def prepare_datasets(dataset, data_dir=None, train_dir=None, transform=None):
+def prepare_datasets(
+    dataset,
+    transform: Callable,
+    data_dir: Optional[str] = None,
+    train_dir: Optional[str] = None,
+):
     if data_dir is None:
         sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         data_dir = os.path.join(sandbox_folder, "datasets")
@@ -309,7 +363,7 @@ def prepare_datasets(dataset, data_dir=None, train_dir=None, transform=None):
     return train_dataset
 
 
-def prepare_dataloaders(train_dataset, batch_size=64, num_workers=4):
+def prepare_dataloaders(train_dataset: Dataset, batch_size: int = 64, num_workers: int = 4):
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
