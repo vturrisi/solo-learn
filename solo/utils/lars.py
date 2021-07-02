@@ -13,7 +13,14 @@ class LARSWrapper:
     Wrapper that adds LARS scheduling to any optimizer. This helps stability with huge batch sizes.
     """
 
-    def __init__(self, optimizer, eta=0.02, clip=True, eps=1e-8, exclude_bias_n_norm=False):
+    def __init__(
+        self,
+        optimizer: Optimizer,
+        eta: float = 0.02,
+        clip: bool = True,
+        eps: float = 1e-8,
+        exclude_bias_n_norm: bool = False,
+    ):
         """
         Args:
             optimizer: torch optimizer

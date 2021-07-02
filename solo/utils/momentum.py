@@ -13,7 +13,7 @@ def initialize_momentum_params(online_encoder, momentum_encoder):
 
 
 class MomentumUpdater:
-    def __init__(self, base_tau=0.996, final_tau=1.0):
+    def __init__(self, base_tau: float = 0.996, final_tau: float = 1.0):
         super().__init__()
         self.base_tau = base_tau
         self.cur_tau = base_tau

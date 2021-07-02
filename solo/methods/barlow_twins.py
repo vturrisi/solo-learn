@@ -1,10 +1,15 @@
+import argparse
+
+import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
 from solo.methods.base import BaseModel
 
 
 class BarlowTwins(BaseModel):
-    def __init__(self, proj_hidden_dim, output_dim, lamb, scale_loss, **kwargs):
+    def __init__(
+        self, proj_hidden_dim: int, output_dim: int, lamb: float, scale_loss: float, **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.lamb = lamb
@@ -22,7 +27,7 @@ class BarlowTwins(BaseModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser):
         parent_parser = super(BarlowTwins, BarlowTwins).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("barlow_twins")
 
@@ -40,7 +45,7 @@ class BarlowTwins(BaseModel):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs):
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         return {**out, "z": z}

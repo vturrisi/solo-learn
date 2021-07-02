@@ -3,14 +3,14 @@ import torch.distributed as dist
 
 
 class SinkhornKnopp(torch.nn.Module):
-    def __init__(self, num_iters=3, epsilon=0.05, world_size=1):
+    def __init__(self, num_iters: int = 3, epsilon: float = 0.05, world_size: int = 1):
         super().__init__()
         self.num_iters = num_iters
         self.epsilon = epsilon
         self.world_size = world_size
 
     @torch.no_grad()
-    def forward(self, Q):
+    def forward(self, Q: torch.Tensor):
         Q = torch.exp(Q / self.epsilon).t()
         B = Q.shape[1] * self.world_size
         K = Q.shape[0]  # num prototypes

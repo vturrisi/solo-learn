@@ -303,6 +303,20 @@ def prepare_multicrop_transform(
     min_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
     max_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
 ):
+    """
+    Prepares multicrop transformations by creating custom crops given the parameters
+
+    Args:
+        transform: basic transformation callable without cropping
+        n_crops: list with number of crops per crop size
+        min_scale_crops: list with minimum crop scales per crop size
+        max_scale_crops: list with maxium crop scales per crop size
+    Returns:
+        MulticropAugmentation: prepared augmentation pipeline that supports
+        multicrop with different sizes
+
+    """
+
     if n_crops is None:
         n_crops = [2, 6]
     if min_scale_crops is None:
