@@ -1,4 +1,4 @@
-from argparse import Namespace
+import argparse
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -9,7 +9,7 @@ N_CLASSES_PER_DATASET = {
 }
 
 
-def additional_setup_contrastive(args: Namespace):
+def additional_setup_contrastive(args: argparse.Namespace):
     """
     Provides final setup for contrastive pretrain to non-user given parameters by changing args.
 
@@ -18,7 +18,7 @@ def additional_setup_contrastive(args: Namespace):
     is being used and adjust the lr.
 
     Args:
-        args: A Namespace object that needs to contain, at least:
+        args: Namespace object that needs to contain, at least:
             - dataset: dataset name
             - brightness, contrast, saturation, hue, min_scale_crop: required augmentations settings
             - asymmetric_augmentations: flag to apply asymmetric augmentations
@@ -102,7 +102,7 @@ def additional_setup_contrastive(args: Namespace):
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
 
-def additional_setup_linear(args: Namespace):
+def additional_setup_linear(args: argparse.Namespace):
     """
     Provides final setup for linear evaluation to non-user given parameters by changing args.
 
@@ -110,7 +110,7 @@ def additional_setup_linear(args: Namespace):
     correctly parse gpus, identify if a cifar dataset is being used and adjust the lr.
 
     Args:
-        args: A Namespace object that needs to contain, at least:
+        args: Namespace object that needs to contain, at least:
             - dataset: dataset name
             - optimizer: optimizer name being used
             - gpus: list of gpus to use
