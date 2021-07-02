@@ -15,7 +15,7 @@ python3 ../../../main_contrastive.py \
     --scheduler warmup_cosine \
     --lr 1.0 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-6 \
+    --weight_decay 1e-5 \
     --batch_size 128 \
     --num_workers 8 \
     --dali \
@@ -30,6 +30,6 @@ python3 ../../../main_contrastive.py \
     --method byol \
     --output_dim 256 \
     --proj_hidden_dim 4096 \
-    --pred_hidden_dim 4096 \
+    --pred_hidden_dim 8192 \
     --base_tau_momentum 0.99 \
     --final_tau_momentum 1.0
