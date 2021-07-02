@@ -2,11 +2,31 @@ import torch
 import torch.nn.functional as F
 
 
-def invariance_loss(z1, z2):
+def invariance_loss(z1: torch.Tensor, z2: torch.Tensor):
+    """
+    Applies mse loss given batch of projected features z1 from view 1 and
+    projected features z2 from view 2.
+
+    Args:
+        z1: NxD Tensor containing projected features from view 1
+        z2: NxD Tensor containing projected features from view 2
+
+    """
+
     return F.mse_loss(z1, z2)
 
 
-def variance_loss(z1, z2):
+def variance_loss(z1: torch.Tensor, z2: torch.Tensor):
+    """
+    Applies variance loss given batch of projected features z1 from view 1 and
+    projected features z2 from view 2.
+
+    Args:
+        z1: NxD Tensor containing projected features from view 1
+        z2: NxD Tensor containing projected features from view 2
+
+    """
+
     eps = 1e-4
     std_z1 = torch.sqrt(z1.var(dim=0) + eps)
     std_z2 = torch.sqrt(z2.var(dim=0) + eps)
@@ -14,7 +34,17 @@ def variance_loss(z1, z2):
     return std_loss
 
 
-def covariance_loss(z1, z2):
+def covariance_loss(z1: torch.Tensor, z2: torch.Tensor):
+    """
+    Applies covariance loss given batch of projected features z1 from view 1 and
+    projected features z2 from view 2.
+
+    Args:
+        z1: NxD Tensor containing projected features from view 1
+        z2: NxD Tensor containing projected features from view 2
+
+    """
+
     N, D = z1.size()
 
     z1 = z1 - z1.mean(dim=0)
@@ -27,7 +57,26 @@ def covariance_loss(z1, z2):
     return cov_loss
 
 
-def vicreg_loss_func(z1, z2, sim_loss_weight=25.0, var_loss_weight=25.0, cov_loss_weight=1.0):
+def vicreg_loss_func(
+    z1: torch.Tensor,
+    z2: torch.Tensor,
+    sim_loss_weight: float = 25.0,
+    var_loss_weight: float = 25.0,
+    cov_loss_weight: float = 1.0,
+):
+    """
+    Applies VICReg's loss given batch of projected features z1 from view 1 and
+    projected features z2 from view 2.
+
+    Args:
+        z1: NxD Tensor containing projected features from view 1
+        z2: NxD Tensor containing projected features from view 2
+        sim_loss_weight: invariance loss weight
+        var_loss_weight: variance loss weight
+        cov_loss_weight: covariance loss weight
+
+    """
+
     sim_loss = invariance_loss(z1, z2)
     var_loss = variance_loss(z1, z2)
     cov_loss = covariance_loss(z1, z2)

@@ -1,4 +1,15 @@
-def dataset_args(parser):
+from argparse import ArgumentParser
+
+
+def dataset_args(parser: ArgumentParser):
+    """
+    Adds dataset-related arguments to a parser.
+
+    Args:
+        parser: ArgumentParser to add dataset args to
+
+    """
+
     SUPPORTED_DATASETS = [
         "cifar10",
         "cifar100",
@@ -19,7 +30,14 @@ def dataset_args(parser):
     parser.add_argument("--last_batch_fill", action="store_true")
 
 
-def augmentations_args(parser):
+def augmentations_args(parser: ArgumentParser):
+    """
+    Adds augmentation-related arguments to a parser.
+
+    Args:
+        parser: ArgumentParser to add augmentation args to
+    """
+
     # cropping
     parser.add_argument("--multicrop", action="store_true")
     parser.add_argument("--n_crops", type=int, default=2)

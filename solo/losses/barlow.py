@@ -1,7 +1,21 @@
 import torch
 
 
-def barlow_loss_func(z1, z2, lamb=5e-3, scale_loss=0.025):
+def barlow_loss_func(
+    z1: torch.Tensor, z2: torch.Tensor, lamb: float = 5e-3, scale_loss: float = 0.025
+):
+    """
+    Applies Barlow Twins' loss given batch of projected features z1 from view 1 and
+    projected features z2 from view 2.
+
+    Args:
+        z1: NxD Tensor containing projected features from view 1
+        z2: NxD Tensor containing projected features from view 2
+        lamb: off-diagonal scaling factor for the cross-covariance matrix
+        scale_loss: final scaling factor of the loss
+
+    """
+
     N, D = z1.size()
 
     # to match the original code
