@@ -33,7 +33,7 @@ def simclr_loss_func(
     logits = logits - logits_max.detach()
 
     # positive mask are matches i, j (i from aug1, j from aug2), where i == j and matches j, i
-    pos_mask = torch.zeros((2 * b, 2 * b), dtype=bool, device=device)
+    pos_mask = torch.zeros((2 * b, 2 * b), dtype=torch.bool, device=device)
     pos_mask[:, b:].fill_diagonal_(True)
     pos_mask[b:, :].fill_diagonal_(True)
 

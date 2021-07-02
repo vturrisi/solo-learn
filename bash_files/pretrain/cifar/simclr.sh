@@ -1,7 +1,7 @@
 python3 ../../../main_contrastive.py \
     --dataset $1 \
     --encoder resnet18 \
-    --data_folder /data/datasets \
+    --data_dir /data/datasets \
     --max_epochs 1000 \
     --gpus 1 \
     --precision 16 \

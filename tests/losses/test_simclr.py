@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 from einops import repeat
 from solo.losses import manual_simclr_loss_func, simclr_loss_func
 
@@ -22,10 +21,6 @@ def test_simclr_loss():
         z1.grad = z2.grad = None
 
     assert loss < initial_loss
-
-    assert simclr_loss_func(
-        F.normalize(z1, dim=-1), F.normalize(z2, dim=-1), temperature=0.1, normalize=False
-    ) == simclr_loss_func(z1, z2, temperature=0.1)
 
 
 def test_manual_simclr_loss():

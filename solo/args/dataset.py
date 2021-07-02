@@ -21,7 +21,7 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--dataset", choices=SUPPORTED_DATASETS, type=str, required=True)
 
     # dataset path
-    parser.add_argument("--data_folder", type=str, required=True)
+    parser.add_argument("--data_dir", type=str, required=True)
     parser.add_argument("--train_dir", type=str, default=None)
     parser.add_argument("--val_dir", type=str, default=None)
     # dali (imagenet-100/imagenet only)

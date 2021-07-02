@@ -34,7 +34,12 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
+        self,
+        *args,
+        model_batch_size=None,
+        model_rank=None,
+        model_device=None,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -82,7 +87,7 @@ class ContrastiveABC(ABC):
 
         batch_size = self.extra_args["batch_size"]
         num_workers = self.extra_args["num_workers"]
-        data_folder = self.extra_args["data_folder"]
+        data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
 
         if self.multicrop:
@@ -107,7 +112,7 @@ class ContrastiveABC(ABC):
                 )
                 transforms.append(transform)
             train_pipeline = MulticropContrastivePipeline(
-                os.path.join(data_folder, train_dir),
+                os.path.join(data_dir, train_dir),
                 batch_size=batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
@@ -170,7 +175,7 @@ class ContrastiveABC(ABC):
                     max_scale=1.0,
                 )
             train_pipeline = ContrastivePipeline(
-                os.path.join(data_folder, train_dir),
+                os.path.join(data_dir, train_dir),
                 batch_size=batch_size,
                 transform=transform,
                 device=dali_device,
@@ -208,11 +213,11 @@ class ClassificationABC(ABC):
         batch_size = self.extra_args["batch_size"]
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
-        data_folder = self.extra_args["data_folder"]
+        data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
 
         train_pipeline = NormalPipeline(
-            os.path.join(data_folder, train_dir),
+            os.path.join(data_dir, train_dir),
             validation=False,
             batch_size=batch_size,
             device=dali_device,
@@ -238,11 +243,11 @@ class ClassificationABC(ABC):
         batch_size = self.extra_args["batch_size"]
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
-        data_folder = self.extra_args["data_folder"]
+        data_dir = self.extra_args["data_dir"]
         val_dir = self.extra_args["val_dir"]
 
         val_pipeline = NormalPipeline(
-            os.path.join(data_folder, val_dir),
+            os.path.join(data_dir, val_dir),
             validation=True,
             batch_size=batch_size,
             device=dali_device,

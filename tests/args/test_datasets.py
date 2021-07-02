@@ -8,7 +8,7 @@ def test_argparse_dataset():
     actions = [vars(action)["dest"] for action in vars(parser)["_actions"]]
 
     assert "dataset" in actions
-    assert "data_folder" in actions
+    assert "data_dir" in actions
     assert "train_dir" in actions
     assert "val_dir" in actions
     assert "dali" in actions
@@ -33,4 +33,3 @@ def test_argparse_augmentations():
     assert "solarization_prob" in actions
     assert "min_scale_crop" in actions
     assert "asymmetric_augmentations" in actions
-

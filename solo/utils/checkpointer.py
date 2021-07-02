@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from typing import Optional
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
@@ -64,7 +65,7 @@ class Checkpointer(Callback):
         else:
             self.path = self.logdir
             self.ckpt_placeholder = f"{self.args.name}" + "-ep={}.ckpt"
-        self.last_ckpt = None
+        self.last_ckpt: Optional[str] = None
 
         # create logging dirs
         if trainer.is_global_zero:

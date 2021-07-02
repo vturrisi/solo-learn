@@ -142,7 +142,8 @@ class ImagenetTransform(BaseTransform):
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -156,7 +157,12 @@ class ImagenetTransform(BaseTransform):
 
 class MulticropAugmentation:
     def __init__(
-        self, transform, size_crops, n_crops, min_scale_crops, max_scale_crops,
+        self,
+        transform,
+        size_crops,
+        n_crops,
+        min_scale_crops,
+        max_scale_crops,
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -217,7 +223,8 @@ class MulticropImagenetTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -263,34 +270,40 @@ def prepare_multicrop_transform(
     )
 
 
-def prepare_datasets(dataset, data_folder=None, train_dir=None, transform=None):
-    if data_folder is None:
+def prepare_datasets(dataset, data_dir=None, train_dir=None, transform=None):
+    if data_dir is None:
         sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        data_folder = os.path.join(sandbox_folder, "datasets")
+        data_dir = os.path.join(sandbox_folder, "datasets")
 
     if train_dir is None:
         train_dir = f"{dataset}/train"
 
     if dataset == "cifar10":
         train_dataset = dataset_with_index(CIFAR10)(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_dir, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "cifar100":
         train_dataset = dataset_with_index(CIFAR100)(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_dir, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "stl10":
         train_dataset = dataset_with_index(STL10)(
-            os.path.join(data_folder, train_dir),
+            os.path.join(data_dir, train_dir),
             split="train+unlabeled",
             download=True,
             transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
-        train_dir = os.path.join(data_folder, train_dir)
+        train_dir = os.path.join(data_dir, train_dir)
         train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
 
     return train_dataset
