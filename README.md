@@ -87,40 +87,27 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 | Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| DINO         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| Barlow Twins | ResNet18 |  1000  |  :x: |      92.10     |                 |     99.73      |                 |            |
+| BYOL         | ResNet18 |  1000  |  :x: |      92.58     |                 |     99.79      |                 |            |
+| DINO         | ResNet18 |  1000  |  :x: |      89.52     |                 |     99.71      |                 |            |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |                 |     99.78      |                 |            |
+| SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |                 |     99.75      |                 |            |
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| VICReg       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 |            |
 
 ### CIFAR-100
 
 | Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| DINO         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| BYOL         | ResNet18 |  1000  |  :x: |      70.46     |                 |     91.96      |                 |            |
+| DINO         | ResNet18 |  1000  |  :x: |      66.76     |                 |     90.34      |                 |            |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |                 |     91.52      |                 |            |
+| SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |                 |     89.04      |                 |            |
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| VICReg       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-
-### STL-10
-
-| Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
-|--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| BYOL         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| DINO         | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| MoCo V2+     | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| NNCLR        | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| SimCLR       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
-| VICReg       | ResNet18 |  1000  |  :x: |                |                 |                |                 |            |
+| VICReg       | ResNet18 |  1000  |  :x: |      68.54     |                 |     90.83      |                 |            |
 
 ### ImageNet-100
 
@@ -140,7 +127,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6      |                 |      86.7      |                 |            |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6      |      67.07      |      86.7      |      87.81      |            |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
