@@ -1,4 +1,4 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /data/datasets \
@@ -24,10 +24,10 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name byol \
+    --name byol-400ep-imagenet100 \
     --project contrastive_learning \
     --wandb \
-    --method byol-400ep-imagenet100 \
+    --method byol \
     --output_dim 256 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \

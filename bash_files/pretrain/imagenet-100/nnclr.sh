@@ -1,4 +1,4 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \

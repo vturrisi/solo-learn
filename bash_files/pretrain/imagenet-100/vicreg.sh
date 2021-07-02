@@ -1,4 +1,4 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
@@ -23,10 +23,10 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --solarization_prob 0.1 \
-    --name vicreg \
+    --name vicreg-400ep-imagenet100 \
     --project contrastive_learning \
     --wandb \
-    --method vicreg-400ep-imagenet100 \
+    --method vicreg \
     --proj_hidden_dim 2048 \
     --output_dim 2048 \
     --sim_loss_weight 25.0 \

@@ -1,4 +1,4 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
@@ -23,7 +23,7 @@ python3 ../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name barlow-imagenet100 \
+    --name barlow-400ep-imagenet100 \
     --project contrastive_learning \
     --wandb \
     --method barlow_twins \

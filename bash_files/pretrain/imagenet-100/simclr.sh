@@ -1,4 +1,4 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
@@ -29,7 +29,7 @@ python3 ../../main_contrastive.py \
     --temperature 0.2 \
     --proj_hidden_dim 2048
 
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \
@@ -63,7 +63,7 @@ python3 ../../main_contrastive.py \
     --proj_hidden_dim 2048 \
     --temperature 0.1
 
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_folder /datasets \

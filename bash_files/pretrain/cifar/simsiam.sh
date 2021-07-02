@@ -4,21 +4,22 @@ python3 ../../../main_contrastive.py \
     --data_folder ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
-    --lars \
-    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 1.0 \
+    --lr 0.3 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-5 \
+    --weight_decay 1e-4 \
     --batch_size 256 \
-    --num_workers 5 \
+    --num_workers 4 \
     --brightness 0.4 \
     --contrast 0.4 \
-    --saturation 0.2 \
+    --saturation 0.4 \
     --hue 0.1 \
-    --asymmetric_augmentations \
+    --min_scale_crop 0.2 \
+    --zero_init_residual \
     --name simsiam-$1 \
     --project solo-learn \
     --entity unitn-mhug \
