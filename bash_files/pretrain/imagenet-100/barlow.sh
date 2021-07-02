@@ -1,32 +1,32 @@
-python3 ../../main_contrastive.py \
+python3 ../../../main_contrastive.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /data/datasets \
+    --data_folder /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 100 \
+    --max_epochs 400 \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
+    --num_workers 4 \
     --precision 16 \
     --optimizer sgd \
-    --scheduler cosine \
-    --lr 0.03 \
-    --classifier_lr 0.03 \
+    --lars \
+    --exclude_bias_n_norm \
+    --scheduler warmup_cosine \
+    --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --num_workers 8 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \
-    --saturation 0.4 \
+    --saturation 0.2 \
     --hue 0.1 \
-    --name mocov2plus \
+    --asymmetric_augmentations \
+    --name barlow-400ep-imagenet100 \
     --project contrastive_learning \
     --wandb \
-    --method mocov2plus \
-    --proj_hidden_dim 512 \
-    --queue_size 65536 \
-    --temperature 0.07 \
-    --base_tau_momentum 0.999 \
-    --final_tau_momentum 0.999
+    --method barlow_twins \
+    --proj_hidden_dim 2048 \
+    --output_dim 2048 \
+    --scale_loss 0.1

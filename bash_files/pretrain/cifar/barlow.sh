@@ -1,13 +1,9 @@
-python3 ../../main_contrastive.py \
-    --dataset imagenet100 \
+python3 ../../../main_contrastive.py \
+    --dataset $1 \
     --encoder resnet18 \
-    --data_folder /datasets \
-    --train_dir imagenet-100/train \
-    --val_dir imagenet-100/val \
-    --max_epochs 100 \
-    --gpus 0,1 \
-    --distributed_backend ddp \
-    --sync_batchnorm \
+    --data_folder ./datasets \
+    --max_epochs 1000 \
+    --gpus 0 \
     --num_workers 4 \
     --precision 16 \
     --optimizer sgd \
@@ -16,15 +12,15 @@ python3 ../../main_contrastive.py \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
-    --batch_size 128 \
-    --dali \
+    --batch_size 256 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
     --asymmetric_augmentations \
-    --name barlow \
-    --project contrastive_learning \
+    --name barlow-$1 \
+    --project solo-learn \
+    --entity unitn-mhug \
     --wandb \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
