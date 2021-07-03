@@ -16,10 +16,11 @@ python3 ../../../main_contrastive.py \
     --lr 0.4 \
     --weight_decay 1e-5 \
     --batch_size 128 \
-    --num_workers 10 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
+    --num_workers 8 \
+    --dali \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name nnclr-400ep-imagenet100 \
