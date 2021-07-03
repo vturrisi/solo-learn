@@ -18,6 +18,7 @@ python3 ../../../main_contrastive.py \
     --weight_decay 1e-6 \
     --batch_size 128 \
     --num_workers 8 \
+    --dali \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
@@ -25,7 +26,7 @@ python3 ../../../main_contrastive.py \
     --asymmetric_augmentations \
     --name dino-400ep-imagenet100 \
     --entity unitn-mhug \
-    --project contrastive_learning \
+    --project solo-learn \
     --wandb \
     --method dino \
     --output_dim 256 \

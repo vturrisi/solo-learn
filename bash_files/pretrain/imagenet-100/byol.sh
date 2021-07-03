@@ -25,7 +25,8 @@ python3 ../../../main_contrastive.py \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name byol-400ep-imagenet100 \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method byol \
     --output_dim 256 \

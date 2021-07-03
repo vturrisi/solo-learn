@@ -24,8 +24,8 @@ python3 ../../../main_contrastive.py \
     --zero_init_residual \
     --name simsiam-400ep-imagenet100 \
     --dali \
-    --project solo-learn \
     --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method simsiam \
     --proj_hidden_dim 2048 \

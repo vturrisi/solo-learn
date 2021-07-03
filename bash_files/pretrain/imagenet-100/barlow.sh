@@ -24,7 +24,8 @@ python3 ../../../main_contrastive.py \
     --hue 0.1 \
     --asymmetric_augmentations \
     --name barlow-400ep-imagenet100 \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method barlow_twins \
     --proj_hidden_dim 2048 \

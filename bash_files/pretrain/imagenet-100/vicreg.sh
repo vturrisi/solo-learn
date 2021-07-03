@@ -16,7 +16,8 @@ python3 ../../../main_contrastive.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --num_workers 8 \
+    --num_workers 6 \
+    --dali \
     --min_scale_crop 0.2 \
     --brightness 0.4 \
     --contrast 0.4 \
@@ -24,7 +25,8 @@ python3 ../../../main_contrastive.py \
     --hue 0.1 \
     --solarization_prob 0.1 \
     --name vicreg-400ep-imagenet100 \
-    --project contrastive_learning \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --method vicreg \
     --proj_hidden_dim 2048 \
