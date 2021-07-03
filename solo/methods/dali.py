@@ -35,10 +35,10 @@ class BaseWrapper(DALIGenericIterator):
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
         self,
+        model_batch_size: int,
+        model_rank: int,
+        model_device: str,
         *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
