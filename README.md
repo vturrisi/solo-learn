@@ -122,7 +122,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
+| Barlow Twins | ResNet50 |   500  | :heavy_check_mark: |      79.70     |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
 | BYOL         | ResNet50 |   500  | :heavy_check_mark: |      79.76     |                 |      94.80     |                 | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
 | DINO         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
 | MoCo V2+     | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
@@ -137,7 +137,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6*     |      67.07      |      86.7      |      87.81      |            |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6*     |      67.07      |      86.7      |      87.81      | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
