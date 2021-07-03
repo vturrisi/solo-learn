@@ -1,3 +1,6 @@
+import argparse
+from typing import List
+
 import torch
 import torch.nn as nn
 from einops import repeat
@@ -6,7 +9,14 @@ from solo.methods.base import BaseModel
 
 
 class SimCLR(BaseModel):
-    def __init__(self, output_dim, proj_hidden_dim, temperature, supervised=False, **kwargs):
+    def __init__(
+        self,
+        output_dim: int,
+        proj_hidden_dim: int,
+        temperature: float,
+        supervised: bool = False,
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -20,7 +30,7 @@ class SimCLR(BaseModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(SimCLR, SimCLR).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("simclr")
 
@@ -36,7 +46,7 @@ class SimCLR(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
@@ -46,7 +56,7 @@ class SimCLR(BaseModel):
         return {**out, "z": z}
 
     @torch.no_grad()
-    def gen_extra_positives_gt(self, Y):
+    def gen_extra_positives_gt(self, Y: torch.Tensor) -> torch.Tensor:
         if self.multicrop:
             n_augs = self.n_crops + self.n_small_crops
         else:
@@ -77,7 +87,10 @@ class SimCLR(BaseModel):
             neg_mask = (~pos_mask).fill_diagonal_(False)
 
             nce_loss = manual_simclr_loss_func(
-                z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
+                z,
+                pos_mask=pos_mask,
+                neg_mask=neg_mask,
+                temperature=self.temperature,
             )
         else:
             feats1, feats2 = out["feats"]

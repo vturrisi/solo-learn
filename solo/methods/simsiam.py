@@ -1,3 +1,6 @@
+import argparse
+from typing import List
+
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.simsiam import simsiam_loss_func
@@ -6,7 +9,11 @@ from solo.methods.base import BaseModel
 
 class SimSiam(BaseModel):
     def __init__(
-        self, output_dim, proj_hidden_dim, pred_hidden_dim, **kwargs,
+        self,
+        output_dim: int,
+        proj_hidden_dim: int,
+        pred_hidden_dim: int,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -31,7 +38,7 @@ class SimSiam(BaseModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(SimSiam, SimSiam).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("simsiam")
 
@@ -44,8 +51,8 @@ class SimSiam(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
-        extra_learnable_params = [
+    def learnable_params(self) -> List[dict]:
+        extra_learnable_params: List[dict] = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters(), "static_lr": True},
         ]

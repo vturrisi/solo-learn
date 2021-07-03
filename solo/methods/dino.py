@@ -1,4 +1,7 @@
+import argparse
+import distutils
 from typing import Any, List, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,9 +9,6 @@ from solo.losses.dino import DINOLoss
 from solo.methods.base import BaseMomentumModel
 from solo.utils.momentum import initialize_momentum_params
 from solo.utils.trunc_normal import trunc_normal_
-import distutils
-
-import argparse
 
 
 class DINOHead(nn.Module):

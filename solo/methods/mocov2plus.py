@@ -1,3 +1,6 @@
+import argparse
+from typing import Any, List, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +11,11 @@ from solo.utils.momentum import initialize_momentum_params
 
 
 class MoCoV2Plus(BaseMomentumModel):
-    def __init__(self, output_dim, proj_hidden_dim, temperature, queue_size, **kwargs):
+    queue: torch.Tensor
+
+    def __init__(
+        self, output_dim: int, proj_hidden_dim: int, temperature: float, queue_size: int, **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -35,7 +42,7 @@ class MoCoV2Plus(BaseMomentumModel):
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(MoCoV2Plus, MoCoV2Plus).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("mocov2plus")
 
@@ -52,26 +59,26 @@ class MoCoV2Plus(BaseMomentumModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
     @torch.no_grad()
-    def _dequeue_and_enqueue(self, keys):
+    def _dequeue_and_enqueue(self, keys: torch.Tensor):
         batch_size = keys.shape[1]
-        ptr = int(self.queue_ptr)
+        ptr = int(self.queue_ptr)  # type: ignore
         assert self.queue_size % batch_size == 0  # for simplicity
 
         # replace the keys at ptr (dequeue and enqueue)
         keys = keys.permute(0, 2, 1)
         self.queue[:, :, ptr : ptr + batch_size] = keys
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
-        self.queue_ptr[0] = ptr
+        self.queue_ptr[0] = ptr  # type: ignore
 
     def forward(self, X, *args, **kwargs):
         out = super().forward(X, *args, **kwargs)

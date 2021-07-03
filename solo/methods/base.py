@@ -321,7 +321,7 @@ class BaseMomentumModel(BaseModel):
         self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
     @property
-    def learnable_params(self) -> List[Any]:
+    def learnable_params(self) -> List[dict]:
         momentum_learnable_parameters = []
         if self.momentum_classifier is not None:
             momentum_learnable_parameters.append(

@@ -1,3 +1,6 @@
+import argparse
+from typing import List
+
 import torch.nn as nn
 from solo.losses.vicreg import vicreg_loss_func
 from solo.methods.base import BaseModel
@@ -6,11 +9,11 @@ from solo.methods.base import BaseModel
 class VICReg(BaseModel):
     def __init__(
         self,
-        output_dim,
-        proj_hidden_dim,
-        sim_loss_weight,
-        var_loss_weight,
-        cov_loss_weight,
+        output_dim: int,
+        proj_hidden_dim: int,
+        sim_loss_weight: float,
+        var_loss_weight: float,
+        cov_loss_weight: float,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -31,7 +34,7 @@ class VICReg(BaseModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(VICReg, VICReg).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("vicreg")
 
@@ -46,7 +49,7 @@ class VICReg(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 

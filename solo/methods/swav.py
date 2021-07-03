@@ -1,3 +1,6 @@
+import argparse
+from typing import List
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,15 +12,15 @@ from solo.utils.sinkhorn_knopp import SinkhornKnopp
 class SwAV(BaseModel):
     def __init__(
         self,
-        output_dim,
-        proj_hidden_dim,
-        num_prototypes,
-        sk_iters,
-        sk_epsilon,
-        temperature,
-        queue_size,
-        epoch_queue_starts,
-        freeze_prototypes_epochs,
+        output_dim: int,
+        proj_hidden_dim: int,
+        num_prototypes: int,
+        sk_iters: int,
+        sk_epsilon: float,
+        temperature: float,
+        queue_size: int,
+        epoch_queue_starts: int,
+        freeze_prototypes_epochs: int,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -42,7 +45,7 @@ class SwAV(BaseModel):
         self.prototypes = nn.utils.weight_norm(nn.Linear(output_dim, num_prototypes, bias=False))
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(SwAV, SwAV).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("swav")
 
@@ -63,7 +66,7 @@ class SwAV(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         extra_learnable_params = [
             {"params": self.projector.parameters()},
             {"params": self.prototypes.parameters()},
@@ -94,13 +97,13 @@ class SwAV(BaseModel):
         return {**out, "z": z, "p": p}
 
     @torch.no_grad()
-    def get_assignments(self, preds):
+    def get_assignments(self, preds: List[torch.Tensor]) -> List[torch.Tensor]:
         bs = preds[0].size(0)
         assignments = []
         for i, p in enumerate(preds):
             # optionally use the queue
             if self.queue_size > 0 and self.current_epoch >= self.epoch_queue_starts:
-                p_queue = self.prototypes(self.queue[i])
+                p_queue = self.prototypes(self.queue[i])  # type: ignore
                 p = torch.cat((p, p_queue))
             # compute assignments with sinkhorn-knopp
             assignments.append(self.sk(p)[:bs])
