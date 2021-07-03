@@ -47,6 +47,36 @@ class BaseModel(pl.LightningModule):
         lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
+        """
+        Base model that implements all basic operations for all self-supervised methods.
+        It adds shared arguments, extract basic learnable parameters, creates optimizers
+        and schedulers, implements basic training_step for any number of crops,
+        trains the online classifier and implements validation_step.
+
+        Args:
+            encoder: name of the base encoder
+            n_classes: number of classes
+            cifar: flag indicating if cifar is being used
+            zero_init_residual: change the initialization of the resnet encoder
+            max_epochs: number of training epochs
+            optimizer: name of the optimizer
+            lars: flag indicating if lars should be used
+            lr: learning rate
+            weight_decay: weight decay for optimizer
+            classifier_lr: learning rate for the online linear classifier
+            exclude_bias_n_norm: flag indicating if bias and norms should be excluded from lars
+            accumulate_grad_batches: number of batches for gradient accumulation
+            extra_optimizer_args: extra named arguments for the optimizer
+            scheduler: name of the scheduler
+            min_lr: minimum learning rate for warmup scheduler
+            warmup_start_lr: initial learning rate for warmup scheduler
+            multicrop: flag indicating if multi-resolution crop is being used
+            n_crop: number of big crops
+            n_small_crops: number of small crops (will be set to 0 if multicrop is False)
+            lr_decay_steps: steps to decay the learning rate if scheduler is step
+
+        """
+
         super().__init__()
 
         # back-bone related
@@ -105,6 +135,16 @@ class BaseModel(pl.LightningModule):
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """
+        Adds shared basic arguments that are shared for all methods.
+
+        Args:
+            parent_parser: argument parser that is used to create a argument group
+        Returns:
+            parent_parser: same as the argument, used to avoid errors
+
+        """
+
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
@@ -153,6 +193,11 @@ class BaseModel(pl.LightningModule):
 
     @property
     def learnable_params(self) -> List[dict]:
+        """
+        Returns a list of dicts containing learnable parameters and possible settings.
+
+        """
+
         return [
             {"name": "encoder", "params": self.encoder.parameters()},
             {
@@ -164,6 +209,16 @@ class BaseModel(pl.LightningModule):
         ]
 
     def configure_optimizers(self):
+        """
+        Collects learnable parameters and configure the optimizer and
+        learning rate scheduler.
+
+        Returns:
+            [optimizer]: a list with a single optimizer
+            or [optimizer], [scheduler]: two lists containing the optimizer and the scheduler
+
+        """
+
         # collect learnable parameters
         idxs_no_scheduler = [
             i for i, m in enumerate(self.learnable_params) if m.pop("static_lr", False)
@@ -220,12 +275,36 @@ class BaseModel(pl.LightningModule):
     def forward(self, *args, **kwargs):
         return self._base_forward(*args, **kwargs)
 
-    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True):
+    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True) -> dict:
+        """
+        Basic forward that allows children classes to overwrite forward().
+
+        Args:
+            X: batch of images in tensor format
+            detach_feats: flag indicating whether or not to detach
+                the features before feeding them to the linear classifier
+        Returns:
+            dict of logits and features
+
+        """
+
         feats = self.encoder(X)
         logits = self.classifier(feats.detach() if detach_feats else feats)
         return {"logits": logits, "feats": feats}
 
-    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor):
+    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> dict:
+        """
+        Forwards a batch of images X and computes the classification loss,
+        the logits, the features, acc@1 and acc@5.
+
+        Args:
+            X: batch of images in tensor format
+            targets: batch of labels for X
+        Returns:
+            dict containg the classification loss, logits, features, acc@1 and acc@5
+
+        """
+
         out = self._base_forward(X)
         logits, feats = out["logits"], out["feats"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
@@ -239,6 +318,20 @@ class BaseModel(pl.LightningModule):
         }
 
     def training_step(self, batch, batch_idx):
+        """
+        Training step for pytorch lightning. It does all the shared operations, such as
+        forwarding the crops, computing logits and computing statistics.
+
+        Args:
+            batch: a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx: index of the batch
+
+        Returns:
+            dict with the classification loss, features and logits
+
+        """
+
         _, X, targets = batch
         X = [X] if isinstance(X, torch.Tensor) else X
 
@@ -269,6 +362,19 @@ class BaseModel(pl.LightningModule):
         return {"loss": loss, "feats": feats, "logits": logits}
 
     def validation_step(self, batch, batch_idx):
+        """
+        Validation step for pytorch lightning. It does all the shared operations, such as
+        forwarding a batch of images, computing logits and computing metrics.
+
+        Args:
+            batch: a batch of data in the format of [img_indexes, X, Y]
+            batch_idx: index of the batch
+
+        Returns:
+            dict with the batch_size (used for averaging), the classification loss, and accuracies
+
+        """
+
         X, targets = batch
         batch_size = targets.size(0)
 
@@ -283,6 +389,13 @@ class BaseModel(pl.LightningModule):
         return metrics
 
     def validation_epoch_end(self, outs):
+        """
+        Averages the losses and accuracies of all the validation batches.
+        This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        """
+
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
