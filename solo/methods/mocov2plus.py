@@ -60,6 +60,11 @@ class MoCoV2Plus(BaseMomentumModel):
 
     @property
     def learnable_params(self) -> List[dict]:
+        """
+        Adds projector parameters together with parent's learnable parameters.
+
+        """
+
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
@@ -86,6 +91,18 @@ class MoCoV2Plus(BaseMomentumModel):
         return {**out, "q": q}
 
     def training_step(self, batch, batch_idx):
+        """
+        Training step for MoCoreusing BaseMomentumModel training step.
+
+        Args:
+            batch: a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx: index of the batch
+        Returns:
+            moco loss + classification loss
+
+        """
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]

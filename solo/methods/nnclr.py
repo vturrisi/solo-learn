@@ -73,6 +73,11 @@ class NNCLR(BaseModel):
 
     @property
     def learnable_params(self) -> List[dict]:
+        """
+        Adds projector and predictor parameters together with parent's learnable parameters.
+
+        """
+
         extra_learnable_params = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters()},
@@ -108,6 +113,18 @@ class NNCLR(BaseModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch, batch_idx):
+        """
+        Training step for NNCLR reusing BaseModel training step.
+
+        Args:
+            batch: a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx: index of the batch
+        Returns:
+            nnclr loss + classification loss
+
+        """
+
         targets = batch[-1]
 
         out = super().training_step(batch, batch_idx)

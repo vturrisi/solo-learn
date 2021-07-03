@@ -52,6 +52,11 @@ class SimSiam(BaseModel):
 
     @property
     def learnable_params(self) -> List[dict]:
+        """
+        Adds projector and predictor parameters together with parent's learnable parameters.
+
+        """
+
         extra_learnable_params: List[dict] = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters(), "static_lr": True},
@@ -59,6 +64,18 @@ class SimSiam(BaseModel):
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X, *args, **kwargs):
+        """
+        Training step for SimSiam reusing BaseModel training step.
+
+        Args:
+            batch: a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx: index of the batch
+        Returns:
+            simsiam loss + classification loss
+
+        """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         p = self.predictor(z)

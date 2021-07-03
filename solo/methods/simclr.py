@@ -47,6 +47,11 @@ class SimCLR(BaseModel):
 
     @property
     def learnable_params(self) -> List[dict]:
+        """
+        Adds projector parameters together with parent's learnable parameters.
+
+        """
+
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
@@ -66,6 +71,18 @@ class SimCLR(BaseModel):
         return labels_matrix
 
     def training_step(self, batch, batch_idx):
+        """
+        Training step for SimCLR and supervised SimCLR reusing BaseModel training step.
+
+        Args:
+            batch: a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx: index of the batch
+        Returns:
+            simclr loss + classification loss
+
+        """
+
         indexes, *_, target = batch
 
         out = super().training_step(batch, batch_idx)
