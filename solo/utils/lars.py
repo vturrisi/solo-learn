@@ -39,9 +39,10 @@ class LARSWrapper:
         self.load_state_dict = self.optim.load_state_dict
         self.zero_grad = self.optim.zero_grad
         self.add_param_group = self.optim.add_param_group
-        self.__setstate__ = self.optim.__setstate__
-        self.__getstate__ = self.optim.__getstate__
-        self.__repr__ = self.optim.__repr__
+
+        self.__setstate__ = self.optim.__setstate__  # type: ignore
+        self.__getstate__ = self.optim.__getstate__  # type: ignore
+        self.__repr__ = self.optim.__repr__  # type: ignore
 
     @property
     def defaults(self):

@@ -95,7 +95,7 @@ class Checkpointer(Callback):
         """
 
         if trainer.is_global_zero and not trainer.running_sanity_check:
-            epoch = trainer.current_epoch
+            epoch = trainer.current_epoch  # type: ignore
             ckpt = os.path.join(self.path, self.ckpt_placeholder.format(epoch))
             trainer.save_checkpoint(ckpt)
 
@@ -124,6 +124,6 @@ class Checkpointer(Callback):
 
         """
 
-        epoch = trainer.current_epoch
+        epoch = trainer.current_epoch  # type: ignore
         if epoch % self.frequency == 0:
             self.save(trainer)

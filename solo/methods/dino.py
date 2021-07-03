@@ -1,3 +1,4 @@
+from typing import Any, List, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,17 +8,21 @@ from solo.utils.momentum import initialize_momentum_params
 from solo.utils.trunc_normal import trunc_normal_
 import distutils
 
+import argparse
+
 
 class DINOHead(nn.Module):
+    mlp: Any
+
     def __init__(
         self,
-        in_dim,
-        out_dim,
-        use_bn=True,
-        norm_last_layer=True,
-        num_layers=3,
-        hidden_dim=2048,
-        bottleneck_dim=256,
+        in_dim: int,
+        out_dim: int,
+        use_bn: bool = True,
+        norm_last_layer: bool = True,
+        num_layers: int = 3,
+        hidden_dim: int = 2048,
+        bottleneck_dim: int = 256,
     ):
         super().__init__()
 
@@ -25,7 +30,7 @@ class DINOHead(nn.Module):
         if num_layers == 1:
             self.mlp = nn.Linear(in_dim, bottleneck_dim)
         else:
-            layers = [nn.Linear(in_dim, hidden_dim)]
+            layers: List[Any] = [nn.Linear(in_dim, hidden_dim)]
             if use_bn:
                 layers.append(nn.BatchNorm1d(hidden_dim))
             layers.append(nn.GELU())
@@ -39,7 +44,7 @@ class DINOHead(nn.Module):
         self.apply(self._init_weights)
 
         self.last_layer = nn.utils.weight_norm(nn.Linear(bottleneck_dim, out_dim, bias=False))
-        self.last_layer.weight_g.data.fill_(1)
+        self.last_layer.weight_g.data.fill_(1)  # type: ignore
 
         if norm_last_layer:
             self.last_layer.weight_g.requires_grad = False
@@ -60,16 +65,16 @@ class DINOHead(nn.Module):
 class DINO(BaseMomentumModel):
     def __init__(
         self,
-        output_dim,
-        proj_hidden_dim,
-        num_prototypes,
-        norm_last_layer,
-        clip_grad,
-        freeze_last_layer,
-        student_temperature,
-        teacher_temperature,
-        warmup_teacher_temperature,
-        warmup_teacher_temperature_epochs,
+        output_dim: int,
+        proj_hidden_dim: int,
+        num_prototypes: int,
+        norm_last_layer: bool,
+        clip_grad: float,
+        freeze_last_layer: bool,
+        student_temperature: float,
+        teacher_temperature: float,
+        warmup_teacher_temperature: float,
+        warmup_teacher_temperature_epochs: int,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -107,7 +112,7 @@ class DINO(BaseMomentumModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(DINO, DINO).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("dino")
 
@@ -130,12 +135,12 @@ class DINO(BaseMomentumModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         extra_learnable_params = [{"params": self.head.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
         extra_momentum_pairs = [(self.head, self.momentum_head)]
         return super().momentum_pairs + extra_momentum_pairs
 

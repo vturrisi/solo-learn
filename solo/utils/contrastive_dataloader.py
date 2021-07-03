@@ -1,6 +1,6 @@
 import os
 import random
-from typing import Callable, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Union
 
 from PIL import ImageFilter, ImageOps
 from torch.utils.data import DataLoader
@@ -27,7 +27,7 @@ def dataset_with_index(DatasetClass):
 
 
 class GaussianBlur:
-    def __init__(self, sigma: Union[List[float], Tuple[float]] = [0.1, 2.0]):
+    def __init__(self, sigma: Sequence[float] = [0.1, 2.0]):
         """
         Gaussian blur as a callable object.
 
@@ -198,10 +198,10 @@ class MulticropAugmentation:
     def __init__(
         self,
         transform: Callable,
-        size_crops: Union[List[int], Tuple[int, ...]],
-        n_crops: Union[List[int], Tuple[int, ...]],
-        min_scale_crops: Union[List[float], Tuple[float]],
-        max_scale_crops: Union[List[float], Tuple[float]],
+        size_crops: Sequence[int],
+        n_crops: Sequence[int],
+        min_scale_crops: Sequence[float],
+        max_scale_crops: Sequence[float],
     ):
         self.size_crops = size_crops
         self.n_crops = n_crops
@@ -298,10 +298,10 @@ def prepare_n_crop_transform(transform: Callable, n_crops: Optional[int] = None)
 
 def prepare_multicrop_transform(
     transform: Callable,
-    size_crops: Union[List[int], Tuple[int, ...]],
-    n_crops: Optional[Union[List[int], Tuple[int, ...]]] = None,
-    min_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
-    max_scale_crops: Optional[Union[List[float], Tuple[float]]] = None,
+    size_crops: Sequence[int],
+    n_crops: Optional[Sequence[int]] = None,
+    min_scale_crops: Optional[Sequence[float]] = None,
+    max_scale_crops: Optional[Sequence[float]] = None,
 ):
     """
     Prepares multicrop transformations by creating custom crops given the parameters

@@ -1,17 +1,21 @@
+import argparse
 from functools import partial
+from typing import Any, Callable, List, Optional, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
 
-def static_lr(get_lr, param_group_indexes, lrs_to_replace):
+def static_lr(
+    get_lr: Callable, param_group_indexes: Sequence[int], lrs_to_replace: Sequence[float]
+):
     lrs = get_lr()
     for idx, lr in zip(param_group_indexes, lrs_to_replace):
         lrs[idx] = lr
@@ -21,26 +25,26 @@ def static_lr(get_lr, param_group_indexes, lrs_to_replace):
 class BaseModel(pl.LightningModule):
     def __init__(
         self,
-        encoder,
-        n_classes,
-        cifar,
-        zero_init_residual,
-        max_epochs,
-        optimizer,
-        lars,
-        lr,
-        weight_decay,
-        classifier_lr,
-        exclude_bias_n_norm,
-        accumulate_grad_batches,
-        extra_optimizer_args,
-        scheduler,
-        min_lr,
-        warmup_start_lr,
-        multicrop,
-        n_crops,
-        n_small_crops,
-        lr_decay_steps=None,
+        encoder: str,
+        n_classes: int,
+        cifar: bool,
+        zero_init_residual: bool,
+        max_epochs: int,
+        optimizer: str,
+        lars: bool,
+        lr: float,
+        weight_decay: float,
+        classifier_lr: float,
+        exclude_bias_n_norm: bool,
+        accumulate_grad_batches: int,
+        extra_optimizer_args: dict[str, Any],
+        scheduler: str,
+        min_lr: float,
+        warmup_start_lr: float,
+        multicrop: bool,
+        n_crops: int,
+        n_small_crops: int,
+        lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
         super().__init__()
@@ -100,7 +104,7 @@ class BaseModel(pl.LightningModule):
         self.classifier = nn.Linear(self.features_size, n_classes)
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
@@ -148,7 +152,7 @@ class BaseModel(pl.LightningModule):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         return [
             {"name": "encoder", "params": self.encoder.parameters()},
             {
@@ -216,12 +220,12 @@ class BaseModel(pl.LightningModule):
     def forward(self, *args, **kwargs):
         return self._base_forward(*args, **kwargs)
 
-    def _base_forward(self, X, detach_feats=True):
+    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True):
         feats = self.encoder(X)
         logits = self.classifier(feats.detach() if detach_feats else feats)
         return {"logits": logits, "feats": feats}
 
-    def _shared_step(self, X, targets):
+    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor):
         out = self._base_forward(X)
         logits, feats = out["logits"], out["feats"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
@@ -288,7 +292,13 @@ class BaseModel(pl.LightningModule):
 
 
 class BaseMomentumModel(BaseModel):
-    def __init__(self, base_tau_momentum, final_tau_momentum, momentum_classifier, **kwargs):
+    def __init__(
+        self,
+        base_tau_momentum: float,
+        final_tau_momentum: float,
+        momentum_classifier: bool,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         # momentum encoder
@@ -303,7 +313,7 @@ class BaseMomentumModel(BaseModel):
 
         # momentum classifier
         if momentum_classifier:
-            self.momentum_classifier = nn.Linear(self.features_size, self.n_classes)
+            self.momentum_classifier: Any = nn.Linear(self.features_size, self.n_classes)
         else:
             self.momentum_classifier = None
 
@@ -311,7 +321,7 @@ class BaseMomentumModel(BaseModel):
         self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[Any]:
         momentum_learnable_parameters = []
         if self.momentum_classifier is not None:
             momentum_learnable_parameters.append(
@@ -325,11 +335,11 @@ class BaseMomentumModel(BaseModel):
         return super().learnable_params + momentum_learnable_parameters
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
         return [(self.encoder, self.momentum_encoder)]
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
             parent_parser
         )
@@ -345,7 +355,7 @@ class BaseMomentumModel(BaseModel):
     def on_train_start(self):
         self.last_step = 0
 
-    def _shared_step_momentum(self, X, targets):
+    def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> dict:
         with torch.no_grad():
             feats = self.momentum_encoder(X)
         out = {"feats": feats}

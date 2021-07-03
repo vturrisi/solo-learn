@@ -1,3 +1,6 @@
+import argparse
+from typing import Optional, Sequence
+
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -16,23 +19,23 @@ from torch.optim.lr_scheduler import (
 class LinearModel(pl.LightningModule):
     def __init__(
         self,
-        backbone,
-        n_classes,
-        max_epochs,
-        optimizer,
-        lars,
-        lr,
-        weight_decay,
-        exclude_bias_n_norm,
-        extra_optimizer_args,
-        scheduler,
-        lr_decay_steps=None,
+        backbone: nn.Module,
+        n_classes: int,
+        max_epochs: int,
+        optimizer: str,
+        lars: bool,
+        lr: float,
+        weight_decay: float,
+        exclude_bias_n_norm: bool,
+        extra_optimizer_args: dict,
+        scheduler: str,
+        lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
         super().__init__()
 
         self.backbone = backbone
-        self.classifier = nn.Linear(self.backbone.inplanes, n_classes)
+        self.classifier = nn.Linear(self.backbone.inplanes, n_classes)  # type: ignore
 
         # training related
         self.max_epochs = max_epochs
@@ -52,7 +55,7 @@ class LinearModel(pl.LightningModule):
             param.requires_grad = False
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parser = parent_parser.add_argument_group("linear")
 
         # encoder args
@@ -97,9 +100,9 @@ class LinearModel(pl.LightningModule):
 
         return parent_parser
 
-    def forward(self, x):
+    def forward(self, X):
         with torch.no_grad():
-            feats = self.backbone(x)
+            feats = self.backbone(X)
         logits = self.classifier(feats)
         return {"logits": logits, "feats": feats}
 

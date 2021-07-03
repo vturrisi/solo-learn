@@ -1,3 +1,6 @@
+import argparse
+from typing import Any, List, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +11,11 @@ from solo.utils.momentum import initialize_momentum_params
 
 class BYOL(BaseMomentumModel):
     def __init__(
-        self, output_dim, proj_hidden_dim, pred_hidden_dim, **kwargs,
+        self,
+        output_dim: int,
+        proj_hidden_dim: int,
+        pred_hidden_dim: int,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -38,7 +45,7 @@ class BYOL(BaseMomentumModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(BYOL, BYOL).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("byol")
 
@@ -52,7 +59,7 @@ class BYOL(BaseMomentumModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
         extra_learnable_params = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters()},
@@ -60,7 +67,7 @@ class BYOL(BaseMomentumModel):
         return super().learnable_params + extra_learnable_params
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
