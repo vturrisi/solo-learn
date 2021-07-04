@@ -130,7 +130,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | SimCLR       | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
 | Simsiam      | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
 | SwAV         | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
-| VICReg       | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
+| VICReg       | ResNet18 |   400  | :heavy_check_mark: |      79.22     |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
 
 ### ImageNet
 
