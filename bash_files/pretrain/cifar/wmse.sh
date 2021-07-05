@@ -25,5 +25,4 @@ python3 ../../../main_contrastive.py \
     --entity unitn-mhug \
     --method wmse \
     --output_dim 64 \
-    --whitening_size 128 \
-    --n_crops 3 
+    --whitening_size 128

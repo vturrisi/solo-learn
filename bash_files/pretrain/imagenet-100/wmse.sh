@@ -28,5 +28,5 @@ python3 ../../../main_contrastive.py \
     --project solo-learn \
     --entity unitn-mhug \
     --method wmse \
-    --output_dim 128 \
-    --whitening_size 256
+    --output_dim 64 \
+    --whitening_size 128
