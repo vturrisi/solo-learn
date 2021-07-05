@@ -34,8 +34,35 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install git+git://github.com/psf/black
-          pip install -e . codecov mypy pytest-cov
+          pip install -e . codecov mypy pytest-cov black
+          
+      - name: Run black check on solo
+        run: black --check --line-length 100 solo
+      
+      - name: If needed, commit black changes to the pull request
+        if: failure()
+        run: |
+          black --line-length 100 solo
+          git config --global user.name 'autoblack'
+          git config --global user.email 'cclauss@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+          git checkout $GITHUB_HEAD_REF
+          git commit -am "fixup: format solo with Black"
+          git push
+      
+      - name: Run black --check on tests
+        run: black --check --line-length 100 tests
+      
+      - name: If needed, commit black changes to the pull request
+        if: failure()
+        run: |
+          black --line-length 100 tests
+          git config --global user.name 'autoblack'
+          git config --global user.email 'cclauss@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+          git checkout $GITHUB_HEAD_REF
+          git commit -am "fixup: format tests with Black"
+          git push
       
       - name: Cache datasets
         uses: actions/cache@v2
