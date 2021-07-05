@@ -89,8 +89,6 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 **Note:** parameters may not be the best, we will be re-running the methods with lower performance eventually.
 
-**Note 2:** :bangbang: methods to re-run due to possibly bad parameters.
-
 ### CIFAR-10
 
 | Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
@@ -101,7 +99,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      91.88     |                 |     99.78      |                 | [:link:](https://drive.google.com/drive/folders/1ruNFEB3F-Otxv2Y0p62wrjA4v5Fr2cKC?usp=sharing) |
 | NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |                 |     99.78      |                 | [:link:](https://drive.google.com/drive/folders/1xdCzhvRehPmxinphuiZqFlfBwfwWDcLh?usp=sharing) |
 | SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |                 |     99.75      |                 | [:link:](https://drive.google.com/drive/folders/1mcvWr8P2WNJZ7TVpdLHA_Q91q4VK3y8O?usp=sharing) |
-| Simsiam      | ResNet18 |  1000  |  :x: |      89.00     |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
+| Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      89.17     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1nlJH4Ljm8-5fOIeAaKppQT6gtsmmW1T0?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/159ZgCxocB7aaHxwNDubnAWU71zXV9hn-?usp=sharing) |
 
@@ -115,7 +113,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      66.73     |                 |     90.23      |                 | [:link:](https://drive.google.com/drive/folders/15oWNM16vO6YVYmk_yOmw2XUrFivRXam4?usp=sharing) |
 | NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |                 |     91.52      |                 | [:link:](https://drive.google.com/drive/folders/1Dz72o0-5hugYPW1kCCQDBb0Xi3kzMLzu?usp=sharing) |
 | SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |                 |     89.04      |                 | [:link:](https://drive.google.com/drive/folders/13pGPcOO9Y3rBoeRVWARgbMFEp8OXxZa0?usp=sharing) |
-| Simsiam      | ResNet18 |  1000  |  :x: |59.00 :bangbang:|                 |                |                 | [:link:](https://drive.google.com/drive/folders/1AJUPmsIHh_nqEcFe-Vcz2o4ruEibFHWO?usp=sharing) |
+| Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1AJUPmsIHh_nqEcFe-Vcz2o4ruEibFHWO?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      64.88     |                 |     88.78      |                 | [:link:](https://drive.google.com/drive/folders/1U_bmyhlPEN941hbx0SdRGOT4ivCarQB9?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      68.54     |                 |     90.83      |                 | [:link:](https://drive.google.com/drive/folders/1AHmVf_Zl5fikkmR4X3NWlmMOnRzfv0aT?usp=sharing) |
 
