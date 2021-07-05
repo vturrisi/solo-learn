@@ -1,5 +1,6 @@
 import argparse
 
+import pytest
 import torch
 import torch.nn as nn
 from pytorch_lightning import Trainer
@@ -9,8 +10,8 @@ from torchvision.models import resnet18
 from .utils import (
     DATA_KWARGS,
     gen_base_kwargs,
-    prepare_classification_dummy_dataloaders,
     gen_classification_batch,
+    prepare_classification_dummy_dataloaders,
 )
 
 
@@ -54,3 +55,40 @@ def test_linear():
         n_classes=BASE_KWARGS["n_classes"],
     )
     trainer.fit(model, train_dl, val_dl)
+
+    # test optimizers/scheduler
+    model.optimizer = "random"
+    model.scheduler = "none"
+    with pytest.raises(ValueError):
+        model.configure_optimizers()
+
+    model.optimizer = "sgd"
+    model.scheduler = "none"
+    optimizer = model.configure_optimizers()
+    assert isinstance(optimizer, torch.optim.Optimizer)
+
+    model.scheduler = "cosine"
+    scheduler = model.configure_optimizers()[1][0]
+    assert isinstance(scheduler, torch.optim.lr_scheduler.CosineAnnealingLR)
+
+    model.scheduler = "reduce"
+    scheduler = model.configure_optimizers()[1][0]
+    assert isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau)
+
+    model.scheduler = "step"
+    scheduler = model.configure_optimizers()[1][0]
+    assert isinstance(scheduler, torch.optim.lr_scheduler.MultiStepLR)
+
+    model.scheduler = "exponential"
+    scheduler = model.configure_optimizers()[1][0]
+    assert isinstance(scheduler, torch.optim.lr_scheduler.ExponentialLR)
+
+    model.scheduler = "random"
+    with pytest.raises(ValueError):
+        model.configure_optimizers()
+
+    model.optimizer = "adam"
+    model.scheduler = "none"
+    model.extra_optimizer_args = {}
+    optimizer = model.configure_optimizers()
+    assert isinstance(optimizer, torch.optim.Optimizer)
