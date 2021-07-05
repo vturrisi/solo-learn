@@ -72,19 +72,31 @@ def prepare_datasets(dataset, T_train, T_val, data_folder=None, train_dir=None, 
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
-            os.path.join(data_folder, train_dir), train=True, download=True, transform=T_train,
+            os.path.join(data_folder, train_dir),
+            train=True,
+            download=True,
+            transform=T_train,
         )
 
         val_dataset = DatasetClass(
-            os.path.join(data_folder, val_dir), train=False, download=True, transform=T_val,
+            os.path.join(data_folder, val_dir),
+            train=False,
+            download=True,
+            transform=T_val,
         )
 
     elif dataset == "stl10":
         train_dataset = STL10(
-            os.path.join(data_folder, train_dir), split="train", download=True, transform=T_train,
+            os.path.join(data_folder, train_dir),
+            split="train",
+            download=True,
+            transform=T_train,
         )
         val_dataset = STL10(
-            os.path.join(data_folder, val_dir), split="test", download=True, transform=T_val,
+            os.path.join(data_folder, val_dir),
+            split="test",
+            download=True,
+            transform=T_val,
         )
 
     elif dataset == "imagenet":
@@ -134,9 +146,17 @@ def prepare_data(
 ):
     T_train, T_val = prepare_transforms(dataset, normalize=normalize)
     train_dataset, val_dataset = prepare_datasets(
-        dataset, T_train, T_val, data_folder=data_folder, train_dir=train_dir, val_dir=val_dir,
+        dataset,
+        T_train,
+        T_val,
+        data_folder=data_folder,
+        train_dir=train_dir,
+        val_dir=val_dir,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
+        train_dataset,
+        val_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
     )
     return train_loader, val_loader

@@ -8,7 +8,11 @@ from solo.utils.momentum import initialize_momentum_params
 
 class BYOL(BaseMomentumModel):
     def __init__(
-        self, output_dim, proj_hidden_dim, pred_hidden_dim, **kwargs,
+        self,
+        output_dim,
+        proj_hidden_dim,
+        pred_hidden_dim,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
