@@ -14,6 +14,8 @@ class WMSE(BaseModel):
         self.whitening_iters = whitening_iters
         self.whitening_size = whitening_size
 
+        assert self.whitening_size <= self.batch_size
+
         # projector
         self.projector = nn.Sequential(
             nn.Linear(self.features_size, proj_hidden_dim),
@@ -55,9 +57,7 @@ class WMSE(BaseModel):
         class_loss = out["loss"]
         feats = out["feats"]
 
-        v = self.projector(torch.cat(feats))
-
-        print(v.std(dim=0).mean().item())
+        v = torch.cat([self.projector(f) for f in feats])
 
         # ------- wmse loss -------
         bs = self.batch_size

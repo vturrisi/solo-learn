@@ -243,6 +243,8 @@ class BaseModel(pl.LightningModule):
         _, X, targets = batch
         X = [X] if isinstance(X, torch.Tensor) else X
 
+        print(len(X), self.n_crops, self.n_small_crops)
+
         # check that we received the desired number of crops
         assert len(X) == self.n_crops + self.n_small_crops
 

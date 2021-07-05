@@ -5,7 +5,7 @@ python3 ../../../main_contrastive.py \
     --max_epochs 1000 \
     --precision 16 \
     --gpus 0 \
-    --num_workers 4 \
+    --num_workers 3 \
     --optimizer adam \
     --scheduler warmup_cosine \
     --warmup_epochs 2 \
@@ -19,10 +19,11 @@ python3 ../../../main_contrastive.py \
     --saturation 0.2 \
     --hue 0.1 \
     --min_scale_crop 0.2 \
-    --name wmse \
+    --name wmse-$1 \
     --wandb \
     --project solo-learn \
     --entity unitn-mhug \
     --method wmse \
     --output_dim 64 \
-    --whitening_size 128
+    --whitening_size 128 \
+    --n_crops 3 
