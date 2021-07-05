@@ -72,6 +72,9 @@ def main():
                 transform, size_crops=size_crops, n_crops=[args.n_crops, args.n_small_crops]
             )
         else:
+            if args.n_crops != 2:
+                assert args.method == "wmse"
+
             transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
 
         train_dataset = prepare_datasets(
