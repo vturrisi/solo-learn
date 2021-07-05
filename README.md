@@ -19,6 +19,7 @@ While the library is self contained, it is possible to use the models outside of
 * [SimSiam](https://arxiv.org/abs/2011.10566)
 * [Swav](https://arxiv.org/abs/2006.09882)
 * [VICReg](https://arxiv.org/abs/2105.04906)
+* [WMSE](https://arxiv.org/abs/2007.06346)
 
 ---
 
