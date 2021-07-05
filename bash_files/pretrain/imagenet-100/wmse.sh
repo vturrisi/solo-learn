@@ -1,0 +1,32 @@
+python3 ../../../main_contrastive.py \
+    --dataset imagenet100 \
+    --encoder resnet18 \
+    --data_folder /datasets \
+    --train_dir imagenet-100/train \
+    --val_dir imagenet-100/test \
+    --max_epochs 400 \
+    --precision 16 \
+    --gpus 0 \
+    --num_workers 4 \
+    --optimizer adam \
+    --scheduler warmup_cosine \
+    --warmup_epochs 2 \
+    --lr 2e-3 \
+    --warmup_start_lr 0 \
+    --classifier_lr 3e-3 \
+    --weight_decay 1e-6 \
+    --batch_size 256 \
+    --brightness 0.8 \
+    --contrast 0.8 \
+    --saturation 0.8 \
+    --hue 0.2 \
+    --gaussian_prob 0.2 \
+    --min_scale_crop 0.08 \
+    --dali \
+    --wandb \
+    --name wmse-imagenet100 \
+    --project solo-learn \
+    --entity unitn-mhug \
+    --method wmse \
+    --output_dim 64 \
+    --whitening_size 128

@@ -72,7 +72,10 @@ def main():
                 transform, size_crops=size_crops, n_crops=[args.n_crops, args.n_small_crops]
             )
         else:
-            transform = prepare_n_crop_transform(transform, n_crops=2)
+            if args.n_crops != 2:
+                assert args.method == "wmse"
+
+            transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
 
         train_dataset = prepare_datasets(
             args.dataset,
@@ -99,7 +102,10 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
