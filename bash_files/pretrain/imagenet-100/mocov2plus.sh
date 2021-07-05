@@ -21,6 +21,7 @@ python3 ../../../main_contrastive.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
+    --min_scale_crop 0.2 \
     --name mocov2plus-400ep-imagenet100 \
     --project solo-learn \
     --entity unitn-mhug \
