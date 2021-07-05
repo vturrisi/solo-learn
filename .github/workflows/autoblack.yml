@@ -23,7 +23,6 @@ jobs:
         run: |
           black --line-length 100 solo
           git config --global user.name 'autoblack'
-          git config --global user.email 'cclauss@users.noreply.github.com'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
           git checkout $GITHUB_HEAD_REF
           git commit -am "fixup: format solo with Black"
@@ -37,7 +36,6 @@ jobs:
         run: |
           black --line-length 100 tests
           git config --global user.name 'autoblack'
-          git config --global user.email 'cclauss@users.noreply.github.com'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
           git checkout $GITHUB_HEAD_REF
           git commit -am "fixup: format tests with Black"
