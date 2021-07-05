@@ -11,9 +11,9 @@ python3 ../../../main_contrastive.py \
     --precision 16 \
     --optimizer sgd \
     --scheduler warmup_cosine \
-    --lr 0.3 \
+    --lr 0.5 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-4 \
+    --weight_decay 1e-5 \
     --batch_size 128 \
     --num_workers 4 \
     --brightness 0.4 \
