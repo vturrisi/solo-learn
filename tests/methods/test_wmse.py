@@ -9,7 +9,6 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 
 def test_wmse():
-
     BASE_KWARGS = gen_base_kwargs(cifar=False)
 
     method_kwargs = {
