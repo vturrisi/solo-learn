@@ -87,7 +87,9 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 ## Results
 
-**Note**: :bangbang: methods to re-run due to possibly bad parameters.
+**Note:** parameters may not be the best, we will be re-running the methods with lower performance eventually.
+
+**Note 2:** :bangbang: methods to re-run due to possibly bad parameters.
 
 ### CIFAR-10
 
