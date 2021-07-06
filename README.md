@@ -103,7 +103,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      89.17     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1nlJH4Ljm8-5fOIeAaKppQT6gtsmmW1T0?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/159ZgCxocB7aaHxwNDubnAWU71zXV9hn-?usp=sharing) |
-| W-MSE        | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1xPCiULzQ4JCmhrTsbxBp9S2jRZ01KiVM?usp=sharing) |
+| W-MSE        | ResNet18 |  1000  |  :x: |      88.67     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1xPCiULzQ4JCmhrTsbxBp9S2jRZ01KiVM?usp=sharing) |
 
 
 ### CIFAR-100
@@ -129,13 +129,13 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Barlow Twins | ResNet18 |   400  | :heavy_check_mark: |      79.70     |                 |      95.44     |                 | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
 | BYOL         | ResNet18 |   400  | :heavy_check_mark: |      79.76     |                 |      94.80     |                 | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
 | DINO         | ResNet18 |   400  | :heavy_check_mark: |      74.84     |                 |      92.92     |                 | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
-| MoCo V2+     | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
+| MoCo V2+     | ResNet18 |   400  | :heavy_check_mark: |      74.46     |                 |      93.46     |                 | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
 | NNCLR        | ResNet18 |   400  | :heavy_check_mark: |      79.80     |                 |      95.28     |                 | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
 | SimCLR       | ResNet18 |   400  | :heavy_check_mark: |      77.04     |                 |      94.02     |                 | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
 | Simsiam      | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
 | SwAV         | ResNet18 |   400  | :heavy_check_mark: |      74.04     |                 |      92.7      |                 | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
 | VICReg       | ResNet18 |   400  | :heavy_check_mark: |      79.22     |                 |      95.06     |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
-| W-MSE        | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
+| W-MSE        | ResNet18 |   400  | :heavy_check_mark: |      67.60     |                 |      90.94     |                 | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
 
 ### ImageNet
 
