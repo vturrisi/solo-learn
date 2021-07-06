@@ -7,7 +7,19 @@ from solo.methods import METHODS
 from solo.utils.checkpointer import Checkpointer
 
 
-def parse_args_contrastive():
+def parse_args_pretrain():
+    """
+    Parses dataset, augmentation, pytorch lightning, model specific and additional args.
+
+    First adds shared args such as dataset, agumentation and pytorch lightning args, then pulls the
+    model name from the command and proceeds to add model specific args from the desired class. If
+    wandb is enabled it adds checkpointer args. Finally, adds additional non-user given parameters.
+
+    Returns:
+        args: a namespace containing all args needed for pretraining
+
+    """
+
     parser = argparse.ArgumentParser()
 
     # add shared arguments
@@ -41,6 +53,18 @@ def parse_args_contrastive():
 
 
 def parse_args_linear():
+    """
+    Parses feature extractor, dataset, pytorch lightning, linear eval specific and additional args.
+
+    First adds and arg for the pretrained feature extractor, then adds dataset, pytorch lightning
+    and linear eval specific args. If wandb is enabled it adds checkpointer args. Finally, adds
+    additional non-user given parameters.
+
+    Returns:
+        args: a namespace containing all args needed for pretraining
+
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--pretrained_feature_extractor", type=str)

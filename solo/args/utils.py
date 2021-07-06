@@ -9,7 +9,7 @@ N_CLASSES_PER_DATASET = {
 }
 
 
-def additional_setup_contrastive(args: argparse.Namespace):
+def additional_setup_pretrain(args: argparse.Namespace):
     """
     Provides final setup for contrastive pretrain to non-user given parameters by changing args.
 
@@ -29,7 +29,7 @@ def additional_setup_contrastive(args: argparse.Namespace):
             - lr: learning rate
 
             [optional]
-            - gaussian_prob solarization_prob: optinal augmentations settings
+            - gaussian_prob, solarization_prob: optional augmentations settings
 
     """
 
