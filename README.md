@@ -20,6 +20,7 @@ While the library is self contained, it is possible to use the models outside of
 * [SimSiam](https://arxiv.org/abs/2011.10566)
 * [Swav](https://arxiv.org/abs/2006.09882)
 * [VICReg](https://arxiv.org/abs/2105.04906)
+* [W-MSE](https://arxiv.org/abs/2007.06346)
 
 ---
 
@@ -102,6 +103,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      89.17     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1nlJH4Ljm8-5fOIeAaKppQT6gtsmmW1T0?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/159ZgCxocB7aaHxwNDubnAWU71zXV9hn-?usp=sharing) |
+| W-MSE        | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1xPCiULzQ4JCmhrTsbxBp9S2jRZ01KiVM?usp=sharing) |
+
 
 ### CIFAR-100
 
@@ -116,6 +119,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Simsiam      | ResNet18 |  1000  |  :x: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1AJUPmsIHh_nqEcFe-Vcz2o4ruEibFHWO?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      64.88     |                 |     88.78      |                 | [:link:](https://drive.google.com/drive/folders/1U_bmyhlPEN941hbx0SdRGOT4ivCarQB9?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      68.54     |                 |     90.83      |                 | [:link:](https://drive.google.com/drive/folders/1AHmVf_Zl5fikkmR4X3NWlmMOnRzfv0aT?usp=sharing) |
+| W-MSE        | ResNet18 |  1000  |  :x: |      61.33     |                 |     87.26      |                 | [:link:](https://drive.google.com/drive/folders/1vc9j3RLpVCbECh6o-44oMiE5snNyKPlF?usp=sharing) |
 
 ### ImageNet-100
 
@@ -131,6 +135,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Simsiam      | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
 | SwAV         | ResNet18 |   400  | :heavy_check_mark: |      74.04     |                 |      92.7      |                 | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
 | VICReg       | ResNet18 |   400  | :heavy_check_mark: |      79.22     |                 |      95.06     |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
+| W-MSE        | ResNet18 |   400  | :heavy_check_mark: |                |                 |                |                 | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
 
 ### ImageNet
 
@@ -143,8 +148,9 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | Simsiam      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| SwAV         | ResNet50 |   500  | :heavy_check_mark: |                |                 |                |                 |            |
+| SwAV         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| W-MSE        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 
 **Note**: by mistake, we re-scaled the lr two times, so this has a learning rate much larger than it should.
 ## Training efficiency
@@ -162,5 +168,6 @@ Our standardized implementation enables a fair comparison of training efficiency
 | Simsiam      |      |            |                      |                  |            |
 | SwAV         |      |            |                      |                  |            |
 | VICReg       |      |            |                      |                  |            |
+| W-MSE        |      |            |                      |                  |            |
 
 
