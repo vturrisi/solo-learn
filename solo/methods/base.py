@@ -30,6 +30,7 @@ class BaseModel(pl.LightningModule):
         cifar: bool,
         zero_init_residual: bool,
         max_epochs: int,
+        batch_size: int,
         optimizer: str,
         lars: bool,
         lr: float,
@@ -41,6 +42,7 @@ class BaseModel(pl.LightningModule):
         scheduler: str,
         min_lr: float,
         warmup_start_lr: float,
+        warmup_epochs: int,
         multicrop: bool,
         n_crops: int,
         n_small_crops: int,
@@ -86,6 +88,7 @@ class BaseModel(pl.LightningModule):
         # training related
         self.n_classes = n_classes
         self.max_epochs = max_epochs
+        self.batch_size = batch_size
         self.optimizer = optimizer
         self.lars = lars
         self.lr = lr
@@ -98,6 +101,7 @@ class BaseModel(pl.LightningModule):
         self.lr_decay_steps = lr_decay_steps
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
+        self.warmup_epochs = warmup_epochs
         self.multicrop = multicrop
         self.n_crops = n_crops
         self.n_small_crops = n_small_crops
@@ -188,6 +192,7 @@ class BaseModel(pl.LightningModule):
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
+        parser.add_argument("--warmup_epochs", default=10, type=int)
 
         return parent_parser
 
@@ -249,7 +254,7 @@ class BaseModel(pl.LightningModule):
             if self.scheduler == "warmup_cosine":
                 scheduler = LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=10,
+                    warmup_epochs=self.warmup_epochs,
                     max_epochs=self.max_epochs,
                     warmup_start_lr=self.warmup_start_lr,
                     eta_min=self.min_lr,

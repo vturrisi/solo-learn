@@ -22,7 +22,7 @@ DATA_KWARGS = {
 }
 
 
-def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_small_crops=0):
+def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_small_crops=0):
     BASE_KWARGS = {
         "encoder": "resnet18",
         "n_classes": 10 if cifar else 100,
@@ -40,8 +40,9 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_small_crops=
         "scheduler": "warmup_cosine",
         "min_lr": 0.0,
         "warmup_start_lr": 0.0,
+        "warmup_epochs": 1,
         "multicrop": multicrop,
-        "n_crops": 2,
+        "n_crops": n_crops,
         "n_small_crops": n_small_crops,
         "lr_decay_steps": None,
         "dali_device": "gpu",
@@ -109,7 +110,9 @@ def gen_classification_batch(b, n_classes, dataset):
     return batch, batch_idx
 
 
-def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False, n_small_crops=0):
+def prepare_dummy_dataloaders(
+    dataset, n_crops, n_classes, multicrop=False, n_small_crops=0, batch_size=2
+):
     T = prepare_transform(dataset, multicrop=multicrop, **DATA_KWARGS)
     if multicrop:
         size_crops = [224, 96] if dataset == "imagenet100" else [32, 24]
@@ -119,7 +122,7 @@ def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False, n_sm
     dataset = dataset_with_index(FakeData)(
         image_size=(3, 224, 224), num_classes=n_classes, transform=T
     )
-    train_dl = prepare_dataloaders(dataset, batch_size=2, num_workers=0)
+    train_dl = prepare_dataloaders(dataset, batch_size=batch_size, num_workers=0)
 
     # normal dataloader
     T_val = transforms.Compose(
@@ -129,7 +132,7 @@ def prepare_dummy_dataloaders(dataset, n_crops, n_classes, multicrop=False, n_sm
         ]
     )
     dataset = FakeData(image_size=(3, 224, 224), num_classes=n_classes, transform=T_val)
-    val_dl = DataLoader(dataset, batch_size=2, num_workers=0, drop_last=False)
+    val_dl = DataLoader(dataset, batch_size=batch_size, num_workers=0, drop_last=False)
 
     return train_dl, val_dl
 

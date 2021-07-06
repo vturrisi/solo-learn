@@ -1,4 +1,4 @@
-[![unit-tests](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml/badge.svg)](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml)
+[![tests](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml/badge.svg)](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/vturrisi/solo-learn/branch/main/graph/badge.svg?token=WLU9UU17XZ)](https://codecov.io/gh/vturrisi/solo-learn)
 
 # solo-learn
@@ -19,6 +19,7 @@ While the library is self contained, it is possible to use the models outside of
 * [SimSiam](https://arxiv.org/abs/2011.10566)
 * [Swav](https://arxiv.org/abs/2006.09882)
 * [VICReg](https://arxiv.org/abs/2105.04906)
+* [WMSE](https://arxiv.org/abs/2007.06346)
 
 ---
 

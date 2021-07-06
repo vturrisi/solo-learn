@@ -73,7 +73,10 @@ def test_dino():
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(
-        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+        args,
+        checkpoint_callback=False,
+        limit_train_batches=2,
+        limit_val_batches=2,
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
@@ -90,7 +93,10 @@ def test_dino():
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(
-        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
+        args,
+        checkpoint_callback=False,
+        limit_train_batches=2,
+        limit_val_batches=2,
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
