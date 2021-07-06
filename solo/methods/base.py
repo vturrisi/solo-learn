@@ -1,6 +1,6 @@
 import argparse
 from functools import partial
-from typing import Any, Callable, List, Optional, Sequence, Tuple
+from typing import Any, Callable, List, Mapping, Optional, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -37,7 +37,7 @@ class BaseModel(pl.LightningModule):
         classifier_lr: float,
         exclude_bias_n_norm: bool,
         accumulate_grad_batches: int,
-        extra_optimizer_args: dict[str, Any],
+        extra_optimizer_args: Mapping[str, Any],
         scheduler: str,
         min_lr: float,
         warmup_start_lr: float,

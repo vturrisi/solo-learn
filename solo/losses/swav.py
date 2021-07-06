@@ -1,9 +1,10 @@
+from typing import List
 import numpy as np
 import torch
 
 
 def swav_loss_func(
-    preds: list[torch.Tensor], assignments: list[torch.Tensor], temperature: float = 0.1
+    preds: List[torch.Tensor], assignments: List[torch.Tensor], temperature: float = 0.1
 ):
     """
     Applies SWaV's loss given list of batch predictions from multiple views
