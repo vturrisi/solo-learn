@@ -11,7 +11,6 @@ from ..methods.utils import gen_base_kwargs, DATA_KWARGS, prepare_dummy_dataload
 
 
 def test_checkpointer():
-
     method_kwargs = {
         "name": "barlow_twins",
         "proj_hidden_dim": 2048,
@@ -74,3 +73,9 @@ def test_checkpointer():
         "lr_schedulers",
     ]
     assert list(ckpt.keys()) == expected_keys
+
+    parser = argparse.ArgumentParser()
+    ckpt_callback.add_checkpointer_args(parser)
+    args = [vars(action)["dest"] for action in vars(parser)["_actions"]]
+    assert "checkpoint_dir" in args
+    assert "checkpoint_frequency" in args
