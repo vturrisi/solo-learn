@@ -13,6 +13,7 @@ from solo.utils.trunc_normal import trunc_normal_
 
 class DINOHead(nn.Module):
     mlp: Any
+    last_layer: Any
 
     def __init__(
         self,
