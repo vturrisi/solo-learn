@@ -22,6 +22,7 @@ class LinearModel(pl.LightningModule):
         backbone: nn.Module,
         n_classes: int,
         max_epochs: int,
+        batch_size: int,
         optimizer: str,
         lars: bool,
         lr: float,
@@ -39,6 +40,7 @@ class LinearModel(pl.LightningModule):
 
         # training related
         self.max_epochs = max_epochs
+        self.batch_size = batch_size
         self.optimizer = optimizer
         self.lars = lars
         self.lr = lr
