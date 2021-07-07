@@ -29,6 +29,8 @@ def test_dali_pretrain():
         kwargs["train_dir"] = "dummy_train"
         kwargs["data_folder"] = "."
 
+        kwargs["min_scale_crop"] = 0.08
+
         MethodClass = type(f"Dali{BarlowTwins.__name__}", (BarlowTwins, ContrastiveABC), {})
         model = MethodClass(**kwargs)
 
