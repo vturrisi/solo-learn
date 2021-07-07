@@ -33,7 +33,7 @@ def test_transforms():
 def test_datasets():
     T_train, T_val = prepare_transforms("cifar10")
     train_dataset, val_dataset = prepare_datasets(
-        "cifar10", T_train, T_val, data_folder="~/datasets"
+        "cifar10", T_train, T_val, data_folder="./datasets"
     )
     assert isinstance(train_dataset, CIFAR10)
     assert isinstance(val_dataset, CIFAR10)
@@ -41,7 +41,7 @@ def test_datasets():
     assert len(val_dataset[0]) == 2
 
     T_train, T_val = prepare_transforms("stl10")
-    train_dataset, val_dataset = prepare_datasets("stl10", T_train, T_val, data_folder="~/datasets")
+    train_dataset, val_dataset = prepare_datasets("stl10", T_train, T_val, data_folder="./datasets")
     assert isinstance(train_dataset, STL10)
     assert isinstance(val_dataset, STL10)
     assert len(train_dataset[0]) == 2
