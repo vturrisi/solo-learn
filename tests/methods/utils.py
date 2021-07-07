@@ -19,6 +19,7 @@ DATA_KWARGS = {
     "hue": 0.1,
     "gaussian_prob": 0.5,
     "solarization_prob": 0.5,
+    "min_scale_crop": 0.08,
 }
 
 

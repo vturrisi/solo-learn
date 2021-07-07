@@ -2,7 +2,7 @@ import math
 import numpy as np
 from PIL import Image
 from solo.utils.classification_dataloader import prepare_transforms, prepare_datasets, prepare_data
-from torchvision.datasets import CIFAR10, STL10
+from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 
 
@@ -37,13 +37,6 @@ def test_datasets():
     )
     assert isinstance(train_dataset, CIFAR10)
     assert isinstance(val_dataset, CIFAR10)
-    assert len(train_dataset[0]) == 2
-    assert len(val_dataset[0]) == 2
-
-    T_train, T_val = prepare_transforms("stl10")
-    train_dataset, val_dataset = prepare_datasets("stl10", T_train, T_val, data_folder="./datasets")
-    assert isinstance(train_dataset, STL10)
-    assert isinstance(val_dataset, STL10)
     assert len(train_dataset[0]) == 2
     assert len(val_dataset[0]) == 2
 
