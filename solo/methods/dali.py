@@ -5,9 +5,9 @@ from abc import ABC
 import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
-    ContrastivePipeline,
+    PretrainPipeline,
     ImagenetTransform,
-    MulticropContrastivePipeline,
+    MulticropPretrainPipeline,
     NormalPipeline,
 )
 
@@ -110,7 +110,7 @@ class ContrastiveABC(ABC):
                     max_scale=max_scale,
                 )
                 transforms.append(transform)
-            train_pipeline = MulticropContrastivePipeline(
+            train_pipeline = MulticropPretrainPipeline(
                 os.path.join(data_dir, train_dir),
                 batch_size=self.batch_size,
                 transforms=transforms,
@@ -173,7 +173,7 @@ class ContrastiveABC(ABC):
                     min_scale=min_scale_crop,
                     max_scale=1.0,
                 )
-            train_pipeline = ContrastivePipeline(
+            train_pipeline = PretrainPipeline(
                 os.path.join(data_dir, train_dir),
                 batch_size=self.batch_size,
                 transform=transform,

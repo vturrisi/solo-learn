@@ -4,9 +4,17 @@ import torch
 
 
 @torch.no_grad()
-def initialize_momentum_params(online_encoder, momentum_encoder):
-    params_online = online_encoder.parameters()
-    params_momentum = momentum_encoder.parameters()
+def initialize_momentum_params(online_net, momentum_net):
+    """
+    Copies the parameters of the online network to the momentum network.
+
+    Args:
+        online_net: online network (e.g. online encoder, online projection, etc...)
+        momentum_net: momentum network (e.g. momentum encoder, momentum projection, etc...)
+
+    """
+    params_online = online_net.parameters()
+    params_momentum = momentum_net.parameters()
     for po, pm in zip(params_online, params_momentum):
         pm.data.copy_(po.data)
         pm.requires_grad = False

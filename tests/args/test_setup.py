@@ -2,7 +2,7 @@ import argparse
 import os
 import subprocess
 import textwrap
-from solo.args.utils import additional_setup_contrastive, additional_setup_linear
+from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 
 
 def test_setup_contrastive():
@@ -158,7 +158,7 @@ def test_setup_linear():
         pass
 
 
-def test_additional_setup_contrastive():
+def test_additional_setup_pretrain():
     args = {
         "dataset": "imagenet100",
         "asymmetric_augmentations": True,
@@ -178,7 +178,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args
@@ -205,7 +205,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args
@@ -232,7 +232,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args
@@ -258,7 +258,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args

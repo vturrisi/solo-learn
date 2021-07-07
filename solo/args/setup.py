@@ -2,7 +2,7 @@ import argparse
 
 import pytorch_lightning as pl
 from solo.args.dataset import augmentations_args, dataset_args
-from solo.args.utils import additional_setup_contrastive, additional_setup_linear
+from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 from solo.methods import METHODS
 from solo.utils.checkpointer import Checkpointer
 
@@ -47,7 +47,7 @@ def parse_args_pretrain():
     args = parser.parse_args()
 
     # prepare arguments with additional setup
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     return args
 
