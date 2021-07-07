@@ -32,7 +32,7 @@ class BaseWrapper(DALIGenericIterator):
                 return size // (self._num_gpus * self.batch_size)
 
 
-class ContrastiveWrapper(BaseWrapper):
+class PretrainWrapper(BaseWrapper):
     def __init__(
         self,
         model_batch_size: int,
@@ -64,9 +64,9 @@ class Wrapper(BaseWrapper):
         return x, target
 
 
-class ContrastiveABC(ABC):
+class PretrainABC(ABC):
     """
-    Abstract contrastive class that returns a train_dataloader and val_dataloader using dali.
+    Abstract pretrain class that returns a train_dataloader and val_dataloader using dali.
     """
 
     def train_dataloader(self):
@@ -186,15 +186,15 @@ class ContrastiveABC(ABC):
             output_map = ["large1", "large2", "label"]
 
         policy = LastBatchPolicy.FILL if last_batch_fill else LastBatchPolicy.DROP
-        train_loader = ContrastiveWrapper(
-            train_pipeline,
+        train_loader = PretrainWrapper(
+            model_batch_size=self.batch_size,
+            model_rank=device_id,
+            model_device=self.device,
+            pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",
             last_batch_policy=policy,
             auto_reset=True,
-            model_batch_size=self.batch_size,
-            model_rank=device_id,
-            model_device=self.device,
         )
         return train_loader
 

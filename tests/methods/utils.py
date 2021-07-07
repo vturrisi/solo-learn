@@ -50,7 +50,7 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_s
         "last_batch_fill": False,
         "batch_size": 32,
         "num_workers": 4,
-        "data_folder": "/data/datasets",
+        "data_dir": "/data/datasets",
         "train_dir": "cifar10/train",
         "val_dir": "cifar10/val",
     }

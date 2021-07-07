@@ -3,7 +3,7 @@ from nvidia.dali.plugin.base_iterator import LastBatchPolicy
 
 from pytorch_lightning import Trainer
 from solo.methods import BarlowTwins
-from solo.methods.dali import ClassificationABC, ContrastiveABC, NormalPipeline, Wrapper
+from solo.methods.dali import ClassificationABC, PretrainABC, NormalPipeline, Wrapper
 from solo.methods.linear import LinearModel
 from torch import nn
 from torchvision.models.resnet import resnet18
@@ -27,11 +27,11 @@ def test_dali_pretrain():
         kwargs["dali_device"] = "cpu"
         kwargs["last_batch_fill"] = False
         kwargs["train_dir"] = "dummy_train"
-        kwargs["data_folder"] = "."
+        kwargs["data_dir"] = "."
 
         kwargs["min_scale_crop"] = 0.08
 
-        MethodClass = type(f"Dali{BarlowTwins.__name__}", (BarlowTwins, ContrastiveABC), {})
+        MethodClass = type(f"Dali{BarlowTwins.__name__}", (BarlowTwins, PretrainABC), {})
         model = MethodClass(**kwargs)
 
         args = argparse.Namespace(**kwargs)
@@ -72,7 +72,7 @@ def test_dali_linear():
 
         kwargs["dali_device"] = "cpu"
         kwargs["last_batch_fill"] = False
-        kwargs["data_folder"] = "."
+        kwargs["data_dir"] = "."
         kwargs["train_dir"] = "dummy_train"
         kwargs["val_dir"] = "dummy_val"
 

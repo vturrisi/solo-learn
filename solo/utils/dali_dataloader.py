@@ -431,7 +431,7 @@ class MulticropPretrainPipeline(Pipeline):
         data_path: str,
         batch_size: int,
         device: str,
-        transform: Iterable,
+        transforms: Iterable,
         n_crops: Iterable[int],
         size_crops: Iterable[int],
         min_scale_crops: Iterable[float],
@@ -494,8 +494,8 @@ class MulticropPretrainPipeline(Pipeline):
         self.min_scale_crops = min_scale_crops
         self.max_scale_crops = max_scale_crops
 
-        assert len(transform) == len(size_crops)
-        self.transforms = transform
+        assert len(transforms) == len(size_crops)
+        self.transforms = transforms
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""

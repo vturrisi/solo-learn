@@ -80,7 +80,7 @@ def main():
         train_dataset = prepare_datasets(
             args.dataset,
             transform,
-            data_folder=args.data_folder,
+            data_dir=args.data_dir,
             train_dir=args.train_dir,
         )
         train_loader = prepare_train_dataloader(
@@ -90,7 +90,7 @@ def main():
     # normal dataloader
     _, val_loader = prepare_data_classification(
         args.dataset,
-        data_folder=args.data_folder,
+        data_dir=args.data_dir,
         train_dir=args.train_dir,
         val_dir=args.val_dir,
         batch_size=args.batch_size,
