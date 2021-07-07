@@ -61,4 +61,5 @@ jobs:
           file: coverage.xml
           flags: pytest
           name: Coverage
+          gcov_args: -F pytest
           fail_ci_if_error: false
