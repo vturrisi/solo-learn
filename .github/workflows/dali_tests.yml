@@ -1,10 +1,10 @@
-name: tests
+name: dali-tests
 
+# never run automatically since it needs gpus
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches-ignore:
+      - '**'
 
 jobs:
   test:
@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         python: [3.7, 3.8, 3.9]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}
 
       - name: pytest
-        run: pytest --cov=solo tests/args tests/losses tests/methods tests/utils
+        run: pytest --cov=solo tests/dali
 
       - name: Statistics
         if: success()
@@ -58,6 +58,6 @@ jobs:
         continue-on-error: true
         with:
           file: coverage.xml
-          flags: cpu,pytest,python${{ matrix.python-version }}
-          name: CPU-coverage
+          flags: dali,pytest,python${{ matrix.python-version }}
+          name: DALI-coverage
           fail_ci_if_error: false
