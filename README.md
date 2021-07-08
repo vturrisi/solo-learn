@@ -90,8 +90,6 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 **Note:** hyperparameters may not be the best, we will be re-running the methods with lower performance eventually.
 
-:sparkles: methods where hyperparameters were heavily tuned.
-
 ### CIFAR-10
 
 | Method       | Backbone | Epochs | Dali | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
@@ -125,7 +123,6 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 ### ImageNet-100
 
-
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |   400  | :heavy_check_mark: |79.70 :sparkles:|                 |      95.44     |                 | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
@@ -138,6 +135,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | SwAV         | ResNet18 |   400  | :heavy_check_mark: |      74.04     |                 |      92.7      |                 | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
 | VICReg       | ResNet18 |   400  | :heavy_check_mark: |79.22 :sparkles:|                 |      95.06     |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
 | W-MSE        | ResNet18 |   400  | :heavy_check_mark: |      67.60     |                 |      90.94     |                 | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
+
+:sparkles: methods where hyperparameters were heavily tuned.
 
 ### ImageNet
 
