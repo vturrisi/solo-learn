@@ -6,17 +6,43 @@ import numpy as np
 
 
 class DINOLoss(nn.Module):
+    """
+    Computes DINO's loss.
+
+    Attributes:
+        epoch: current epoch
+        student_tem: temperature for the student
+        center_momentum: momentum for the EMA update of the center of mass of the teacher
+        num_crops: number of crops (aka views)
+        center: center of mass of the teacher
+        teacher_temp_schedule: schedule for the temperature of the teacher
+
+    """
+
     def __init__(
         self,
-        out_dim,
-        warmup_teacher_temp,
-        teacher_temp,
-        warmup_teacher_temp_epochs,
-        num_epochs,
-        student_temp=0.1,
-        num_crops=2,
-        center_momentum=0.9,
+        out_dim: int,
+        warmup_teacher_temp: float,
+        teacher_temp: float,
+        warmup_teacher_temp_epochs: float,
+        num_epochs: int,
+        student_temp: float = 0.1,
+        num_crops: int = 2,
+        center_momentum: float = 0.9,
     ):
+        """
+        Args:
+            out_dim: number of dimensions of the output (aka number of prototypes)
+            warmup_teacher_temp: base temperature for the temperature schedule of the teacher
+            teacher_temp: final temperature for the teacher
+            warmup_teacher_temp_epochs: number of epochs for the cosine annealing schedule
+            num_epochs: total number of epochs
+            student_temp: temperature for the student
+            num_crops: number of crops (aka views)
+            center_momentum: momentum for the EMA update of the center of mass of the teacher
+
+        """
+
         super().__init__()
         self.epoch = 0
         self.student_temp = student_temp
@@ -33,6 +59,16 @@ class DINOLoss(nn.Module):
         )
 
     def forward(self, student_output, teacher_output):
+        """
+        Computes DINO's loss given a batch of logits of the student and a batch of logits of the
+        teacher.
+
+        Args:
+            student_output: NxP Tensor containing student logits for all views
+            teacher_output: NxP Tensor containing teacher logits for all views
+
+        """
+
         student_out = student_output / self.student_temp
         student_out = student_out.chunk(self.num_crops)
 
@@ -57,6 +93,14 @@ class DINOLoss(nn.Module):
 
     @torch.no_grad()
     def update_center(self, teacher_output):
+        """
+        Updates the center for DINO's loss using exponential moving average.
+
+        Args:
+            teacher_output: NxP Tensor containing teacher logits of all views
+
+        """
+
         batch_center = torch.sum(teacher_output, dim=0, keepdim=True)
         if dist.is_available() and dist.is_initialized():
             dist.all_reduce(batch_center)

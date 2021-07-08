@@ -1,7 +1,18 @@
+import torch
 import torch.nn.functional as F
 
 
-def wmse_loss_func(z1, z2, simplified=True):
+def wmse_loss_func(z1: torch.Tensor, z2: torch.Tensor, simplified: bool = True):
+    """
+    Applies W-MSE's loss given two batches of whitened features z1 and z2.
+
+    Args:
+        z1: NxD Tensor containing whitened features from view 1
+        z2: NxD Tensor containing whitened features from view 2
+        simplified: faster computation, but with same result
+
+    """
+
     if simplified:
         return 2 - 2 * F.cosine_similarity(z1, z2.detach(), dim=-1).mean()
     else:
