@@ -13,7 +13,6 @@ def barlow_loss_func(
         z2: NxD Tensor containing projected features from view 2
         lamb: off-diagonal scaling factor for the cross-covariance matrix
         scale_loss: final scaling factor of the loss
-
     """
 
     N, D = z1.size()

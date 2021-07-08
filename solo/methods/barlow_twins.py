@@ -1,5 +1,5 @@
 import argparse
-from typing import List
+from typing import Any, Dict, List, Sequence
 
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
@@ -10,6 +10,15 @@ class BarlowTwins(BaseModel):
     def __init__(
         self, proj_hidden_dim: int, output_dim: int, lamb: float, scale_loss: float, **kwargs
     ):
+        """Implements Barlow Twins (https://arxiv.org/abs/2103.03230)
+
+        Args:
+            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            output_dim (int): number of dimensions of projected features.
+            lamb (float): off-diagonal scaling factor for the cross-covariance matrix.
+            scale_loss (float): scaling factor of the loss
+        """
+
         super().__init__(**kwargs)
 
         self.lamb = lamb
@@ -42,9 +51,10 @@ class BarlowTwins(BaseModel):
 
     @property
     def learnable_params(self) -> List[dict]:
-        """
-        Adds projector parameters together with parent's learnable parameters.
+        """Adds projector parameters to parent's learnable parameters.
 
+        Returns:
+            List[dict]: list of learnable parameters.
         """
 
         extra_learnable_params = [{"params": self.projector.parameters()}]
@@ -55,16 +65,16 @@ class BarlowTwins(BaseModel):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def training_step(self, batch, batch_idx):
-        """
-        Training step for Barlow Twins reusing BaseModel training step.
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for Barlow Twins reusing BaseModel training step.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch
+            batch_idx (int): index of the batch
+
         Returns:
-            barlow loss + classification loss
+            Dict[str, Any]: total loss composed of barlow loss and classification loss
 
         """
 

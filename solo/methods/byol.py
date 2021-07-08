@@ -1,5 +1,5 @@
 import argparse
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import torch
 import torch.nn as nn
@@ -104,7 +104,7 @@ class BYOL(BaseMomentumModel):
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int):
         """
         Training step for BYOL reusing BaseMomentumModel training step.
 

@@ -317,12 +317,12 @@ class BaseModel(pl.LightningModule):
             "acc5": acc5,
         }
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
         forwarding the crops, computing logits and computing statistics.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images
             batch_idx: index of the batch
 
@@ -359,15 +359,12 @@ class BaseModel(pl.LightningModule):
 
         return {"loss": loss, "feats": feats, "logits": logits}
 
-    def validation_step(
-        self, batch: Tuple[torch.Tensor, torch.Tensor, torch.Tensor], batch_idx: int
-    ) -> Dict[str, Any]:
+    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): a batch of data in the format
-                of [img_indexes, X, Y]
+            batch (torch.Tensor): a batch of data in the format of [img_indexes, X, Y]
             batch_idx (int): index of the batch
 
         Returns:
@@ -394,7 +391,7 @@ class BaseModel(pl.LightningModule):
         slightly skewing the metrics.
 
         Args:
-            outs (List[dict]): list of outputs of the validation step.
+            outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")

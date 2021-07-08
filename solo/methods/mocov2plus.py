@@ -1,5 +1,5 @@
 import argparse
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import torch
 import torch.nn as nn
@@ -83,7 +83,7 @@ class MoCoV2Plus(BaseMomentumModel):
         """Adds (projector, momentum_projector) to the parent's momentum pairs.
 
         Returns:
-            List[Tuple[Any, Any]]: two lists containing the optimizer and the scheduler.
+            List[Tuple[Any, Any]]: list of momentum pairs.
         """
 
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
@@ -91,6 +91,12 @@ class MoCoV2Plus(BaseMomentumModel):
 
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys: torch.Tensor):
+        """Adds new samples and removes old samples from the queue in a fifo manner.
+
+        Args:
+            keys (torch.Tensor): output features of the momentum encoder.
+        """
+
         batch_size = keys.shape[1]
         ptr = int(self.queue_ptr)  # type: ignore
         assert self.queue_size % batch_size == 0  # for simplicity
@@ -101,21 +107,32 @@ class MoCoV2Plus(BaseMomentumModel):
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
         self.queue_ptr[0] = ptr  # type: ignore
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs the forward pass of the online encoder and the online projection.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         q = F.normalize(self.projector(out["feats"]), dim=-1)
         return {**out, "q": q}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
         Training step for MoCoreusing BaseMomentumModel training step.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch
+            batch (Sequence[Any]): a batch of data in the
+                format of [img_indexes, [X], Y], where [X] is a list of size self.n_crops
+                containing batches of images.
+            batch_idx (int): index of the batch.
+
         Returns:
-            moco loss + classification loss
+            torch.Tensor: total loss composed of moco loss and classification loss.
 
         """
 

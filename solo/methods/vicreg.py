@@ -1,6 +1,7 @@
 import argparse
-from typing import List
+from typing import Any, Dict, List, Sequence
 
+import torch
 import torch.nn as nn
 from solo.losses.vicreg import vicreg_loss_func
 from solo.methods.base import BaseModel
@@ -16,6 +17,16 @@ class VICReg(BaseModel):
         cov_loss_weight: float,
         **kwargs
     ):
+        """Implements VICReg (https://arxiv.org/abs/2105.04906)
+
+        Args:
+            output_dim (int): number of dimensions of the projected features.
+            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+            sim_loss_weight (float): weight of the invariance term.
+            var_loss_weight (float): weight of the variance term.
+            cov_loss_weight (float): weight of the covariance term.
+        """
+
         super().__init__(**kwargs)
 
         self.sim_loss_weight = sim_loss_weight
@@ -50,30 +61,39 @@ class VICReg(BaseModel):
 
     @property
     def learnable_params(self) -> List[dict]:
-        """
-        Adds projector parameters together with parent's learnable parameters.
+        """Adds projector parameters to the parent's learnable parameters.
 
+        Returns:
+            List[dict]: list of learnable parameters.
         """
 
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs the forward pass of the encoder and the projector.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def training_step(self, batch, batch_idx):
-        """
-        Training step for VICReg reusing BaseModel training step.
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for VICReg reusing BaseModel training step.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch
-        Returns:
-            vicreg loss + classification loss
+            batch_idx (int): index of the batch
 
+        Returns:
+            Dict[str, Any]: total loss composed of VICReg loss and classification loss
         """
 
         out = super().training_step(batch, batch_idx)

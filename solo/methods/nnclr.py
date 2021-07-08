@@ -1,5 +1,5 @@
 import argparse
-from typing import List, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import torch
 import torch.nn as nn
@@ -21,6 +21,15 @@ class NNCLR(BaseModel):
         queue_size: int,
         **kwargs
     ):
+        """Implements NNCLR (https://arxiv.org/abs/2104.14548).
+
+        Args:
+            output_dim (int): number of dimensions of projected features.
+            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+            pred_hidden_dim (int): number of neurons in the hidden layers of the predictor.
+            temperature (float): temperature for the softmax in the contrastive loss.
+            queue_size (int): number of samples to keep in the queue.
+        """
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -73,9 +82,10 @@ class NNCLR(BaseModel):
 
     @property
     def learnable_params(self) -> List[dict]:
-        """
-        Adds projector and predictor parameters together with parent's learnable parameters.
+        """Adds projector and predictor parameters to the parent's learnable parameters.
 
+        Returns:
+            List[dict]: list of learnable parameters.
         """
 
         extra_learnable_params = [
@@ -86,6 +96,14 @@ class NNCLR(BaseModel):
 
     @torch.no_grad()
     def dequeue_and_enqueue(self, z: torch.Tensor, y: torch.Tensor):
+        """Adds new samples and removes old samples from the queue in a fifo manner. Also stores
+        the labels of the samples.
+
+        Args:
+            z (torch.Tensor): batch of projected features.
+            y (torch.Tensor): labels of the samples in the batch.
+        """
+
         z = gather(z)
         y = gather(y)
 
@@ -102,27 +120,46 @@ class NNCLR(BaseModel):
 
     @torch.no_grad()
     def find_nn(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Finds the nearest neighbor of a sample.
+
+        Args:
+            z (torch.Tensor): a batch of projected features.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: indices and projected features of the nearest
+                neighbors.
+        """
+
         idx = (z @ self.queue.T).max(dim=1)[1]
         nn = self.queue[idx]
         return idx, nn
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs the forward pass of the encoder, the projector and the predictor.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected and
+                predicted features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch, batch_idx):
-        """
-        Training step for NNCLR reusing BaseModel training step.
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
+        """Training step for NNCLR reusing BaseModel training step.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch
-        Returns:
-            nnclr loss + classification loss
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y]
+                where [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
+        Returns:
+            torch.Tensor: total loss composed of nnclr loss and classification loss.
         """
 
         targets = batch[-1]

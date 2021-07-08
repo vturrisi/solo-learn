@@ -1,6 +1,6 @@
 import argparse
 import distutils
-from typing import Any, List, Tuple, Dict
+from typing import Any, List, Sequence, Tuple, Dict
 
 import torch
 import torch.nn as nn
@@ -230,16 +230,17 @@ class DINO(BaseMomentumModel):
         p = self.head(out["feats"])
         return {**out, "p": p}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
         Training step for DINO reusing BaseMomentumModel training step.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch.
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where [X]
+                is a list of size self.n_crops containing batches of images
+            batch_idx (int): index of the batch
+
         Returns:
-            dino loss + classification loss.
+            torch.Tensor: total loss composed of dino loss and classification loss.
         """
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]

@@ -185,7 +185,20 @@ class LinearModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def shared_step(self, batch, batch_idx) -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def shared_step(
+        self, batch: Tuple, batch_idx: int
+    ) -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Performs operations that are shared between the training nd validation steps.
+
+        Args:
+            batch (Tuple): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]: batch size, loss, accuracy @1 and
+                accuracy @5.
+        """
+
         X, target = batch
         batch_size = X.size(0)
 
@@ -196,7 +209,17 @@ class LinearModel(pl.LightningModule):
         acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
         return batch_size, loss, acc1, acc5
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        """Performs the training step for the linear eval.
+
+        Args:
+            batch (torch.Tensor): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            torch.Tensor: cross-entropy loss between the predictions and the ground truth.
+        """
+
         # set encoder to eval mode
         self.backbone.eval()
 
@@ -206,7 +229,18 @@ class LinearModel(pl.LightningModule):
         self.log_dict(log, on_epoch=True, sync_dist=True)
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
+        """Performs the validation step for the linear eval.
+
+        Args:
+            batch (torch.Tensor): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
+                and accuracies
+        """
+
         batch_size, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
 
         results = {
@@ -217,7 +251,14 @@ class LinearModel(pl.LightningModule):
         }
         return results
 
-    def validation_epoch_end(self, outs):
+    def validation_epoch_end(self, outs: List[Dict[str, Any]]):
+        """Averages the losses and accuracies of all the validation batches.
+        This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        Args:
+            outs (List[Dict[str, Any]]): list of outputs of the validation step.
+        """
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
