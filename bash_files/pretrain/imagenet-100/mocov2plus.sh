@@ -11,24 +11,24 @@ python3 ../../../main_contrastive.py \
     --precision 16 \
     --optimizer sgd \
     --scheduler cosine \
-    --lr 0.06 \
-    --classifier_lr 0.1 \
+    --lr 0.3 \
+    --classifier_lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --num_workers 8 \
+    --num_workers 3 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
-    --min_scale_crop 0.2 \
-    --name mocov2plus-400ep-imagenet100 \
+    --name mocov2plus-400ep \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
     --method mocov2plus \
-    --proj_hidden_dim 512 \
+    --proj_hidden_dim 2048 \
     --queue_size 65536 \
     --temperature 0.2 \
-    --base_tau_momentum 0.999 \
-    --final_tau_momentum 0.999
+    --base_tau_momentum 0.99 \
+    --final_tau_momentum 0.999 \
+    --momentum_classifier
