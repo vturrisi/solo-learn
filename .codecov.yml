@@ -1,0 +1,15 @@
+flags:
+  cpu:
+    paths:
+      - solo/args
+      - solo/losses
+      - solo/methods
+      - solo/utils
+      - !solo/methods/dali.py
+      - !solo/utils/dali_dataloader.py
+    carryforward: true
+  dali:
+    paths:
+      - solo/methods/dali.py
+      - solo/utils/dali_dataloader.py
+    carryforward: true

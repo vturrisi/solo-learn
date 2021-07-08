@@ -1,5 +1,161 @@
 import argparse
+import os
+import subprocess
+import textwrap
 from solo.args.utils import additional_setup_contrastive, additional_setup_linear
+
+
+def test_setup_contrastive():
+
+    dummy_script = """
+        from solo.args.setup import parse_args_contrastive
+
+        args = parse_args_contrastive()
+    """
+    dummy_script = textwrap.dedent(dummy_script)
+
+    dummy_args = [
+        "--dataset",
+        "cifar10",
+        "--encoder",
+        "resnet18",
+        "--data_folder",
+        "./datasets",
+        "--max_epochs",
+        "1000",
+        "--gpus",
+        "0",
+        "--precision",
+        "16",
+        "--optimizer",
+        "sgd",
+        "--lars",
+        "--exclude_bias_n_norm",
+        "--scheduler",
+        "warmup_cosine",
+        "--lr",
+        "1.0",
+        "--classifier_lr",
+        "0.1",
+        "--weight_decay",
+        "1e-5",
+        "--batch_size",
+        "256",
+        "--num_workers",
+        "5",
+        "--brightness",
+        "0.4",
+        "--contrast",
+        "0.4",
+        "--saturation",
+        "0.2",
+        "--hue",
+        "0.1",
+        "--asymmetric_augmentations",
+        "--name",
+        "test",
+        "--project",
+        "solo-learn",
+        "--entity",
+        "unitn-mhug",
+        "--wandb",
+        "--method",
+        "byol",
+        "--output_dim",
+        "256",
+        "--proj_hidden_dim",
+        "4096",
+        "--pred_hidden_dim",
+        "4096",
+        "--base_tau_momentum",
+        "0.99",
+        "--final_tau_momentum",
+        "1.0",
+        "--momentum_classifier",
+    ]
+    # Write string to a file
+    with open("dummy_script.py", "w") as f:
+        f.write(dummy_script)
+
+    # Run the python file as a separate process
+    try:
+        script = ["python3", "dummy_script.py"] + dummy_args
+        subprocess.check_output(script)
+    except subprocess.CalledProcessError as e:
+        print("error code", e.returncode, e.output)
+
+    try:
+        os.remove("dummy_script.py")
+    except:
+        pass
+
+
+def test_setup_linear():
+
+    dummy_script = """
+        from solo.args.setup import parse_args_linear
+
+        args = parse_args_linear()
+    """
+    dummy_script = textwrap.dedent(dummy_script)
+
+    dummy_args = [
+        "--dataset",
+        "imagenet100",
+        "--encoder",
+        "resnet18",
+        "--data_folder",
+        "/datasets",
+        "--train_dir",
+        "imagenet-100/train",
+        "--val_dir",
+        "imagenet-100/val",
+        "--max_epochs",
+        "100",
+        "--gpus",
+        "0",
+        "--distributed_backend",
+        "ddp",
+        "--sync_batchnorm",
+        "--precision",
+        "16",
+        "--optimizer",
+        "sgd",
+        "--scheduler",
+        "step",
+        "--lr",
+        "3.0",
+        "--lr_decay_steps",
+        "60 80",
+        "--weight_decay",
+        "0",
+        "--batch_size",
+        "128",
+        "--num_workers",
+        "10",
+        "--dali",
+        "--name",
+        "test",
+        "--pretrained_feature_extractor" "PATH",
+        "--project",
+        "contrastive_learning",
+        "--wandb",
+    ]
+    # Write string to a file
+    with open("dummy_script.py", "w") as f:
+        f.write(dummy_script)
+
+    # Run the python file as a separate process
+    try:
+        script = ["python3", "dummy_script.py"] + dummy_args
+        subprocess.check_output(script)
+    except subprocess.CalledProcessError as e:
+        print("error code", e.returncode, e.output)
+
+    try:
+        os.remove("dummy_script.py")
+    except:
+        pass
 
 
 def test_additional_setup_contrastive():

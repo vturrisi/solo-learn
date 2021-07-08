@@ -9,6 +9,7 @@ from solo.methods.simclr import SimCLR
 from solo.methods.simsiam import SimSiam
 from solo.methods.swav import SwAV
 from solo.methods.vicreg import VICReg
+from solo.methods.wmse import WMSE
 
 METHODS = {
     # base classes
@@ -24,6 +25,7 @@ METHODS = {
     "simsiam": SimSiam,
     "swav": SwAV,
     "vicreg": VICReg,
+    "wmse": WMSE,
 }
 
 
@@ -42,6 +44,7 @@ except ImportError:
         "SimSiam",
         "SwAV",
         "VICReg",
+        "WMSE",
     ]
 else:
     __all__ = [
@@ -56,5 +59,6 @@ else:
         "SimSiam",
         "SwAV",
         "VICReg",
+        "WMSE",
         "dali",
     ]

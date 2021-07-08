@@ -6,25 +6,30 @@ from solo.methods.base import BaseModel
 
 class SimSiam(BaseModel):
     def __init__(
-        self, output_dim, proj_hidden_dim, pred_hidden_dim, **kwargs,
+        self,
+        output_dim,
+        proj_hidden_dim,
+        pred_hidden_dim,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_size, proj_hidden_dim, bias=False),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, proj_hidden_dim),
+            nn.Linear(proj_hidden_dim, proj_hidden_dim, bias=False),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
-            nn.BatchNorm1d(output_dim),
+            nn.BatchNorm1d(output_dim, affine=False),
         )
+        self.projector[6].bias.requires_grad = False  # hack: not use bias as it is followed by BN
 
         # predictor
         self.predictor = nn.Sequential(
-            nn.Linear(output_dim, pred_hidden_dim),
+            nn.Linear(output_dim, pred_hidden_dim, bias=False),
             nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(),
             nn.Linear(pred_hidden_dim, output_dim),

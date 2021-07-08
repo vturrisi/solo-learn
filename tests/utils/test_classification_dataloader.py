@@ -7,7 +7,6 @@ from torch.utils.data import DataLoader
 
 
 def test_transforms():
-
     im = np.random.rand(32, 32, 3) * 255
     im = Image.fromarray(im.astype("uint8")).convert("RGB")
 
@@ -32,10 +31,9 @@ def test_transforms():
 
 
 def test_datasets():
-
     T_train, T_val = prepare_transforms("cifar10")
     train_dataset, val_dataset = prepare_datasets(
-        "cifar10", T_train, T_val, data_folder="~/datasets"
+        "cifar10", T_train, T_val, data_folder="./datasets"
     )
     assert isinstance(train_dataset, CIFAR10)
     assert isinstance(val_dataset, CIFAR10)
@@ -44,7 +42,6 @@ def test_datasets():
 
 
 def test_data():
-
     bs = 64
     num_samples_train = 50000
     num_samples_val = 10000

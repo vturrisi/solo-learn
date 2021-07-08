@@ -21,8 +21,10 @@ python3 ../../../main_contrastive.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
+    --min_scale_crop 0.2 \
     --name mocov2plus-400ep-imagenet100 \
-    --project contrastive_learning \
+    --project solo-learn \
+    --entity unitn-mhug \
     --wandb \
     --method mocov2plus \
     --proj_hidden_dim 512 \

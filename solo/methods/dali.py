@@ -34,7 +34,12 @@ class BaseWrapper(DALIGenericIterator):
 
 class ContrastiveWrapper(BaseWrapper):
     def __init__(
-        self, *args, model_batch_size=None, model_rank=None, model_device=None, **kwargs,
+        self,
+        *args,
+        model_batch_size=None,
+        model_rank=None,
+        model_device=None,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
@@ -80,7 +85,6 @@ class ContrastiveABC(ABC):
         asymmetric_augmentations = self.extra_args["asymmetric_augmentations"]
         last_batch_fill = self.extra_args["last_batch_fill"]
 
-        batch_size = self.extra_args["batch_size"]
         num_workers = self.extra_args["num_workers"]
         data_folder = self.extra_args["data_folder"]
         train_dir = self.extra_args["train_dir"]
@@ -108,7 +112,7 @@ class ContrastiveABC(ABC):
                 transforms.append(transform)
             train_pipeline = MulticropContrastivePipeline(
                 os.path.join(data_folder, train_dir),
-                batch_size=batch_size,
+                batch_size=self.batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
                 size_crops=size_crops,
@@ -171,7 +175,7 @@ class ContrastiveABC(ABC):
                 )
             train_pipeline = ContrastivePipeline(
                 os.path.join(data_folder, train_dir),
-                batch_size=batch_size,
+                batch_size=self.batch_size,
                 transform=transform,
                 device=dali_device,
                 device_id=device_id,
@@ -188,7 +192,7 @@ class ContrastiveABC(ABC):
             reader_name="Reader",
             last_batch_policy=policy,
             auto_reset=True,
-            model_batch_size=batch_size,
+            model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
         )
@@ -205,7 +209,6 @@ class ClassificationABC(ABC):
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
-        batch_size = self.extra_args["batch_size"]
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
         data_folder = self.extra_args["data_folder"]
@@ -214,7 +217,7 @@ class ClassificationABC(ABC):
         train_pipeline = NormalPipeline(
             os.path.join(data_folder, train_dir),
             validation=False,
-            batch_size=batch_size,
+            batch_size=self.batch_size,
             device=dali_device,
             device_id=device_id,
             shard_id=shard_id,
@@ -235,7 +238,6 @@ class ClassificationABC(ABC):
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
-        batch_size = self.extra_args["batch_size"]
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
         data_folder = self.extra_args["data_folder"]
@@ -244,7 +246,7 @@ class ClassificationABC(ABC):
         val_pipeline = NormalPipeline(
             os.path.join(data_folder, val_dir),
             validation=True,
-            batch_size=batch_size,
+            batch_size=self.batch_size,
             device=dali_device,
             device_id=device_id,
             shard_id=shard_id,
