@@ -21,7 +21,7 @@ class DINOLoss(nn.Module):
 
     def __init__(
         self,
-        out_dim: int,
+        num_prototypes: int,
         warmup_teacher_temp: float,
         teacher_temp: float,
         warmup_teacher_temp_epochs: float,
@@ -32,7 +32,7 @@ class DINOLoss(nn.Module):
     ):
         """
         Args:
-            out_dim: number of dimensions of the output (aka number of prototypes)
+            num_prototypes: number of prototypes
             warmup_teacher_temp: base temperature for the temperature schedule of the teacher
             teacher_temp: final temperature for the teacher
             warmup_teacher_temp_epochs: number of epochs for the cosine annealing schedule
@@ -48,7 +48,7 @@ class DINOLoss(nn.Module):
         self.student_temp = student_temp
         self.center_momentum = center_momentum
         self.num_crops = num_crops
-        self.register_buffer("center", torch.zeros(1, out_dim))
+        self.register_buffer("center", torch.zeros(1, num_prototypes))
         # we apply a warm up for the teacher temperature because
         # a too high temperature makes the training instable at the beginning
         self.teacher_temp_schedule = np.concatenate(

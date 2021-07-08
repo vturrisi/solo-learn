@@ -1,6 +1,6 @@
 import argparse
 from functools import partial
-from typing import Any, Callable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -198,9 +198,10 @@ class BaseModel(pl.LightningModule):
 
     @property
     def learnable_params(self) -> List[dict]:
-        """
-        Returns a list of dicts containing learnable parameters and possible settings.
+        """Defines learnable parameters for the base class.
 
+        Returns:
+            List[dict]: list of dicts containing learnable parameters and possible settings.
         """
 
         return [
@@ -213,15 +214,11 @@ class BaseModel(pl.LightningModule):
             },
         ]
 
-    def configure_optimizers(self):
-        """
-        Collects learnable parameters and configure the optimizer and
-        learning rate scheduler.
+    def configure_optimizers(self) -> Tuple[List, List]:
+        """Collects learnable parameters and configure the optimizer and learning rate scheduler.
 
         Returns:
-            [optimizer]: a list with a single optimizer
-            or [optimizer], [scheduler]: two lists containing the optimizer and the scheduler
-
+            Tuple[List, List]: two lists containing the optimizer and the scheduler.
         """
 
         # collect learnable parameters
@@ -281,8 +278,7 @@ class BaseModel(pl.LightningModule):
         return self._base_forward(*args, **kwargs)
 
     def _base_forward(self, X: torch.Tensor, detach_feats: bool = True) -> dict:
-        """
-        Basic forward that allows children classes to overwrite forward().
+        """Basic forward that allows children classes to override forward().
 
         Args:
             X: batch of images in tensor format
@@ -298,15 +294,14 @@ class BaseModel(pl.LightningModule):
         return {"logits": logits, "feats": feats}
 
     def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> dict:
-        """
-        Forwards a batch of images X and computes the classification loss,
-        the logits, the features, acc@1 and acc@5.
+        """Forwards a batch of images X and computes the classification loss, the logits, the
+        features, acc@1 and acc@5.
 
         Args:
             X: batch of images in tensor format
             targets: batch of labels for X
         Returns:
-            dict containg the classification loss, logits, features, acc@1 and acc@5
+            dict containing the classification loss, logits, features, acc@1 and acc@5
 
         """
 
@@ -323,8 +318,7 @@ class BaseModel(pl.LightningModule):
         }
 
     def training_step(self, batch, batch_idx):
-        """
-        Training step for pytorch lightning. It does all the shared operations, such as
+        """Training step for pytorch lightning. It does all the shared operations, such as
         forwarding the crops, computing logits and computing statistics.
 
         Args:
@@ -334,7 +328,6 @@ class BaseModel(pl.LightningModule):
 
         Returns:
             dict with the classification loss, features and logits
-
         """
 
         _, X, targets = batch
@@ -366,18 +359,20 @@ class BaseModel(pl.LightningModule):
 
         return {"loss": loss, "feats": feats, "logits": logits}
 
-    def validation_step(self, batch, batch_idx):
-        """
-        Validation step for pytorch lightning. It does all the shared operations, such as
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor, torch.Tensor], batch_idx: int
+    ) -> Dict[str, Any]:
+        """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, X, Y]
-            batch_idx: index of the batch
+            batch (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): a batch of data in the format
+                of [img_indexes, X, Y]
+            batch_idx (int): index of the batch
 
         Returns:
-            dict with the batch_size (used for averaging), the classification loss, and accuracies
-
+            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
+                and accuracies
         """
 
         X, targets = batch
@@ -393,12 +388,13 @@ class BaseModel(pl.LightningModule):
         }
         return metrics
 
-    def validation_epoch_end(self, outs):
-        """
-        Averages the losses and accuracies of all the validation batches.
+    def validation_epoch_end(self, outs: List[dict]):
+        """Averages the losses and accuracies of all the validation batches.
         This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
 
+        Args:
+            outs (List[dict]): list of outputs of the validation step.
         """
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")

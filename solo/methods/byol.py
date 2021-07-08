@@ -1,5 +1,5 @@
 import argparse
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import torch
 import torch.nn as nn
@@ -17,6 +17,14 @@ class BYOL(BaseMomentumModel):
         pred_hidden_dim: int,
         **kwargs,
     ):
+        """Implements BYOL (https://arxiv.org/abs/2006.07733).
+
+        Args:
+            output_dim (int): number of dimensions of projected features.
+            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+        """
+
         super().__init__(**kwargs)
 
         # projector
@@ -60,10 +68,12 @@ class BYOL(BaseMomentumModel):
 
     @property
     def learnable_params(self) -> List[dict]:
-        """
-        Adds projector and predictor parameters together with parent's learnable parameters.
+        """Adds projector and predictor parameters to the parent's learnable parameters.
 
+        Returns:
+            List[dict]: list of learnable parameters.
         """
+
         extra_learnable_params = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters()},
@@ -72,10 +82,23 @@ class BYOL(BaseMomentumModel):
 
     @property
     def momentum_pairs(self) -> List[Tuple[Any, Any]]:
+        """Adds (projector, momentum_projector) to the parent's momentum pairs.
+
+        Returns:
+            List[Tuple[Any, Any]]: list of momentum pairs
+        """
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs forward pass of the online encoder (encoder, projector and predictor).
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the logits of the head.
+        """
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         p = self.predictor(z)
@@ -91,7 +114,6 @@ class BYOL(BaseMomentumModel):
             batch_idx: index of the batch
         Returns:
             byol loss + classification loss
-
         """
 
         out = super().training_step(batch, batch_idx)

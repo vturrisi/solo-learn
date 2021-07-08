@@ -16,6 +16,15 @@ class MoCoV2Plus(BaseMomentumModel):
     def __init__(
         self, output_dim: int, proj_hidden_dim: int, temperature: float, queue_size: int, **kwargs
     ):
+        """Implements MoCo V2+ (https://arxiv.org/abs/2011.10566).
+
+        Args:
+            output_dim (int): number of dimensions of projected features.
+            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            temperature (float): temperature for the softmax in the contrastive loss.
+            queue_size (int): number of samples to keep in the queue.
+        """
+
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -60,9 +69,10 @@ class MoCoV2Plus(BaseMomentumModel):
 
     @property
     def learnable_params(self) -> List[dict]:
-        """
-        Adds projector parameters together with parent's learnable parameters.
+        """Adds projector parameters together with parent's learnable parameters.
 
+        Returns:
+            List[dict]: list of learnable parameters.
         """
 
         extra_learnable_params = [{"params": self.projector.parameters()}]
@@ -70,6 +80,12 @@ class MoCoV2Plus(BaseMomentumModel):
 
     @property
     def momentum_pairs(self) -> List[Tuple[Any, Any]]:
+        """Adds (projector, momentum_projector) to the parent's momentum pairs.
+
+        Returns:
+            List[Tuple[Any, Any]]: two lists containing the optimizer and the scheduler.
+        """
+
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 

@@ -1,5 +1,5 @@
 import argparse
-from typing import Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -33,6 +33,24 @@ class LinearModel(pl.LightningModule):
         lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
+        """Implements linear evaluation.
+
+        Args:
+            backbone (nn.Module): backbone architecture for feature extraction.
+            n_classes (int): number of classes in the dataset.
+            max_epochs (int): total number of epochs.
+            batch_size (int): batch size.
+            optimizer (str): optimizer to use.
+            lars (bool): whether to use lars or not.
+            lr (float): learning rate.
+            weight_decay (float): weight decay.
+            exclude_bias_n_norm (bool): whether to exclude bias and batch norm from weight decay
+                and lars adaptation.
+            extra_optimizer_args (dict): extra optimizer arguments.
+            scheduler (str): learning rate scheduler.
+            lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
+                rate will be decreased. Defaults to None.
+        """
         super().__init__()
 
         self.backbone = backbone
@@ -102,13 +120,33 @@ class LinearModel(pl.LightningModule):
 
         return parent_parser
 
-    def forward(self, X):
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
+
+        Args:
+            X (torch.tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing features and logits.
+        """
+
         with torch.no_grad():
             feats = self.backbone(X)
         logits = self.classifier(feats)
         return {"logits": logits, "feats": feats}
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> Tuple[List, List]:
+        """configures the optimizer for the linear layer.
+
+        Raises:
+            ValueError: if the optimizer is not in (sgd, adam).
+            ValueError: if the scheduler is not in not in (warmup_cosine, cosine, reduce, step,
+                exponential).
+
+        Returns:
+            Tuple[List, List]: two lists containing the optimizer and the scheduler.
+        """
+
         if self.optimizer == "sgd":
             optimizer = torch.optim.SGD
         elif self.optimizer == "adam":
@@ -147,7 +185,7 @@ class LinearModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def shared_step(self, batch, batch_idx):
+    def shared_step(self, batch, batch_idx) -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
         X, target = batch
         batch_size = X.size(0)
 
