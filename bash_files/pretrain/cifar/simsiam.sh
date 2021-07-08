@@ -9,16 +9,15 @@ python3 ../../../main_contrastive.py \
     --precision 16 \
     --optimizer sgd \
     --scheduler warmup_cosine \
-    --lr 0.3 \
+    --lr 0.5 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-4 \
+    --weight_decay 1e-5 \
     --batch_size 256 \
     --num_workers 4 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
-    --min_scale_crop 0.2 \
     --zero_init_residual \
     --name simsiam-$1 \
     --project solo-learn \
