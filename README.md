@@ -89,6 +89,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 ## Results
 
 **Note:** hyperparameters may not be the best, we will be re-running the methods with lower performance eventually.
+
 :sparkles: methods where hyperparameters were heavily tuned.
 
 ### CIFAR-10
