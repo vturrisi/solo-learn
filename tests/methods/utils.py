@@ -44,6 +44,7 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_s
         "multicrop": multicrop,
         "n_crops": n_crops,
         "n_small_crops": n_small_crops,
+        "eta_lars": 0.02,
         "lr_decay_steps": None,
         "dali_device": "gpu",
         "asymmetric_augmentations": False,
