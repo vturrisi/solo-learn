@@ -1,6 +1,6 @@
 import argparse
 from functools import partial
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
