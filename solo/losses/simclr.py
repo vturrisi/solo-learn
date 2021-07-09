@@ -63,7 +63,7 @@ def manual_simclr_loss_func(
     a negative boolean mask of all negatives.
 
     Args:
-        z: N*viewsxD Tensor containing projected features from the views
+        z: NxViewsxD Tensor containing projected features from the views
         pos_mask: boolean mask containing all positives for z * z.T
         neg_mask: boolean mask containing all negatives for z * z.T
         temperature: temperature factor for the loss

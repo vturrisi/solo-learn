@@ -13,7 +13,8 @@ from solo.utils.dali_dataloader import (
 
 
 class BaseWrapper(DALIGenericIterator):
-    # this might be a shitty fix for now to handle when LastBatchPolicy.DROP is on
+    """Temporary fix to handle LastBatchPolicy.DROP"""
+
     def __len__(self):
         size = (
             self._size_no_pad // self._shards_num
@@ -41,6 +42,13 @@ class PretrainWrapper(BaseWrapper):
         *args,
         **kwargs,
     ):
+        """Adds indices to a batch fetched from the parent.
+
+        Args:
+            model_batch_size (int): batch size.
+            model_rank (int): rank of the current process.
+            model_device (str): id of the current device.
+        """
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
@@ -65,11 +73,15 @@ class Wrapper(BaseWrapper):
 
 
 class PretrainABC(ABC):
-    """
-    Abstract pretrain class that returns a train_dataloader and val_dataloader using dali.
-    """
+    """Abstract pretrain class that returns a train_dataloader using dali."""
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DALIGenericIterator:
+        """Returns a train dataloader using dali. Supports multi-crop and asymmetric augmentations.
+
+        Returns:
+            PretrainWrapper: a train dataloader in the form of a dali pipeline object wrapped with
+                PretrainWrapper.
+        """
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
@@ -200,11 +212,10 @@ class PretrainABC(ABC):
 
 
 class ClassificationABC(ABC):
-    """
-    Abstract classification class that returns a train_dataloader and val_dataloader using dali.
-    """
+    """Abstract classification class that returns a train_dataloader and val_dataloader using
+    dali."""
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DALIGenericIterator:
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
@@ -233,7 +244,7 @@ class ClassificationABC(ABC):
         )
         return train_loader
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DALIGenericIterator:
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size

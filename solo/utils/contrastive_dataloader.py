@@ -5,17 +5,16 @@ from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Union
 from PIL import ImageFilter, ImageOps
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
+import torchvision
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, STL10, ImageFolder
+from torchvision.datasets import STL10, ImageFolder
 
 
 def dataset_with_index(DatasetClass):
-    """
-    Factory for datasets that also returns the data index.
+    """Factory for datasets that also returns the data index.
 
     Args:
-        DatasetClass: Dataset class to be wrapped
-
+        DatasetClass: Dataset class to be wrapped.
     """
 
     class DatasetWithIndex(DatasetClass):
@@ -28,12 +27,10 @@ def dataset_with_index(DatasetClass):
 
 class GaussianBlur:
     def __init__(self, sigma: Sequence[float] = [0.1, 2.0]):
-        """
-        Gaussian blur as a callable object.
+        """Gaussian blur as a callable object.
 
         Args:
-            sigma: range to sample the radius of the guassian blur filter
-
+            sigma: range to sample the radius of the gaussian blur filter.
         """
 
         self.sigma = sigma
@@ -45,10 +42,7 @@ class GaussianBlur:
 
 
 class Solarization:
-    """
-    Solarization as a callable object.
-
-    """
+    """Solarization as a callable object."""
 
     def __call__(self, img):
         return ImageOps.solarize(img)
@@ -63,7 +57,7 @@ class NCropAugmentation:
             transform: transformation pipeline or list of transformation pipelines
             n_crops: if transformation pipeline is not a list, applies the same
                 pipeline n_crops times, if it is a list, this is ignored and each
-                element of the list is applied once
+                element of the list is applied once.
 
         """
 
@@ -84,10 +78,7 @@ class NCropAugmentation:
 
 
 class BaseTransform:
-    """
-    Adds callable base class to implement different transformation pipelines.
-
-    """
+    """Adds callable base class to implement different transformation pipelines."""
 
     def __call__(self, x):
         return self.transform(x)
@@ -302,19 +293,18 @@ def prepare_multicrop_transform(
     n_crops: Optional[Sequence[int]] = None,
     min_scale_crops: Optional[Sequence[float]] = None,
     max_scale_crops: Optional[Sequence[float]] = None,
-):
-    """
-    Prepares multicrop transformations by creating custom crops given the parameters
+) -> MulticropAugmentation:
+    """Prepares multicrop transformations by creating custom crops given the parameters.
 
     Args:
-        transform: basic transformation callable without cropping
-        n_crops: list with number of crops per crop size
-        min_scale_crops: list with minimum crop scales per crop size
-        max_scale_crops: list with maxium crop scales per crop size
-    Returns:
-        MulticropAugmentation: prepared augmentation pipeline that supports
-        multicrop with different sizes
+        transform (Callable): transformation callable without cropping.
+        n_crops (list): with number of crops per crop size.
+        min_scale_crops (list): with minimum crop scales per crop size.
+        max_scale_crops (list): with maxium crop scales per crop size.
 
+    Returns:
+        MulticropAugmentation: prepared augmentation pipeline that supports multicrop with
+            different sizes.
     """
 
     if n_crops is None:
@@ -346,16 +336,9 @@ def prepare_datasets(
     if train_dir is None:
         train_dir = f"{dataset}/train"
 
-    if dataset == "cifar10":
-        train_dataset = dataset_with_index(CIFAR10)(
-            os.path.join(data_dir, train_dir),
-            train=True,
-            download=True,
-            transform=transform,
-        )
-
-    elif dataset == "cifar100":
-        train_dataset = dataset_with_index(CIFAR100)(
+    if dataset in ["cifar10", "cifar100"]:
+        DatasetClass = vars(torchvision.datasets)[dataset.upper()]
+        train_dataset = dataset_with_index(DatasetClass)(
             os.path.join(data_dir, train_dir),
             train=True,
             download=True,

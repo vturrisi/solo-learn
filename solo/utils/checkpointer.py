@@ -15,14 +15,14 @@ class Checkpointer(Callback):
         frequency: int = 1,
         keep_previous_checkpoints: bool = False,
     ):
-        """
-        Custom checkpointer callback that stores checkpoints in an easier to access way.
+        """Custom checkpointer callback that stores checkpoints in an easier to access way.
 
         Args:
-            args: Namespace object containing at least an attribute name
-            logdir: base directory to store checkpoints
-            frequency: number of epochs between each checkpoint
-            keep_previous_checkpoints: by default, older checkpoints are overwritten
+            args (Namespace): namespace object containing at least an attribute name.
+            logdir (srt): base directory to store checkpoints.
+            frequency (int): number of epochs between each checkpoint.
+            keep_previous_checkpoints (bool): whether to keep previous checkpoints or not. Defaults
+                to False meaning that checkpoints are overwritten.
 
         """
 
@@ -33,12 +33,10 @@ class Checkpointer(Callback):
 
     @staticmethod
     def add_checkpointer_args(parent_parser: argparse.ArgumentParser):
-        """
-        Add user-required arguments to a parser.
+        """Add user-required arguments to a parser.
 
         Args:
-            parent_parser: ArgumentParser to add new args to
-
+            parent_parser (ArgumentParser): parser to add new args to.
         """
 
         parser = parent_parser.add_argument_group("checkpointer")
@@ -47,12 +45,10 @@ class Checkpointer(Callback):
         return parent_parser
 
     def initial_setup(self, trainer: pl.Trainer):
-        """
-        Creates the directories and does the initial setup needed.
+        """Creates the directories and does the initial setup needed.
 
         Args:
-            trainer: pl.Trainer
-
+            trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
         if trainer.logger is None:
@@ -72,12 +68,10 @@ class Checkpointer(Callback):
             os.makedirs(self.path, exist_ok=True)
 
     def save_args(self, trainer: pl.Trainer):
-        """
-        Store arguments into a json file.
+        """Store arguments into a json file.
 
         Args:
-            trainer: pl.Trainer
-
+            trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
         if trainer.is_global_zero:
@@ -86,12 +80,10 @@ class Checkpointer(Callback):
             json.dump(args, open(json_path, "w"), default=lambda o: "<not serializable>")
 
     def save(self, trainer: pl.Trainer):
-        """
-        Save current checkpoint.
+        """Save current checkpoint.
 
         Args:
-            trainer: pl.Trainer
-
+            trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
         if trainer.is_global_zero and not trainer.running_sanity_check:
@@ -104,24 +96,20 @@ class Checkpointer(Callback):
             self.last_ckpt = ckpt
 
     def on_train_start(self, trainer: pl.Trainer, _):
-        """
-        Executes initial setup and saves arguments
+        """Executes initial setup and saves arguments.
 
         Args:
-            trainer: pl.Trainer
-
+            trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
         self.initial_setup(trainer)
         self.save_args(trainer)
 
     def on_validation_end(self, trainer: pl.Trainer, _):
-        """
-        Tries to save current checkpoint at the end of each validation epoch.
+        """Tries to save current checkpoint at the end of each validation epoch.
 
         Args:
-            trainer: pl.Trainer
-
+            trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
         epoch = trainer.current_epoch  # type: ignore

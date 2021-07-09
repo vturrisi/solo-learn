@@ -1,21 +1,20 @@
 import os
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
+from torch import nn
 import torchvision
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
 
 
-def prepare_transforms(dataset: str):
-    """
-    Prepare pre-defined train and test transformation pipelines for some datasets
+def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
+    """Prepare pre-defined train and test transformation pipelines for some datasets.
 
     Args:
-        dataset: dataset name
+        dataset (str): dataset name.
     Returns:
-        T_train: training transformation pipeline
-        T_val: validation transformation pipeline
+        Tuple[nn.Module, nn.Module]: training and validation transformation pipelines.
 
     """
 
@@ -97,20 +96,19 @@ def prepare_datasets(
     data_dir: Optional[str] = None,
     train_dir: Optional[str] = None,
     val_dir: Optional[str] = None,
-):
-    """
-    Prepare train and val datasets.
+) -> Tuple[Dataset, Dataset]:
+    """Prepare train and val datasets.
 
     Args:
-        dataset: dataset name
-        T_train: pipeline of transformations for training dataset
-        T_val: pipeline of transformations for validation dataset
-        data_dir: path where to download/locate the dataset
-        train_dir: subpath where the training data is located
-        val_dir: subpath where the validation data is located
+        dataset (str): dataset name.
+        T_train (Callable): pipeline of transformations for training dataset.
+        T_val (Callable): pipeline of transformations for validation dataset.
+        data_dir Optional[str]: path where to download/locate the dataset.
+        train_dir Optional[str]: subpath where the training data is located.
+        val_dir Optional[str]: subpath where the validation data is located.
+
     Returns:
-        train_dataset: training dataset
-        val_dataset: validation dataset
+        Tuple[Dataset, Dataset]: training dataset and validation dataset.
 
     """
 
@@ -165,18 +163,16 @@ def prepare_datasets(
 
 def prepare_dataloaders(
     train_dataset: Dataset, val_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
-):
-    """
-    Wraps a train and a validation dataset with a DataLoader.
+) -> Tuple[DataLoader, DataLoader]:
+    """Wraps a train and a validation dataset with a DataLoader.
 
     Args:
-        train_dataset: Dataset object containing training data
-        val_dataset: Dataset object containing validation data
-        batch_size: batch size :)
-        num_workers: number of parallel workers
+        train_dataset (Dataset): object containing training data.
+        val_dataset (Dataset): object containing validation data.
+        batch_size (int): batch size.
+        num_workers (int): number of parallel workers.
     Returns:
-        train_loader: training dataset wrapped in a dataloader
-        val_loader: validation dataset wrapped in a dataloader
+        Tuple[DataLoader, DataLoader]: training dataloader and validation dataloader.
 
     """
 
@@ -205,22 +201,22 @@ def prepare_data(
     val_dir: Optional[str] = None,
     batch_size: int = 64,
     num_workers: int = 4,
-):
-    """
-    Prepares transformations, creates dataset objects and wraps them in dataloaders.
+) -> Tuple[DataLoader, DataLoader]:
+    """Prepares transformations, creates dataset objects and wraps them in dataloaders.
 
     Args:
-        dataset: dataset name
-        data_dir: path where to download/locate the dataset
-        train_dir: subpath where the training data is located
-        val_dir: subpath where the validation data is located
-        batch_size: bash size :)
-        num_workers: number of parallel workers
+        dataset (str): dataset name.
+        data_dir (Optional[str]): path where to download/locate the dataset.
+        train_dir (Optional[str]): subpath where the training data is located.
+        val_dir (Optional[str]): subpath where the validation data is located.
+        batch_size (int): bash size.
+        num_workers (int): number of parallel workers.
+
     Returns:
         train_loader: prepared training dataloader
         val_loader: prepared validation dataloader
-
     """
+
     T_train, T_val = prepare_transforms(dataset)
     train_dataset, val_dataset = prepare_datasets(
         dataset,

@@ -155,23 +155,24 @@ class NormalPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
     ):
-        """
-        Initializes the pipeline for validation or linear eval training.
+        """Initializes the pipeline for validation or linear eval training.
 
         If validation is set to True then images will only be resized to 256px and center cropped
         to 224px, otherwise random resized crop, horizontal flip are applied. In both cases images
         are normalized.
 
         Args:
-            data_path: directory that contains the data
-            batch_size: batch size
-            device: device on which the operation will be performed
-            validation: whether it is validation or training
-            device_id: id of the device used to initialize the seed and for parent class
-            shard_id: id of the shard (chuck of samples)
-            num_shards: total number of shards
-            num_threads: number of threads to run in parallel
-            seed: seed for random number generation
+            data_path (str): directory that contains the data.
+            batch_size (int): batch size.
+            device (str): device on which the operation will be performed.
+            validation (bool): whether it is validation or training. Defaults to False. Defaults to
+                False.
+            device_id (int): id of the device used to initialize the seed and for parent class.
+                Defaults to 0.
+            shard_id (int): id of the shard (chuck of samples). Defaults to 0.
+            num_shards (int): total number of shards. Defaults to 1.
+            num_threads (int): number of threads to run in parallel. Defaults to 4.
+            seed (int): seed for random number generation. Defaults to 12.
         """
 
         seed += device_id
