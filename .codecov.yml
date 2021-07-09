@@ -1,18 +1,3 @@
-flag_management:
-  # this section will govern all default rules of Flags
-  default_rules:
-    carryforward: boolean?
-    ignore: [path]?
-    paths: [path]?
-    statuses: [ #note, statuses are an array
-      name_prefix: string (r"^[\w\-\.]+$")
-      type: OR("project", "patch", "changes")
-      target: OR("auto", percent)?
-      include_changes: OR("auto", precent)?
-      threshold: percent?
-      **normal status attributes
-    ]?
-
 flags:
   cpu:
     paths:
