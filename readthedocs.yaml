@@ -109,4 +109,3 @@ dependencies:
     - urllib3==1.26.6
     - wrapt==1.12.1
     - zope-interface==5.4.0
-prefix: /home/vturrisi/miniconda3/envs/solo-learn
