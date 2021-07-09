@@ -136,7 +136,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | VICReg       :rocket: | ResNet18 |   400  | :heavy_check_mark: |      79.22     |                 |      95.06     |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
 | W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |                 |      90.94     |                 | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
 
-:sparkles: methods where hyperparameters were heavily tuned.
+:rocket: methods where hyperparameters were heavily tuned.
 
 ### ImageNet
 
