@@ -9,7 +9,7 @@ def test_dino_loss():
     p_momentum = torch.randn(b, f)
 
     dino_loss = DINOLoss(
-        out_dim=f,
+        num_prototypes=f,
         warmup_teacher_temp=0.4,
         teacher_temp=0.7,
         warmup_teacher_temp_epochs=10,
