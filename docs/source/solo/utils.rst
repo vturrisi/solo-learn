@@ -1,9 +1,9 @@
-solo.utils package
-==================
+solo.utils
+==========
 
 
 Checkpointer
-------------------------------
+------------
 
 .. automodule:: solo.utils.checkpointer
    :members:
@@ -12,7 +12,7 @@ Checkpointer
 
 
 Classification dataloaders
---------------------------------------------
+--------------------------
 
 .. automodule:: solo.utils.classification_dataloader
    :members:
@@ -20,7 +20,7 @@ Classification dataloaders
    :show-inheritance:
 
 Contrastive dataloaders
------------------------------------------
+-----------------------
 
 .. automodule:: solo.utils.contrastive_dataloader
    :members:
@@ -28,7 +28,7 @@ Contrastive dataloaders
    :show-inheritance:
 
 DALI dataloaders
-----------------------------------
+----------------
 
 .. automodule:: solo.utils.dali_dataloader
    :members:
@@ -36,7 +36,7 @@ DALI dataloaders
    :show-inheritance:
 
 Gather layer
--------------------------------
+------------
 
 .. automodule:: solo.utils.gather_layer
    :members:
@@ -44,7 +44,7 @@ Gather layer
    :show-inheritance:
 
 LARS
-----------------------
+----
 
 .. automodule:: solo.utils.lars
    :members:
@@ -52,7 +52,7 @@ LARS
    :show-inheritance:
 
 Metrics
--------------------------
+-------
 
 .. automodule:: solo.utils.metrics
    :members:
@@ -60,7 +60,7 @@ Metrics
    :show-inheritance:
 
 Momentum module
---------------------------
+---------------
 
 .. automodule:: solo.utils.momentum
    :members:
@@ -68,7 +68,7 @@ Momentum module
    :show-inheritance:
 
 Sinkhorn-Knopp
----------------------------------
+--------------
 
 .. automodule:: solo.utils.sinkhorn_knopp
    :members:
@@ -76,7 +76,7 @@ Sinkhorn-Knopp
    :show-inheritance:
 
 Truncate normal
--------------------------------
+---------------
 
 .. automodule:: solo.utils.trunc_normal
    :members:
@@ -84,7 +84,7 @@ Truncate normal
    :show-inheritance:
 
 Whitening
----------------------------
+---------
 
 .. automodule:: solo.utils.whitening
    :members:
