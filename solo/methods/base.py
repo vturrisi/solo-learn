@@ -369,12 +369,13 @@ class BaseModel(pl.LightningModule):
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch (torch.Tensor): a batch of data in the format of [img_indexes, X, Y]
+            batch (torch.Tensor):a batch of data in the format of [img_indexes, X, Y]
             batch_idx (int): index of the batch
 
         Returns:
-            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
-                and accuracies
+            Dict[str, Any]:
+                dict with the batch_size (used for averaging),
+                the classification loss and accuracies
         """
 
         X, targets = batch

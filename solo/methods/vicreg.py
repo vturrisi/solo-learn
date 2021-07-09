@@ -89,11 +89,11 @@ class VICReg(BaseModel):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of VICReg loss and classification loss
+            Dict[str, Any]: total loss composed of VICReg loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

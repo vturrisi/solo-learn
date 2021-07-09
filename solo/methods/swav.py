@@ -36,6 +36,7 @@ class SwAV(BaseModel):
             epoch_queue_starts (int): epochs the queue starts.
             freeze_prototypes_epochs (int): number of epochs during which the prototypes are frozen.
         """
+
         super().__init__(**kwargs)
 
         self.output_dim = output_dim
@@ -93,8 +94,7 @@ class SwAV(BaseModel):
         return super().learnable_params + extra_learnable_params
 
     def on_train_start(self):
-        """Gets the world size and sets it in the sinkhorn and the queue"""
-
+        """Gets the world size and sets it in the sinkhorn and the queue."""
         # sinkhorn-knopp needs the world size
         world_size = self.trainer.world_size if self.trainer else 1
         self.sk = SinkhornKnopp(self.sk_iters, self.sk_epsilon, world_size)
@@ -112,8 +112,9 @@ class SwAV(BaseModel):
             X (torch.Tensor): a batch of images in the tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent, the projected features and
-                the logits.
+            Dict[str, Any]:
+                a dict containing the outputs of the parent,
+                the projected features and the logits.
         """
 
         out = super().forward(X, *args, **kwargs)
@@ -132,6 +133,7 @@ class SwAV(BaseModel):
         Returns:
             List[torch.Tensor]: assignments for each sample in the batch.
         """
+
         bs = preds[0].size(0)
         assignments = []
         for i, p in enumerate(preds):
@@ -148,11 +150,11 @@ class SwAV(BaseModel):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of SwAV loss and classification loss
+            Dict[str, Any]: total loss composed of SwAV loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
@@ -181,7 +183,7 @@ class SwAV(BaseModel):
         return swav_loss + class_loss
 
     def on_after_backward(self):
-        """Zeroes the gradients of the prototypes"""
+        """Zeroes the gradients of the prototypes."""
         if self.current_epoch < self.freeze_prototypes_epochs:
             for p in self.prototypes.parameters():
                 p.grad = None

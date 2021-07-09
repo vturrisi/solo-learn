@@ -11,11 +11,7 @@ from solo.utils.momentum import initialize_momentum_params
 
 class BYOL(BaseMomentumModel):
     def __init__(
-        self,
-        output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        **kwargs,
+        self, output_dim: int, proj_hidden_dim: int, pred_hidden_dim: int, **kwargs,
     ):
         """Implements BYOL (https://arxiv.org/abs/2006.07733).
 
@@ -85,8 +81,9 @@ class BYOL(BaseMomentumModel):
         """Adds (projector, momentum_projector) to the parent's momentum pairs.
 
         Returns:
-            List[Tuple[Any, Any]]: list of momentum pairs
+            List[Tuple[Any, Any]]: list of momentum pairs.
         """
+
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
@@ -99,6 +96,7 @@ class BYOL(BaseMomentumModel):
         Returns:
             Dict[str, Any]: a dict containing the outputs of the parent and the logits of the head.
         """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         p = self.predictor(z)
@@ -110,10 +108,10 @@ class BYOL(BaseMomentumModel):
 
         Args:
             batch: a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx: index of the batch.
         Returns:
-            byol loss + classification loss
+            byol loss + classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

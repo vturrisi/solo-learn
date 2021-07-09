@@ -16,7 +16,7 @@ class BarlowTwins(BaseModel):
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             output_dim (int): number of dimensions of projected features.
             lamb (float): off-diagonal scaling factor for the cross-covariance matrix.
-            scale_loss (float): scaling factor of the loss
+            scale_loss (float): scaling factor of the loss.
         """
 
         super().__init__(**kwargs)
@@ -70,11 +70,11 @@ class BarlowTwins(BaseModel):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of barlow loss and classification loss
+            Dict[str, Any]: total loss composed of barlow loss and classification loss.
 
         """
 

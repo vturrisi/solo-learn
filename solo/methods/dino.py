@@ -123,6 +123,7 @@ class DINO(BaseMomentumModel):
             warmup_teacher_temperature_epochs (int): number of epochs of cosine annealing
                 scheduling for teacher temperature.
         """
+
         super().__init__(**kwargs)
 
         self.clip_grad = clip_grad
@@ -187,6 +188,7 @@ class DINO(BaseMomentumModel):
         Returns:
             List[dict]: list of learnable parameters.
         """
+
         extra_learnable_params = [{"params": self.head.parameters()}]
         return super().learnable_params + extra_learnable_params
 
@@ -197,6 +199,7 @@ class DINO(BaseMomentumModel):
         Returns:
             List[dict]: list of momentum pairs.
         """
+
         extra_momentum_pairs = [(self.head, self.momentum_head)]
         return super().momentum_pairs + extra_momentum_pairs
 
@@ -206,6 +209,7 @@ class DINO(BaseMomentumModel):
         Args:
             clip (float): threshold for gradient clipping.
         """
+
         for p in self.encoder.parameters():
             if p.grad is not None:
                 param_norm = p.grad.data.norm(2)
@@ -226,6 +230,7 @@ class DINO(BaseMomentumModel):
         Returns:
             Dict[str, Any]: a dict containing the outputs of the parent and the logits of the head.
         """
+
         out = super().forward(X, *args, **kwargs)
         p = self.head(out["feats"])
         return {**out, "p": p}
@@ -235,12 +240,13 @@ class DINO(BaseMomentumModel):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where [X]
-                is a list of size self.n_crops containing batches of images
-            batch_idx (int): index of the batch
+                is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
             torch.Tensor: total loss composed of dino loss and classification loss.
         """
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]

@@ -51,6 +51,7 @@ class LinearModel(pl.LightningModule):
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
         """
+
         super().__init__()
 
         self.backbone = backbone
@@ -195,8 +196,8 @@ class LinearModel(pl.LightningModule):
             batch_idx (int): the index of the batch.
 
         Returns:
-            Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]: batch size, loss, accuracy @1 and
-                accuracy @5.
+            Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
+                batch size, loss, accuracy @1 and accuracy @5.
         """
 
         X, target = batch
@@ -237,8 +238,9 @@ class LinearModel(pl.LightningModule):
             batch_idx (int): the index of the batch.
 
         Returns:
-            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
-                and accuracies
+            Dict[str, Any]:
+                dict with the batch_size (used for averaging),
+                the classification loss and accuracies.
         """
 
         batch_size, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
@@ -259,6 +261,7 @@ class LinearModel(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
+
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")

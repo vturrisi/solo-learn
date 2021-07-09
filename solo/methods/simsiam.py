@@ -19,6 +19,7 @@ class SimSiam(BaseModel):
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
         """
+
         super().__init__(**kwargs)
 
         # projector
@@ -76,8 +77,9 @@ class SimSiam(BaseModel):
             X (torch.Tensor): a batch of images in the tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent and the projected and
-                predicted features.
+            Dict[str, Any]:
+                a dict containing the outputs of the parent
+                and the projected and predicted features.
         """
 
         out = super().forward(X, *args, **kwargs)

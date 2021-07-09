@@ -126,8 +126,8 @@ class NNCLR(BaseModel):
             z (torch.Tensor): a batch of projected features.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: indices and projected features of the nearest
-                neighbors.
+            Tuple[torch.Tensor, torch.Tensor]:
+                indices and projected features of the nearest neighbors.
         """
 
         idx = (z @ self.queue.T).max(dim=1)[1]
@@ -141,8 +141,9 @@ class NNCLR(BaseModel):
             X (torch.Tensor): a batch of images in the tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent and the projected and
-                predicted features.
+            Dict[str, Any]:
+                a dict containing the outputs of the parent
+                and the projected and predicted features.
         """
 
         out = super().forward(X, *args, **kwargs)
