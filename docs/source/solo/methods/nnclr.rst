@@ -1,8 +1,6 @@
 NNCLR
 =====
 
-__init__
-~~~~~~~~
 .. automethod:: solo.methods.nnclr.NNCLR.__init__
    :noindex:
 

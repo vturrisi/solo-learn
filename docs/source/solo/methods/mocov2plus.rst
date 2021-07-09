@@ -2,41 +2,33 @@ MoCo-V2
 =======
 
 
-__init__
-~~~~~~~~
 .. automethod:: solo.methods.mocov2plus.MoCoV2Plus.__init__
    :noindex:
-
 
 add_model_specific_args
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.mocov2plus.MoCoV2Plus.add_model_specific_args
    :noindex:
 
-
 learnable_params
 ~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.mocov2plus.MoCoV2Plus.learnable_params
    :noindex:
-
 
 momentum_pairs
 ~~~~~~~~~~~~~~
 .. automethod:: solo.methods.mocov2plus.MoCoV2Plus.momentum_pairs
    :noindex:
 
-
 _dequeue_and_enqueue
 ~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.mocov2plus.MoCoV2Plus._dequeue_and_enqueue
    :noindex:
 
-
 forward
 ~~~~~~~
 .. automethod:: solo.methods.mocov2plus.MoCoV2Plus.forward
    :noindex:
-
 
 training_step
 ~~~~~~~~~~~~~

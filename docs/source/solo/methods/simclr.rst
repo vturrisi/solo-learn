@@ -2,17 +2,13 @@ SimCLR
 ============
 
 
-__init__
-~~~~~~~~
 .. automethod:: solo.methods.simclr.SimCLR.__init__
    :noindex:
-
 
 add_model_specific_args
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.simclr.SimCLR.add_model_specific_args
    :noindex:
-
 
 learnable_params
 ~~~~~~~~~~~~~~~~
@@ -23,7 +19,6 @@ forward
 ~~~~~~~
 .. automethod:: solo.methods.simclr.SimCLR.forward
    :noindex:
-
 
 gen_extra_positives_gt
 ~~~~~~~~~~~~~~~~~~~~~~

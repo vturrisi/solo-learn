@@ -1,17 +1,14 @@
 W-MSE
-============
+=====
 
-__init__
-~~~~~~~~
+
 .. automethod:: solo.methods.wmse.WMSE.__init__
    :noindex:
-
 
 add_model_specific_args
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.wmse.WMSE.add_model_specific_args
    :noindex:
-
 
 learnable_params
 ~~~~~~~~~~~~~~~~
@@ -23,9 +20,7 @@ forward
 .. automethod:: solo.methods.wmse.WMSE.forward
    :noindex:
 
-
 training_step
 ~~~~~~~~~~~~~
 .. automethod:: solo.methods.wmse.WMSE.training_step
    :noindex:
-
