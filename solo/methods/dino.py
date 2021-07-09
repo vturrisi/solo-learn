@@ -201,7 +201,7 @@ class DINO(BaseMomentumModel):
         return super().momentum_pairs + extra_momentum_pairs
 
     def clip_gradients(self, clip: float):
-        """clips gradients after backward pass.
+        """Clips gradients after backward pass.
 
         Args:
             clip (float): threshold for gradient clipping.
@@ -231,8 +231,7 @@ class DINO(BaseMomentumModel):
         return {**out, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """
-        Training step for DINO reusing BaseMomentumModel training step.
+        """Training step for DINO reusing BaseMomentumModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where [X]
