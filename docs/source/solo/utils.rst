@@ -67,7 +67,6 @@ prepare_data
 
 
 
-
 Augmentations
 -------------
 
@@ -85,6 +84,7 @@ NCropAugmentation
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: solo.utils.contrastive_dataloader.NCropAugmentation
    :noindex:
+
 
 
 Transformation Pipelines
@@ -131,17 +131,39 @@ MulticropImagenetTransform
    :noindex:
 
 
+Contrastive dataloaders
+-----------------------
 
 dataset_with_index
+~~~~~~~~~~~~
+.. autofunction:: solo.utils.classification_dataloader.prepare_data
+   :noindex:
 
+prepare_transform
+~~~~~~~~~~~~
+.. autofunction:: solo.utils.classification_dataloader.prepare_data
+   :noindex:
 
+prepare_n_crop_transform
+~~~~~~~~~~~~
+.. autofunction:: solo.utils.classification_dataloader.prepare_data
+   :noindex:
 
+prepare_multicrop_transform
+~~~~~~~~~~~~
+.. autofunction:: solo.utils.classification_dataloader.prepare_data
+   :noindex:
 
+prepare_datasets
+~~~~~~~~~~~~
+.. autofunction:: solo.utils.classification_dataloader.prepare_data
+   :noindex:
 
-.. automodule:: solo.utils.contrastive_dataloader
-   :members:
-   :undoc-members:
-   :show-inheritance:
+prepare_dataloaders
+~~~~~~~~~~~~
+.. autofunction:: solo.utils.classification_dataloader.prepare_data
+   :noindex:
+
 
 DALI dataloaders
 ----------------
