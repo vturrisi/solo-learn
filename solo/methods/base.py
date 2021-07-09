@@ -42,6 +42,7 @@ class BaseModel(pl.LightningModule):
         multicrop,
         n_crops,
         n_small_crops,
+        eta_lars,
         lr_decay_steps=None,
         **kwargs,
     ):
@@ -71,6 +72,7 @@ class BaseModel(pl.LightningModule):
         self.multicrop = multicrop
         self.n_crops = n_crops
         self.n_small_crops = n_small_crops
+        self.eta_lars = eta_lars
 
         # sanity checks on multicrop
         if self.multicrop:
@@ -132,6 +134,7 @@ class BaseModel(pl.LightningModule):
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
         parser.add_argument("--lars", action="store_true")
+        parser.add_argument("--eta_lars", default=0.02, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
         # scheduler
@@ -187,7 +190,9 @@ class BaseModel(pl.LightningModule):
         )
         # optionally wrap with lars
         if self.lars:
-            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=self.exclude_bias_n_norm)
+            optimizer = LARSWrapper(
+                optimizer, eta=self.eta_lars, exclude_bias_n_norm=self.exclude_bias_n_norm
+            )
 
         if self.scheduler == "none":
             return optimizer
