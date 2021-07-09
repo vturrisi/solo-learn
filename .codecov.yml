@@ -13,3 +13,6 @@ flags:
       - solo/methods/dali.py
       - solo/utils/dali_dataloader.py
     carryforward: true
+
+comment: 
+  show_carryforward_flags: false
