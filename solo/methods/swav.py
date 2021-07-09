@@ -102,12 +102,7 @@ class SwAV(BaseModel):
         if self.queue_size > 0:
             self.register_buffer(
                 "queue",
-                torch.zeros(
-                    2,
-                    self.queue_size // world_size,
-                    self.output_dim,
-                    device=self.device,
-                ),
+                torch.zeros(2, self.queue_size // world_size, self.output_dim, device=self.device,),
             )
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
