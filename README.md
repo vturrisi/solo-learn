@@ -1,4 +1,5 @@
 [![tests](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml/badge.svg)](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml)
+[![Documentation Status](https://readthedocs.org/projects/solo-learn/badge/?version=latest)](https://solo-learn.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/vturrisi/solo-learn/branch/main/graph/badge.svg?token=WLU9UU17XZ)](https://codecov.io/gh/vturrisi/solo-learn)
 
 # solo-learn
