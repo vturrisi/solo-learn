@@ -63,10 +63,10 @@ PACKAGE_MAPPING = {}
 PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 PATH_ROOT = os.path.join(PATH_HERE, "..", "..")
 MOCK_PACKAGES = ["nvidia"]
-MOCK_PACKAGES += package_list_from_file(os.path.join(PATH_ROOT, "requirements.txt"))
+# MOCK_PACKAGES += package_list_from_file(os.path.join(PATH_ROOT, "requirements.txt"))
 MOCK_PACKAGES = [PACKAGE_MAPPING.get(pkg, pkg) for pkg in MOCK_PACKAGES]
 
-autodoc_mock_imports = ["nvidia"]
+autodoc_mock_imports = MOCK_PACKAGES
 
 
 # -- Options for HTML output -------------------------------------------------

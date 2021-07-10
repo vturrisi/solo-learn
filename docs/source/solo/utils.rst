@@ -135,32 +135,32 @@ Contrastive dataloaders
 -----------------------
 
 dataset_with_index
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.classification_dataloader.prepare_data
    :noindex:
 
 prepare_transform
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.classification_dataloader.prepare_data
    :noindex:
 
 prepare_n_crop_transform
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.classification_dataloader.prepare_data
    :noindex:
 
 prepare_multicrop_transform
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.classification_dataloader.prepare_data
    :noindex:
 
 prepare_datasets
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.classification_dataloader.prepare_data
    :noindex:
 
 prepare_dataloaders
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.classification_dataloader.prepare_data
    :noindex:
 
