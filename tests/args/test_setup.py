@@ -5,12 +5,12 @@ import textwrap
 from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 
 
-def test_setup_contrastive():
+def test_setup_pretrain():
 
     dummy_script = """
         from solo.args.setup import parse_args_contrastive
 
-        args = parse_args_contrastive()
+        args = parse_args_pretrain()
     """
     dummy_script = textwrap.dedent(dummy_script)
 
@@ -138,7 +138,7 @@ def test_setup_linear():
         "test",
         "--pretrained_feature_extractor" "PATH",
         "--project",
-        "contrastive_learning",
+        "solo-learn",
         "--wandb",
     ]
     # Write string to a file

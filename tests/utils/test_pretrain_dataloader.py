@@ -2,11 +2,11 @@ import numpy as np
 from PIL import Image
 from torchvision.datasets.cifar import CIFAR10
 from torch.utils.data import DataLoader
-from solo.utils.contrastive_dataloader import (
+from solo.utils.pretrain_dataloader import (
     prepare_n_crop_transform,
     prepare_transform,
     prepare_multicrop_transform,
-    prepare_dataloaders,
+    prepare_dataloader,
     prepare_datasets,
 )
 
@@ -71,7 +71,7 @@ def test_data():
     num_samples_train = len(train_dataset)
     num_batches_train = num_samples_train // bs
 
-    train_loader = prepare_dataloaders(train_dataset, batch_size=bs, num_workers=0)
+    train_loader = prepare_dataloader(train_dataset, batch_size=bs, num_workers=0)
 
     assert isinstance(train_loader, DataLoader)
     assert num_batches_train == len(train_loader)

@@ -13,9 +13,9 @@ def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
 
     Args:
         dataset (str): dataset name.
+
     Returns:
         Tuple[nn.Module, nn.Module]: training and validation transformation pipelines.
-
     """
 
     cifar_pipeline = {

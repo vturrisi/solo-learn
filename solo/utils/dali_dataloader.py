@@ -256,8 +256,6 @@ class NormalPipeline(Pipeline):
 
 
 class ImagenetTransform:
-    """Applies Imagenet transformations to a batch of images."""
-
     def __init__(
         self,
         device: str,
@@ -271,19 +269,21 @@ class ImagenetTransform:
         min_scale: float = 0.08,
         max_scale: float = 1.0,
     ):
-        """
-        Args:
-            device: device on which the operations will be performed
-            brightness: sampled uniformly in [max(0, 1 - brightness), 1 + brightness]
-            contrast: sampled uniformly in [max(0, 1 - contrast), 1 + contrast]
-            saturation: sampled uniformly in [max(0, 1 - saturation), 1 + saturation]
-            hue: sampled uniformly in [-hue, hue]
-            gaussian_prob: probability of applying gaussian blur
-            solarization_prob: probability of applying solarization
-            size: size of the side of the image after transformation
-            min_scale: minimum scale of the crops
-            max_scale: maximum scale of the crops
+        """Applies Imagenet transformations to a batch of images.
 
+        Args:
+            device (str): device on which the operations will be performed.
+            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): sampled uniformly in [-hue, hue].
+            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
+            solarization_prob (float, optional): probability of applying solarization. Defaults
+                to 0.0.
+            size (int, optional): size of the side of the image after transformation. Defaults
+                to 224.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+            max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
         """
 
         # random crop

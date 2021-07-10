@@ -27,7 +27,7 @@ Augmentations
 
 GaussianBlur
 ~~~~~~~~~~~~
-.. autoclass:: solo.utils.contrastive_dataloader.GaussianBlur
+.. autoclass:: solo.utils.pretrain_dataloader.GaussianBlur
    :noindex:
 
 Solarization

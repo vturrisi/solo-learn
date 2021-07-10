@@ -10,7 +10,7 @@ N_CLASSES_PER_DATASET = {
 
 
 def additional_setup_pretrain(args: argparse.Namespace):
-    """Provides final setup for contrastive pretrain to non-user given parameters by changing args.
+    """Provides final setup for pretraining to non-user given parameters by changing args.
 
     Parsers arguments to extract the number of classes of a dataset, create
     transformations kwargs, correctly parse gpus, identify if a cifar dataset
