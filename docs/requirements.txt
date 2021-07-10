@@ -2,3 +2,4 @@ sphinx
 sphinx-argparse
 sphinx-rtd-theme
 sphinxcontrib-napoleon
+chardet==3.0.4
