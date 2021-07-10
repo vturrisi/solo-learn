@@ -3,19 +3,19 @@ import torch.distributed as dist
 
 
 class SinkhornKnopp(torch.nn.Module):
-    """
-    Approximates optimal transport using the Sinkhorn-Knopp algorithm.
-
-    A simple iterative method to approach the double stochastic matrix is to alternately rescale
-    rows and columns of the matrix to sum to 1.
-
-    Attributes:
-        num_iter: number of times to perform row and column normalization
-        epsilon: weight for the entropy regularization term
-        world_size: number of nodes for distributed training
-    """
-
     def __init__(self, num_iters: int = 3, epsilon: float = 0.05, world_size: int = 1):
+        """
+        Approximates optimal transport using the Sinkhorn-Knopp algorithm.
+
+        A simple iterative method to approach the double stochastic matrix is to alternately rescale
+        rows and columns of the matrix to sum to 1.
+
+        Args:
+            num_iter: number of times to perform row and column normalization
+            epsilon: weight for the entropy regularization term
+            world_size: number of nodes for distributed training
+        """
+
         super().__init__()
         self.num_iters = num_iters
         self.epsilon = epsilon
@@ -35,7 +35,6 @@ class SinkhornKnopp(torch.nn.Module):
 
         Returns:
             assignment of samples to prototypes according to optimal transport
-
         """
 
         Q = torch.exp(Q / self.epsilon).t()

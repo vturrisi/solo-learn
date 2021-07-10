@@ -27,4 +27,5 @@ class GatherLayer(torch.autograd.Function):
 
 
 def gather(X, dim=0):
+    """Gathers tensors from all processes, supporting backward propagation."""
     return torch.cat(GatherLayer.apply(X), dim=dim)

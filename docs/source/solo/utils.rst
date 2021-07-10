@@ -173,58 +173,66 @@ DALI dataloaders
    :undoc-members:
    :show-inheritance:
 
+
 Gather layer
 ------------
 
-.. automodule:: solo.utils.gather_layer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autofunction:: solo.utils.gather_layer.gather
+   :noindex:
+
 
 LARS
 ----
 
-.. automodule:: solo.utils.lars
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automethod:: solo.utils.lars.LARSWrapper.__init__
+   :noindex:
 
 Metrics
 -------
 
-.. automodule:: solo.utils.metrics
-   :members:
-   :undoc-members:
-   :show-inheritance:
+accuracy_at_k
+~~~~~~~~~~~~~
+.. autofunction:: solo.utils.metrics.accuracy_at_k
+   :noindex:
+
+weighted_mean
+~~~~~~~~~~~~~
+.. autofunction:: solo.utils.metrics.weighted_mean
+   :noindex:
+
 
 Momentum module
 ---------------
 
-.. automodule:: solo.utils.momentum
-   :members:
-   :undoc-members:
-   :show-inheritance:
+MomentumUpdater
+~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.momentum.MomentumUpdater.__init__
+   :noindex:
+
+initialize_momentum_params
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autofunction:: solo.utils.momentum.initialize_momentum_params
+   :noindex:
+
 
 Sinkhorn-Knopp
 --------------
 
-.. automodule:: solo.utils.sinkhorn_knopp
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automethod:: solo.utils.sinkhorn_knopp.SinkhornKnopp.__init__
+   :noindex:
+
 
 Truncate normal
 ---------------
 
-.. automodule:: solo.utils.trunc_normal
-   :members:
-   :undoc-members:
-   :show-inheritance:
+trunc_normal_
+~~~~~~~~~~~~~
+
+.. autofunction:: solo.utils.trunc_normal.trunc_normal_
+   :noindex:
 
 Whitening
 ---------
 
-.. automodule:: solo.utils.whitening
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automethod:: solo.utils.whitening.Whitening2d.__init__
+   :noindex:
