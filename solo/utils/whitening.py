@@ -6,8 +6,7 @@ from torch.nn.functional import conv2d
 
 class Whitening2d(nn.Module):
     def __init__(self, output_dim, eps=0):
-        """Place holder.
-        """
+        """Place holder."""
 
         super(Whitening2d, self).__init__()
         self.output_dim = output_dim
