@@ -20,12 +20,25 @@ While the library is self contained, it is possible to use the models outside of
    start/install
    start/available
 
+
+======================================
+
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Documentation
+   :maxdepth: 1
+   :caption: API
 
    solo/args
-   solo/losses
+   solo/utils
+
+
+======================================
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Methods
+
    solo/methods/base
    solo/methods/dali
    solo/methods/linear
@@ -39,7 +52,37 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/swav
    solo/methods/vicreg
    solo/methods/wmse
-   solo/utils
+
+
+======================================
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Losses
+
+   solo/losses/barlow
+   solo/losses/byol
+   solo/losses/dino
+   solo/losses/mocov2plus
+   solo/losses/nnclr
+   solo/losses/simclr
+   solo/losses/simsiam
+   solo/losses/swav
+   solo/losses/vicreg
+   solo/losses/wmse
+
+
+
+======================================
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Data
+
+   solo/data
+
+
 
 Indices and tables
 ==================
