@@ -41,6 +41,31 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+
+# Ignoring Third-party packages
+# https://stackoverflow.com/questions/15889621/sphinx-how-to-exclude-imports-in-automodule
+def package_list_from_file(file):
+    """List up package name (not containing version and extras) from a package list file
+    """
+    mocked_packages = []
+    with open(file, "r") as fp:
+        for ln in fp.readlines():
+            # Example: `tqdm>=4.41.0` => `tqdm`
+            # `[` is for package with extras
+            found = [ln.index(ch) for ch in list(",=<>#[") if ch in ln]
+            pkg = ln[: min(found)] if found else ln
+            if pkg.rstrip():
+                mocked_packages.append(pkg.rstrip())
+    return mocked_packages
+
+
+PACKAGE_MAPPING = {}
+PATH_HERE = os.path.abspath(os.path.dirname(__file__))
+PATH_ROOT = os.path.join(PATH_HERE, "..", "..")
+MOCK_PACKAGES = ["nvidia"]
+MOCK_PACKAGES += package_list_from_file(os.path.join(PATH_ROOT, "requirements.txt"))
+MOCK_PACKAGES = [PACKAGE_MAPPING.get(pkg, pkg) for pkg in MOCK_PACKAGES]
+
 autodoc_mock_imports = ["nvidia"]
 
 
