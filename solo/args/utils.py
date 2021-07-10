@@ -10,27 +10,26 @@ N_CLASSES_PER_DATASET = {
 
 
 def additional_setup_pretrain(args: argparse.Namespace):
-    """
-    Provides final setup for contrastive pretrain to non-user given parameters by changing args.
+    """Provides final setup for contrastive pretrain to non-user given parameters by changing args.
 
     Parsers arguments to extract the number of classes of a dataset, create
     transformations kwargs, correctly parse gpus, identify if a cifar dataset
     is being used and adjust the lr.
 
     Args:
-        args: Namespace object that needs to contain, at least:
-            - dataset: dataset name
-            - brightness, contrast, saturation, hue, min_scale_crop: required augmentations settings
-            - asymmetric_augmentations: flag to apply asymmetric augmentations
-            - multicrop: flag to use multicrop
-            - dali: flag to use dali
-            - optimizer: optimizer name being used
-            - gpus: list of gpus to use
-            - lr: learning rate
+        args (argparse.Namespace): object that needs to contain, at least:
+            - dataset: dataset name.
+            - brightness, contrast, saturation, hue, min_scale_crop: required augmentations
+                settings.
+            - asymmetric_augmentations: flag to apply asymmetric augmentations.
+            - multicrop: flag to use multicrop.
+            - dali: flag to use dali.
+            - optimizer: optimizer name being used.
+            - gpus: list of gpus to use.
+            - lr: learning rate.
 
             [optional]
-            - gaussian_prob, solarization_prob: optional augmentations settings
-
+            - gaussian_prob, solarization_prob: optional augmentations settings.
     """
 
     args.transform_kwargs = {}
@@ -103,19 +102,17 @@ def additional_setup_pretrain(args: argparse.Namespace):
 
 
 def additional_setup_linear(args: argparse.Namespace):
-    """
-    Provides final setup for linear evaluation to non-user given parameters by changing args.
+    """Provides final setup for linear evaluation to non-user given parameters by changing args.
 
-    Parsers arguments to extract the number of classes of a dataset,
-    correctly parse gpus, identify if a cifar dataset is being used and adjust the lr.
+    Parsers arguments to extract the number of classes of a dataset, correctly parse gpus, identify
+    if a cifar dataset is being used and adjust the lr.
 
     Args:
         args: Namespace object that needs to contain, at least:
-            - dataset: dataset name
-            - optimizer: optimizer name being used
-            - gpus: list of gpus to use
-            - lr: learning rate
-
+            - dataset: dataset name.
+            - optimizer: optimizer name being used.
+            - gpus: list of gpus to use.
+            - lr: learning rate.
     """
     assert args.dataset in N_CLASSES_PER_DATASET
     args.n_classes = N_CLASSES_PER_DATASET[args.dataset]

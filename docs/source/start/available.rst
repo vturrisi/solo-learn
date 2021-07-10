@@ -8,7 +8,7 @@ Methods available
 * `NNCLR <https://arxiv.org/abs/2104.14548>`_
 * `SimCLR <https://arxiv.org/abs/2002.05709>`_ + `Supervised Contrastive Learning <https://arxiv.org/abs/2004.11362>`_
 * `SimSiam <https://arxiv.org/abs/2011.10566>`_
-* `Swav <https://arxiv.org/abs/2006.09882>`_
+* `SwAV <https://arxiv.org/abs/2006.09882>`_
 * `VICReg <https://arxiv.org/abs/2105.04906>`_
 * `W-MSE <https://arxiv.org/abs/2007.06346>`_
 

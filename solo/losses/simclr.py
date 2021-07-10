@@ -8,18 +8,19 @@ def simclr_loss_func(
     z2: torch.Tensor,
     temperature: float = 0.1,
     extra_pos_mask: Optional[torch.Tensor] = None,
-):
-    """
-    Applies SimCLR's loss given batch of projected features z1 from view 1 and
+) -> torch.Tensor:
+    """Applies SimCLR's loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
-        z1: NxD Tensor containing projected features from view 1
-        z2: NxD Tensor containing projected features from view 2
-        temperature: temperature factor for the loss
-        extra_pos_mask: boolean mask containing extra positives other
-            than normal across-view positives
+        z1 (torch.Tensor): NxD Tensor containing projected features from view 1.
+        z2 (torch.Tensor): NxD Tensor containing projected features from view 2.
+        temperature (float): temperature factor for the loss. Defaults to 0.1.
+        extra_pos_mask (Optional[torch.Tensor]): boolean mask containing extra positives other
+            than normal across-view positives. Defaults to None.
 
+    Returns:
+        torch.Tensor: SimCLR loss.
     """
 
     device = z1.device
@@ -56,18 +57,19 @@ def simclr_loss_func(
 
 def manual_simclr_loss_func(
     z: torch.Tensor, pos_mask: torch.Tensor, neg_mask: torch.Tensor, temperature: float = 0.1
-):
-    """
-    Manually applies SimCLR's loss given batch of projected features z
+) -> torch.Tensor:
+    """Manually applies SimCLR's loss given batch of projected features z
     from different views, a positive boolean mask of all positives and
     a negative boolean mask of all negatives.
 
     Args:
-        z: NxViewsxD Tensor containing projected features from the views
-        pos_mask: boolean mask containing all positives for z * z.T
-        neg_mask: boolean mask containing all negatives for z * z.T
-        temperature: temperature factor for the loss
+        z (torch.Tensor): NxViewsxD Tensor containing projected features from the views.
+        pos_mask (torch.Tensor): boolean mask containing all positives for z * z.T.
+        neg_mask (torch.Tensor): boolean mask containing all negatives for z * z.T.
+        temperature (float): temperature factor for the loss.
 
+    Return:
+        torch.Tensor: manual SimCLR loss.
     """
 
     z = F.normalize(z, dim=-1)

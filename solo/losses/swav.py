@@ -5,16 +5,18 @@ import torch
 
 def swav_loss_func(
     preds: List[torch.Tensor], assignments: List[torch.Tensor], temperature: float = 0.1
-):
-    """
-    Applies SWaV's loss given list of batch predictions from multiple views
+) -> torch.Tensor:
+    """Applies SwAV's loss given list of batch predictions from multiple views
     and a list of cluster assignments from the same multiple views.
 
     Args:
-        preds: list of NxC Tensors containing nearest neighbors' features from view 1
-        assignments: list of NxC Tensor containing predicted features from view 2
-        temperature: temperature factor for the loss
+        preds (torch.Tensor): list of NxC Tensors containing nearest neighbors' features from
+            view 1.
+        assignments (torch.Tensor): list of NxC Tensor containing predicted features from view 2.
+        temperature (torch.Tensor): temperature factor for the loss.
 
+    Returns:
+        torch.Tensor: SwAV loss.
     """
 
     losses = []

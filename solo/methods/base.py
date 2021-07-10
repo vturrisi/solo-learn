@@ -25,59 +25,62 @@ def static_lr(
 class BaseModel(pl.LightningModule):
     def __init__(
         self,
-        encoder,
-        n_classes,
-        cifar,
-        zero_init_residual,
-        max_epochs,
-        batch_size,
-        optimizer,
-        lars,
-        lr,
-        weight_decay,
-        classifier_lr,
-        exclude_bias_n_norm,
-        accumulate_grad_batches,
-        extra_optimizer_args,
-        scheduler,
-        min_lr,
-        warmup_start_lr,
-        warmup_epochs,
-        multicrop,
-        n_crops,
-        n_small_crops,
-        eta_lars,
-        lr_decay_steps=None,
+        encoder: str,
+        n_classes: int,
+        cifar: bool,
+        zero_init_residual: bool,
+        max_epochs: int,
+        batch_size: int,
+        optimizer: str,
+        lars: bool,
+        lr: float,
+        weight_decay: float,
+        classifier_lr: float,
+        exclude_bias_n_norm: bool,
+        accumulate_grad_batches: int,
+        extra_optimizer_args: Dict,
+        scheduler: str,
+        min_lr: float,
+        warmup_start_lr: float,
+        warmup_epochs: float,
+        multicrop: bool,
+        n_crops: int,
+        n_small_crops: int,
+        eta_lars: float,
+        lr_decay_steps: Sequence = None,
         **kwargs,
     ):
-        """
-        Base model that implements all basic operations for all self-supervised methods.
+        """Base model that implements all basic operations for all self-supervised methods.
         It adds shared arguments, extract basic learnable parameters, creates optimizers
         and schedulers, implements basic training_step for any number of crops,
         trains the online classifier and implements validation_step.
 
         Args:
-            encoder: name of the base encoder
-            n_classes: number of classes
-            cifar: flag indicating if cifar is being used
-            zero_init_residual: change the initialization of the resnet encoder
-            max_epochs: number of training epochs
-            optimizer: name of the optimizer
-            lars: flag indicating if lars should be used
-            lr: learning rate
-            weight_decay: weight decay for optimizer
-            classifier_lr: learning rate for the online linear classifier
-            exclude_bias_n_norm: flag indicating if bias and norms should be excluded from lars
-            accumulate_grad_batches: number of batches for gradient accumulation
-            extra_optimizer_args: extra named arguments for the optimizer
-            scheduler: name of the scheduler
-            min_lr: minimum learning rate for warmup scheduler
-            warmup_start_lr: initial learning rate for warmup scheduler
-            multicrop: flag indicating if multi-resolution crop is being used
-            n_crop: number of big crops
-            n_small_crops: number of small crops (will be set to 0 if multicrop is False)
-            lr_decay_steps: steps to decay the learning rate if scheduler is step
-
+            encoder (str): architecture of the base encoder.
+            n_classes (int): number of classes.
+            cifar (bool): flag indicating if cifar is being used.
+            zero_init_residual (bool): change the initialization of the resnet encoder.
+            max_epochs (int): number of training epochs.
+            batch_size (int): number of samples in the batch.
+            optimizer (str): name of the optimizer.
+            lars (bool): flag indicating if lars should be used.
+            lr (float): learning rate.
+            weight_decay (float): weight decay for optimizer.
+            classifier_lr (float): learning rate for the online linear classifier.
+            exclude_bias_n_norm (bool): flag indicating if bias and norms should be excluded from
+                lars.
+            accumulate_grad_batches (int): number of batches for gradient accumulation.
+            extra_optimizer_args (Dict): extra named arguments for the optimizer.
+            scheduler (str): name of the scheduler.
+            min_lr (float): minimum learning rate for warmup scheduler.
+            warmup_start_lr (float): initial learning rate for warmup scheduler.
+            warmup_epochs (float): number of warmup epochs.
+            multicrop (bool): flag indicating if multi-resolution crop is being used.
+            n_crops (int): number of big crops
+            n_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
+            eta_lars (float): eta parameter for lars.
+            lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
+                step. Defaults to None.
         """
 
         super().__init__()
@@ -141,14 +144,14 @@ class BaseModel(pl.LightningModule):
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        """
-        Adds shared basic arguments that are shared for all methods.
+        """Adds shared basic arguments that are shared for all methods.
 
         Args:
-            parent_parser: argument parser that is used to create a argument group
-        Returns:
-            parent_parser: same as the argument, used to avoid errors
+            parent_parser (argparse.ArgumentParser): argument parser that is used to create a
+                argument group.
 
+        Returns:
+            argparse.ArgumentParser: same as the argument, used to avoid errors.
         """
 
         parser = parent_parser.add_argument_group("base")
@@ -200,11 +203,12 @@ class BaseModel(pl.LightningModule):
         return parent_parser
 
     @property
-    def learnable_params(self) -> List[dict]:
+    def learnable_params(self) -> List[Dict[str, Any]]:
         """Defines learnable parameters for the base class.
 
         Returns:
-            List[dict]: list of dicts containing learnable parameters and possible settings.
+            List[Dict[str, Any]]: list of dicts containing learnable parameters and possible
+                settings.
         """
 
         return [
@@ -280,25 +284,27 @@ class BaseModel(pl.LightningModule):
             return [optimizer], [scheduler]
 
     def forward(self, *args, **kwargs):
+        """Dummy forward, calls base forward."""
+
         return self._base_forward(*args, **kwargs)
 
-    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True) -> dict:
+    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True) -> Dict:
         """Basic forward that allows children classes to override forward().
 
         Args:
-            X: batch of images in tensor format
-            detach_feats: flag indicating whether or not to detach
-                the features before feeding them to the linear classifier
-        Returns:
-            dict of logits and features
+            X (torch.Tensor): batch of images in tensor format.
+            detach_feats (bool, optional): flag indicating whether or not to detach the features
+                before feeding them to the linear classifier Defaults to True.
 
+        Returns:
+            Dict: dict of logits and features.
         """
 
         feats = self.encoder(X)
         logits = self.classifier(feats.detach() if detach_feats else feats)
         return {"logits": logits, "feats": feats}
 
-    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> dict:
+    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
         features, acc@1 and acc@5.
 

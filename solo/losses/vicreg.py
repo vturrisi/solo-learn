@@ -2,29 +2,31 @@ import torch
 import torch.nn.functional as F
 
 
-def invariance_loss(z1: torch.Tensor, z2: torch.Tensor):
-    """
-    Applies mse loss given batch of projected features z1 from view 1 and
+def invariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
+    """Applies mse loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
-        z1: NxD Tensor containing projected features from view 1
-        z2: NxD Tensor containing projected features from view 2
+        z1 (torch.Tensor): NxD Tensor containing projected features from view 1.
+        z2 (torch.Tensor): NxD Tensor containing projected features from view 2.
 
+    Returns:
+        torch.Tensor: invariance loss (mean squared error).
     """
 
     return F.mse_loss(z1, z2)
 
 
-def variance_loss(z1: torch.Tensor, z2: torch.Tensor):
-    """
-    Applies variance loss given batch of projected features z1 from view 1 and
+def variance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
+    """Applies variance loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
-        z1: NxD Tensor containing projected features from view 1
-        z2: NxD Tensor containing projected features from view 2
+        z1 (torch.Tensor): NxD Tensor containing projected features from view 1.
+        z2 (torch.Tensor): NxD Tensor containing projected features from view 2.
 
+    Returns:
+        torch.Tensor: variance regularization loss.
     """
 
     eps = 1e-4
@@ -34,15 +36,16 @@ def variance_loss(z1: torch.Tensor, z2: torch.Tensor):
     return std_loss
 
 
-def covariance_loss(z1: torch.Tensor, z2: torch.Tensor):
-    """
-    Applies covariance loss given batch of projected features z1 from view 1 and
+def covariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
+    """Applies covariance loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
-        z1: NxD Tensor containing projected features from view 1
-        z2: NxD Tensor containing projected features from view 2
+        z1 (torch.Tensor): NxD Tensor containing projected features from view 1.
+        z2 (torch.Tensor): NxD Tensor containing projected features from view 2.
 
+    Returns:
+        torch.Tensor: covariance regularization loss.
     """
 
     N, D = z1.size()
@@ -63,18 +66,19 @@ def vicreg_loss_func(
     sim_loss_weight: float = 25.0,
     var_loss_weight: float = 25.0,
     cov_loss_weight: float = 1.0,
-):
-    """
-    Applies VICReg's loss given batch of projected features z1 from view 1 and
+) -> torch.Tensor:
+    """Applies VICReg's loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
-        z1: NxD Tensor containing projected features from view 1
-        z2: NxD Tensor containing projected features from view 2
-        sim_loss_weight: invariance loss weight
-        var_loss_weight: variance loss weight
-        cov_loss_weight: covariance loss weight
+        z1 (torch.Tensor): NxD Tensor containing projected features from view 1.
+        z2 (torch.Tensor): NxD Tensor containing projected features from view 2.
+        sim_loss_weight (float): invariance loss weight.
+        var_loss_weight (float): variance loss weight.
+        cov_loss_weight (float): covariance loss weight.
 
+    Returns:
+        torch.Tensor: VICReg loss.
     """
 
     sim_loss = invariance_loss(z1, z2)

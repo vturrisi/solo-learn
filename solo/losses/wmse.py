@@ -2,15 +2,16 @@ import torch
 import torch.nn.functional as F
 
 
-def wmse_loss_func(z1: torch.Tensor, z2: torch.Tensor, simplified: bool = True):
-    """
-    Applies W-MSE's loss given two batches of whitened features z1 and z2.
+def wmse_loss_func(z1: torch.Tensor, z2: torch.Tensor, simplified: bool = True) -> torch.Tensor:
+    """Applies W-MSE's loss given two batches of whitened features z1 and z2.
 
     Args:
-        z1: NxD Tensor containing whitened features from view 1
-        z2: NxD Tensor containing whitened features from view 2
-        simplified: faster computation, but with same result
+        z1 (torch.Tensor): NxD Tensor containing whitened features from view 1.
+        z2 (torch.Tensor): NxD Tensor containing whitened features from view 2.
+        simplified (bool): faster computation, but with same result.
 
+    Returns:
+        torch.Tensor: W-MSE loss.
     """
 
     if simplified:

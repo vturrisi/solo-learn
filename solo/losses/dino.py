@@ -6,19 +6,6 @@ import numpy as np
 
 
 class DINOLoss(nn.Module):
-    """
-    Computes DINO's loss.
-
-    Attributes:
-        epoch: current epoch
-        student_tem: temperature for the student
-        center_momentum: momentum for the EMA update of the center of mass of the teacher
-        num_crops: number of crops (aka views)
-        center: center of mass of the teacher
-        teacher_temp_schedule: schedule for the temperature of the teacher
-
-    """
-
     def __init__(
         self,
         num_prototypes: int,
@@ -30,7 +17,8 @@ class DINOLoss(nn.Module):
         num_crops: int = 2,
         center_momentum: float = 0.9,
     ):
-        """
+        """Computes DINO loss.
+
         Args:
             num_prototypes: number of prototypes
             warmup_teacher_temp: base temperature for the temperature schedule of the teacher
@@ -58,15 +46,16 @@ class DINOLoss(nn.Module):
             )
         )
 
-    def forward(self, student_output, teacher_output):
-        """
-        Computes DINO's loss given a batch of logits of the student and a batch of logits of the
+    def forward(self, student_output: torch.Tensor, teacher_output: torch.Tensor) -> torch.Tensor:
+        """Computes DINO loss given a batch of logits of the student and a batch of logits of the
         teacher.
 
         Args:
-            student_output: NxP Tensor containing student logits for all views
-            teacher_output: NxP Tensor containing teacher logits for all views
+            student_output (torch.Tensor): NxP Tensor containing student logits for all views.
+            teacher_output (torch.Tensor): NxP Tensor containing teacher logits for all views.
 
+        Returns:
+            torch.Tensor: DINO loss.
         """
 
         student_out = student_output / self.student_temp
@@ -92,13 +81,11 @@ class DINOLoss(nn.Module):
         return total_loss
 
     @torch.no_grad()
-    def update_center(self, teacher_output):
-        """
-        Updates the center for DINO's loss using exponential moving average.
+    def update_center(self, teacher_output: torch.Tensor):
+        """Updates the center for DINO's loss using exponential moving average.
 
         Args:
-            teacher_output: NxP Tensor containing teacher logits of all views
-
+            teacher_output (torch.Tensor): NxP Tensor containing teacher logits of all views.
         """
 
         batch_center = torch.sum(teacher_output, dim=0, keepdim=True)

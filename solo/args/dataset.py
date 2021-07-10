@@ -2,11 +2,10 @@ from argparse import ArgumentParser
 
 
 def dataset_args(parser: ArgumentParser):
-    """
-    Adds dataset-related arguments to a parser.
+    """Adds dataset-related arguments to a parser.
 
     Args:
-        parser: ArgumentParser to add dataset args to
+        parser (ArgumentParser): parser to add dataset args to.
 
     """
 
@@ -31,11 +30,10 @@ def dataset_args(parser: ArgumentParser):
 
 
 def augmentations_args(parser: ArgumentParser):
-    """
-    Adds augmentation-related arguments to a parser.
+    """Adds augmentation-related arguments to a parser.
 
     Args:
-        parser: ArgumentParser to add augmentation args to
+        parser (ArgumentParser): parser to add augmentation args to.
     """
 
     # cropping
