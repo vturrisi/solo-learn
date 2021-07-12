@@ -17,8 +17,7 @@ class LARSWrapper:
         eps: float = 1e-8,
         exclude_bias_n_norm: bool = False,
     ):
-        """
-        Wrapper that adds LARS scheduling to any optimizer.
+        """Wrapper that adds LARS scheduling to any optimizer.
         This helps stability with huge batch sizes.
 
         Args:

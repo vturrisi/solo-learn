@@ -4,8 +4,7 @@ import torch.distributed as dist
 
 class SinkhornKnopp(torch.nn.Module):
     def __init__(self, num_iters: int = 3, epsilon: float = 0.05, world_size: int = 1):
-        """
-        Approximates optimal transport using the Sinkhorn-Knopp algorithm.
+        """Approximates optimal transport using the Sinkhorn-Knopp algorithm.
 
         A simple iterative method to approach the double stochastic matrix is to alternately rescale
         rows and columns of the matrix to sum to 1.
@@ -23,8 +22,7 @@ class SinkhornKnopp(torch.nn.Module):
 
     @torch.no_grad()
     def forward(self, Q: torch.Tensor):
-        """
-        Produces assignments using Sinkhorn-Knopp algorithm.
+        """Produces assignments using Sinkhorn-Knopp algorithm.
 
         Applies the entropy regularization, normalizes the Q matrix and then normalizes rows and
         columns in an alternating fashion for num_iter times. Before returning it normalizes again

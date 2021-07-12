@@ -73,8 +73,7 @@ class Solarization:
 
 class NCropAugmentation:
     def __init__(self, transform: Union[Callable, Sequence], n_crops: Optional[int] = None):
-        """
-        Creates a pipeline that apply a transformation pipeline multiple times.
+        """Creates a pipeline that apply a transformation pipeline multiple times.
 
         Args:
             transform (Union[Callable, Sequence]): transformation pipeline or list of
@@ -243,8 +242,7 @@ class ImagenetTransform(BaseTransform):
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
-                    p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -365,8 +363,7 @@ class MulticropImagenetTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
-                    p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -463,7 +460,7 @@ def prepare_datasets(
     """Prepares the desired dataset.
 
     Args:
-        dataset (str)): the name of the dataset.
+        dataset (str): the name of the dataset.
         transform (Callable): a transformation.
         data_dir (Optional[str], optional): the directory to load data from. Defaults to None.
         train_dir (Optional[str], optional): training data directory to be appended to data_dir.
@@ -483,10 +480,7 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
-            os.path.join(data_dir, train_dir),
-            train=True,
-            download=True,
-            transform=transform,
+            os.path.join(data_dir, train_dir), train=True, download=True, transform=transform,
         )
 
     elif dataset == "stl10":

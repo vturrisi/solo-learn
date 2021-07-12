@@ -9,7 +9,7 @@ from torchvision.datasets import STL10, ImageFolder
 
 
 def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
-    """Prepare pre-defined train and test transformation pipelines for some datasets.
+    """Prepares pre-defined train and test transformation pipelines for some datasets.
 
     Args:
         dataset (str): dataset name.
@@ -97,7 +97,7 @@ def prepare_datasets(
     train_dir: Optional[str] = None,
     val_dir: Optional[str] = None,
 ) -> Tuple[Dataset, Dataset]:
-    """Prepare train and val datasets.
+    """Prepares train and val datasets.
 
     Args:
         dataset (str): dataset name.
@@ -124,31 +124,19 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
-            os.path.join(data_dir, train_dir),
-            train=True,
-            download=True,
-            transform=T_train,
+            os.path.join(data_dir, train_dir), train=True, download=True, transform=T_train,
         )
 
         val_dataset = DatasetClass(
-            os.path.join(data_dir, val_dir),
-            train=False,
-            download=True,
-            transform=T_val,
+            os.path.join(data_dir, val_dir), train=False, download=True, transform=T_val,
         )
 
     elif dataset == "stl10":
         train_dataset = STL10(
-            os.path.join(data_dir, train_dir),
-            split="train",
-            download=True,
-            transform=T_train,
+            os.path.join(data_dir, train_dir), split="train", download=True, transform=T_train,
         )
         val_dataset = STL10(
-            os.path.join(data_dir, val_dir),
-            split="test",
-            download=True,
-            transform=T_val,
+            os.path.join(data_dir, val_dir), split="test", download=True, transform=T_val,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
@@ -219,17 +207,9 @@ def prepare_data(
 
     T_train, T_val = prepare_transforms(dataset)
     train_dataset, val_dataset = prepare_datasets(
-        dataset,
-        T_train,
-        T_val,
-        data_dir=data_dir,
-        train_dir=train_dir,
-        val_dir=val_dir,
+        dataset, T_train, T_val, data_dir=data_dir, train_dir=train_dir, val_dir=val_dir,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset,
-        val_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
+        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
     )
     return train_loader, val_loader

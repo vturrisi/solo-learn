@@ -23,7 +23,6 @@ class Checkpointer(Callback):
             frequency (int): number of epochs between each checkpoint.
             keep_previous_checkpoints (bool): whether to keep previous checkpoints or not. Defaults
                 to False meaning that checkpoints are overwritten.
-
         """
 
         self.args = args
@@ -33,7 +32,7 @@ class Checkpointer(Callback):
 
     @staticmethod
     def add_checkpointer_args(parent_parser: argparse.ArgumentParser):
-        """Add user-required arguments to a parser.
+        """Adds user-required arguments to a parser.
 
         Args:
             parent_parser (ArgumentParser): parser to add new args to.
@@ -80,7 +79,7 @@ class Checkpointer(Callback):
             json.dump(args, open(json_path, "w"), default=lambda o: "<not serializable>")
 
     def save(self, trainer: pl.Trainer):
-        """Save current checkpoint.
+        """Saves current checkpoint.
 
         Args:
             trainer (pl.Trainer): pytorch lightning trainer object.

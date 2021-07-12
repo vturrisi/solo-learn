@@ -6,8 +6,7 @@ import torch
 def accuracy_at_k(
     outputs: torch.Tensor, targets: torch.Tensor, top_k: Sequence[int] = (1, 5)
 ) -> Sequence[int]:
-    """
-    Computes the accuracy over the k top predictions for the specified values of k.
+    """Computes the accuracy over the k top predictions for the specified values of k.
 
     Args:
         outputs: output of a classifier (logits or probabilities)
@@ -34,8 +33,7 @@ def accuracy_at_k(
 
 
 def weighted_mean(outputs, key, batch_size_key):
-    """
-    Computes the mean of the values of a key weighted by the batch size.
+    """Computes the mean of the values of a key weighted by the batch size.
 
     Args:
         outputs: list of dicts containing the outputs of a validation step
@@ -44,8 +42,8 @@ def weighted_mean(outputs, key, batch_size_key):
 
     Returns:
         weighted mean of the values of a key
-
     """
+
     value = 0
     n = 0
     for out in outputs:
