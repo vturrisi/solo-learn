@@ -17,7 +17,7 @@ class DINOLoss(nn.Module):
         num_crops: int = 2,
         center_momentum: float = 0.9,
     ):
-        """Computes DINO loss.
+        """Auxiliary module to compute DINO's loss.
 
         Args:
             num_prototypes: number of prototypes
@@ -47,7 +47,7 @@ class DINOLoss(nn.Module):
         )
 
     def forward(self, student_output: torch.Tensor, teacher_output: torch.Tensor) -> torch.Tensor:
-        """Computes DINO loss given a batch of logits of the student and a batch of logits of the
+        """Computes DINO's loss given a batch of logits of the student and a batch of logits of the
         teacher.
 
         Args:

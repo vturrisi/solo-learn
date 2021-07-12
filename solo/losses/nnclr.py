@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 def nnclr_loss_func(nn: torch.Tensor, p: torch.Tensor, temperature: float = 0.1) -> torch.Tensor:
-    """Applies NNCLR's loss given batch of nearest-neighbors nn from view 1 and
+    """Computes NNCLR's loss given batch of nearest-neighbors nn from view 1 and
     predicted features p from view 2.
 
     Args:

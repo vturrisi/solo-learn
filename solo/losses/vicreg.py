@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 def invariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
-    """Applies mse loss given batch of projected features z1 from view 1 and
+    """Computes mse loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
@@ -18,7 +18,7 @@ def invariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
 
 
 def variance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
-    """Applies variance loss given batch of projected features z1 from view 1 and
+    """Computes variance loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
@@ -37,7 +37,7 @@ def variance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
 
 
 def covariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
-    """Applies covariance loss given batch of projected features z1 from view 1 and
+    """Computes covariance loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
@@ -67,7 +67,7 @@ def vicreg_loss_func(
     var_loss_weight: float = 25.0,
     cov_loss_weight: float = 1.0,
 ) -> torch.Tensor:
-    """Applies VICReg's loss given batch of projected features z1 from view 1 and
+    """Computes VICReg's loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:

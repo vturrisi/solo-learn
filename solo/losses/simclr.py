@@ -9,7 +9,7 @@ def simclr_loss_func(
     temperature: float = 0.1,
     extra_pos_mask: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
-    """Applies SimCLR's loss given batch of projected features z1 from view 1 and
+    """Computes SimCLR's loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
@@ -58,7 +58,7 @@ def simclr_loss_func(
 def manual_simclr_loss_func(
     z: torch.Tensor, pos_mask: torch.Tensor, neg_mask: torch.Tensor, temperature: float = 0.1
 ) -> torch.Tensor:
-    """Manually applies SimCLR's loss given batch of projected features z
+    """Manually computes SimCLR's loss given batch of projected features z
     from different views, a positive boolean mask of all positives and
     a negative boolean mask of all negatives.
 

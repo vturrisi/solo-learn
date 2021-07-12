@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 def byol_loss_func(p: torch.Tensor, z: torch.Tensor, simplified: bool = True) -> torch.Tensor:
-    """Applies BYOL loss given batch of predicted features p and projected momentum features z.
+    """Computes BYOL's loss given batch of predicted features p and projected momentum features z.
 
     Args:
         p (torch.Tensor): NxD Tensor containing predicted features from view 1
@@ -11,7 +11,7 @@ def byol_loss_func(p: torch.Tensor, z: torch.Tensor, simplified: bool = True) ->
         simplified (bool): faster computation, but with same result. Defaults to True.
 
     Returns:
-        torch.Tensor: BYOL loss.
+        torch.Tensor: BYOL's loss.
     """
 
     if simplified:

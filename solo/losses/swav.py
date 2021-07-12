@@ -6,7 +6,7 @@ import torch
 def swav_loss_func(
     preds: List[torch.Tensor], assignments: List[torch.Tensor], temperature: float = 0.1
 ) -> torch.Tensor:
-    """Applies SwAV's loss given list of batch predictions from multiple views
+    """Computes SwAV's loss given list of batch predictions from multiple views
     and a list of cluster assignments from the same multiple views.
 
     Args:

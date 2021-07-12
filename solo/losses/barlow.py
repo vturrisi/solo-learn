@@ -4,7 +4,7 @@ import torch
 def barlow_loss_func(
     z1: torch.Tensor, z2: torch.Tensor, lamb: float = 5e-3, scale_loss: float = 0.025
 ) -> torch.Tensor:
-    """Applies Barlow Twins' loss given batch of projected features z1 from view 1 and
+    """Computes Barlow Twins' loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
     Args:
@@ -15,7 +15,7 @@ def barlow_loss_func(
         scale_loss (float, optional): final scaling factor of the loss. Defaults to 0.025.
 
     Returns:
-        torch.Tensor: Barlow Twins loss.
+        torch.Tensor: Barlow Twins' loss.
     """
 
     N, D = z1.size()
