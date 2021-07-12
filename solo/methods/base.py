@@ -222,7 +222,7 @@ class BaseModel(pl.LightningModule):
         ]
 
     def configure_optimizers(self) -> Tuple[List, List]:
-        """Collects learnable parameters and configure the optimizer and learning rate scheduler.
+        """Collects learnable parameters and configures the optimizer and learning rate scheduler.
 
         Returns:
             Tuple[List, List]: two lists containing the optimizer and the scheduler.
@@ -328,12 +328,12 @@ class BaseModel(pl.LightningModule):
             "acc5": acc5,
         }
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
         forwarding the crops, computing logits and computing statistics.
 
         Args:
-            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+            batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images
             batch_idx: index of the batch
 
@@ -370,12 +370,12 @@ class BaseModel(pl.LightningModule):
 
         return {"loss": loss, "feats": feats, "logits": logits}
 
-    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
+    def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch (torch.Tensor):a batch of data in the format of [img_indexes, X, Y]
+            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y]
             batch_idx (int): index of the batch
 
         Returns:
@@ -397,7 +397,7 @@ class BaseModel(pl.LightningModule):
         }
         return metrics
 
-    def validation_epoch_end(self, outs: List[dict]):
+    def validation_epoch_end(self, outs: List[Dict[str, Any]]):
         """Averages the losses and accuracies of all the validation batches.
         This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
@@ -444,7 +444,14 @@ class BaseMomentumModel(BaseModel):
         self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
     @property
-    def learnable_params(self) -> List[dict]:
+    def learnable_params(self) -> List[Dict[str, Any]]:
+        """Adds momentum classifer parameters to the parameters of the base class.
+
+        Returns:
+            List[Dict[str, Any]]: list of dicts containing learnable parameters and possible
+                settings.
+        """
+
         momentum_learnable_parameters = []
         if self.momentum_classifier is not None:
             momentum_learnable_parameters.append(
@@ -459,10 +466,26 @@ class BaseMomentumModel(BaseModel):
 
     @property
     def momentum_pairs(self) -> List[Tuple[Any, Any]]:
+        """Defines base momentum pairs that will be updated using exponential moving average.
+
+        Returns:
+            List[Tuple[Any, Any]]: list of momentum pairs (two element tuples).
+        """
+
         return [(self.encoder, self.momentum_encoder)]
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """Adds basic momentum arguments that are shared for all methods.
+
+        Args:
+            parent_parser (argparse.ArgumentParser): argument parser that is used to create a
+                argument group.
+
+        Returns:
+            argparse.ArgumentParser: same as the argument, used to avoid errors.
+        """
+
         parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
             parent_parser
         )
@@ -476,9 +499,22 @@ class BaseMomentumModel(BaseModel):
         return parent_parser
 
     def on_train_start(self):
+        """Resents the step counter at the beginning of training."""
         self.last_step = 0
 
-    def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> dict:
+    def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> Dict[str, Any]:
+        """Forwards a batch of images X in the momentum encoder and optionally computes the
+        classification loss, the logits, the features, acc@1 and acc@5 for of momentum classifier.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
+
+        Returns:
+            Dict[str, Any]: a dict containing the classification loss, logits, features, acc@1 and
+                acc@5 of the momenutm encoder / classifier.
+        """
+
         with torch.no_grad():
             feats = self.momentum_encoder(X)
         out = {"feats": feats}
@@ -491,7 +527,21 @@ class BaseMomentumModel(BaseModel):
 
         return out
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for pytorch lightning. It performs all the shared operations for the
+        momentum encoder and classifier, such as forwarding the crops in the momentum encoder
+        and classifier, and computing statistics.
+
+        Args:
+            batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            Dict[str, Any]: a dict with the features of the momentum encoder and the classification
+                loss and logits of the momentum classifier.
+        """
+
         parent_outs = super().training_step(batch, batch_idx)
 
         _, X, targets = batch
@@ -526,7 +576,20 @@ class BaseMomentumModel(BaseModel):
 
         return parent_outs
 
-    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(
+        self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int
+    ):
+        """Performs the momentum update of momentum pairs using exponential moving average at the
+        end of the current training step if an optimizer step was performed.
+
+        Args:
+            outputs (Dict[str, Any]): the outputs of the training step.
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+            dataloader_idx (int): index of the dataloader.
+        """
+
         if self.trainer.global_step > self.last_step:
             # update momentum encoder and projector
             momentum_pairs = self.momentum_pairs
@@ -541,7 +604,23 @@ class BaseMomentumModel(BaseModel):
             )
         self.last_step = self.trainer.global_step
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(
+        self, batch: List[torch.Tensor], batch_idx: int
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """Validation step for pytorch lightning. It performs all the shared operations for the
+        momentum encoder and classifier, such as forwarding a batch of images in the momentum
+        encoder and classifier and computing statistics.
+
+        Args:
+            batch (List[torch.Tensor]): a batch of data in the format of [X, Y].
+            batch_idx (int): index of the batch.
+
+        Returns:
+            Tuple(Dict[str, Any], Dict[str, Any]): tuple of dicts containing the batch_size (used
+                for averaging), the classification loss and accuracies for both the online and the
+                momentum classifiers.
+        """
+
         parent_metrics = super().validation_step(batch, batch_idx)
 
         X, targets = batch
@@ -560,7 +639,16 @@ class BaseMomentumModel(BaseModel):
 
         return parent_metrics, metrics
 
-    def validation_epoch_end(self, outs):
+    def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
+        """Averages the losses and accuracies of the momentum encoder / classifier for all the
+        validation batches. This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        Args:
+            outs (Tuple[List[Dict[str, Any]]]):): list of outputs of the validation step for self
+                and the parent.
+        """
+
         parent_outs = [out[0] for out in outs]
         super().validation_epoch_end(parent_outs)
 

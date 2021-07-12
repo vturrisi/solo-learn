@@ -1,7 +1,7 @@
 python3 ../../main_linear.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /data/datasets \
+    --data_dir /data0/SHARED/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
@@ -13,9 +13,9 @@ python3 ../../main_linear.py \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
     --batch_size 256 \
-    --num_workers 8 \
+    --num_workers 4 \
     --dali \
-    --name swav-imagenet100-linear-eval \
+    --name barlow-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
