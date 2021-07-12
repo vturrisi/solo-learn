@@ -32,12 +32,12 @@ GaussianBlur
 
 Solarization
 ~~~~~~~~~~~~
-.. autoclass:: solo.utils.contrastive_dataloader.Solarization
+.. autoclass:: solo.utils.pretrain_dataloader.Solarization
    :noindex:
 
 NCropAugmentation
 ~~~~~~~~~~~~~~~~~
-.. autoclass:: solo.utils.contrastive_dataloader.NCropAugmentation
+.. autoclass:: solo.utils.pretrain_dataloader.NCropAugmentation
    :noindex:
 
 
@@ -47,42 +47,42 @@ Transformation Pipelines
 
 BaseTransform
 ~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.BaseTransform
+.. automethod:: solo.utils.pretrain_dataloader.BaseTransform
    :noindex:
 
 CifarTransform
 ~~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.CifarTransform.__init__
+.. automethod:: solo.utils.pretrain_dataloader.CifarTransform.__init__
    :noindex:
 
 STLTransform
 ~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.STLTransform.__init__
+.. automethod:: solo.utils.pretrain_dataloader.STLTransform.__init__
    :noindex:
 
 ImagenetTransform
 ~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.ImagenetTransform.__init__
+.. automethod:: solo.utils.pretrain_dataloader.ImagenetTransform.__init__
    :noindex:
 
 MulticropAugmentation
 ~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.MulticropAugmentation.__init__
+.. automethod:: solo.utils.pretrain_dataloader.MulticropAugmentation.__init__
    :noindex:
 
 MulticropCifarTransform
 ~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.MulticropCifarTransform.__init__
+.. automethod:: solo.utils.pretrain_dataloader.MulticropCifarTransform.__init__
    :noindex:
 
 MulticropSTLTransform
 ~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.MulticropSTLTransform.__init__
+.. automethod:: solo.utils.pretrain_dataloader.MulticropSTLTransform.__init__
    :noindex:
 
 MulticropImagenetTransform
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.contrastive_dataloader.MulticropImagenetTransform.__init__
+.. automethod:: solo.utils.pretrain_dataloader.MulticropImagenetTransform.__init__
    :noindex:
 
 

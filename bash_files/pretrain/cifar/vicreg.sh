@@ -1,4 +1,4 @@
-python3 ../../../main_contrastive.py \
+python3 ../../../main_pretrain.py \
     --dataset $1 \
     --encoder resnet18 \
     --data_dir ./datasets \
