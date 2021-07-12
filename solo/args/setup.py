@@ -12,7 +12,7 @@ def parse_args_pretrain() -> argparse.Namespace:
 
     First adds shared args such as dataset, augmentation and pytorch lightning args, then pulls the
     model name from the command and proceeds to add model specific args from the desired class. If
-    wandb is enabled it adds checkpointer args. Finally, adds additional non-user given parameters.
+    wandb is enabled, it adds checkpointer args. Finally, adds additional non-user given parameters.
 
     Returns:
         argparse.Namespace: a namespace containing all args needed for pretraining.
@@ -54,7 +54,7 @@ def parse_args_linear() -> argparse.Namespace:
     """Parses feature extractor, dataset, pytorch lightning, linear eval specific and additional args.
 
     First adds and arg for the pretrained feature extractor, then adds dataset, pytorch lightning
-    and linear eval specific args. If wandb is enabled it adds checkpointer args. Finally, adds
+    and linear eval specific args. If wandb is enabled, it adds checkpointer args. Finally, adds
     additional non-user given parameters.
 
     Returns:
