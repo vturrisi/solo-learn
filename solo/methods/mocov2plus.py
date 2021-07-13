@@ -1,3 +1,6 @@
+import argparse
+from typing import Any, Dict, List, Sequence, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +11,20 @@ from solo.utils.momentum import initialize_momentum_params
 
 
 class MoCoV2Plus(BaseMomentumModel):
-    def __init__(self, output_dim, proj_hidden_dim, temperature, queue_size, **kwargs):
+    queue: torch.Tensor
+
+    def __init__(
+        self, output_dim: int, proj_hidden_dim: int, temperature: float, queue_size: int, **kwargs
+    ):
+        """Implements MoCo V2+ (https://arxiv.org/abs/2011.10566).
+
+        Args:
+            output_dim (int): number of dimensions of projected features.
+            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            temperature (float): temperature for the softmax in the contrastive loss.
+            queue_size (int): number of samples to keep in the queue.
+        """
+
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -35,7 +51,7 @@ class MoCoV2Plus(BaseMomentumModel):
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(MoCoV2Plus, MoCoV2Plus).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("mocov2plus")
 
@@ -52,33 +68,74 @@ class MoCoV2Plus(BaseMomentumModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
+        """Adds projector parameters together with parent's learnable parameters.
+
+        Returns:
+            List[dict]: list of learnable parameters.
+        """
+
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
+        """Adds (projector, momentum_projector) to the parent's momentum pairs.
+
+        Returns:
+            List[Tuple[Any, Any]]: list of momentum pairs.
+        """
+
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
     @torch.no_grad()
-    def _dequeue_and_enqueue(self, keys):
+    def _dequeue_and_enqueue(self, keys: torch.Tensor):
+        """Adds new samples and removes old samples from the queue in a fifo manner.
+
+        Args:
+            keys (torch.Tensor): output features of the momentum encoder.
+        """
+
         batch_size = keys.shape[1]
-        ptr = int(self.queue_ptr)
+        ptr = int(self.queue_ptr)  # type: ignore
         assert self.queue_size % batch_size == 0  # for simplicity
 
         # replace the keys at ptr (dequeue and enqueue)
         keys = keys.permute(0, 2, 1)
         self.queue[:, :, ptr : ptr + batch_size] = keys
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
-        self.queue_ptr[0] = ptr
+        self.queue_ptr[0] = ptr  # type: ignore
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs the forward pass of the online encoder and the online projection.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         q = F.normalize(self.projector(out["feats"]), dim=-1)
         return {**out, "q": q}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
+        """
+        Training step for MoCo reusing BaseMomentumModel training step.
+
+        Args:
+            batch (Sequence[Any]): a batch of data in the
+                format of [img_indexes, [X], Y], where [X] is a list of size self.n_crops
+                containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            torch.Tensor: total loss composed of MOCO loss and classification loss.
+
+        """
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]

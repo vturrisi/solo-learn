@@ -1,3 +1,5 @@
+from argparse import Namespace
+
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
     "cifar100": 100,
@@ -7,7 +9,29 @@ N_CLASSES_PER_DATASET = {
 }
 
 
-def additional_setup_contrastive(args):
+def additional_setup_pretrain(args: Namespace):
+    """Provides final setup for pretraining to non-user given parameters by changing args.
+
+    Parsers arguments to extract the number of classes of a dataset, create
+    transformations kwargs, correctly parse gpus, identify if a cifar dataset
+    is being used and adjust the lr.
+
+    Args:
+        args (Namespace): object that needs to contain, at least:
+        - dataset: dataset name.
+        - brightness, contrast, saturation, hue, min_scale_crop: required augmentations
+            settings.
+        - asymmetric_augmentations: flag to apply asymmetric augmentations.
+        - multicrop: flag to use multicrop.
+        - dali: flag to use dali.
+        - optimizer: optimizer name being used.
+        - gpus: list of gpus to use.
+        - lr: learning rate.
+
+        [optional]
+        - gaussian_prob, solarization_prob: optional augmentations settings.
+    """
+
     args.transform_kwargs = {}
 
     assert args.dataset in N_CLASSES_PER_DATASET
@@ -72,12 +96,26 @@ def additional_setup_contrastive(args):
     if isinstance(args.gpus, int):
         args.gpus = [args.gpus]
     elif isinstance(args.gpus, str):
-        args.gpus = [int(s) for s in args.gpus.split(",")]
+        args.gpus = [int(gpu) for gpu in args.gpus.split(",") if gpu]
+
     # adjust lr according to batch size
     args.lr = args.lr * args.batch_size * len(args.gpus) / 256
 
 
-def additional_setup_linear(args):
+def additional_setup_linear(args: Namespace):
+    """Provides final setup for linear evaluation to non-user given parameters by changing args.
+
+    Parsers arguments to extract the number of classes of a dataset, correctly parse gpus, identify
+    if a cifar dataset is being used and adjust the lr.
+
+    Args:
+        args: Namespace object that needs to contain, at least:
+        - dataset: dataset name.
+        - optimizer: optimizer name being used.
+        - gpus: list of gpus to use.
+        - lr: learning rate.
+    """
+
     assert args.dataset in N_CLASSES_PER_DATASET
     args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
 
@@ -93,4 +131,4 @@ def additional_setup_linear(args):
     if isinstance(args.gpus, int):
         args.gpus = [args.gpus]
     elif isinstance(args.gpus, str):
-        args.gpus = [int(s) for s in args.gpus.split(",")]
+        args.gpus = [int(gpu) for gpu in args.gpus.split(",") if gpu]

@@ -1,7 +1,7 @@
-python3 ../../../main_contrastive.py \
+python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --max_epochs 400 \

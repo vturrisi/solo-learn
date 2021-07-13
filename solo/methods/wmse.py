@@ -1,3 +1,4 @@
+from typing import Any, Dict, Sequence
 import torch
 import torch.nn as nn
 from solo.losses.wmse import wmse_loss_func
@@ -7,8 +8,24 @@ from solo.methods.base import BaseModel
 
 class WMSE(BaseModel):
     def __init__(
-        self, output_dim, proj_hidden_dim, whitening_iters, whitening_size, whitening_eps, **kwargs
+        self,
+        output_dim: int,
+        proj_hidden_dim: int,
+        whitening_iters: int,
+        whitening_size: int,
+        whitening_eps: float,
+        **kwargs
     ):
+        """Implements W-MSE (https://arxiv.org/abs/2007.06346)
+
+        Args:
+            output_dim (int): number of dimensions of the projected features.
+            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+            whitening_iters (int): number of times to perform whitening.
+            whitening_size (int): size of the batch slice for whitening.
+            whitening_eps (float): epsilon for numerical stability in whitening.
+        """
+
         super().__init__(**kwargs)
 
         self.whitening_iters = whitening_iters
@@ -44,15 +61,41 @@ class WMSE(BaseModel):
 
     @property
     def learnable_params(self):
+        """Adds projector parameters to the parent's learnable parameters.
+
+        Returns:
+            List[dict]: list of learnable parameters.
+        """
+
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs the forward pass of the encoder and the projector.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         v = self.projector(out["feats"])
         return {**out, "v": v}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for W-MSE reusing BaseModel training step.
+
+        Args:
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx (int): index of the batch
+
+        Returns:
+            Dict[str, Any]: total loss composed of W-MSE loss and classification loss
+        """
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats = out["feats"]

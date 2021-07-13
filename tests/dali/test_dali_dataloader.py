@@ -1,7 +1,7 @@
 from solo.utils.dali_dataloader import (
-    ContrastivePipeline,
+    PretrainPipeline,
     ImagenetTransform,
-    MulticropContrastivePipeline,
+    MulticropPretrainPipeline,
     NormalPipeline,
 )
 from .utils import DummyDataset
@@ -32,7 +32,7 @@ def test_dali_dataloader():
             transforms.append(transform)
 
         # multicrop pipeline
-        train_pipeline = MulticropContrastivePipeline(
+        train_pipeline = MulticropPretrainPipeline(
             "dummy_train",
             batch_size=4,
             transforms=transforms,
@@ -48,8 +48,8 @@ def test_dali_dataloader():
         )
         train_pipeline.build()
 
-        # simple contrastive pipeline
-        train_pipeline = ContrastivePipeline(
+        # simple pretrain pipeline
+        train_pipeline = PretrainPipeline(
             "dummy_train",
             batch_size=4,
             transform=transforms[0],

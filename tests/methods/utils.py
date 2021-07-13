@@ -1,9 +1,9 @@
 import numpy as np
 import torch
 from PIL import Image
-from solo.utils.contrastive_dataloader import (
+from solo.utils.pretrain_dataloader import (
     dataset_with_index,
-    prepare_dataloaders,
+    prepare_dataloader,
     prepare_n_crop_transform,
     prepare_multicrop_transform,
     prepare_transform,
@@ -51,7 +51,7 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_s
         "last_batch_fill": False,
         "batch_size": 32,
         "num_workers": 4,
-        "data_folder": "/data/datasets",
+        "data_dir": "/data/datasets",
         "train_dir": "cifar10/train",
         "val_dir": "cifar10/val",
     }
@@ -123,7 +123,7 @@ def prepare_dummy_dataloaders(
     dataset = dataset_with_index(FakeData)(
         image_size=(3, 224, 224), num_classes=n_classes, transform=T
     )
-    train_dl = prepare_dataloaders(dataset, batch_size=batch_size, num_workers=0)
+    train_dl = prepare_dataloader(dataset, batch_size=batch_size, num_workers=0)
 
     # normal dataloader
     T_val = transforms.Compose(

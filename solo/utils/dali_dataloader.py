@@ -1,3 +1,5 @@
+from typing import Callable, Iterable, Union, List
+
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
@@ -5,8 +7,13 @@ from nvidia.dali.pipeline import Pipeline
 
 
 class Mux:
-    # DALI doesn't support probabilistic augmentations, so we use muxing.
-    def __init__(self, prob):
+    def __init__(self, prob: float):
+        """Implements mutex operation for dali in order to support probabilitic augmentations.
+
+        Args:
+            prob (float): probability value
+        """
+
         self.to_bool = ops.Cast(dtype=types.DALIDataType.BOOL)
         self.rng = ops.random.CoinFlip(probability=prob)
 
@@ -17,7 +24,15 @@ class Mux:
 
 
 class RandomGrayScaleConversion:
-    def __init__(self, prob=0.2, device="gpu"):
+    def __init__(self, prob: float = 0.2, device: str = "gpu"):
+        """Converts image to greyscale with probability.
+
+        Args:
+            prob (float, optional): probability of conversion. Defaults to 0.2.
+            device (str, optional): device on which the operation will be performed.
+                Defaults to "gpu".
+        """
+
         self.mux = Mux(prob=prob)
         self.grayscale = ops.ColorSpaceConversion(
             device=device, image_type=types.RGB, output_type=types.GRAY
@@ -32,13 +47,28 @@ class RandomGrayScaleConversion:
 class RandomColorJitter:
     def __init__(
         self,
-        brightness=0.8,
-        contrast=0.8,
-        saturation=0.8,
-        hue=0.2,
-        prob=0.8,
-        device="gpu",
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        prob: float = 0.8,
+        device: str = "gpu",
     ):
+        """Applies random color jittering with probability.
+
+        Args:
+            brightness (float): brightness value for samplying uniformly
+                in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): contrast value for samplying uniformly
+                in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): saturation value for samplying uniformly
+                in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): hue value for samplying uniformly in [-hue, hue].
+            prob (float, optional): probability of applying jitter. Defaults to 0.8.
+            device (str, optional): device on which the operation will be performed.
+                Defaults to "gpu".
+        """
+
         assert 0 <= hue <= 0.5
 
         self.mux = Mux(prob=prob)
@@ -66,10 +96,19 @@ class RandomColorJitter:
 
 
 class RandomGaussianBlur:
-    def __init__(self, prob=0.5, device="gpu"):
+    def __init__(self, prob: float = 0.5, window_size: int = 23, device: str = "gpu"):
+        """Applies random gaussian blur with probability.
+
+        Args:
+            prob (float, optional): probability of applying random gaussian blur. Defaults to 0.5.
+            window_size (int, optional): window size for gaussian blur. Defaults to 23.
+            device (str, optional): device on which the operation will be performe.
+                Defaults to "gpu".
+        """
+
         self.mux = Mux(prob=prob)
         # gaussian blur
-        self.gaussian_blur = ops.GaussianBlur(device=device, window_size=(23, 23))
+        self.gaussian_blur = ops.GaussianBlur(device=device, window_size=(window_size, window_size))
         self.sigma = ops.random.Uniform(range=[0, 1])
 
     def __call__(self, images):
@@ -79,7 +118,14 @@ class RandomGaussianBlur:
 
 
 class RandomSolarize:
-    def __init__(self, threshold=128, prob=0.0):
+    def __init__(self, threshold: int = 128, prob: float = 0.0):
+        """Applies random solarization with probability.
+
+        Args:
+            threshold (int, optional): threshold for inversion. Defaults to 128.
+            prob (float, optional): probability of solarization. Defaults to 0.0.
+        """
+
         self.mux = Mux(prob=prob)
 
         self.threshold = threshold
@@ -94,16 +140,36 @@ class RandomSolarize:
 class NormalPipeline(Pipeline):
     def __init__(
         self,
-        data_path,
-        batch_size,
-        device,
-        validation=False,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
+        data_path: str,
+        batch_size: int,
+        device: str,
+        validation: bool = False,
+        device_id: int = 0,
+        shard_id: int = 0,
+        num_shards: int = 1,
+        num_threads: int = 4,
+        seed: int = 12,
     ):
+        """Initializes the pipeline for validation or linear eval training.
+
+        If validation is set to True then images will only be resized to 256px and center cropped
+        to 224px, otherwise random resized crop, horizontal flip are applied. In both cases images
+        are normalized.
+
+        Args:
+            data_path (str): directory that contains the data.
+            batch_size (int): batch size.
+            device (str): device on which the operation will be performed.
+            validation (bool): whether it is validation or training. Defaults to False. Defaults to
+                False.
+            device_id (int): id of the device used to initialize the seed and for parent class.
+                Defaults to 0.
+            shard_id (int): id of the shard (chuck of samples). Defaults to 0.
+            num_shards (int): total number of shards. Defaults to 1.
+            num_threads (int): number of threads to run in parallel. Defaults to 4.
+            seed (int): seed for random number generation. Defaults to 12.
+        """
+
         seed += device_id
         super().__init__(batch_size, num_threads, device_id, seed)
 
@@ -162,6 +228,8 @@ class NormalPipeline(Pipeline):
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
     def define_graph(self):
+        """Defines the computational graph for dali operations."""
+
         # read images from memory
         inputs, labels = self.reader(name="Reader")
         images = self.decode(inputs)
@@ -186,17 +254,34 @@ class NormalPipeline(Pipeline):
 class ImagenetTransform:
     def __init__(
         self,
-        device,
-        brightness=0.8,
-        contrast=0.8,
-        saturation=0.8,
-        hue=0.2,
-        gaussian_prob=0.5,
-        solarization_prob=0.0,
-        size=224,
-        min_scale=0.08,
-        max_scale=1.0,
+        device: str,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
+        size: int = 224,
+        min_scale: float = 0.08,
+        max_scale: float = 1.0,
     ):
+        """Applies Imagenet transformations to a batch of images.
+
+        Args:
+            device (str): device on which the operations will be performed.
+            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): sampled uniformly in [-hue, hue].
+            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
+            solarization_prob (float, optional): probability of applying solarization. Defaults
+                to 0.0.
+            size (int, optional): size of the side of the image after transformation. Defaults
+                to 224.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+            max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
+        """
+
         # random crop
         self.random_crop = ops.RandomResizedCrop(
             device=device,
@@ -244,21 +329,40 @@ class ImagenetTransform:
         return out
 
 
-class ContrastivePipeline(Pipeline):
+class PretrainPipeline(Pipeline):
     def __init__(
         self,
-        data_path,
-        batch_size,
-        device,
-        transform,
-        n_crops=2,
-        random_shuffle=True,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
+        data_path: str,
+        batch_size: int,
+        device: str,
+        transform: Union[Callable, Iterable],
+        n_crops: int = 2,
+        random_shuffle: bool = True,
+        device_id: int = 0,
+        shard_id: int = 0,
+        num_shards: int = 1,
+        num_threads: int = 4,
+        seed: int = 12,
     ):
+        """Initializes the pipeline for pretraining.
+
+        Args:
+            data_path (str): directory that contains the data.
+            batch_size (int): batch size.
+            device (str): device on which the operation will be performed.
+            transform (Union[Callable, Iterable]): a transformation or a sequence
+                of transformations to be applied.
+            n_crops (int, optional): number of crops. Defaults to 2.
+            random_shuffle (bool, optional): whether to randomly shuffle the samples.
+                Defaults to True.
+            device_id (int, optional): id of the device used to initialize the seed and
+                for parent class. Defaults to 0.
+            shard_id (int, optional): id of the shard (chuck of samples). Defaults to 0.
+            num_shards (int, optional): total number of shards. Defaults to 1.
+            num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
+            seed (int, optional): seed for random number generation. Defaults to 12.
+        """
+
         seed += device_id
         super().__init__(
             batch_size=batch_size,
@@ -290,13 +394,15 @@ class ContrastivePipeline(Pipeline):
         # transformations
         self.transform = transform
 
-        if isinstance(transform, list):
+        if isinstance(transform, Iterable):
             self.one_transform_per_crop = True
         else:
             self.one_transform_per_crop = False
             self.n_crops = n_crops
 
     def define_graph(self):
+        """Defines the computational graph for dali operations."""
+
         # read images from memory
         inputs, labels = self.reader(name="Reader")
         images = self.decode(inputs)
@@ -314,24 +420,45 @@ class ContrastivePipeline(Pipeline):
         return (*crops, labels)
 
 
-class MulticropContrastivePipeline(Pipeline):
+class MulticropPretrainPipeline(Pipeline):
     def __init__(
         self,
-        data_path,
-        batch_size,
-        device,
-        transforms,
-        n_crops,
-        size_crops,
-        min_scale_crops,
-        max_scale_crops,
-        random_shuffle=True,
-        device_id=0,
-        shard_id=0,
-        num_shards=1,
-        num_threads=4,
-        seed=12,
+        data_path: str,
+        batch_size: int,
+        device: str,
+        transforms: List,
+        n_crops: List[int],
+        size_crops: List[int],
+        min_scale_crops: List[float],
+        max_scale_crops: List[float],
+        random_shuffle: bool = True,
+        device_id: int = 0,
+        shard_id: int = 0,
+        num_shards: int = 1,
+        num_threads: int = 4,
+        seed: int = 12,
     ):
+        """Initializes the pipeline for pretraining with multicrop.
+
+        Args:
+            data_path (str): directory that contains the data.
+            batch_size (int): batch size.
+            device (str): device on which the operation will be performed.
+            transforms (List): list of transformations to be applied.
+            n_crops (List[int]): number of crops.
+            size_crops (List[int]): list of crop sizes images will be resized to.
+            min_scale_crops (List[float]): list of minimum scales for each crop.
+            max_scale_crops (List[float]): list of maximum scales for each crop.
+            random_shuffle (bool, optional): whether to randomly shuffle the samples.
+                Defaults to True.
+            device_id (int, optional): id of the device used to initialize the seed and
+                for parent class. Defaults to 0.
+            shard_id (int, optional): id of the shard (chuck of samples). Defaults to 0.
+            num_shards (int, optional): total number of shards. Defaults to 1.
+            num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
+            seed (int, optional): seed for random number generation. Defaults to 12.
+        """
+
         seed += device_id
         super().__init__(
             batch_size=batch_size,
@@ -363,11 +490,12 @@ class MulticropContrastivePipeline(Pipeline):
         self.min_scale_crops = min_scale_crops
         self.max_scale_crops = max_scale_crops
 
-        assert isinstance(transforms, list) and len(transforms) == len(size_crops)
-
+        assert len(transforms) == len(size_crops)
         self.transforms = transforms
 
     def define_graph(self):
+        """Defines the computational graph for dali operations."""
+
         # read images from memory
         inputs, labels = self.reader(name="Reader")
         images = self.decode(inputs)

@@ -1,6 +1,6 @@
 from solo.utils import (
     classification_dataloader,
-    contrastive_dataloader,
+    pretrain_dataloader,
     checkpointer,
     gather_layer,
     lars,
@@ -15,7 +15,7 @@ try:
 except ImportError:
     __all__ = [
         "classification_dataloader",
-        "contrastive_dataloader",
+        "pretrain_dataloader",
         "checkpointer",
         "gather_layer",
         "lars",
@@ -26,7 +26,7 @@ except ImportError:
 else:
     __all__ = [
         "classification_dataloader",
-        "contrastive_dataloader",
+        "pretrain_dataloader",
         "dali_dataloader",
         "checkpointer",
         "gather_layer",

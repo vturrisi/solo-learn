@@ -1,3 +1,6 @@
+import argparse
+from typing import Any, Dict, List, Sequence, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,11 +12,19 @@ from solo.utils.momentum import initialize_momentum_params
 class BYOL(BaseMomentumModel):
     def __init__(
         self,
-        output_dim,
-        proj_hidden_dim,
-        pred_hidden_dim,
+        output_dim: int,
+        proj_hidden_dim: int,
+        pred_hidden_dim: int,
         **kwargs,
     ):
+        """Implements BYOL (https://arxiv.org/abs/2006.07733).
+
+        Args:
+            output_dim (int): number of dimensions of projected features.
+            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+        """
+
         super().__init__(**kwargs)
 
         # projector
@@ -42,7 +53,7 @@ class BYOL(BaseMomentumModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(BYOL, BYOL).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("byol")
 
@@ -56,7 +67,13 @@ class BYOL(BaseMomentumModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
+        """Adds projector and predictor parameters to the parent's learnable parameters.
+
+        Returns:
+            List[dict]: list of learnable parameters.
+        """
+
         extra_learnable_params = [
             {"params": self.projector.parameters()},
             {"params": self.predictor.parameters()},
@@ -64,17 +81,43 @@ class BYOL(BaseMomentumModel):
         return super().learnable_params + extra_learnable_params
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
+        """Adds (projector, momentum_projector) to the parent's momentum pairs.
+
+        Returns:
+            List[Tuple[Any, Any]]: list of momentum pairs.
+        """
+
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs forward pass of the online encoder (encoder, projector and predictor).
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the logits of the head.
+        """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for BYOL reusing BaseModel training step.
+
+        Args:
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            Dict[str, Any]: total loss composed of BYOL and classification loss.
+        """
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]

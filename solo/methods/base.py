@@ -1,17 +1,21 @@
+from argparse import ArgumentParser
 from functools import partial
+from typing import Any, Callable, Dict, List, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
 
-def static_lr(get_lr, param_group_indexes, lrs_to_replace):
+def static_lr(
+    get_lr: Callable, param_group_indexes: Sequence[int], lrs_to_replace: Sequence[float]
+):
     lrs = get_lr()
     for idx, lr in zip(param_group_indexes, lrs_to_replace):
         lrs[idx] = lr
@@ -21,31 +25,66 @@ def static_lr(get_lr, param_group_indexes, lrs_to_replace):
 class BaseModel(pl.LightningModule):
     def __init__(
         self,
-        encoder,
-        n_classes,
-        cifar,
-        zero_init_residual,
-        max_epochs,
-        batch_size,
-        optimizer,
-        lars,
-        lr,
-        weight_decay,
-        classifier_lr,
-        exclude_bias_n_norm,
-        accumulate_grad_batches,
-        extra_optimizer_args,
-        scheduler,
-        min_lr,
-        warmup_start_lr,
-        warmup_epochs,
-        multicrop,
-        n_crops,
-        n_small_crops,
-        eta_lars,
-        lr_decay_steps=None,
+        encoder: str,
+        n_classes: int,
+        cifar: bool,
+        zero_init_residual: bool,
+        max_epochs: int,
+        batch_size: int,
+        optimizer: str,
+        lars: bool,
+        lr: float,
+        weight_decay: float,
+        classifier_lr: float,
+        exclude_bias_n_norm: bool,
+        accumulate_grad_batches: int,
+        extra_optimizer_args: Dict,
+        scheduler: str,
+        min_lr: float,
+        warmup_start_lr: float,
+        warmup_epochs: float,
+        multicrop: bool,
+        n_crops: int,
+        n_small_crops: int,
+        eta_lars: float = 1e-3,
+        grad_clip_lars: bool = False,
+        lr_decay_steps: Sequence = None,
         **kwargs,
     ):
+        """Base model that implements all basic operations for all self-supervised methods.
+        It adds shared arguments, extract basic learnable parameters, creates optimizers
+        and schedulers, implements basic training_step for any number of crops,
+        trains the online classifier and implements validation_step.
+
+        Args:
+            encoder (str): architecture of the base encoder.
+            n_classes (int): number of classes.
+            cifar (bool): flag indicating if cifar is being used.
+            zero_init_residual (bool): change the initialization of the resnet encoder.
+            max_epochs (int): number of training epochs.
+            batch_size (int): number of samples in the batch.
+            optimizer (str): name of the optimizer.
+            lars (bool): flag indicating if lars should be used.
+            lr (float): learning rate.
+            weight_decay (float): weight decay for optimizer.
+            classifier_lr (float): learning rate for the online linear classifier.
+            exclude_bias_n_norm (bool): flag indicating if bias and norms should be excluded from
+                lars.
+            accumulate_grad_batches (int): number of batches for gradient accumulation.
+            extra_optimizer_args (Dict): extra named arguments for the optimizer.
+            scheduler (str): name of the scheduler.
+            min_lr (float): minimum learning rate for warmup scheduler.
+            warmup_start_lr (float): initial learning rate for warmup scheduler.
+            warmup_epochs (float): number of warmup epochs.
+            multicrop (bool): flag indicating if multi-resolution crop is being used.
+            n_crops (int): number of big crops
+            n_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
+            eta_lars (float): eta parameter for lars.
+            grad_clip_lars (bool): whether to clip the gradients in lars.
+            lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
+                step. Defaults to None.
+        """
+
         super().__init__()
 
         # back-bone related
@@ -73,6 +112,7 @@ class BaseModel(pl.LightningModule):
         self.n_crops = n_crops
         self.n_small_crops = n_small_crops
         self.eta_lars = eta_lars
+        self.grad_clip_lars = grad_clip_lars
 
         # sanity checks on multicrop
         if self.multicrop:
@@ -106,7 +146,17 @@ class BaseModel(pl.LightningModule):
         self.classifier = nn.Linear(self.features_size, n_classes)
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        """Adds shared basic arguments that are shared for all methods.
+
+        Args:
+            parent_parser (ArgumentParser): argument parser that is used to create a
+                argument group.
+
+        Returns:
+            ArgumentParser: same as the argument, used to avoid errors.
+        """
+
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
@@ -134,7 +184,8 @@ class BaseModel(pl.LightningModule):
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
         parser.add_argument("--lars", action="store_true")
-        parser.add_argument("--eta_lars", default=0.02, type=float)
+        parser.add_argument("--grad_clip_lars", action="store_true")
+        parser.add_argument("--eta_lars", default=1e-3, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
         # scheduler
@@ -156,7 +207,14 @@ class BaseModel(pl.LightningModule):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[Dict[str, Any]]:
+        """Defines learnable parameters for the base class.
+
+        Returns:
+            List[Dict[str, Any]]:
+                list of dicts containing learnable parameters and possible settings.
+        """
+
         return [
             {"name": "encoder", "params": self.encoder.parameters()},
             {
@@ -167,8 +225,14 @@ class BaseModel(pl.LightningModule):
             },
         ]
 
-    def configure_optimizers(self):
-        # collect static lr params
+    def configure_optimizers(self) -> Tuple[List, List]:
+        """Collects learnable parameters and configures the optimizer and learning rate scheduler.
+
+        Returns:
+            Tuple[List, List]: two lists containing the optimizer and the scheduler.
+        """
+
+        # collect learnable parameters
         idxs_no_scheduler = [
             i for i, m in enumerate(self.learnable_params) if m.pop("static_lr", False)
         ]
@@ -191,7 +255,10 @@ class BaseModel(pl.LightningModule):
         # optionally wrap with lars
         if self.lars:
             optimizer = LARSWrapper(
-                optimizer, eta=self.eta_lars, exclude_bias_n_norm=self.exclude_bias_n_norm
+                optimizer,
+                eta=self.eta_lars,
+                clip=self.grad_clip_lars,
+                exclude_bias_n_norm=self.exclude_bias_n_norm,
             )
 
         if self.scheduler == "none":
@@ -224,14 +291,38 @@ class BaseModel(pl.LightningModule):
             return [optimizer], [scheduler]
 
     def forward(self, *args, **kwargs):
+        """Dummy forward, calls base forward."""
+
         return self._base_forward(*args, **kwargs)
 
-    def _base_forward(self, X, detach_feats=True):
+    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True) -> Dict:
+        """Basic forward that allows children classes to override forward().
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            detach_feats (bool, optional): flag indicating whether or not to detach the features
+                before feeding them to the linear classifier Defaults to True.
+
+        Returns:
+            Dict: dict of logits and features.
+        """
+
         feats = self.encoder(X)
         logits = self.classifier(feats.detach() if detach_feats else feats)
         return {"logits": logits, "feats": feats}
 
-    def _shared_step(self, X, targets):
+    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+        """Forwards a batch of images X and computes the classification loss, the logits, the
+        features, acc@1 and acc@5.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format
+            targets (torch.Tensor): batch of labels for X
+
+        Returns:
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
+        """
+
         out = self._base_forward(X)
         logits, feats = out["logits"], out["feats"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
@@ -244,7 +335,19 @@ class BaseModel(pl.LightningModule):
             "acc5": acc5,
         }
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for pytorch lightning. It does all the shared operations, such as
+        forwarding the crops, computing logits and computing statistics.
+
+        Args:
+            batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images
+            batch_idx (int): index of the batch
+
+        Returns:
+            Dict[str, Any]: dict with the classification loss, features and logits
+        """
+
         _, X, targets = batch
         X = [X] if isinstance(X, torch.Tensor) else X
 
@@ -274,7 +377,20 @@ class BaseModel(pl.LightningModule):
 
         return {"loss": loss, "feats": feats, "logits": logits}
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        """Validation step for pytorch lightning. It does all the shared operations, such as
+        forwarding a batch of images, computing logits and computing metrics.
+
+        Args:
+            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y]
+            batch_idx (int): index of the batch
+
+        Returns:
+            Dict[str, Any]:
+                dict with the batch_size (used for averaging),
+                the classification loss and accuracies
+        """
+
         X, targets = batch
         batch_size = targets.size(0)
 
@@ -288,7 +404,15 @@ class BaseModel(pl.LightningModule):
         }
         return metrics
 
-    def validation_epoch_end(self, outs):
+    def validation_epoch_end(self, outs: List[Dict[str, Any]]):
+        """Averages the losses and accuracies of all the validation batches.
+        This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        Args:
+            outs (List[Dict[str, Any]]): list of outputs of the validation step.
+        """
+
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
@@ -298,7 +422,28 @@ class BaseModel(pl.LightningModule):
 
 
 class BaseMomentumModel(BaseModel):
-    def __init__(self, base_tau_momentum, final_tau_momentum, momentum_classifier, **kwargs):
+    def __init__(
+        self,
+        base_tau_momentum: float,
+        final_tau_momentum: float,
+        momentum_classifier: bool,
+        **kwargs,
+    ):
+        """Base momentum model that implements all basic operations for all self-supervised methods
+        that use a momentum encoder. It adds shared momentum arguments, adds basic learnable
+        parameters, implements basic training and validation steps for the momentum encoder and
+        classifier. Also implements momentum update using exponential moving average and cosine
+        annealing of the weighting decrease coefficient.
+
+        Args:
+            base_tau_momentum (float): base value of the weighting decrease coefficient (should be
+                in [0,1]).
+            final_tau_momentum (float): final value of the weighting decrease coefficient (should be
+                in [0,1]).
+            momentum_classifier (bool): whether or not to train a classifier on top of the momentum
+                encoder.
+        """
+
         super().__init__(**kwargs)
 
         # momentum encoder
@@ -313,7 +458,7 @@ class BaseMomentumModel(BaseModel):
 
         # momentum classifier
         if momentum_classifier:
-            self.momentum_classifier = nn.Linear(self.features_size, self.n_classes)
+            self.momentum_classifier: Any = nn.Linear(self.features_size, self.n_classes)
         else:
             self.momentum_classifier = None
 
@@ -321,7 +466,14 @@ class BaseMomentumModel(BaseModel):
         self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[Dict[str, Any]]:
+        """Adds momentum classifier parameters to the parameters of the base class.
+
+        Returns:
+            List[Dict[str, Any]]:
+                list of dicts containing learnable parameters and possible settings.
+        """
+
         momentum_learnable_parameters = []
         if self.momentum_classifier is not None:
             momentum_learnable_parameters.append(
@@ -335,11 +487,27 @@ class BaseMomentumModel(BaseModel):
         return super().learnable_params + momentum_learnable_parameters
 
     @property
-    def momentum_pairs(self):
+    def momentum_pairs(self) -> List[Tuple[Any, Any]]:
+        """Defines base momentum pairs that will be updated using exponential moving average.
+
+        Returns:
+            List[Tuple[Any, Any]]: list of momentum pairs (two element tuples).
+        """
+
         return [(self.encoder, self.momentum_encoder)]
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        """Adds basic momentum arguments that are shared for all methods.
+
+        Args:
+            parent_parser (ArgumentParser): argument parser that is used to create a
+                argument group.
+
+        Returns:
+            ArgumentParser: same as the argument, used to avoid errors.
+        """
+
         parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
             parent_parser
         )
@@ -353,9 +521,23 @@ class BaseMomentumModel(BaseModel):
         return parent_parser
 
     def on_train_start(self):
+        """Resents the step counter at the beginning of training."""
         self.last_step = 0
 
-    def _shared_step_momentum(self, X, targets):
+    def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> Dict[str, Any]:
+        """Forwards a batch of images X in the momentum encoder and optionally computes the
+        classification loss, the logits, the features, acc@1 and acc@5 for of momentum classifier.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
+
+        Returns:
+            Dict[str, Any]:
+                a dict containing the classification loss, logits, features, acc@1 and
+                acc@5 of the momentum encoder / classifier.
+        """
+
         with torch.no_grad():
             feats = self.momentum_encoder(X)
         out = {"feats": feats}
@@ -368,7 +550,21 @@ class BaseMomentumModel(BaseModel):
 
         return out
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for pytorch lightning. It performs all the shared operations for the
+        momentum encoder and classifier, such as forwarding the crops in the momentum encoder
+        and classifier, and computing statistics.
+
+        Args:
+            batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            Dict[str, Any]: a dict with the features of the momentum encoder and the classification
+                loss and logits of the momentum classifier.
+        """
+
         parent_outs = super().training_step(batch, batch_idx)
 
         _, X, targets = batch
@@ -403,7 +599,20 @@ class BaseMomentumModel(BaseModel):
 
         return parent_outs
 
-    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(
+        self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int
+    ):
+        """Performs the momentum update of momentum pairs using exponential moving average at the
+        end of the current training step if an optimizer step was performed.
+
+        Args:
+            outputs (Dict[str, Any]): the outputs of the training step.
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+            dataloader_idx (int): index of the dataloader.
+        """
+
         if self.trainer.global_step > self.last_step:
             # update momentum encoder and projector
             momentum_pairs = self.momentum_pairs
@@ -418,7 +627,23 @@ class BaseMomentumModel(BaseModel):
             )
         self.last_step = self.trainer.global_step
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(
+        self, batch: List[torch.Tensor], batch_idx: int
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """Validation step for pytorch lightning. It performs all the shared operations for the
+        momentum encoder and classifier, such as forwarding a batch of images in the momentum
+        encoder and classifier and computing statistics.
+
+        Args:
+            batch (List[torch.Tensor]): a batch of data in the format of [X, Y].
+            batch_idx (int): index of the batch.
+
+        Returns:
+            Tuple(Dict[str, Any], Dict[str, Any]): tuple of dicts containing the batch_size (used
+                for averaging), the classification loss and accuracies for both the online and the
+                momentum classifiers.
+        """
+
         parent_metrics = super().validation_step(batch, batch_idx)
 
         X, targets = batch
@@ -437,7 +662,16 @@ class BaseMomentumModel(BaseModel):
 
         return parent_metrics, metrics
 
-    def validation_epoch_end(self, outs):
+    def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
+        """Averages the losses and accuracies of the momentum encoder / classifier for all the
+        validation batches. This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        Args:
+            outs (Tuple[List[Dict[str, Any]]]):): list of outputs of the validation step for self
+                and the parent.
+        """
+
         parent_outs = [out[0] for out in outs]
         super().validation_epoch_end(parent_outs)
 

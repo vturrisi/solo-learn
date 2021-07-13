@@ -9,18 +9,26 @@ from torch.optim import Optimizer
 
 
 class LARSWrapper:
-    """
-    Wrapper that adds LARS scheduling to any optimizer. This helps stability with huge batch sizes.
-    """
+    def __init__(
+        self,
+        optimizer: Optimizer,
+        eta: float = 1e-3,
+        clip: bool = False,
+        eps: float = 1e-8,
+        exclude_bias_n_norm: bool = False,
+    ):
+        """Wrapper that adds LARS scheduling to any optimizer.
+        This helps stability with huge batch sizes.
 
-    def __init__(self, optimizer, eta=0.02, clip=True, eps=1e-8, exclude_bias_n_norm=False):
-        """
         Args:
-            optimizer: torch optimizer
-            eta: LARS coefficient (trust)
-            clip: True to clip LR
-            eps: adaptive_lr stability coefficient
+            optimizer (Optimizer): torch optimizer.
+            eta (float, optional): trust coefficient. Defaults to 1e-3.
+            clip (bool, optional): clip gradient values. Defaults to False.
+            eps (float, optional): adaptive_lr stability coefficient. Defaults to 1e-8.
+            exclude_bias_n_norm (bool, optional): exclude bias and normalization layers from lars.
+                Defaults to False.
         """
+
         self.optim = optimizer
         self.eta = eta
         self.eps = eps
@@ -32,9 +40,10 @@ class LARSWrapper:
         self.load_state_dict = self.optim.load_state_dict
         self.zero_grad = self.optim.zero_grad
         self.add_param_group = self.optim.add_param_group
-        self.__setstate__ = self.optim.__setstate__
-        self.__getstate__ = self.optim.__getstate__
-        self.__repr__ = self.optim.__repr__
+
+        self.__setstate__ = self.optim.__setstate__  # type: ignore
+        self.__getstate__ = self.optim.__getstate__  # type: ignore
+        self.__repr__ = self.optim.__repr__  # type: ignore
 
     @property
     def defaults(self):

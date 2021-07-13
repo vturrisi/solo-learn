@@ -62,7 +62,7 @@ def main():
 
     train_loader, val_loader = prepare_data(
         args.dataset,
-        data_folder=args.data_folder,
+        data_dir=args.data_dir,
         train_dir=args.train_dir,
         val_dir=args.val_dir,
         batch_size=args.batch_size,

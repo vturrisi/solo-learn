@@ -1,10 +1,24 @@
+import argparse
+from typing import Any, Dict, List, Sequence
+
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
 from solo.methods.base import BaseModel
 
 
 class BarlowTwins(BaseModel):
-    def __init__(self, proj_hidden_dim, output_dim, lamb, scale_loss, **kwargs):
+    def __init__(
+        self, proj_hidden_dim: int, output_dim: int, lamb: float, scale_loss: float, **kwargs
+    ):
+        """Implements Barlow Twins (https://arxiv.org/abs/2103.03230)
+
+        Args:
+            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            output_dim (int): number of dimensions of projected features.
+            lamb (float): off-diagonal scaling factor for the cross-covariance matrix.
+            scale_loss (float): scaling factor of the loss.
+        """
+
         super().__init__(**kwargs)
 
         self.lamb = lamb
@@ -22,7 +36,7 @@ class BarlowTwins(BaseModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(BarlowTwins, BarlowTwins).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("barlow_twins")
 
@@ -36,7 +50,13 @@ class BarlowTwins(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
+        """Adds projector parameters to parent's learnable parameters.
+
+        Returns:
+            List[dict]: list of learnable parameters.
+        """
+
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
@@ -45,7 +65,18 @@ class BarlowTwins(BaseModel):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for Barlow Twins reusing BaseModel training step.
+
+        Args:
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            Dict[str, Any]: total loss composed of Barlow loss and classification loss.
+        """
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]

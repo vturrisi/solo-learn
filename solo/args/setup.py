@@ -2,12 +2,22 @@ import argparse
 
 import pytorch_lightning as pl
 from solo.args.dataset import augmentations_args, dataset_args
-from solo.args.utils import additional_setup_contrastive, additional_setup_linear
+from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 from solo.methods import METHODS
 from solo.utils.checkpointer import Checkpointer
 
 
-def parse_args_contrastive():
+def parse_args_pretrain() -> argparse.Namespace:
+    """Parses dataset, augmentation, pytorch lightning, model specific and additional args.
+
+    First adds shared args such as dataset, augmentation and pytorch lightning args, then pulls the
+    model name from the command and proceeds to add model specific args from the desired class. If
+    wandb is enabled, it adds checkpointer args. Finally, adds additional non-user given parameters.
+
+    Returns:
+        argparse.Namespace: a namespace containing all args needed for pretraining.
+    """
+
     parser = argparse.ArgumentParser()
 
     # add shared arguments
@@ -35,12 +45,22 @@ def parse_args_contrastive():
     args = parser.parse_args()
 
     # prepare arguments with additional setup
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     return args
 
 
-def parse_args_linear():
+def parse_args_linear() -> argparse.Namespace:
+    """Parses feature extractor, dataset, pytorch lightning, linear eval specific and additional args.
+
+    First adds and arg for the pretrained feature extractor, then adds dataset, pytorch lightning
+    and linear eval specific args. If wandb is enabled, it adds checkpointer args. Finally, adds
+    additional non-user given parameters.
+
+    Returns:
+        argparse.Namespace: a namespace containing all args needed for pretraining.
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--pretrained_feature_extractor", type=str)

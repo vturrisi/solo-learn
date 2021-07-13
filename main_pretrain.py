@@ -18,8 +18,8 @@ else:
 
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
-from solo.utils.contrastive_dataloader import (
-    prepare_dataloaders,
+from solo.utils.pretrain_dataloader import (
+    prepare_dataloader,
     prepare_datasets,
     prepare_multicrop_transform,
     prepare_n_crop_transform,
@@ -79,18 +79,18 @@ def main():
 
         train_dataset = prepare_datasets(
             args.dataset,
-            data_folder=args.data_folder,
+            transform,
+            data_dir=args.data_dir,
             train_dir=args.train_dir,
-            transform=transform,
         )
-        train_loader = prepare_dataloaders(
+        train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
     # normal dataloader
     _, val_loader = prepare_data_classification(
         args.dataset,
-        data_folder=args.data_folder,
+        data_dir=args.data_dir,
         train_dir=args.train_dir,
         val_dir=args.val_dir,
         batch_size=args.batch_size,

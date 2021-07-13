@@ -1,4 +1,13 @@
-def dataset_args(parser):
+from argparse import ArgumentParser
+
+
+def dataset_args(parser: ArgumentParser):
+    """Adds dataset-related arguments to a parser.
+
+    Args:
+        parser (ArgumentParser): parser to add dataset args to.
+    """
+
     SUPPORTED_DATASETS = [
         "cifar10",
         "cifar100",
@@ -10,7 +19,7 @@ def dataset_args(parser):
     parser.add_argument("--dataset", choices=SUPPORTED_DATASETS, type=str, required=True)
 
     # dataset path
-    parser.add_argument("--data_folder", type=str, required=True)
+    parser.add_argument("--data_dir", type=str, required=True)
     parser.add_argument("--train_dir", type=str, default=None)
     parser.add_argument("--val_dir", type=str, default=None)
     # dali (imagenet-100/imagenet only)
@@ -19,7 +28,13 @@ def dataset_args(parser):
     parser.add_argument("--last_batch_fill", action="store_true")
 
 
-def augmentations_args(parser):
+def augmentations_args(parser: ArgumentParser):
+    """Adds augmentation-related arguments to a parser.
+
+    Args:
+        parser (ArgumentParser): parser to add augmentation args to.
+    """
+
     # cropping
     parser.add_argument("--multicrop", action="store_true")
     parser.add_argument("--n_crops", type=int, default=2)

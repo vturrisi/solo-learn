@@ -2,15 +2,15 @@ import argparse
 import os
 import subprocess
 import textwrap
-from solo.args.utils import additional_setup_contrastive, additional_setup_linear
+from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 
 
-def test_setup_contrastive():
+def test_setup_pretrain():
 
     dummy_script = """
         from solo.args.setup import parse_args_contrastive
 
-        args = parse_args_contrastive()
+        args = parse_args_pretrain()
     """
     dummy_script = textwrap.dedent(dummy_script)
 
@@ -19,7 +19,7 @@ def test_setup_contrastive():
         "cifar10",
         "--encoder",
         "resnet18",
-        "--data_folder",
+        "--data_dir",
         "./datasets",
         "--max_epochs",
         "1000",
@@ -104,7 +104,7 @@ def test_setup_linear():
         "imagenet100",
         "--encoder",
         "resnet18",
-        "--data_folder",
+        "--data_dir",
         "/datasets",
         "--train_dir",
         "imagenet-100/train",
@@ -138,7 +138,7 @@ def test_setup_linear():
         "test",
         "--pretrained_feature_extractor" "PATH",
         "--project",
-        "contrastive_learning",
+        "solo-learn",
         "--wandb",
     ]
     # Write string to a file
@@ -158,7 +158,7 @@ def test_setup_linear():
         pass
 
 
-def test_additional_setup_contrastive():
+def test_additional_setup_pretrain():
     args = {
         "dataset": "imagenet100",
         "asymmetric_augmentations": True,
@@ -178,7 +178,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args
@@ -205,7 +205,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args
@@ -232,7 +232,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args
@@ -258,7 +258,7 @@ def test_additional_setup_contrastive():
     }
     args = argparse.Namespace(**args)
 
-    additional_setup_contrastive(args)
+    additional_setup_pretrain(args)
 
     assert args.cifar is False
     assert "momentum" in args.extra_optimizer_args

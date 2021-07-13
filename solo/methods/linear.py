@@ -1,3 +1,6 @@
+from argparse import ArgumentParser
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -16,24 +19,43 @@ from torch.optim.lr_scheduler import (
 class LinearModel(pl.LightningModule):
     def __init__(
         self,
-        backbone,
-        n_classes,
-        max_epochs,
-        batch_size,
-        optimizer,
-        lars,
-        lr,
-        weight_decay,
-        exclude_bias_n_norm,
-        extra_optimizer_args,
-        scheduler,
-        lr_decay_steps=None,
+        backbone: nn.Module,
+        n_classes: int,
+        max_epochs: int,
+        batch_size: int,
+        optimizer: str,
+        lars: bool,
+        lr: float,
+        weight_decay: float,
+        exclude_bias_n_norm: bool,
+        extra_optimizer_args: dict,
+        scheduler: str,
+        lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
+        """Implements linear evaluation.
+
+        Args:
+            backbone (nn.Module): backbone architecture for feature extraction.
+            n_classes (int): number of classes in the dataset.
+            max_epochs (int): total number of epochs.
+            batch_size (int): batch size.
+            optimizer (str): optimizer to use.
+            lars (bool): whether to use lars or not.
+            lr (float): learning rate.
+            weight_decay (float): weight decay.
+            exclude_bias_n_norm (bool): whether to exclude bias and batch norm from weight decay
+                and lars adaptation.
+            extra_optimizer_args (dict): extra optimizer arguments.
+            scheduler (str): learning rate scheduler.
+            lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
+                rate will be decreased. Defaults to None.
+        """
+
         super().__init__()
 
         self.backbone = backbone
-        self.classifier = nn.Linear(self.backbone.inplanes, n_classes)
+        self.classifier = nn.Linear(self.backbone.inplanes, n_classes)  # type: ignore
 
         # training related
         self.max_epochs = max_epochs
@@ -54,7 +76,17 @@ class LinearModel(pl.LightningModule):
             param.requires_grad = False
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        """Adds basic linear arguments.
+
+        Args:
+            parent_parser (ArgumentParser): argument parser that is used to create a
+                argument group.
+
+        Returns:
+            ArgumentParser: same as the argument, used to avoid errors.
+        """
+
         parser = parent_parser.add_argument_group("linear")
 
         # encoder args
@@ -99,13 +131,33 @@ class LinearModel(pl.LightningModule):
 
         return parent_parser
 
-    def forward(self, x):
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
+
+        Args:
+            X (torch.tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing features and logits.
+        """
+
         with torch.no_grad():
-            feats = self.backbone(x)
+            feats = self.backbone(X)
         logits = self.classifier(feats)
         return {"logits": logits, "feats": feats}
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> Tuple[List, List]:
+        """Configures the optimizer for the linear layer.
+
+        Raises:
+            ValueError: if the optimizer is not in (sgd, adam).
+            ValueError: if the scheduler is not in not in (warmup_cosine, cosine, reduce, step,
+                exponential).
+
+        Returns:
+            Tuple[List, List]: two lists containing the optimizer and the scheduler.
+        """
+
         if self.optimizer == "sgd":
             optimizer = torch.optim.SGD
         elif self.optimizer == "adam":
@@ -144,7 +196,20 @@ class LinearModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def shared_step(self, batch, batch_idx):
+    def shared_step(
+        self, batch: Tuple, batch_idx: int
+    ) -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Performs operations that are shared between the training nd validation steps.
+
+        Args:
+            batch (Tuple): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
+                batch size, loss, accuracy @1 and accuracy @5.
+        """
+
         X, target = batch
         batch_size = X.size(0)
 
@@ -155,7 +220,17 @@ class LinearModel(pl.LightningModule):
         acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
         return batch_size, loss, acc1, acc5
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+        """Performs the training step for the linear eval.
+
+        Args:
+            batch (torch.Tensor): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            torch.Tensor: cross-entropy loss between the predictions and the ground truth.
+        """
+
         # set encoder to eval mode
         self.backbone.eval()
 
@@ -165,7 +240,19 @@ class LinearModel(pl.LightningModule):
         self.log_dict(log, on_epoch=True, sync_dist=True)
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
+        """Performs the validation step for the linear eval.
+
+        Args:
+            batch (torch.Tensor): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            Dict[str, Any]:
+                dict with the batch_size (used for averaging),
+                the classification loss and accuracies.
+        """
+
         batch_size, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
 
         results = {
@@ -176,7 +263,15 @@ class LinearModel(pl.LightningModule):
         }
         return results
 
-    def validation_epoch_end(self, outs):
+    def validation_epoch_end(self, outs: List[Dict[str, Any]]):
+        """Averages the losses and accuracies of all the validation batches.
+        This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        Args:
+            outs (List[Dict[str, Any]]): list of outputs of the validation step.
+        """
+
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")

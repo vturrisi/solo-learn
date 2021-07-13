@@ -1,7 +1,7 @@
-python3 ../../../main_contrastive.py \
+python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -11,6 +11,8 @@ python3 ../../../main_contrastive.py \
     --precision 16 \
     --optimizer sgd \
     --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.3 \
@@ -30,10 +32,10 @@ python3 ../../../main_contrastive.py \
     --temperature 0.2 \
     --proj_hidden_dim 2048
 
-python3 ../../../main_contrastive.py \
+python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -43,6 +45,8 @@ python3 ../../../main_contrastive.py \
     --precision 16 \
     --optimizer sgd \
     --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.3 \
@@ -65,10 +69,10 @@ python3 ../../../main_contrastive.py \
     --proj_hidden_dim 2048 \
     --temperature 0.1
 
-python3 ../../../main_contrastive.py \
+python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -79,6 +83,8 @@ python3 ../../../main_contrastive.py \
     --optimizer sgd \
     --optimizer sgd \
     --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.3 \

@@ -1,7 +1,7 @@
-python3 ../../../main_contrastive.py \
+python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_folder /data/datasets \
+    --data_dir /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -11,6 +11,8 @@ python3 ../../../main_contrastive.py \
     --precision 16 \
     --optimizer sgd \
     --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 1.0 \

@@ -1,9 +1,13 @@
 import numpy as np
 from PIL import Image
-from solo.utils.contrastive_dataloader import (
+from torchvision.datasets.cifar import CIFAR10
+from torch.utils.data import DataLoader
+from solo.utils.pretrain_dataloader import (
     prepare_n_crop_transform,
     prepare_transform,
     prepare_multicrop_transform,
+    prepare_dataloader,
+    prepare_datasets,
 )
 
 
@@ -43,3 +47,31 @@ def test_transforms():
         assert crop.size(1) == sizes[cur]
         if i + 1 >= n_crops[cur] and len(n_crops) > cur + 1:
             cur += 1
+
+
+def test_data():
+
+    kwargs = dict(
+        brightness=0.5,
+        contrast=0.5,
+        saturation=0.4,
+        hue=0.2,
+        gaussian_prob=0.5,
+        solarization_prob=0.4,
+    )
+
+    T = prepare_transform("cifar10", multicrop=False, **kwargs)
+    T = prepare_n_crop_transform(T, n_crops=2)
+    train_dataset = prepare_datasets("cifar10", T, data_dir="./datasets")
+
+    assert isinstance(train_dataset, CIFAR10)
+    assert len(train_dataset[0]) == 3
+
+    bs = 64
+    num_samples_train = len(train_dataset)
+    num_batches_train = num_samples_train // bs
+
+    train_loader = prepare_dataloader(train_dataset, batch_size=bs, num_workers=0)
+
+    assert isinstance(train_loader, DataLoader)
+    assert num_batches_train == len(train_loader)

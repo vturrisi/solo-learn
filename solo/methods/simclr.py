@@ -1,3 +1,6 @@
+import argparse
+from typing import Any, Dict, List, Sequence
+
 import torch
 import torch.nn as nn
 from einops import repeat
@@ -6,7 +9,23 @@ from solo.methods.base import BaseModel
 
 
 class SimCLR(BaseModel):
-    def __init__(self, output_dim, proj_hidden_dim, temperature, supervised=False, **kwargs):
+    def __init__(
+        self,
+        output_dim: int,
+        proj_hidden_dim: int,
+        temperature: float,
+        supervised: bool = False,
+        **kwargs
+    ):
+        """Implements SimCLR (https://arxiv.org/abs/2002.05709).
+
+        Args:
+            output_dim (int): number of dimensions of the projected features.
+            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+            temperature (float): temperature for the softmax in the contrastive loss.
+            supervised (bool): whether or not to use supervised contrastive loss. Defaults to False.
+        """
+
         super().__init__(**kwargs)
 
         self.temperature = temperature
@@ -20,7 +39,7 @@ class SimCLR(BaseModel):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
+    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(SimCLR, SimCLR).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("simclr")
 
@@ -36,17 +55,43 @@ class SimCLR(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[dict]:
+        """Adds projector parameters to the parent's learnable parameters.
+
+        Returns:
+            List[dict]: list of learnable parameters.
+        """
+
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X: torch.tensor, *args, **kwargs) -> Dict[str, Any]:
+        """Performs the forward pass of the encoder, the projector and the predictor.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]:
+                a dict containing the outputs of the parent
+                and the projected and predicted features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
     @torch.no_grad()
-    def gen_extra_positives_gt(self, Y):
+    def gen_extra_positives_gt(self, Y: torch.Tensor) -> torch.Tensor:
+        """Generates extra positives for supervised contrastive learning.
+
+        Args:
+            Y (torch.Tensor): labels of the samples of the batch.
+
+        Returns:
+            torch.Tensor: matrix with extra positives generated using the labels.
+        """
+
         if self.multicrop:
             n_augs = self.n_crops + self.n_small_crops
         else:
@@ -55,7 +100,18 @@ class SimCLR(BaseModel):
         labels_matrix = (labels_matrix == labels_matrix.t()).fill_diagonal_(False)
         return labels_matrix
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
+        """Training step for SimCLR and supervised SimCLR reusing BaseModel training step.
+
+        Args:
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size self.n_crops containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            torch.Tensor: total loss composed of SimCLR loss and classification loss.
+        """
+
         indexes, *_, target = batch
 
         out = super().training_step(batch, batch_idx)

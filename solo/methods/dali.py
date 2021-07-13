@@ -5,15 +5,16 @@ from abc import ABC
 import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
-    ContrastivePipeline,
+    PretrainPipeline,
     ImagenetTransform,
-    MulticropContrastivePipeline,
+    MulticropPretrainPipeline,
     NormalPipeline,
 )
 
 
 class BaseWrapper(DALIGenericIterator):
-    # this might be a shitty fix for now to handle when LastBatchPolicy.DROP is on
+    """Temporary fix to handle LastBatchPolicy.DROP"""
+
     def __len__(self):
         size = (
             self._size_no_pad // self._shards_num
@@ -32,15 +33,23 @@ class BaseWrapper(DALIGenericIterator):
                 return size // (self._num_gpus * self.batch_size)
 
 
-class ContrastiveWrapper(BaseWrapper):
+class PretrainWrapper(BaseWrapper):
     def __init__(
         self,
+        model_batch_size: int,
+        model_rank: int,
+        model_device: str,
         *args,
-        model_batch_size=None,
-        model_rank=None,
-        model_device=None,
         **kwargs,
     ):
+        """Adds indices to a batch fetched from the parent.
+
+        Args:
+            model_batch_size (int): batch size.
+            model_rank (int): rank of the current process.
+            model_device (str): id of the current device.
+        """
+
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
@@ -64,12 +73,17 @@ class Wrapper(BaseWrapper):
         return x, target
 
 
-class ContrastiveABC(ABC):
-    """
-    Abstract contrastive class that returns a train_dataloader and val_dataloader using dali.
-    """
+class PretrainABC(ABC):
+    """Abstract pretrain class that returns a train_dataloader using dali."""
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DALIGenericIterator:
+        """Returns a train dataloader using dali. Supports multi-crop and asymmetric augmentations.
+
+        Returns:
+            DALIGenericIterator: a train dataloader in the form of a dali pipeline object wrapped
+                with PretrainWrapper.
+        """
+
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
@@ -86,7 +100,7 @@ class ContrastiveABC(ABC):
         last_batch_fill = self.extra_args["last_batch_fill"]
 
         num_workers = self.extra_args["num_workers"]
-        data_folder = self.extra_args["data_folder"]
+        data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
 
         if self.multicrop:
@@ -110,8 +124,8 @@ class ContrastiveABC(ABC):
                     max_scale=max_scale,
                 )
                 transforms.append(transform)
-            train_pipeline = MulticropContrastivePipeline(
-                os.path.join(data_folder, train_dir),
+            train_pipeline = MulticropPretrainPipeline(
+                os.path.join(data_dir, train_dir),
                 batch_size=self.batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
@@ -173,8 +187,8 @@ class ContrastiveABC(ABC):
                     min_scale=min_scale_crop,
                     max_scale=1.0,
                 )
-            train_pipeline = ContrastivePipeline(
-                os.path.join(data_folder, train_dir),
+            train_pipeline = PretrainPipeline(
+                os.path.join(data_dir, train_dir),
                 batch_size=self.batch_size,
                 transform=transform,
                 device=dali_device,
@@ -186,36 +200,35 @@ class ContrastiveABC(ABC):
             output_map = ["large1", "large2", "label"]
 
         policy = LastBatchPolicy.FILL if last_batch_fill else LastBatchPolicy.DROP
-        train_loader = ContrastiveWrapper(
-            train_pipeline,
+        train_loader = PretrainWrapper(
+            model_batch_size=self.batch_size,
+            model_rank=device_id,
+            model_device=self.device,
+            pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",
             last_batch_policy=policy,
             auto_reset=True,
-            model_batch_size=self.batch_size,
-            model_rank=device_id,
-            model_device=self.device,
         )
         return train_loader
 
 
 class ClassificationABC(ABC):
-    """
-    Abstract classification class that returns a train_dataloader and val_dataloader using dali.
-    """
+    """Abstract classification class that returns a train_dataloader and val_dataloader using
+    dali."""
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DALIGenericIterator:
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
-        data_folder = self.extra_args["data_folder"]
+        data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
 
         train_pipeline = NormalPipeline(
-            os.path.join(data_folder, train_dir),
+            os.path.join(data_dir, train_dir),
             validation=False,
             batch_size=self.batch_size,
             device=dali_device,
@@ -233,18 +246,18 @@ class ClassificationABC(ABC):
         )
         return train_loader
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DALIGenericIterator:
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
 
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
-        data_folder = self.extra_args["data_folder"]
+        data_dir = self.extra_args["data_dir"]
         val_dir = self.extra_args["val_dir"]
 
         val_pipeline = NormalPipeline(
-            os.path.join(data_folder, val_dir),
+            os.path.join(data_dir, val_dir),
             validation=True,
             batch_size=self.batch_size,
             device=dali_device,

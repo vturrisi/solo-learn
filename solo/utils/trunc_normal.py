@@ -4,10 +4,13 @@ import warnings
 
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
-    # Cut & paste from PyTorch official master until it's in a few official releases - RW
-    # Method based on https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
+    """Copy & paste from PyTorch official master until it's in a few official releases - RW
+    Method based on https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
+    """
+
     def norm_cdf(x):
-        # Computes standard normal cumulative distribution function
+        """Computes standard normal cumulative distribution function"""
+
         return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
 
     if (mean < a - 2 * std) or (mean > b + 2 * std):
@@ -42,4 +45,8 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
 
 
 def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
+    """Copy & paste from PyTorch official master until it's in a few official releases - RW
+    Method based on https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
+    """
+
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
