@@ -79,9 +79,10 @@ class PretrainABC(ABC):
         """Returns a train dataloader using dali. Supports multi-crop and asymmetric augmentations.
 
         Returns:
-            PretrainWrapper: a train dataloader in the form of a dali pipeline object wrapped with
-                PretrainWrapper.
+            DALIGenericIterator: a train dataloader in the form of a dali pipeline object wrapped
+                with PretrainWrapper.
         """
+
         device_id = self.local_rank
         shard_id = self.global_rank
         num_shards = self.trainer.world_size
