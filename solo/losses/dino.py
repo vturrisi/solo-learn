@@ -20,15 +20,16 @@ class DINOLoss(nn.Module):
         """Auxiliary module to compute DINO's loss.
 
         Args:
-            num_prototypes: number of prototypes
-            warmup_teacher_temp: base temperature for the temperature schedule of the teacher
-            teacher_temp: final temperature for the teacher
-            warmup_teacher_temp_epochs: number of epochs for the cosine annealing schedule
-            num_epochs: total number of epochs
-            student_temp: temperature for the student
-            num_crops: number of crops (aka views)
-            center_momentum: momentum for the EMA update of the center of mass of the teacher
-
+            num_prototypes (int): number of prototypes.
+            warmup_teacher_temp (float): base temperature for the temperature schedule
+                of the teacher.
+            teacher_temp (float): final temperature for the teacher.
+            warmup_teacher_temp_epochs (float): number of epochs for the cosine annealing schedule.
+            num_epochs (int): total number of epochs.
+            student_temp (float, optional): temperature for the student. Defaults to 0.1.
+            num_crops (int, optional): number of crops/views. Defaults to 2.
+            center_momentum (float, optional): momentum for the EMA update of the center of
+                mass of the teacher. Defaults to 0.9.
         """
 
         super().__init__()
