@@ -1,7 +1,7 @@
 python3 ../../../main_pretrain.py \
     --dataset $1 \
     --encoder resnet18 \
-    --data_folder datasets \
+    --data_dir datasets \
     --max_epochs 1000 \
     --gpus 0 \
     --precision 16 \
