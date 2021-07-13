@@ -109,7 +109,6 @@ def prepare_datasets(
 
     Returns:
         Tuple[Dataset, Dataset]: training dataset and validation dataset.
-
     """
 
     if data_dir is None:
@@ -161,7 +160,6 @@ def prepare_dataloaders(
         num_workers (int): number of parallel workers.
     Returns:
         Tuple[DataLoader, DataLoader]: training dataloader and validation dataloader.
-
     """
 
     train_loader = DataLoader(
@@ -194,15 +192,17 @@ def prepare_data(
 
     Args:
         dataset (str): dataset name.
-        data_dir (Optional[str]): path where to download/locate the dataset.
-        train_dir (Optional[str]): subpath where the training data is located.
-        val_dir (Optional[str]): subpath where the validation data is located.
-        batch_size (int): bash size.
-        num_workers (int): number of parallel workers.
+        data_dir (Optional[str], optional): path where to download/locate the dataset.
+            Defaults to None.
+        train_dir (Optional[str], optional): subpath where the training data is located.
+            Defaults to None.
+        val_dir (Optional[str], optional): subpath where the validation data is located.
+            Defaults to None.
+        batch_size (int, optional): batch size. Defaults to 64.
+        num_workers (int, optional): number of parallel workers. Defaults to 4.
 
     Returns:
-        train_loader: prepared training dataloader
-        val_loader: prepared validation dataloader
+        Tuple[DataLoader, DataLoader]: prepared training and validation dataloader;.
     """
 
     T_train, T_val = prepare_transforms(dataset)
