@@ -422,6 +422,20 @@ class BaseMomentumModel(BaseModel):
         momentum_classifier: bool,
         **kwargs,
     ):
+        """Base momentum model that implements all basic operations for all self-supervised methods
+        that use a momentum encoder. It adds shared momentum arguments, adds basic learnable
+        parameters, implements basic training and validation steps for the momentum encoder and
+        classifier. Also implements momentum update using exponential moving average and cosine
+        annealing of the weighting decrease coefficient.
+
+        Args:
+            base_tau_momentum (float): base value of the weighting decrease coefficient (should be
+                in [0,1]).
+            final_tau_momentum (float): final value of the weighting decrease coefficient (should be
+                in [0,1]).
+            momentum_classifier (bool): whether or not to train a classifier on top of the momentum
+                encoder.
+        """
         super().__init__(**kwargs)
 
         # momentum encoder
@@ -445,7 +459,7 @@ class BaseMomentumModel(BaseModel):
 
     @property
     def learnable_params(self) -> List[Dict[str, Any]]:
-        """Adds momentum classifer parameters to the parameters of the base class.
+        """Adds momentum classifier parameters to the parameters of the base class.
 
         Returns:
             List[Dict[str, Any]]: list of dicts containing learnable parameters and possible
@@ -512,7 +526,7 @@ class BaseMomentumModel(BaseModel):
 
         Returns:
             Dict[str, Any]: a dict containing the classification loss, logits, features, acc@1 and
-                acc@5 of the momenutm encoder / classifier.
+                acc@5 of the momentum encoder / classifier.
         """
 
         with torch.no_grad():
