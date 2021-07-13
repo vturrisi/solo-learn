@@ -1,6 +1,6 @@
-import argparse
 import json
 import os
+from argparse import ArgumentParser, Namespace
 from typing import Optional
 
 import pytorch_lightning as pl
@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import Callback
 class Checkpointer(Callback):
     def __init__(
         self,
-        args: argparse.Namespace,
+        args: Namespace,
         logdir: str = "trained_models",
         frequency: int = 1,
         keep_previous_checkpoints: bool = False,
@@ -19,7 +19,7 @@ class Checkpointer(Callback):
 
         Args:
             args (Namespace): namespace object containing at least an attribute name.
-            logdir (srt): base directory to store checkpoints.
+            logdir (str): base directory to store checkpoints.
             frequency (int): number of epochs between each checkpoint.
             keep_previous_checkpoints (bool): whether to keep previous checkpoints or not. Defaults
                 to False meaning that checkpoints are overwritten.
@@ -31,7 +31,7 @@ class Checkpointer(Callback):
         self.keep_previous_checkpoints = keep_previous_checkpoints
 
     @staticmethod
-    def add_checkpointer_args(parent_parser: argparse.ArgumentParser):
+    def add_checkpointer_args(parent_parser: ArgumentParser):
         """Adds user-required arguments to a parser.
 
         Args:
@@ -67,7 +67,7 @@ class Checkpointer(Callback):
             os.makedirs(self.path, exist_ok=True)
 
     def save_args(self, trainer: pl.Trainer):
-        """Store arguments into a json file.
+        """Stores arguments into a json file.
 
         Args:
             trainer (pl.Trainer): pytorch lightning trainer object.
