@@ -8,8 +8,9 @@ def initialize_momentum_params(online_net, momentum_net):
     """Copies the parameters of the online network to the momentum network.
 
     Args:
-        online_net: online network (e.g. online encoder, online projection, etc...)
-        momentum_net: momentum network (e.g. momentum encoder, momentum projection, etc...)
+        online_net ([type]): online network (e.g. online encoder, online projection, etc...).
+        momentum_net ([type]): momentum network (e.g. momentum encoder,
+            momentum projection, etc...).
     """
 
     params_online = online_net.parameters()
@@ -24,12 +25,17 @@ class MomentumUpdater:
         """Updates momentum parameters using exponential moving average.
 
         Args:
-            base_tau: base value of the weighting decrease coefficient (should be in [0,1])
-            cur_tau: current value of the weighting decrease coefficient
-            final_tau: current value of the weighting decrease coefficient (should be in [0,1])
+            base_tau (float, optional): base value of the weight decrease coefficient
+                (should be in [0,1]). Defaults to 0.996.
+            final_tau (float, optional): final value of the weight decrease coefficient
+                (should be in [0,1]). Defaults to 1.0.
         """
 
         super().__init__()
+
+        assert 0 <= base_tau <= 1
+        assert 0 <= final_tau <= 1 and base_tau <= final_tau
+
         self.base_tau = base_tau
         self.cur_tau = base_tau
         self.final_tau = final_tau
@@ -39,20 +45,20 @@ class MomentumUpdater:
         """Performs the momentum update for each param group.
 
         Args:
-            online_net: online network (e.g. online encoder, online projection, etc...)
-            momentum_net: momentum network (e.g. momentum encoder, momentum projection, etc...)
+            online_net ([type]): online network (e.g. online encoder, online projection, etc...).
+            momentum_net ([type]): momentum network (e.g. momentum encoder,
+                momentum projection, etc...).
         """
 
         for op, mp in zip(online_net.parameters(), momentum_net.parameters()):
             mp.data = self.cur_tau * mp.data + (1 - self.cur_tau) * op.data
 
-    def update_tau(self, cur_step, max_steps):
+    def update_tau(self, cur_step: int, max_steps: int):
         """Computes the next value for the weighting decrease coefficient tau using cosine annealing.
 
         Args:
-            cur_step: number of gradient steps so far
-            max_steps: overall number of gradient steps in the whole training
-
+            cur_step (int): number of gradient steps so far.
+            max_steps (int): overall number of gradient steps in the whole training.
         """
 
         self.cur_tau = (
