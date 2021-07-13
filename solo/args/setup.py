@@ -59,7 +59,6 @@ def parse_args_linear() -> argparse.Namespace:
 
     Returns:
         argparse.Namespace: a namespace containing all args needed for pretraining.
-
     """
 
     parser = argparse.ArgumentParser()

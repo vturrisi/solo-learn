@@ -6,7 +6,6 @@ def dataset_args(parser: ArgumentParser):
 
     Args:
         parser (ArgumentParser): parser to add dataset args to.
-
     """
 
     SUPPORTED_DATASETS = [
