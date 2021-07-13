@@ -211,8 +211,8 @@ class BaseModel(pl.LightningModule):
         """Defines learnable parameters for the base class.
 
         Returns:
-            List[Dict[str, Any]]: list of dicts containing learnable parameters and possible
-                settings.
+            List[Dict[str, Any]]:
+                list of dicts containing learnable parameters and possible settings.
         """
 
         return [
@@ -470,8 +470,8 @@ class BaseMomentumModel(BaseModel):
         """Adds momentum classifier parameters to the parameters of the base class.
 
         Returns:
-            List[Dict[str, Any]]: list of dicts containing learnable parameters and possible
-                settings.
+            List[Dict[str, Any]]:
+                list of dicts containing learnable parameters and possible settings.
         """
 
         momentum_learnable_parameters = []
@@ -533,7 +533,8 @@ class BaseMomentumModel(BaseModel):
             targets (torch.Tensor): batch of labels for X.
 
         Returns:
-            Dict[str, Any]: a dict containing the classification loss, logits, features, acc@1 and
+            Dict[str, Any]:
+                a dict containing the classification loss, logits, features, acc@1 and
                 acc@5 of the momentum encoder / classifier.
         """
 
