@@ -35,12 +35,7 @@ class BaseWrapper(DALIGenericIterator):
 
 class PretrainWrapper(BaseWrapper):
     def __init__(
-        self,
-        model_batch_size: int,
-        model_rank: int,
-        model_device: str,
-        *args,
-        **kwargs,
+        self, model_batch_size: int, model_rank: int, model_device: str, *args, **kwargs,
     ):
         """Adds indices to a batch fetched from the parent.
 
@@ -49,6 +44,7 @@ class PretrainWrapper(BaseWrapper):
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
         """
+
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank

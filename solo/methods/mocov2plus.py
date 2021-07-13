@@ -123,7 +123,7 @@ class MoCoV2Plus(BaseMomentumModel):
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
-        Training step for MoCoreusing BaseMomentumModel training step.
+        Training step for MoCo reusing BaseMomentumModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the
@@ -132,7 +132,7 @@ class MoCoV2Plus(BaseMomentumModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of moco loss and classification loss.
+            torch.Tensor: total loss composed of MOCO loss and classification loss.
 
         """
 

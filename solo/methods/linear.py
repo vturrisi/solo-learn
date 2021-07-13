@@ -1,4 +1,4 @@
-import argparse
+from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import pytorch_lightning as pl
@@ -76,7 +76,17 @@ class LinearModel(pl.LightningModule):
             param.requires_grad = False
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        """Adds basic linear arguments.
+
+        Args:
+            parent_parser (ArgumentParser): argument parser that is used to create a
+                argument group.
+
+        Returns:
+            ArgumentParser: same as the argument, used to avoid errors.
+        """
+
         parser = parent_parser.add_argument_group("linear")
 
         # encoder args
@@ -137,7 +147,7 @@ class LinearModel(pl.LightningModule):
         return {"logits": logits, "feats": feats}
 
     def configure_optimizers(self) -> Tuple[List, List]:
-        """configures the optimizer for the linear layer.
+        """Configures the optimizer for the linear layer.
 
         Raises:
             ValueError: if the optimizer is not in (sgd, adam).

@@ -11,11 +11,7 @@ from solo.utils.momentum import initialize_momentum_params
 
 class BYOL(BaseMomentumModel):
     def __init__(
-        self,
-        output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        **kwargs,
+        self, output_dim: int, proj_hidden_dim: int, pred_hidden_dim: int, **kwargs,
     ):
         """Implements BYOL (https://arxiv.org/abs/2006.07733).
 
@@ -106,16 +102,16 @@ class BYOL(BaseMomentumModel):
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int):
-        """
-        Training step for BYOL reusing BaseMomentumModel training step.
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+        """Training step for BYOL reusing BaseModel training step.
 
         Args:
-            batch: a batch of data in the format of [img_indexes, [X], Y], where
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images.
-            batch_idx: index of the batch.
+            batch_idx (int): index of the batch.
+
         Returns:
-            byol loss + classification loss.
+            Dict[str, Any]: total loss composed of BYOL and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

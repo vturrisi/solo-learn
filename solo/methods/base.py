@@ -443,6 +443,7 @@ class BaseMomentumModel(BaseModel):
             momentum_classifier (bool): whether or not to train a classifier on top of the momentum
                 encoder.
         """
+
         super().__init__(**kwargs)
 
         # momentum encoder

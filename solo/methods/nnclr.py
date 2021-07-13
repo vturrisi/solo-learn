@@ -160,7 +160,7 @@ class NNCLR(BaseModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of nnclr loss and classification loss.
+            torch.Tensor: total loss composed of NNCLR loss and classification loss.
         """
 
         targets = batch[-1]
