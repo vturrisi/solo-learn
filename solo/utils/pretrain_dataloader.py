@@ -81,7 +81,6 @@ class NCropAugmentation:
             n_crops: if transformation pipeline is not a list, applies the same
                 pipeline n_crops times, if it is a list, this is ignored and each
                 element of the list is applied once.
-
         """
 
         self.transform = transform
@@ -102,6 +101,7 @@ class NCropAugmentation:
         Returns:
             List[torch.Tensor]: an image in the tensor format.
         """
+
         if self.one_transform_per_crop:
             return [transform(x) for transform in self.transform]
         else:
@@ -299,6 +299,7 @@ class MulticropAugmentation:
         Returns:
             List[torch.Tensor]: a list of crops in the tensor format.
         """
+
         imgs = []
         for n, transform in zip(self.n_crops, self.transforms):
             imgs.extend([transform(x) for i in range(n)])

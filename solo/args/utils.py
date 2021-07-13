@@ -18,18 +18,18 @@ def additional_setup_pretrain(args: Namespace):
 
     Args:
         args (Namespace): object that needs to contain, at least:
-            - dataset: dataset name.
-            - brightness, contrast, saturation, hue, min_scale_crop: required augmentations
-                settings.
-            - asymmetric_augmentations: flag to apply asymmetric augmentations.
-            - multicrop: flag to use multicrop.
-            - dali: flag to use dali.
-            - optimizer: optimizer name being used.
-            - gpus: list of gpus to use.
-            - lr: learning rate.
+        - dataset: dataset name.
+        - brightness, contrast, saturation, hue, min_scale_crop: required augmentations
+            settings.
+        - asymmetric_augmentations: flag to apply asymmetric augmentations.
+        - multicrop: flag to use multicrop.
+        - dali: flag to use dali.
+        - optimizer: optimizer name being used.
+        - gpus: list of gpus to use.
+        - lr: learning rate.
 
-            [optional]
-            - gaussian_prob, solarization_prob: optional augmentations settings.
+        [optional]
+        - gaussian_prob, solarization_prob: optional augmentations settings.
     """
 
     args.transform_kwargs = {}
@@ -110,10 +110,10 @@ def additional_setup_linear(args: Namespace):
 
     Args:
         args: Namespace object that needs to contain, at least:
-            - dataset: dataset name.
-            - optimizer: optimizer name being used.
-            - gpus: list of gpus to use.
-            - lr: learning rate.
+        - dataset: dataset name.
+        - optimizer: optimizer name being used.
+        - gpus: list of gpus to use.
+        - lr: learning rate.
     """
 
     assert args.dataset in N_CLASSES_PER_DATASET

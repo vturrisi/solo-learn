@@ -10,11 +10,7 @@ from solo.methods.base import BaseModel
 
 class SimSiam(BaseModel):
     def __init__(
-        self,
-        output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        **kwargs,
+        self, output_dim: int, proj_hidden_dim: int, pred_hidden_dim: int, **kwargs,
     ):
         """Implements SimSiam (https://arxiv.org/abs/2011.10566).
 

@@ -1,5 +1,5 @@
 DINO
 ----
 
-.. autofunction:: solo.losses.dino.DINOLoss
+.. automethod:: solo.losses.dino.DINOLoss.__init__
    :noindex:

@@ -244,7 +244,7 @@ class DINO(BaseMomentumModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of dino loss and classification loss.
+            torch.Tensor: total loss composed of DINO loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
@@ -271,6 +271,7 @@ class DINO(BaseMomentumModel):
 
     def on_after_backward(self):
         """Performs gradient clipping and zeros the gradients on the last layer (prototypes)."""
+
         # clip gradients
         if self.clip_grad:
             self.clip_gradients(self.clip_grad)

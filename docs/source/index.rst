@@ -26,9 +26,17 @@ While the library is self contained, it is possible to use the models outside of
 
 .. toctree::
    :maxdepth: 1
-   :caption: API
+   :caption: Args
 
    solo/args
+
+======================================
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Utils
+
    solo/utils
 
 

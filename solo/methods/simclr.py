@@ -109,7 +109,7 @@ class SimCLR(BaseModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of simclr loss and classification loss.
+            torch.Tensor: total loss composed of SimCLR loss and classification loss.
         """
 
         indexes, *_, target = batch
@@ -133,10 +133,7 @@ class SimCLR(BaseModel):
             neg_mask = (~pos_mask).fill_diagonal_(False)
 
             nce_loss = manual_simclr_loss_func(
-                z,
-                pos_mask=pos_mask,
-                neg_mask=neg_mask,
-                temperature=self.temperature,
+                z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=self.temperature,
             )
         else:
             feats1, feats2 = out["feats"]

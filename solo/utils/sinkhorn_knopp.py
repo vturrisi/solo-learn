@@ -10,9 +10,10 @@ class SinkhornKnopp(torch.nn.Module):
         rows and columns of the matrix to sum to 1.
 
         Args:
-            num_iter: number of times to perform row and column normalization
-            epsilon: weight for the entropy regularization term
-            world_size: number of nodes for distributed training
+            num_iters (int, optional):  number of times to perform row and column normalization.
+                Defaults to 3.
+            epsilon (float, optional): weight for the entropy regularization term. Defaults to 0.05.
+            world_size (int, optional): number of nodes for distributed training. Defaults to 1.
         """
 
         super().__init__()
@@ -21,7 +22,7 @@ class SinkhornKnopp(torch.nn.Module):
         self.world_size = world_size
 
     @torch.no_grad()
-    def forward(self, Q: torch.Tensor):
+    def forward(self, Q: torch.Tensor) -> torch.Tensor:
         """Produces assignments using Sinkhorn-Knopp algorithm.
 
         Applies the entropy regularization, normalizes the Q matrix and then normalizes rows and
@@ -29,10 +30,11 @@ class SinkhornKnopp(torch.nn.Module):
         the columns in order for the output to be an assignment of samples to prototypes.
 
         Args:
-            Q: cosine similarities between the features of the samples and the prototypes
+            Q (torch.Tensor): cosine similarities between the features of the
+                samples and the prototypes.
 
         Returns:
-            assignment of samples to prototypes according to optimal transport
+            torch.Tensor: assignment of samples to prototypes according to optimal transport.
         """
 
         Q = torch.exp(Q / self.epsilon).t()
