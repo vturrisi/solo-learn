@@ -75,7 +75,6 @@ class BarlowTwins(BaseModel):
 
         Returns:
             Dict[str, Any]: total loss composed of barlow loss and classification loss.
-
         """
 
         out = super().training_step(batch, batch_idx)
