@@ -7,6 +7,8 @@ python3 ../../../main_pretrain.py \
     --precision 16 \
     --optimizer sgd \
     --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
     --scheduler warmup_cosine \
     --lr 0.6 \
     --min_lr 0.0006 \

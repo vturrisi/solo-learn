@@ -12,8 +12,8 @@ class LARSWrapper:
     def __init__(
         self,
         optimizer: Optimizer,
-        eta: float = 0.02,
-        clip: bool = True,
+        eta: float = 1e-3,
+        clip: bool = False,
         eps: float = 1e-8,
         exclude_bias_n_norm: bool = False,
     ):
@@ -21,11 +21,14 @@ class LARSWrapper:
         This helps stability with huge batch sizes.
 
         Args:
-            optimizer: torch optimizer
-            eta: LARS coefficient (trust)
-            clip: True to clip LR
-            eps: adaptive_lr stability coefficient
+            optimizer (Optimizer): torch optimizer.
+            eta (float, optional): trust coefficient. Defaults to 1e-3.
+            clip (bool, optional): clip gradient values. Defaults to False.
+            eps (float, optional): adaptive_lr stability coefficient. Defaults to 1e-8.
+            exclude_bias_n_norm (bool, optional): exclude bias and normalization layers from lars.
+                Defaults to False.
         """
+
         self.optim = optimizer
         self.eta = eta
         self.eps = eps

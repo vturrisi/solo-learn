@@ -46,7 +46,8 @@ class BaseModel(pl.LightningModule):
         multicrop: bool,
         n_crops: int,
         n_small_crops: int,
-        eta_lars: float,
+        eta_lars: float = 1e-3,
+        grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
         **kwargs,
     ):
@@ -79,6 +80,7 @@ class BaseModel(pl.LightningModule):
             n_crops (int): number of big crops
             n_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
             eta_lars (float): eta parameter for lars.
+            grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
         """
@@ -110,6 +112,7 @@ class BaseModel(pl.LightningModule):
         self.n_crops = n_crops
         self.n_small_crops = n_small_crops
         self.eta_lars = eta_lars
+        self.grad_clip_lars = grad_clip_lars
 
         # sanity checks on multicrop
         if self.multicrop:
@@ -181,7 +184,8 @@ class BaseModel(pl.LightningModule):
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
         parser.add_argument("--lars", action="store_true")
-        parser.add_argument("--eta_lars", default=0.02, type=float)
+        parser.add_argument("--grad_clip_lars", action="store_true")
+        parser.add_argument("--eta_lars", default=1e-3, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
         # scheduler
@@ -251,7 +255,10 @@ class BaseModel(pl.LightningModule):
         # optionally wrap with lars
         if self.lars:
             optimizer = LARSWrapper(
-                optimizer, eta=self.eta_lars, exclude_bias_n_norm=self.exclude_bias_n_norm
+                optimizer,
+                eta=self.eta_lars,
+                clip=self.grad_clip_lars,
+                exclude_bias_n_norm=self.exclude_bias_n_norm,
             )
 
         if self.scheduler == "none":

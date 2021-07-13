@@ -7,13 +7,8 @@ python3 ../../main_pretrain.py \
     --precision 16 \
     --optimizer sgd \
     --lars \
-    --exclude_bias_n_norm \
-    --scheduler warmup_cosine \
-    --max_epochs 1000 \
-    --gpus 0 \
-    --precision 16 \
-    --optimizer sgd \
-    --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 0.3 \
