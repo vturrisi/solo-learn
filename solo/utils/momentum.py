@@ -1,15 +1,16 @@
 import math
 
 import torch
+from torch import nn
 
 
 @torch.no_grad()
-def initialize_momentum_params(online_net, momentum_net):
+def initialize_momentum_params(online_net: nn.Module, momentum_net: nn.Module):
     """Copies the parameters of the online network to the momentum network.
 
     Args:
-        online_net ([type]): online network (e.g. online encoder, online projection, etc...).
-        momentum_net ([type]): momentum network (e.g. momentum encoder,
+        online_net (nn.Module): online network (e.g. online encoder, online projection, etc...).
+        momentum_net (nn.Module): momentum network (e.g. momentum encoder,
             momentum projection, etc...).
     """
 
@@ -41,12 +42,12 @@ class MomentumUpdater:
         self.final_tau = final_tau
 
     @torch.no_grad()
-    def update(self, online_net, momentum_net):
+    def update(self, online_net: nn.Module, momentum_net: nn.Module):
         """Performs the momentum update for each param group.
 
         Args:
-            online_net ([type]): online network (e.g. online encoder, online projection, etc...).
-            momentum_net ([type]): momentum network (e.g. momentum encoder,
+            online_net (nn.Module): online network (e.g. online encoder, online projection, etc...).
+            momentum_net (nn.Module): momentum network (e.g. momentum encoder,
                 momentum projection, etc...).
         """
 
