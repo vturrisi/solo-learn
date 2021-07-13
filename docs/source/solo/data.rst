@@ -86,37 +86,37 @@ MulticropImagenetTransform
    :noindex:
 
 
-Contrastive dataloaders
+Pretrain dataloader
 =======================
 
 dataset_with_index
 ~~~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.classification_dataloader.prepare_data
+.. autofunction:: solo.utils.pretrain_dataloader.dataset_with_index
    :noindex:
 
 prepare_transform
 ~~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.classification_dataloader.prepare_data
+.. autofunction:: solo.utils.pretrain_dataloader.prepare_transform
    :noindex:
 
 prepare_n_crop_transform
 ~~~~~~~~~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.classification_dataloader.prepare_data
+.. autofunction:: solo.utils.pretrain_dataloader.prepare_n_crop_transform
    :noindex:
 
 prepare_multicrop_transform
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.classification_dataloader.prepare_data
+.. autofunction:: solo.utils.pretrain_dataloader.prepare_multicrop_transform
    :noindex:
 
 prepare_datasets
 ~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.classification_dataloader.prepare_data
+.. autofunction:: solo.utils.pretrain_dataloader.prepare_datasets
    :noindex:
 
-prepare_dataloaders
+prepare_dataloader
 ~~~~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.classification_dataloader.prepare_data
+.. autofunction:: solo.utils.pretrain_dataloader.prepare_dataloader
    :noindex:
 
 
