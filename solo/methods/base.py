@@ -1,4 +1,4 @@
-import argparse
+from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple
 
@@ -143,15 +143,15 @@ class BaseModel(pl.LightningModule):
         self.classifier = nn.Linear(self.features_size, n_classes)
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds shared basic arguments that are shared for all methods.
 
         Args:
-            parent_parser (argparse.ArgumentParser): argument parser that is used to create a
+            parent_parser (ArgumentParser): argument parser that is used to create a
                 argument group.
 
         Returns:
-            argparse.ArgumentParser: same as the argument, used to avoid errors.
+            ArgumentParser: same as the argument, used to avoid errors.
         """
 
         parser = parent_parser.add_argument_group("base")
@@ -309,11 +309,11 @@ class BaseModel(pl.LightningModule):
         features, acc@1 and acc@5.
 
         Args:
-            X: batch of images in tensor format
-            targets: batch of labels for X
-        Returns:
-            dict containing the classification loss, logits, features, acc@1 and acc@5
+            X (torch.Tensor): batch of images in tensor format
+            targets (torch.Tensor): batch of labels for X
 
+        Returns:
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
         """
 
         out = self._base_forward(X)
@@ -335,10 +335,10 @@ class BaseModel(pl.LightningModule):
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images
-            batch_idx: index of the batch
+            batch_idx (int): index of the batch
 
         Returns:
-            dict with the classification loss, features and logits
+            Dict[str, Any]: dict with the classification loss, features and logits
         """
 
         _, X, targets = batch
@@ -422,6 +422,14 @@ class BaseMomentumModel(BaseModel):
         momentum_classifier: bool,
         **kwargs,
     ):
+        """[summary]
+
+        Args:
+            base_tau_momentum (float): [description]
+            final_tau_momentum (float): [description]
+            momentum_classifier (bool): [description]
+        """
+
         super().__init__(**kwargs)
 
         # momentum encoder
@@ -475,15 +483,15 @@ class BaseMomentumModel(BaseModel):
         return [(self.encoder, self.momentum_encoder)]
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds basic momentum arguments that are shared for all methods.
 
         Args:
-            parent_parser (argparse.ArgumentParser): argument parser that is used to create a
+            parent_parser (ArgumentParser): argument parser that is used to create a
                 argument group.
 
         Returns:
-            argparse.ArgumentParser: same as the argument, used to avoid errors.
+            ArgumentParser: same as the argument, used to avoid errors.
         """
 
         parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
