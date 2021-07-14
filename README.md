@@ -176,4 +176,15 @@ Our standardized implementation enables a fair comparison of training efficiency
 | VICReg       |      |            |                      |                  |            |
 | W-MSE        |      |            |                      |                  |            |
 
+---
 
+## Citation
+If you use solo-learn, please cite our preprint:
+```
+@misc{turrisi2021solo,
+  author =       {Victor G. Turrisi da Costa, Enrico Fini, Nicu Sebe, Elisa Ricci},
+  title =        {solo-learn: A Library of Self-supervised Methods for Visual Representation Learning},
+  howpublished = {\url{https://github.com/vturrisi/solo-learn}},
+  year =         {2021}
+}
+```
