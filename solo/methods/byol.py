@@ -134,7 +134,7 @@ class BYOL(BaseMomentumModel):
             z2_momentum = self.momentum_projector(feats2_momentum)
 
         # ------- contrastive loss -------
-        neg_cos_sim = byol_loss_func(p1, z2_momentum) / 2 + byol_loss_func(p2, z1_momentum) / 2
+        neg_cos_sim = byol_loss_func(p1, z2_momentum) + byol_loss_func(p2, z1_momentum)
 
         # calculate std of features
         z1_std = F.normalize(z1, dim=-1).std(dim=0).mean()
