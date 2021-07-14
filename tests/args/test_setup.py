@@ -8,7 +8,7 @@ from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 def test_setup_pretrain():
 
     dummy_script = """
-        from solo.args.setup import parse_args_contrastive
+        from solo.args.setup import parse_args_pretrain
 
         args = parse_args_pretrain()
     """

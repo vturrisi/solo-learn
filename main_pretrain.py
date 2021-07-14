@@ -6,11 +6,11 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
 
-from solo.args.setup import parse_args_contrastive
+from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
 
 try:
-    from solo.methods.dali import ContrastiveABC
+    from solo.methods.dali import PretrainABC
 except ImportError:
     _dali_avaliable = False
 else:
@@ -30,14 +30,14 @@ from solo.utils.pretrain_dataloader import (
 def main():
     seed_everything(5)
 
-    args = parse_args_contrastive()
+    args = parse_args_pretrain()
 
     assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
     MethodClass = METHODS[args.method]
     if args.dali:
         assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
-        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, ContrastiveABC), {})
+        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
 
     model = MethodClass(**args.__dict__)
 
@@ -78,10 +78,7 @@ def main():
             transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
 
         train_dataset = prepare_datasets(
-            args.dataset,
-            transform,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
+            args.dataset, transform, data_dir=args.data_dir, train_dir=args.train_dir,
         )
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
@@ -102,10 +99,7 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name,
-            project=args.project,
-            entity=args.entity,
-            offline=args.offline,
+            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
