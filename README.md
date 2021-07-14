@@ -130,16 +130,16 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 | Method                  | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |-------------------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins :rocket: | ResNet18 |   400  | :heavy_check_mark: |      79.70     |                 |      95.44     |                 | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
-| BYOL         :rocket: | ResNet18 |   400  | :heavy_check_mark: |      79.76     |                 |      94.80     |                 | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
-| DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |                 |      92.92     |                 | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
-| MoCo V2+     :rocket: | ResNet18 |   400  | :heavy_check_mark: |      78.20     |                 |      95.50     |                 | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
-| NNCLR        :rocket: | ResNet18 |   400  | :heavy_check_mark: |      79.80     |                 |      95.28     |                 | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
-| SimCLR       :rocket: | ResNet18 |   400  | :heavy_check_mark: |      77.04     |                 |      94.02     |                 | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
-| Simsiam                 | ResNet18 |   400  | :heavy_check_mark: |      74.54     |                 |      93.16     |                 | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
-| SwAV                    | ResNet18 |   400  | :heavy_check_mark: |      74.04     |                 |      92.70     |                 | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
-| VICReg       :rocket: | ResNet18 |   400  | :heavy_check_mark: |      79.22     |                 |      95.06     |                 | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
-| W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |                 |      90.94     |                 | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
+| Barlow Twins :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.70     |     79.98       |      95.44     |      95.14      | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
+| BYOL         :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.76     |     80.16       |      94.80     |      95.14      | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
+| DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
+| MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
+| NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
+| SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.04     |     77.48       |      94.02     |      93.42      | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
+| Simsiam                 | ResNet18 |   400  | :heavy_check_mark: |      74.54     |     78.72       |      93.16     |      94.78      | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
+| SwAV                    | ResNet18 |   400  | :heavy_check_mark: |      74.04     |     74.28       |      92.70     |      92.84      | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
+| VICReg       :rocket: | ResNet18 |   400  | :heavy_check_mark: |      79.22     |       79.40       |      95.06     |      95.02      | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
+| W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |     69.06       |      90.94     |      91.22      | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
 
 :rocket: methods where hyperparameters were heavily tuned.
 
@@ -158,7 +158,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | W-MSE        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 
-**Note**: by mistake, we re-scaled the lr two times, so this has a learning rate much larger than it should.
+**Note**: by mistake, we re-scaled the lr twice, so this has a learning rate much larger than it should.
 ## Training efficiency
 
 Our standardized implementation enables a fair comparison of training efficiency. Here we report the training time and memory usage on ImageNet-100 using ResNet50 and running on 2 Quadro RTX 6000.
