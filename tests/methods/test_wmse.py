@@ -16,7 +16,7 @@ def test_wmse():
         "output_dim": BASE_KWARGS["batch_size"] // 4,
         "whitening_size": BASE_KWARGS["batch_size"] // 2,
         "whitening_iters": 1,
-        "whitening_eps": 1e-3,
+        "whitening_eps": 1e-2,
     }
 
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
