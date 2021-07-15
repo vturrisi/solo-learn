@@ -159,22 +159,21 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | W-MSE        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 
 **Note**: by mistake, we re-scaled the lr twice, so this has a learning rate much larger than it should.
-## Training efficiency
 
-Our standardized implementation enables a fair comparison of training efficiency. Here we report the training time and memory usage on ImageNet-100 using ResNet50 and running on 2 Quadro RTX 6000.
+## Training efficiency for DALI
 
-| Method       | Dali | Parameters | Learnable parameters | Time for 1 epoch | GPU memory |
-|--------------|------|------------|----------------------|------------------|------------|
-| Barlow Twins |      |            |                      |                  |            |
-| BYOL         |      |            |                      |                  |            |
-| DINO         |      |            |                      |                  |            |
-| MoCo V2+     |      |            |                      |                  |            |
-| NNCLR        |      |            |                      |                  |            |
-| SimCLR       |      |            |                      |                  |            |
-| Simsiam      |      |            |                      |                  |            |
-| SwAV         |      |            |                      |                  |            |
-| VICReg       |      |            |                      |                  |            |
-| W-MSE        |      |            |                      |                  |            |
+We report the training efficiency of some methods using a ResNet18 with and without DALI in a server with an Intel i9-9820X and two RTX2080ti.
+
+| Method       |  Dali  |  Total time for 20 epochs  |  Time for a 1 epoch |  GPU memory (per GPU) |
+|--------------|:------:|:--------------------------:|:-------------------:|----------------------:|
+| Barlow Twins | :x:              | 1h 38m 27s |  4m 55s              |      5097 MB     |
+|              |:heavy_check_mark:| 43m 2s     |  2m 10s (56% faster) |      9292 MB     |
+| BYOL         | :x:              | 1h 38m 46s |  4m 56s              |      5409 MB     |
+|              |:heavy_check_mark:| 50m 33s    |  2m 31s (49% faster) |      9521 MB     |
+| NNCLR        | :x:              | 1h 38m 30s |  4m 55s              |      5060 MB     |
+|              |:heavy_check_mark:| 42m 3s     |  2m 6s  (64% faster) |      9244 MB     |
+
+**Note**: GPU memory increase doesn't scale with the model.
 
 ---
 
