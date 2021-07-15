@@ -165,7 +165,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 We report the training efficiency of some methods using a ResNet18 with and without DALI in a server with an Intel i9-9820X and two RTX2080ti.
 
 | Method       |  Dali  |  Total time for 20 epochs  |  Time for a 1 epoch |  GPU memory (per GPU) |
-|--------------|:------:|:--------------------------:|:-------------------:|----------------------:|
+|--------------|:------:|:--------------------------:|:-------------------:|:---------------------:|
 | Barlow Twins | :x:              | 1h 38m 27s |  4m 55s              |      5097 MB     |
 |              |:heavy_check_mark:| 43m 2s     |  2m 10s (56% faster) |      9292 MB     |
 | BYOL         | :x:              | 1h 38m 46s |  4m 56s              |      5409 MB     |
