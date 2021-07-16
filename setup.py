@@ -1,6 +1,5 @@
 from setuptools import find_packages, setup
 
-
 KW = ["artificial intelligence", "deep learning", "unsupervised learning", "contrastive learning"]
 
 EXTRA_DEPENDENCIES = ["dali", "umap"]
@@ -21,7 +20,7 @@ for lib in parse_requirements("extra_requirements.txt"):
 setup(
     name="solo",
     packages=find_packages(exclude=["bash_files"]),
-    version="0.0.1",
+    version="0.0.6",
     license="MIT",
     author="Victor G. Turrisi da Costa, Enrico Fini",
     author_email="vturrisi@gmail.com, enrico.fini@gmail.com",
