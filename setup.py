@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 KW = ["artificial intelligence", "deep learning", "unsupervised learning", "contrastive learning"]
 
-EXTRA_DEPENDENCIES = ["dali"]
+EXTRA_DEPENDENCIES = ["dali", "umap"]
 
 
 def parse_requirements(path):

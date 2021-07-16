@@ -5,6 +5,7 @@ from solo.args.dataset import augmentations_args, dataset_args
 from solo.args.utils import additional_setup_pretrain, additional_setup_linear
 from solo.methods import METHODS
 from solo.utils.checkpointer import Checkpointer
+from solo.utils.auto_umap import AutoUMAP
 
 
 def parse_args_pretrain() -> argparse.Namespace:
@@ -36,10 +37,15 @@ def parse_args_pretrain() -> argparse.Namespace:
     # add model specific args
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
 
-    # add checkpointer args (only if logging is enabled)
+    # add auto umap args
+    parser.add_argument("--auto_umap", action="store_true")
+
+    # add checkpointer and AutoUMAP args (only if logging is enabled)
     temp_args, _ = parser.parse_known_args()
     if temp_args.wandb:
         parser = Checkpointer.add_checkpointer_args(parser)
+        if temp_args.auto_umap:
+            parser = AutoUMAP.add_checkpointer_args(parser)
 
     # parse args
     args = parser.parse_args()

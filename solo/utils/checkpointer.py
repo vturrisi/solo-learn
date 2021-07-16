@@ -24,6 +24,7 @@ class Checkpointer(Callback):
             keep_previous_checkpoints (bool): whether to keep previous checkpoints or not. Defaults
                 to False meaning that checkpoints are overwritten.
         """
+        super().__init__()
 
         self.args = args
         self.logdir = logdir

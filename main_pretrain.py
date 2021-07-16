@@ -8,6 +8,7 @@ from pytorch_lightning.plugins import DDPPlugin
 
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
+from solo.utils.auto_umap import AutoUMAP
 
 try:
     from solo.methods.dali import PretrainABC
@@ -115,6 +116,10 @@ def main():
             frequency=args.checkpoint_frequency,
         )
         callbacks.append(ckpt)
+
+        if args.auto_umap:
+            auto_umap = AutoUMAP()
+            callbacks.append(auto_umap)
 
     trainer = Trainer.from_argparse_args(
         args,
