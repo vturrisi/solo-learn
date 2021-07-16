@@ -15,6 +15,14 @@ from .gather_layer import gather
 
 class AutoUMAP(Callback):
     def __init__(self, frequency: int = 1, color_pallete: str = "hls"):
+        """UMAP callback that automatically runs UMAP on the validation dataset and uploads the
+        figure to wandb.
+
+        Args:
+            frequency (int, optional): number of epochs between each UMAP. Defaults to 1.
+            color_pallete (str, optional): color scheme for the classes. Defaults to "hls".
+        """
+
         super().__init__()
         self.frequency = frequency
         self.color_pallete = color_pallete

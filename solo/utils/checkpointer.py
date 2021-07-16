@@ -19,11 +19,13 @@ class Checkpointer(Callback):
 
         Args:
             args (Namespace): namespace object containing at least an attribute name.
-            logdir (str): base directory to store checkpoints.
-            frequency (int): number of epochs between each checkpoint.
-            keep_previous_checkpoints (bool): whether to keep previous checkpoints or not. Defaults
-                to False meaning that checkpoints are overwritten.
+            logdir (str, optional): base directory to store checkpoints.
+                Defaults to "trained_models".
+            frequency (int, optional): number of epochs between each checkpoint. Defaults to 1.
+            keep_previous_checkpoints (bool, optional): whether to keep previous checkpoints or not.
+                Defaults to False.
         """
+
         super().__init__()
 
         self.args = args

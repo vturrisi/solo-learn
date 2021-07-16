@@ -1,6 +1,33 @@
 Utils
 ==========
 
+AutoUMAP
+--------
+
+__init__
+~~~~~~~~
+.. automethod:: solo.utils.auto_umap.AutoUMAP.__init__
+   :noindex:
+
+add_checkpointer_args
+~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.auto_umap.AutoUMAP.add_checkpointer_args
+   :noindex:
+
+on_train_start
+~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.auto_umap.AutoUMAP.on_train_start
+   :noindex:
+
+plot
+~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.auto_umap.AutoUMAP.plot
+   :noindex:
+
+on_validation_end
+~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.auto_umap.AutoUMAP.on_validation_end
+   :noindex:
 
 Checkpointer
 ------------
