@@ -1,5 +1,7 @@
 import torch
 
+import torch.distributed as dist
+
 
 def barlow_loss_func(
     z1: torch.Tensor, z2: torch.Tensor, lamb: float = 5e-3, scale_loss: float = 0.025
@@ -26,6 +28,11 @@ def barlow_loss_func(
     z2 = bn(z2)
 
     corr = torch.einsum("bi, bj -> ij", z1, z2) / N
+
+    if dist.is_available() and dist.is_initialized():
+        dist.all_reduce(corr)
+        world_size = dist.get_world_size()
+        corr /= world_size
 
     diag = torch.eye(D, device=corr.device)
     cdif = (corr - diag).pow(2)
