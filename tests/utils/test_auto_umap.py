@@ -15,7 +15,7 @@ def test_auto_umap():
         "proj_hidden_dim": 2048,
         "output_dim": 2048,
         "lamb": 5e-3,
-        "scale_loss": 0.025,
+        "scale_loss": 0.0001,
     }
 
     # normal training
@@ -32,7 +32,7 @@ def test_auto_umap():
         args,
         checkpoint_callback=False,
         limit_train_batches=2,
-        limit_val_batches=5,
+        limit_val_batches=2,
         callbacks=[auto_umap],
     )
 
