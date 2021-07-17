@@ -1,13 +1,14 @@
-import os
-import json
 import argparse
+import json
+import os
+import shutil
 
 import torch
 from pytorch_lightning import Trainer
 from solo.methods import BarlowTwins
 from solo.utils.checkpointer import Checkpointer
 
-from ..methods.utils import gen_base_kwargs, DATA_KWARGS, prepare_dummy_dataloaders
+from ..methods.utils import DATA_KWARGS, gen_base_kwargs, prepare_dummy_dataloaders
 
 
 def test_checkpointer():
@@ -79,3 +80,6 @@ def test_checkpointer():
     args = [vars(action)["dest"] for action in vars(parser)["_actions"]]
     assert "checkpoint_dir" in args
     assert "checkpoint_frequency" in args
+
+    # clean stuff
+    shutil.rmtree(ckpt_callback.logdir)

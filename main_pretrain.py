@@ -129,7 +129,11 @@ def main():
             assert (
                 _umap_available
             ), "UMAP is not currently avaiable, please install it first with [umap]."
-            auto_umap = AutoUMAP()
+            auto_umap = AutoUMAP(
+                args,
+                logdir=os.path.join(args.auto_umap_dir, args.method),
+                frequency=args.auto_umap_frequency,
+            )
             callbacks.append(auto_umap)
 
     trainer = Trainer.from_argparse_args(

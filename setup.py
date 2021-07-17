@@ -5,7 +5,7 @@ KW = ["artificial intelligence", "deep learning", "unsupervised learning", "cont
 
 EXTRA_REQUIREMENTS = {
     "dali": ["nvidia-dali-cuda110"],
-    "umap": ["matplotlib", "seaborn", "numpy", "pandas", "umap-learn"],
+    "umap": ["matplotlib", "seaborn", "pandas", "umap-learn"],
 }
 
 
