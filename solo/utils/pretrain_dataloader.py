@@ -242,7 +242,8 @@ class ImagenetTransform(BaseTransform):
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -364,7 +365,8 @@ class MulticropImagenetTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomApply(
-                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8,
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
                 ),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
@@ -481,7 +483,10 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
-            os.path.join(data_dir, train_dir), train=True, download=True, transform=transform,
+            os.path.join(data_dir, train_dir),
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "stl10":

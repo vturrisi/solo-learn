@@ -195,7 +195,9 @@ class NormalPipeline(Pipeline):
         # crop operations
         if self.validation:
             self.resize = ops.Resize(
-                device=self.device, resize_shorter=256, interp_type=types.INTERP_CUBIC,
+                device=self.device,
+                resize_shorter=256,
+                interp_type=types.INTERP_CUBIC,
             )
             # center crop and normalize
             self.cmn = ops.CropMirrorNormalize(
@@ -363,7 +365,10 @@ class PretrainPipeline(Pipeline):
 
         seed += device_id
         super().__init__(
-            batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=seed,
+            batch_size=batch_size,
+            num_threads=num_threads,
+            device_id=device_id,
+            seed=seed,
         )
 
         self.device = device
@@ -456,7 +461,10 @@ class MulticropPretrainPipeline(Pipeline):
 
         seed += device_id
         super().__init__(
-            batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=seed,
+            batch_size=batch_size,
+            num_threads=num_threads,
+            device_id=device_id,
+            seed=seed,
         )
 
         self.device = device
