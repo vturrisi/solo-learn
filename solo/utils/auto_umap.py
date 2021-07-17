@@ -104,8 +104,7 @@ class AutoUMAP(Callback):
             plt.tight_layout()
 
             wandb.log(
-                {"validation_umap": wandb.Image(ax)},
-                commit=False,
+                {"validation_umap": wandb.Image(ax)}, commit=False,
             )
             plt.close()
 

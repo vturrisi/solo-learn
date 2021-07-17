@@ -8,7 +8,6 @@ from pytorch_lightning.plugins import DDPPlugin
 
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
-from solo.utils.auto_umap import AutoUMAP
 
 try:
     from solo.methods.dali import PretrainABC
@@ -16,6 +15,13 @@ except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
+
+try:
+    from solo.utils.auto_umap import AutoUMAP
+except ImportError:
+    _umap_available = False
+else:
+    _umap_available = True
 
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
@@ -37,7 +43,9 @@ def main():
 
     MethodClass = METHODS[args.method]
     if args.dali:
-        assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with [dali]."
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
 
     model = MethodClass(**args.__dict__)
@@ -118,6 +126,9 @@ def main():
         callbacks.append(ckpt)
 
         if args.auto_umap:
+            assert (
+                _umap_available
+            ), "UMAP is not currently avaiable, please install it first with [umap]."
             auto_umap = AutoUMAP()
             callbacks.append(auto_umap)
 

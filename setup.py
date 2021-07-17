@@ -2,19 +2,17 @@ from setuptools import find_packages, setup
 
 KW = ["artificial intelligence", "deep learning", "unsupervised learning", "contrastive learning"]
 
-EXTRA_DEPENDENCIES = ["dali", "umap"]
+
+EXTRA_REQUIREMENTS = {
+    "dali": ["nvidia-dali-cuda110"],
+    "umap": ["matplotlib", "seaborn", "numpy", "pandas", "umap-learn"],
+}
 
 
 def parse_requirements(path):
     with open(path) as f:
         requirements = [p.strip().split()[-1] for p in f.readlines()]
     return requirements
-
-
-extra_requirements = {}
-for lib in parse_requirements("extra_requirements.txt"):
-    name = [name for name in EXTRA_DEPENDENCIES if name in lib][0]
-    extra_requirements[name] = [lib]
 
 
 setup(
@@ -27,7 +25,7 @@ setup(
     url="https://github.com/vturrisi/solo-learn",
     keywords=KW,
     install_requires=parse_requirements("requirements.txt"),
-    extras_require=extra_requirements,
+    extras_require=EXTRA_REQUIREMENTS,
     dependency_links=["https://developer.download.nvidia.com/compute/redist"],
     classifiers=[
         "Programming Language :: Python :: 3.8",
