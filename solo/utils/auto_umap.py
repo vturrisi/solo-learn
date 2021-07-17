@@ -156,7 +156,8 @@ class AutoUMAP(Callback):
 
             if isinstance(trainer.logger, pl.loggers.WandbLogger):
                 wandb.log(
-                    {"validation_umap": wandb.Image(ax)}, commit=False,
+                    {"validation_umap": wandb.Image(ax)},
+                    commit=False,
                 )
 
             # save plot locally as well
