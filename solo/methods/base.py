@@ -295,20 +295,18 @@ class BaseModel(pl.LightningModule):
 
         return self._base_forward(*args, **kwargs)
 
-    def _base_forward(self, X: torch.Tensor, detach_feats: bool = True) -> Dict:
+    def _base_forward(self, X: torch.Tensor) -> Dict:
         """Basic forward that allows children classes to override forward().
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
-            detach_feats (bool, optional): flag indicating whether or not to detach the features
-                before feeding them to the linear classifier Defaults to True.
 
         Returns:
             Dict: dict of logits and features.
         """
 
         feats = self.encoder(X)
-        logits = self.classifier(feats.detach() if detach_feats else feats)
+        logits = self.classifier(feats.detach())
         return {"logits": logits, "feats": feats}
 
     def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
