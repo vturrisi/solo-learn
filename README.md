@@ -148,7 +148,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      65.6*     |      67.07      |      86.7      |      87.81      | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.62     |      TODO       |      88.90     |      TODO       | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
@@ -158,7 +158,6 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | W-MSE        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 
-**Note**: by mistake, we re-scaled the lr twice, so this has a learning rate much larger than it should.
 
 ## Training efficiency for DALI
 
