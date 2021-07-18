@@ -122,7 +122,10 @@ def prepare_dummy_dataloaders(
     else:
         T = prepare_n_crop_transform(T, n_crops)
     dataset = dataset_with_index(FakeData)(
-        image_size=(3, 224, 224), num_classes=n_classes, transform=T, size=1024,
+        image_size=(3, 224, 224),
+        num_classes=n_classes,
+        transform=T,
+        size=1024,
     )
     train_dl = prepare_dataloader(dataset, batch_size=batch_size, num_workers=0)
 
