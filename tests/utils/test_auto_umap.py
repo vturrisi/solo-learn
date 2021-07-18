@@ -15,7 +15,7 @@ def test_auto_umap():
         "proj_hidden_dim": 2048,
         "output_dim": 2048,
         "lamb": 5e-3,
-        "scale_loss": 0.0001,
+        "scale_loss": 0.001,
     }
 
     # normal training

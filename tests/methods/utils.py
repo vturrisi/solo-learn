@@ -32,6 +32,7 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_s
         "optimizer": "sgd",
         "lars": True,
         "lr": 0.01,
+        "grad_clip_lars": True,
         "weight_decay": 1e-10,
         "classifier_lr": 0.5,
         "exclude_bias_n_norm": True,
@@ -121,7 +122,7 @@ def prepare_dummy_dataloaders(
     else:
         T = prepare_n_crop_transform(T, n_crops)
     dataset = dataset_with_index(FakeData)(
-        image_size=(3, 224, 224), num_classes=n_classes, transform=T, size=512,
+        image_size=(3, 224, 224), num_classes=n_classes, transform=T, size=1024,
     )
     train_dl = prepare_dataloader(dataset, batch_size=batch_size, num_workers=0)
 
