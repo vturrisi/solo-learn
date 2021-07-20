@@ -148,7 +148,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.62     |      TODO       |      88.90     |      TODO       | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.62     |      68.36      |      88.90     |       66.66     | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
