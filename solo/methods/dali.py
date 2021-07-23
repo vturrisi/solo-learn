@@ -90,18 +90,53 @@ class PretrainABC(ABC):
 
         # get data arguments from model
         dali_device = self.extra_args["dali_device"]
-        brightness = self.extra_args["brightness"]
-        contrast = self.extra_args["contrast"]
-        saturation = self.extra_args["saturation"]
-        hue = self.extra_args["hue"]
-        gaussian_prob = self.extra_args["gaussian_prob"]
-        solarization_prob = self.extra_args["solarization_prob"]
-        asymmetric_augmentations = self.extra_args["asymmetric_augmentations"]
         last_batch_fill = self.extra_args["last_batch_fill"]
+
+        # data augmentations
+        self.brightness = self.extra_args["brightness"]
+        self.contrast = self.extra_args["contrast"]
+        self.saturation = self.extra_args["saturation"]
+        self.hue = self.extra_args["hue"]
+        self.gaussian_prob = self.extra_args["gaussian_prob"]
+        self.solarization_prob = self.extra_args["solarization_prob"]
+        self.min_scale_crop = self.extra_args["min_scale_crop"]
 
         num_workers = self.extra_args["num_workers"]
         data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
+
+        unique_augs = max(
+            len(p)
+            for p in [
+                self.brightness,
+                self.contrast,
+                self.saturation,
+                self.hue,
+                self.gaussian_prob,
+                self.solarization_prob,
+                self.min_scale_crop,
+            ]
+        )
+
+        assert unique_augs == self.n_crops or unique_augs == 1
+
+        # assert that either all unique augmentation pipelines have a unique
+        # parameter or that a single parameter is replicated to all pipelines
+        for p in [
+            "brightness",
+            "contrast",
+            "saturation",
+            "hue",
+            "gaussian_prob",
+            "solarization_prob",
+            "min_scale_crop",
+        ]:
+            values = getattr(self, p)
+            n = len(values)
+            assert n == unique_augs or n == 1
+
+            if n == 1:
+                setattr(self, p, getattr(self, p) * unique_augs)
 
         if self.multicrop:
             n_crops = [self.n_crops, self.n_small_crops]
@@ -113,12 +148,12 @@ class PretrainABC(ABC):
             for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
                 transform = ImagenetTransform(
                     device=dali_device,
-                    brightness=brightness,
-                    contrast=contrast,
-                    saturation=saturation,
-                    hue=hue,
-                    gaussian_prob=gaussian_prob,
-                    solarization_prob=solarization_prob,
+                    brightness=self.brightness[0],
+                    contrast=self.contrast[0],
+                    saturation=self.saturation[0],
+                    hue=self.hue[0],
+                    gaussian_prob=self.gaussian_prob[0],
+                    solarization_prob=self.solarization_prob[0],
                     size=size,
                     min_scale=min_scale,
                     max_scale=max_scale,
@@ -129,9 +164,6 @@ class PretrainABC(ABC):
                 batch_size=self.batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
-                size_crops=size_crops,
-                min_scale_crops=min_scale_crops,
-                max_scale_crops=max_scale_crops,
                 device=dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
@@ -145,9 +177,7 @@ class PretrainABC(ABC):
             ]
 
         else:
-            min_scale_crop = self.extra_args["min_scale_crop"]
-
-            if asymmetric_augmentations:
+            if unique_augs > 1:
                 transform = [
                     ImagenetTransform(
                         device=dali_device,
@@ -155,36 +185,42 @@ class PretrainABC(ABC):
                         contrast=contrast,
                         saturation=saturation,
                         hue=hue,
-                        gaussian_prob=1.0,
-                        solarization_prob=0.0,
+                        gaussian_prob=gaussian_prob,
+                        solarization_prob=solarization_prob,
                         size=224,
                         min_scale=min_scale_crop,
                         max_scale=1.0,
-                    ),
-                    ImagenetTransform(
-                        device=dali_device,
-                        brightness=brightness,
-                        contrast=contrast,
-                        saturation=saturation,
-                        hue=hue,
-                        gaussian_prob=0.1,
-                        solarization_prob=0.2,
-                        size=224,
-                        min_scale=min_scale_crop,
-                        max_scale=1.0,
-                    ),
+                    )
+                    for (
+                        brightness,
+                        contrast,
+                        saturation,
+                        hue,
+                        gaussian_prob,
+                        solarization_prob,
+                        min_scale_crop,
+                    ) in zip(
+                        self.brightness,
+                        self.contrast,
+                        self.saturation,
+                        self.hue,
+                        self.gaussian_prob,
+                        self.solarization_prob,
+                        self.min_scale_crop,
+                    )
                 ]
+
             else:
                 transform = ImagenetTransform(
                     device=dali_device,
-                    brightness=brightness,
-                    contrast=contrast,
-                    saturation=saturation,
-                    hue=hue,
-                    gaussian_prob=gaussian_prob,
-                    solarization_prob=solarization_prob,
+                    brightness=self.brightness[0],
+                    contrast=self.contrast[0],
+                    saturation=self.saturation[0],
+                    hue=self.hue[0],
+                    gaussian_prob=self.gaussian_prob[0],
+                    solarization_prob=self.solarization_prob[0],
                     size=224,
-                    min_scale=min_scale_crop,
+                    min_scale=self.min_scale_crop[0],
                     max_scale=1.0,
                 )
             train_pipeline = PretrainPipeline(

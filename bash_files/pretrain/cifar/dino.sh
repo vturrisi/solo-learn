@@ -20,7 +20,8 @@ python3 ../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
-    --asymmetric_augmentations \
+    --gaussian_prob 0.0 0.0 \
+    --solarization_prob 0.0 0.2 \
     --name dino-$1 \
     --entity unitn-mhug \
     --project solo-learn \

@@ -428,9 +428,6 @@ class MulticropPretrainPipeline(Pipeline):
         device: str,
         transforms: List,
         n_crops: List[int],
-        size_crops: List[int],
-        min_scale_crops: List[float],
-        max_scale_crops: List[float],
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -446,9 +443,6 @@ class MulticropPretrainPipeline(Pipeline):
             device (str): device on which the operation will be performed.
             transforms (List): list of transformations to be applied.
             n_crops (List[int]): number of crops.
-            size_crops (List[int]): list of crop sizes images will be resized to.
-            min_scale_crops (List[float]): list of minimum scales for each crop.
-            max_scale_crops (List[float]): list of maximum scales for each crop.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -486,12 +480,9 @@ class MulticropPretrainPipeline(Pipeline):
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
         self.n_crops = n_crops
-        self.size_crops = size_crops
-        self.min_scale_crops = min_scale_crops
-        self.max_scale_crops = max_scale_crops
-
-        assert len(transforms) == len(size_crops)
         self.transforms = transforms
+
+        assert len(transforms) == len(n_crops)
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""
