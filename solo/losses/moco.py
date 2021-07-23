@@ -9,9 +9,8 @@ def moco_loss_func(
     queue of past elements.
 
     Args:
-        query (torch.Tensor): list of NxC Tensors containing nearest neighbors' features from
-            view 1.
-        key (torch.Tensor): list of NxC Tensor containing predicted features from view 2.
+        query (torch.Tensor): NxD Tensor containing the queries from view 1.
+        key (torch.Tensor): NxD Tensor containing the queries from view 2.
         queue (torch.Tensor): a queue of negative samples for the contrastive loss.
         temperature (float, optional): [description]. temperature of the softmax in the contrastive
             loss. Defaults to 0.1.
