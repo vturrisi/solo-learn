@@ -32,4 +32,3 @@ def test_argparse_augmentations():
     assert "gaussian_prob" in actions
     assert "solarization_prob" in actions
     assert "min_scale_crop" in actions
-    assert "asymmetric_augmentations" in actions

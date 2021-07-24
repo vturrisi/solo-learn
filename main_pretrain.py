@@ -59,7 +59,7 @@ def main():
             pprint(transform)
 
         if args.multicrop:
-            assert not args.asymmetric_augmentations
+            assert not args.unique_augs == 1
 
             if args.dataset in ["cifar10", "cifar100"]:
                 size_crops = [32, 24]

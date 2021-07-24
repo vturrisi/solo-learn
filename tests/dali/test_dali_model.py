@@ -22,14 +22,15 @@ def test_dali_pretrain():
             "scale_loss": 0.025,
         }
         BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
-        kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+        DATA_KWARGS_WRAPPED = {k: [v] for k, v in DATA_KWARGS.items()}
+        kwargs = {**BASE_KWARGS, **DATA_KWARGS_WRAPPED, **method_kwargs}
 
         kwargs["dali_device"] = "cpu"
         kwargs["last_batch_fill"] = False
         kwargs["train_dir"] = "dummy_train"
         kwargs["data_dir"] = "."
 
-        kwargs["min_scale_crop"] = 0.08
+        kwargs["min_scale_crop"] = [0.08]
 
         MethodClass = type(f"Dali{BarlowTwins.__name__}", (BarlowTwins, PretrainABC), {})
         model = MethodClass(**kwargs)
