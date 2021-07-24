@@ -42,22 +42,22 @@ def main():
     model = MethodClass(**args.__dict__)
 
     # contrastive dataloader
-    # asymmetric augmentations
-    if args.unique_augs > 1:
-        transform = [
-            prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
-            for kwargs in args.transform_kwargs
-        ]
-    else:
-        transform = prepare_transform(
-            args.dataset, multicrop=args.multicrop, **args.transform_kwargs
-        )
-
-    if args.debug_augmentations:
-        print("Transforms:")
-        pprint(transform)
-
     if not args.dali:
+        # asymmetric augmentations
+        if args.unique_augs > 1:
+            transform = [
+                prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
+                for kwargs in args.transform_kwargs
+            ]
+        else:
+            transform = prepare_transform(
+                args.dataset, multicrop=args.multicrop, **args.transform_kwargs
+            )
+
+        if args.debug_augmentations:
+            print("Transforms:")
+            pprint(transform)
+
         if args.multicrop:
             assert not args.unique_augs == 1
 

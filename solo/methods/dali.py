@@ -93,50 +93,12 @@ class PretrainABC(ABC):
         last_batch_fill = self.extra_args["last_batch_fill"]
 
         # data augmentations
-        self.brightness = self.extra_args["brightness"]
-        self.contrast = self.extra_args["contrast"]
-        self.saturation = self.extra_args["saturation"]
-        self.hue = self.extra_args["hue"]
-        self.gaussian_prob = self.extra_args["gaussian_prob"]
-        self.solarization_prob = self.extra_args["solarization_prob"]
-        self.min_scale = self.extra_args["min_scale"]
+        unique_augs = self.extra_args["unique_augs"]
+        transform_kwargs = self.extra_args["transform_kwargs"]
 
         num_workers = self.extra_args["num_workers"]
         data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
-
-        unique_augs = max(
-            len(p)
-            for p in [
-                self.brightness,
-                self.contrast,
-                self.saturation,
-                self.hue,
-                self.gaussian_prob,
-                self.solarization_prob,
-                self.min_scale,
-            ]
-        )
-
-        assert unique_augs == self.n_crops or unique_augs == 1
-
-        # assert that either all unique augmentation pipelines have a unique
-        # parameter or that a single parameter is replicated to all pipelines
-        for p in [
-            "brightness",
-            "contrast",
-            "saturation",
-            "hue",
-            "gaussian_prob",
-            "solarization_prob",
-            "min_scale",
-        ]:
-            values = getattr(self, p)
-            n = len(values)
-            assert n == unique_augs or n == 1
-
-            if n == 1:
-                setattr(self, p, getattr(self, p) * unique_augs)
 
         if self.multicrop:
             n_crops = [self.n_crops, self.n_small_crops]
@@ -148,7 +110,7 @@ class PretrainABC(ABC):
             for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
                 transform = ImagenetTransform(
                     device=dali_device,
-                    **self.extra_args["transform_kwargs"],
+                    **transform_kwargs,
                     size=size,
                     min_scale=min_scale,
                     max_scale=max_scale,
@@ -180,16 +142,16 @@ class PretrainABC(ABC):
                         size=224,
                         max_scale=1.0,
                     )
-                    for kwargs in self.extra_args["transform_kwargs"]
+                    for kwargs in transform_kwargs
                 ]
-
             else:
                 transform = ImagenetTransform(
                     device=dali_device,
-                    **self.extra_args["transform_kwargs"],
+                    **transform_kwargs,
                     size=224,
                     max_scale=1.0,
                 )
+
             train_pipeline = PretrainPipeline(
                 os.path.join(data_dir, train_dir),
                 batch_size=self.batch_size,
