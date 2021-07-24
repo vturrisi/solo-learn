@@ -20,7 +20,7 @@ python3 ../../../main_pretrain.py \
     --batch_size 128 \
     --num_workers 6 \
     --dali \
-    --min_scale_crop 0.2 \
+    --min_scale 0.2 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \

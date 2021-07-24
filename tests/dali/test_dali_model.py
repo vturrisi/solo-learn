@@ -30,7 +30,7 @@ def test_dali_pretrain():
         kwargs["train_dir"] = "dummy_train"
         kwargs["data_dir"] = "."
 
-        kwargs["min_scale_crop"] = [0.08]
+        kwargs["min_scale"] = [0.08]
 
         MethodClass = type(f"Dali{BarlowTwins.__name__}", (BarlowTwins, PretrainABC), {})
         model = MethodClass(**kwargs)

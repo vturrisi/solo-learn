@@ -19,7 +19,7 @@ def additional_setup_pretrain(args: Namespace):
     Args:
         args (Namespace): object that needs to contain, at least:
         - dataset: dataset name.
-        - brightness, contrast, saturation, hue, min_scale_crop: required augmentations
+        - brightness, contrast, saturation, hue, min_scale: required augmentations
             settings.
         - multicrop: flag to use multicrop.
         - dali: flag to use dali.
@@ -45,7 +45,7 @@ def additional_setup_pretrain(args: Namespace):
             args.hue,
             args.gaussian_prob,
             args.solarization_prob,
-            args.min_scale_crop,
+            args.min_scale,
         ]
     )
     assert unique_augs == args.n_crops or unique_augs == 1
@@ -59,7 +59,7 @@ def additional_setup_pretrain(args: Namespace):
         "hue",
         "gaussian_prob",
         "solarization_prob",
-        "min_scale_crop",
+        "min_scale",
     ]:
         values = getattr(args, p)
         n = len(values)
@@ -79,7 +79,7 @@ def additional_setup_pretrain(args: Namespace):
                 hue=hue,
                 gaussian_prob=gaussian_prob,
                 solarization_prob=solarization_prob,
-                min_scale_crop=min_scale_crop,
+                min_scale=min_scale,
             )
             for (
                 brightness,
@@ -88,7 +88,7 @@ def additional_setup_pretrain(args: Namespace):
                 hue,
                 gaussian_prob,
                 solarization_prob,
-                min_scale_crop,
+                min_scale,
             ) in zip(
                 args.brightness,
                 args.contrast,
@@ -96,7 +96,7 @@ def additional_setup_pretrain(args: Namespace):
                 args.hue,
                 args.gaussian_prob,
                 args.solarization_prob,
-                args.min_scale_crop,
+                args.min_scale,
             )
         ]
 
@@ -108,7 +108,7 @@ def additional_setup_pretrain(args: Namespace):
             hue=args.hue[0],
             gaussian_prob=args.gaussian_prob[0],
             solarization_prob=args.solarization_prob[0],
-            min_scale_crop=args.min_scale_crop[0],
+            min_scale=args.min_scale[0],
         )
     else:
         args.transform_kwargs = dict(

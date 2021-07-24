@@ -31,4 +31,4 @@ def test_argparse_augmentations():
     assert "hue" in actions
     assert "gaussian_prob" in actions
     assert "solarization_prob" in actions
-    assert "min_scale_crop" in actions
+    assert "min_scale" in actions

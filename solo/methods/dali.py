@@ -99,7 +99,7 @@ class PretrainABC(ABC):
         self.hue = self.extra_args["hue"]
         self.gaussian_prob = self.extra_args["gaussian_prob"]
         self.solarization_prob = self.extra_args["solarization_prob"]
-        self.min_scale_crop = self.extra_args["min_scale_crop"]
+        self.min_scale = self.extra_args["min_scale"]
 
         num_workers = self.extra_args["num_workers"]
         data_dir = self.extra_args["data_dir"]
@@ -114,7 +114,7 @@ class PretrainABC(ABC):
                 self.hue,
                 self.gaussian_prob,
                 self.solarization_prob,
-                self.min_scale_crop,
+                self.min_scale,
             ]
         )
 
@@ -129,7 +129,7 @@ class PretrainABC(ABC):
             "hue",
             "gaussian_prob",
             "solarization_prob",
-            "min_scale_crop",
+            "min_scale",
         ]:
             values = getattr(self, p)
             n = len(values)
@@ -141,19 +141,14 @@ class PretrainABC(ABC):
         if self.multicrop:
             n_crops = [self.n_crops, self.n_small_crops]
             size_crops = [224, 96]
-            min_scale_crops = [0.14, 0.05]
+            min_scales = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]
 
             transforms = []
-            for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
+            for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
                 transform = ImagenetTransform(
                     device=dali_device,
-                    brightness=self.brightness[0],
-                    contrast=self.contrast[0],
-                    saturation=self.saturation[0],
-                    hue=self.hue[0],
-                    gaussian_prob=self.gaussian_prob[0],
-                    solarization_prob=self.solarization_prob[0],
+                    **self.extra_args["transform_kwargs"],
                     size=size,
                     min_scale=min_scale,
                     max_scale=max_scale,
@@ -181,46 +176,18 @@ class PretrainABC(ABC):
                 transform = [
                     ImagenetTransform(
                         device=dali_device,
-                        brightness=brightness,
-                        contrast=contrast,
-                        saturation=saturation,
-                        hue=hue,
-                        gaussian_prob=gaussian_prob,
-                        solarization_prob=solarization_prob,
+                        **kwargs,
                         size=224,
-                        min_scale=min_scale_crop,
                         max_scale=1.0,
                     )
-                    for (
-                        brightness,
-                        contrast,
-                        saturation,
-                        hue,
-                        gaussian_prob,
-                        solarization_prob,
-                        min_scale_crop,
-                    ) in zip(
-                        self.brightness,
-                        self.contrast,
-                        self.saturation,
-                        self.hue,
-                        self.gaussian_prob,
-                        self.solarization_prob,
-                        self.min_scale_crop,
-                    )
+                    for kwargs in self.extra_args["transform_kwargs"]
                 ]
 
             else:
                 transform = ImagenetTransform(
                     device=dali_device,
-                    brightness=self.brightness[0],
-                    contrast=self.contrast[0],
-                    saturation=self.saturation[0],
-                    hue=self.hue[0],
-                    gaussian_prob=self.gaussian_prob[0],
-                    solarization_prob=self.solarization_prob[0],
+                    **self.extra_args["transform_kwargs"],
                     size=224,
-                    min_scale=self.min_scale_crop[0],
                     max_scale=1.0,
                 )
             train_pipeline = PretrainPipeline(

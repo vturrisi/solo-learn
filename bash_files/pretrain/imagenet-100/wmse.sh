@@ -21,7 +21,7 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --gaussian_prob 0.2 \
-    --min_scale_crop 0.08 \
+    --min_scale 0.08 \
     --dali \
     --wandb \
     --name wmse-imagenet100 \
