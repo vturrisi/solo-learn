@@ -25,7 +25,7 @@ def test_auto_umap():
 
     args = argparse.Namespace(**kwargs)
 
-    # checkpointer
+    # UMAP
     auto_umap = AutoUMAP(args)
 
     trainer = Trainer.from_argparse_args(

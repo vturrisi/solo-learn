@@ -65,9 +65,9 @@ While the library is self contained, it is possible to use the models outside of
 
 ## Installation
 
-To install the repository with dali support, use:
+To install the repository with Dali and/or UMAP support, use:
 ```
-pip3 install .[dali]
+pip3 install .[dali,umap]
 ```
 
 If no dali support is needed, the repository can be installed as:

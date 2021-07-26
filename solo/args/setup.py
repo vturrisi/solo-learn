@@ -40,12 +40,12 @@ def parse_args_pretrain() -> argparse.Namespace:
     # add auto umap args
     parser.add_argument("--auto_umap", action="store_true")
 
-    # add checkpointer and AutoUMAP args (only if logging is enabled)
+    # optionally add checkpointer and AutoUMAP args
     temp_args, _ = parser.parse_known_args()
     if temp_args.wandb:
         parser = Checkpointer.add_checkpointer_args(parser)
-        if temp_args.auto_umap:
-            parser = AutoUMAP.add_checkpointer_args(parser)
+    if temp_args.auto_umap:
+        parser = AutoUMAP.add_auto_umap_args(parser)
 
     # parse args
     args = parser.parse_args()

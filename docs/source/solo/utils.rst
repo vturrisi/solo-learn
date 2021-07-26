@@ -9,9 +9,9 @@ __init__
 .. automethod:: solo.utils.auto_umap.AutoUMAP.__init__
    :noindex:
 
-add_checkpointer_args
+add_auto_umap_args
 ~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.auto_umap.AutoUMAP.add_checkpointer_args
+.. automethod:: solo.utils.auto_umap.AutoUMAP.add_auto_umap_args
    :noindex:
 
 on_train_start

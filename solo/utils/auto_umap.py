@@ -22,7 +22,7 @@ class AutoUMAP(Callback):
         logdir: str = "auto_umap",
         frequency: int = 1,
         keep_previous: bool = False,
-        color_pallete: str = "hls",
+        color_palette: str = "hls",
     ):
         """UMAP callback that automatically runs UMAP on the validation dataset and uploads the
         figure to wandb.
@@ -32,7 +32,7 @@ class AutoUMAP(Callback):
             logdir (str, optional): base directory to store checkpoints.
                 Defaults to "auto_umap".
             frequency (int, optional): number of epochs between each UMAP. Defaults to 1.
-            color_pallete (str, optional): color scheme for the classes. Defaults to "hls".
+            color_palette (str, optional): color scheme for the classes. Defaults to "hls".
             keep_previous (bool, optional): whether to keep previous plots or not.
                 Defaults to False.
         """
@@ -42,11 +42,11 @@ class AutoUMAP(Callback):
         self.args = args
         self.logdir = logdir
         self.frequency = frequency
-        self.color_pallete = color_pallete
+        self.color_palette = color_palette
         self.keep_previous = keep_previous
 
     @staticmethod
-    def add_checkpointer_args(parent_parser: ArgumentParser):
+    def add_auto_umap_args(parent_parser: ArgumentParser):
         """Adds user-required arguments to a parser.
 
         Args:
@@ -82,7 +82,7 @@ class AutoUMAP(Callback):
             os.makedirs(self.path, exist_ok=True)
 
     def on_train_start(self, trainer: pl.Trainer, _):
-        """Checks wandb is available
+        """Performs initial setup on training start.
 
         Args:
             trainer (pl.Trainer): pytorch lightning trainer object.
@@ -127,7 +127,7 @@ class AutoUMAP(Callback):
 
             data = umap.UMAP(n_components=2).fit_transform(data)
 
-            # assing to dataframe
+            # passing to dataframe
             df = pd.DataFrame()
             df["feat_1"] = data[:, 0]
             df["feat_2"] = data[:, 1]
@@ -137,7 +137,7 @@ class AutoUMAP(Callback):
                 x="feat_1",
                 y="feat_2",
                 hue="Y",
-                palette=sns.color_palette(self.color_pallete, n_classes),
+                palette=sns.color_palette(self.color_palette, n_classes),
                 data=df,
                 legend="full",
                 alpha=0.3,
