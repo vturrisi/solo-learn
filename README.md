@@ -71,7 +71,7 @@ To install the repository with Dali and/or UMAP support, use:
 pip3 install .[dali,umap]
 ```
 
-If no dali support is needed, the repository can be installed as:
+If no Dali/UMAP support is needed, the repository can be installed as:
 ```
 pip3 install .
 ```
