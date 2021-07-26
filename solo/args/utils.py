@@ -19,9 +19,8 @@ def additional_setup_pretrain(args: Namespace):
     Args:
         args (Namespace): object that needs to contain, at least:
         - dataset: dataset name.
-        - brightness, contrast, saturation, hue, min_scale_crop: required augmentations
+        - brightness, contrast, saturation, hue, min_scale: required augmentations
             settings.
-        - asymmetric_augmentations: flag to apply asymmetric augmentations.
         - multicrop: flag to use multicrop.
         - dali: flag to use dali.
         - optimizer: optimizer name being used.
@@ -37,51 +36,88 @@ def additional_setup_pretrain(args: Namespace):
     assert args.dataset in N_CLASSES_PER_DATASET
     args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
 
-    if args.asymmetric_augmentations:
-        if args.dataset in ["cifar10", "cifar100"]:
-            gaussian_probs = [0.0, 0.0]
-        else:
-            gaussian_probs = [1.0, 0.1]
-        solarization_probs = [0.0, 0.2]
+    unique_augs = max(
+        len(p)
+        for p in [
+            args.brightness,
+            args.contrast,
+            args.saturation,
+            args.hue,
+            args.gaussian_prob,
+            args.solarization_prob,
+            args.min_scale,
+        ]
+    )
+    assert unique_augs == args.n_crops or unique_augs == 1
 
+    # assert that either all unique augmentation pipelines have a unique
+    # parameter or that a single parameter is replicated to all pipelines
+    for p in [
+        "brightness",
+        "contrast",
+        "saturation",
+        "hue",
+        "gaussian_prob",
+        "solarization_prob",
+        "min_scale",
+    ]:
+        values = getattr(args, p)
+        n = len(values)
+        assert n == unique_augs or n == 1
+
+        if n == 1:
+            setattr(args, p, getattr(args, p) * unique_augs)
+
+    args.unique_augs = unique_augs
+
+    if unique_augs > 1:
         args.transform_kwargs = [
             dict(
-                brightness=args.brightness,
-                contrast=args.contrast,
-                saturation=args.saturation,
-                hue=args.hue,
-                gaussian_prob=gaussian_probs[0],
-                solarization_prob=solarization_probs[0],
-                min_scale_crop=args.min_scale_crop,
-            ),
-            dict(
-                brightness=args.brightness,
-                contrast=args.contrast,
-                saturation=args.saturation,
-                hue=args.hue,
-                gaussian_prob=gaussian_probs[1],
-                solarization_prob=solarization_probs[1],
-                min_scale_crop=args.min_scale_crop,
-            ),
+                brightness=brightness,
+                contrast=contrast,
+                saturation=saturation,
+                hue=hue,
+                gaussian_prob=gaussian_prob,
+                solarization_prob=solarization_prob,
+                min_scale=min_scale,
+            )
+            for (
+                brightness,
+                contrast,
+                saturation,
+                hue,
+                gaussian_prob,
+                solarization_prob,
+                min_scale,
+            ) in zip(
+                args.brightness,
+                args.contrast,
+                args.saturation,
+                args.hue,
+                args.gaussian_prob,
+                args.solarization_prob,
+                args.min_scale,
+            )
         ]
+
     elif not args.multicrop:
         args.transform_kwargs = dict(
-            brightness=args.brightness,
-            contrast=args.contrast,
-            saturation=args.saturation,
-            hue=args.hue,
-            gaussian_prob=args.gaussian_prob,
-            solarization_prob=args.solarization_prob,
-            min_scale_crop=args.min_scale_crop,
+            brightness=args.brightness[0],
+            contrast=args.contrast[0],
+            saturation=args.saturation[0],
+            hue=args.hue[0],
+            gaussian_prob=args.gaussian_prob[0],
+            solarization_prob=args.solarization_prob[0],
+            min_scale=args.min_scale[0],
         )
     else:
         args.transform_kwargs = dict(
-            brightness=args.brightness,
-            contrast=args.contrast,
-            saturation=args.saturation,
-            hue=args.hue,
-            gaussian_prob=args.gaussian_prob,
-            solarization_prob=args.solarization_prob,
+            brightness=args.brightness[0],
+            contrast=args.contrast[0],
+            saturation=args.saturation[0],
+            hue=args.hue[0],
+            gaussian_prob=args.gaussian_prob[0],
+            solarization_prob=args.solarization_prob[0],
         )
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False

@@ -12,11 +12,11 @@ def test_dali_dataloader():
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
         n_crops = [2, 4]
         size_crops = [224, 96]
-        min_scale_crops = [0.14, 0.05]
+        min_scales = [0.14, 0.05]
         max_scale_crops = [1.0, 0.14]
 
         transforms = []
-        for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
+        for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
             transform = ImagenetTransform(
                 device="cpu",
                 brightness=0.4,
@@ -37,9 +37,6 @@ def test_dali_dataloader():
             batch_size=4,
             transforms=transforms,
             n_crops=n_crops,
-            size_crops=size_crops,
-            min_scale_crops=min_scale_crops,
-            max_scale_crops=max_scale_crops,
             device="cpu",
             device_id=0,
             shard_id=0,

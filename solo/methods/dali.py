@@ -90,14 +90,11 @@ class PretrainABC(ABC):
 
         # get data arguments from model
         dali_device = self.extra_args["dali_device"]
-        brightness = self.extra_args["brightness"]
-        contrast = self.extra_args["contrast"]
-        saturation = self.extra_args["saturation"]
-        hue = self.extra_args["hue"]
-        gaussian_prob = self.extra_args["gaussian_prob"]
-        solarization_prob = self.extra_args["solarization_prob"]
-        asymmetric_augmentations = self.extra_args["asymmetric_augmentations"]
         last_batch_fill = self.extra_args["last_batch_fill"]
+
+        # data augmentations
+        unique_augs = self.extra_args["unique_augs"]
+        transform_kwargs = self.extra_args["transform_kwargs"]
 
         num_workers = self.extra_args["num_workers"]
         data_dir = self.extra_args["data_dir"]
@@ -106,19 +103,14 @@ class PretrainABC(ABC):
         if self.multicrop:
             n_crops = [self.n_crops, self.n_small_crops]
             size_crops = [224, 96]
-            min_scale_crops = [0.14, 0.05]
+            min_scales = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]
 
             transforms = []
-            for size, min_scale, max_scale in zip(size_crops, min_scale_crops, max_scale_crops):
+            for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
                 transform = ImagenetTransform(
                     device=dali_device,
-                    brightness=brightness,
-                    contrast=contrast,
-                    saturation=saturation,
-                    hue=hue,
-                    gaussian_prob=gaussian_prob,
-                    solarization_prob=solarization_prob,
+                    **transform_kwargs,
                     size=size,
                     min_scale=min_scale,
                     max_scale=max_scale,
@@ -129,9 +121,6 @@ class PretrainABC(ABC):
                 batch_size=self.batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
-                size_crops=size_crops,
-                min_scale_crops=min_scale_crops,
-                max_scale_crops=max_scale_crops,
                 device=dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
@@ -145,48 +134,24 @@ class PretrainABC(ABC):
             ]
 
         else:
-            min_scale_crop = self.extra_args["min_scale_crop"]
-
-            if asymmetric_augmentations:
+            if unique_augs > 1:
                 transform = [
                     ImagenetTransform(
                         device=dali_device,
-                        brightness=brightness,
-                        contrast=contrast,
-                        saturation=saturation,
-                        hue=hue,
-                        gaussian_prob=1.0,
-                        solarization_prob=0.0,
+                        **kwargs,
                         size=224,
-                        min_scale=min_scale_crop,
                         max_scale=1.0,
-                    ),
-                    ImagenetTransform(
-                        device=dali_device,
-                        brightness=brightness,
-                        contrast=contrast,
-                        saturation=saturation,
-                        hue=hue,
-                        gaussian_prob=0.1,
-                        solarization_prob=0.2,
-                        size=224,
-                        min_scale=min_scale_crop,
-                        max_scale=1.0,
-                    ),
+                    )
+                    for kwargs in transform_kwargs
                 ]
             else:
                 transform = ImagenetTransform(
                     device=dali_device,
-                    brightness=brightness,
-                    contrast=contrast,
-                    saturation=saturation,
-                    hue=hue,
-                    gaussian_prob=gaussian_prob,
-                    solarization_prob=solarization_prob,
+                    **transform_kwargs,
                     size=224,
-                    min_scale=min_scale_crop,
                     max_scale=1.0,
                 )
+
             train_pipeline = PretrainPipeline(
                 os.path.join(data_dir, train_dir),
                 batch_size=self.batch_size,

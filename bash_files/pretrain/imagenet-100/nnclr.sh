@@ -21,10 +21,11 @@ python3 ../../../main_pretrain.py \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
+    --hue 0.1 \
+    --gaussian_prob 1.0 0.1 \
+    --solarization_prob 0.0 0.2 \
     --num_workers 8 \
     --dali \
-    --hue 0.1 \
-    --asymmetric_augmentations \
     --name nnclr-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
