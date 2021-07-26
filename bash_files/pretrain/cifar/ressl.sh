@@ -16,16 +16,17 @@ python3 ../../../main_pretrain.py \
     --weight_decay 1e-5 \
     --batch_size 256 \
     --num_workers 5 \
-    --brightness 0.4 \
-    --contrast 0.4 \
-    --saturation 0.2 \
-    --hue 0.1 \
-    --asymmetric_augmentations \
-    --name byol-$1 \
+    --brightness 0.4 0.0 \
+    --contrast 0.4 0.0 \
+    --saturation 0.2 0.0 \
+    --hue 0.1 0.0 \
+    --gaussian_prob 0.0 0.0 \
+    --solarization_prob 0.0 0.0 \
+    --name ressl-$1 \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
-    --method byol \
+    --method ressl \
     --output_dim 256 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \
