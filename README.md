@@ -60,7 +60,7 @@ While the library is self contained, it is possible to use the models outside of
 **Optional**:
 * nvidia-dali
 
-**NOTE:** if you are using CUDA 10.X use `nvidia-dali-cuda100` in `requirements.txt`.
+**NOTE:** if you are using CUDA 10.X change `nvidia-dali-cuda110` to `nvidia-dali-cuda100` in `setup.py`, line 7.
 
 ---
 
