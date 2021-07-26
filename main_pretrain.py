@@ -16,6 +16,13 @@ except ImportError:
 else:
     _dali_avaliable = True
 
+try:
+    from solo.utils.auto_umap import AutoUMAP
+except ImportError:
+    _umap_available = False
+else:
+    _umap_available = True
+
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.pretrain_dataloader import (
@@ -36,7 +43,9 @@ def main():
 
     MethodClass = METHODS[args.method]
     if args.dali:
-        assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with [dali]."
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
 
     model = MethodClass(**args.__dict__)
@@ -121,6 +130,17 @@ def main():
             frequency=args.checkpoint_frequency,
         )
         callbacks.append(ckpt)
+
+        if args.auto_umap:
+            assert (
+                _umap_available
+            ), "UMAP is not currently avaiable, please install it first with [umap]."
+            auto_umap = AutoUMAP(
+                args,
+                logdir=os.path.join(args.auto_umap_dir, args.method),
+                frequency=args.auto_umap_frequency,
+            )
+            callbacks.append(auto_umap)
 
     trainer = Trainer.from_argparse_args(
         args,

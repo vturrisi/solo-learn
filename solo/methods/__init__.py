@@ -29,40 +29,24 @@ METHODS = {
     "vicreg": VICReg,
     "wmse": WMSE,
 }
-
+__all__ = [
+    "BarlowTwins",
+    "BYOL",
+    "BaseModel",
+    "DINO",
+    "LinearModel",
+    "MoCoV2Plus",
+    "NNCLR",
+    "SimCLR",
+    "SimSiam",
+    "SwAV",
+    "VICReg",
+    "WMSE",
+]
 
 try:
-    from solo.methods import dali
+    from solo.methods import dali  # noqa: F401
 except ImportError:
-    __all__ = [
-        "BarlowTwins",
-        "BYOL",
-        "BaseModel",
-        "DINO",
-        "LinearModel",
-        "MoCoV2Plus",
-        "NNCLR",
-        "ReSSL",
-        "SimCLR",
-        "SimSiam",
-        "SwAV",
-        "VICReg",
-        "WMSE",
-    ]
+    pass
 else:
-    __all__ = [
-        "BarlowTwins",
-        "BYOL",
-        "BaseModel",
-        "DINO",
-        "LinearModel",
-        "MoCoV2Plus",
-        "NNCLR",
-        "ReSSL",
-        "SimCLR",
-        "SimSiam",
-        "SwAV",
-        "VICReg",
-        "WMSE",
-        "dali",
-    ]
+    __all__.append("dali")
