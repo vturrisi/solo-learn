@@ -40,7 +40,8 @@ While the library is self contained, it is possible to use the models outside of
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
 * Easy-to-extend modular code structure
 * Custom model logging with a simpler file organization
-* Common metrics and more to come (auto TSNE)
+* Automatic feature space visualization with UMAP
+* Common metrics and more to come...
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
     * **Note**: currently, only SimCLR supports this
