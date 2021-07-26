@@ -31,7 +31,8 @@ Evaluation and logging
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
 * Easy-to-extend modular code structure
 * Custom model logging with a simpler file organization
-* Common metrics and more to come (auto TSNE)
+* Automatic feature space visualization with UMAP
+* Common metrics and more to come...
 
 
 Training tricks
