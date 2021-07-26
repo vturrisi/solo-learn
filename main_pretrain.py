@@ -44,7 +44,7 @@ def main():
     # contrastive dataloader
     if not args.dali:
         # asymmetric augmentations
-        if args.asymmetric_augmentations:
+        if args.unique_augs > 1:
             transform = [
                 prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
                 for kwargs in args.transform_kwargs
@@ -59,7 +59,7 @@ def main():
             pprint(transform)
 
         if args.multicrop:
-            assert not args.asymmetric_augmentations
+            assert not args.unique_augs == 1
 
             if args.dataset in ["cifar10", "cifar100"]:
                 size_crops = [32, 24]
@@ -78,7 +78,10 @@ def main():
             transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
 
         train_dataset = prepare_datasets(
-            args.dataset, transform, data_dir=args.data_dir, train_dir=args.train_dir,
+            args.dataset,
+            transform,
+            data_dir=args.data_dir,
+            train_dir=args.train_dir,
         )
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
@@ -99,7 +102,10 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)

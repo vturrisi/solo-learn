@@ -41,14 +41,13 @@ def augmentations_args(parser: ArgumentParser):
     parser.add_argument("--n_small_crops", type=int, default=0)
 
     # augmentations
-    parser.add_argument("--brightness", type=float, required=True)
-    parser.add_argument("--contrast", type=float, required=True)
-    parser.add_argument("--saturation", type=float, required=True)
-    parser.add_argument("--hue", type=float, required=True)
-    parser.add_argument("--gaussian_prob", type=float, default=0.5)
-    parser.add_argument("--solarization_prob", type=float, default=0)
-    parser.add_argument("--min_scale_crop", type=float, default=0.08)
-    parser.add_argument("--asymmetric_augmentations", action="store_true")
+    parser.add_argument("--brightness", type=float, required=True, nargs="+")
+    parser.add_argument("--contrast", type=float, required=True, nargs="+")
+    parser.add_argument("--saturation", type=float, required=True, nargs="+")
+    parser.add_argument("--hue", type=float, required=True, nargs="+")
+    parser.add_argument("--gaussian_prob", type=float, default=[0.5], nargs="+")
+    parser.add_argument("--solarization_prob", type=float, default=[0.0], nargs="+")
+    parser.add_argument("--min_scale", type=float, default=[0.08], nargs="+")
 
     # debug
     parser.add_argument("--debug_augmentations", action="store_true")

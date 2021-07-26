@@ -127,7 +127,7 @@ class CifarTransform(BaseTransform):
         hue: float,
         gaussian_prob: float = 0.0,
         solarization_prob: float = 0.0,
-        min_scale_crop: float = 0.08,
+        min_scale: float = 0.08,
     ):
         """Applies cifar transformations.
 
@@ -139,7 +139,7 @@ class CifarTransform(BaseTransform):
             gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
-            min_scale_crop (float, optional): minimum scale of the crops. Defaults to 0.08.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
         """
 
         super().__init__()
@@ -148,7 +148,7 @@ class CifarTransform(BaseTransform):
             [
                 transforms.RandomResizedCrop(
                     (32, 32),
-                    scale=(min_scale_crop, 1.0),
+                    scale=(min_scale, 1.0),
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
@@ -173,7 +173,7 @@ class STLTransform(BaseTransform):
         hue: float,
         gaussian_prob: float = 0.0,
         solarization_prob: float = 0.0,
-        min_scale_crop: float = 0.08,
+        min_scale: float = 0.08,
     ):
         """Applies STL10 transformations.
 
@@ -185,7 +185,7 @@ class STLTransform(BaseTransform):
             gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
-            min_scale_crop (float, optional): minimum scale of the crops. Defaults to 0.08.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
         """
 
         super().__init__()
@@ -193,7 +193,7 @@ class STLTransform(BaseTransform):
             [
                 transforms.RandomResizedCrop(
                     (96, 96),
-                    scale=(min_scale_crop, 1.0),
+                    scale=(min_scale, 1.0),
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
@@ -218,7 +218,7 @@ class ImagenetTransform(BaseTransform):
         hue: float,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
-        min_scale_crop: float = 0.08,
+        min_scale: float = 0.08,
     ):
         """Class that applies Imagenet transformations.
 
@@ -230,7 +230,7 @@ class ImagenetTransform(BaseTransform):
             gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
-            min_scale_crop (float, optional): minimum scale of the crops. Defaults to 0.08.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
         """
 
         super().__init__()
@@ -238,7 +238,7 @@ class ImagenetTransform(BaseTransform):
             [
                 transforms.RandomResizedCrop(
                     224,
-                    scale=(min_scale_crop, 1.0),
+                    scale=(min_scale, 1.0),
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
                 transforms.RandomApply(
@@ -261,7 +261,7 @@ class MulticropAugmentation:
         transform: Callable,
         size_crops: Sequence[int],
         n_crops: Sequence[int],
-        min_scale_crops: Sequence[float],
+        min_scales: Sequence[float],
         max_scale_crops: Sequence[float],
     ):
         """Class that applies multi crop augmentation.
@@ -270,7 +270,7 @@ class MulticropAugmentation:
             transform (Callable): transformation callable without cropping.
             size_crops (Sequence[int]): a sequence of sizes of the crops.
             n_crops (Sequence[int]): a sequence number of crops per crop size.
-            min_scale_crops (Sequence[float]): sequence of minimum crop scales per crop
+            min_scales (Sequence[float]): sequence of minimum crop scales per crop
                 size.
             max_scale_crops (Sequence[float]): sequence of maximum crop scales per crop
                 size.
@@ -278,14 +278,14 @@ class MulticropAugmentation:
 
         self.size_crops = size_crops
         self.n_crops = n_crops
-        self.min_scale_crops = min_scale_crops
+        self.min_scales = min_scales
         self.max_scale_crops = max_scale_crops
 
         self.transforms = []
         for i in range(len(size_crops)):
             rrc = transforms.RandomResizedCrop(
                 size_crops[i],
-                scale=(min_scale_crops[i], max_scale_crops[i]),
+                scale=(min_scales[i], max_scale_crops[i]),
                 interpolation=transforms.InterpolationMode.BICUBIC,
             )
             full_transform = transforms.Compose([rrc, transform])
@@ -419,7 +419,7 @@ def prepare_multicrop_transform(
     transform: Callable,
     size_crops: Sequence[int],
     n_crops: Optional[Sequence[int]] = None,
-    min_scale_crops: Optional[Sequence[float]] = None,
+    min_scales: Optional[Sequence[float]] = None,
     max_scale_crops: Optional[Sequence[float]] = None,
 ) -> MulticropAugmentation:
     """Prepares multicrop transformations by creating custom crops given the parameters.
@@ -428,7 +428,7 @@ def prepare_multicrop_transform(
         transform (Callable): transformation callable without cropping.
         size_crops (Sequence[int]): a sequence of sizes of the crops.
         n_crops (Optional[Sequence[int]]): list of number of crops per crop size.
-        min_scale_crops (Optional[Sequence[float]]): sequence of minimum crop scales per crop
+        min_scales (Optional[Sequence[float]]): sequence of minimum crop scales per crop
             size.
         max_scale_crops (Optional[Sequence[float]]): sequence of maximum crop scales per crop
             size.
@@ -440,8 +440,8 @@ def prepare_multicrop_transform(
 
     if n_crops is None:
         n_crops = [2, 6]
-    if min_scale_crops is None:
-        min_scale_crops = [0.14, 0.05]
+    if min_scales is None:
+        min_scales = [0.14, 0.05]
     if max_scale_crops is None:
         max_scale_crops = [1.0, 0.14]
 
@@ -449,7 +449,7 @@ def prepare_multicrop_transform(
         transform,
         size_crops=size_crops,
         n_crops=n_crops,
-        min_scale_crops=min_scale_crops,
+        min_scales=min_scales,
         max_scale_crops=max_scale_crops,
     )
 
