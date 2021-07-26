@@ -5,6 +5,9 @@ runs/
 wandb/
 wandb*/
 
+# umap dir
+auto_umap/
+
 # datasets dir
 datasets/
 # saved models
