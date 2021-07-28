@@ -55,6 +55,7 @@ def additional_setup_pretrain(args: Namespace):
             args.gaussian_prob,
             args.solarization_prob,
             args.min_scale,
+            args.size,
         ]
     )
     assert unique_augs == args.n_crops or unique_augs == 1
@@ -69,6 +70,7 @@ def additional_setup_pretrain(args: Namespace):
         "gaussian_prob",
         "solarization_prob",
         "min_scale",
+        "size",
     ]:
         values = getattr(args, p)
         n = len(values)
@@ -89,6 +91,7 @@ def additional_setup_pretrain(args: Namespace):
                 gaussian_prob=gaussian_prob,
                 solarization_prob=solarization_prob,
                 min_scale=min_scale,
+                size=size,
             )
             for (
                 brightness,
@@ -98,6 +101,7 @@ def additional_setup_pretrain(args: Namespace):
                 gaussian_prob,
                 solarization_prob,
                 min_scale,
+                size,
             ) in zip(
                 args.brightness,
                 args.contrast,
@@ -106,6 +110,7 @@ def additional_setup_pretrain(args: Namespace):
                 args.gaussian_prob,
                 args.solarization_prob,
                 args.min_scale,
+                args.size,
             )
         ]
 
@@ -118,6 +123,7 @@ def additional_setup_pretrain(args: Namespace):
             gaussian_prob=args.gaussian_prob[0],
             solarization_prob=args.solarization_prob[0],
             min_scale=args.min_scale[0],
+            size=args.size[0],
         )
     else:
         args.transform_kwargs = dict(
@@ -128,6 +134,16 @@ def additional_setup_pretrain(args: Namespace):
             gaussian_prob=args.gaussian_prob[0],
             solarization_prob=args.solarization_prob[0],
         )
+
+    # add support for custom mean and std
+    if not args.multicrop and args.dataset == "custom":
+        if isinstance(args.transform_kwargs, dict):
+            args.transform_kwargs["mean"] = args.mean
+            args.transform_kwargs["std"] = args.std
+        else:
+            for kwargs in args.transform_kwargs:
+                kwargs["mean"] = args.mean
+                kwargs["std"] = args.std
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 

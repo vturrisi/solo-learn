@@ -235,6 +235,7 @@ class ImagenetTransform(BaseTransform):
         hue: float,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        size: int = 224,
         min_scale: float = 0.08,
     ):
         """Class that applies Imagenet transformations.
@@ -248,13 +249,14 @@ class ImagenetTransform(BaseTransform):
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+            size (int, optional): size of the crop. Defaults to 224.
         """
 
         super().__init__()
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    224,
+                    size,
                     scale=(min_scale, 1.0),
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
@@ -282,7 +284,7 @@ class CustomTransform(BaseTransform):
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
         min_scale: float = 0.08,
-        crop_size: int = 224,
+        size: int = 224,
         mean: Sequence[float] = (0.485, 0.456, 0.406),
         std: Sequence[float] = (0.228, 0.224, 0.225),
     ):
@@ -298,7 +300,7 @@ class CustomTransform(BaseTransform):
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
-            crop_size (int, optional): size of the crop. Defaults to 224.
+            size (int, optional): size of the crop. Defaults to 224.
             mean (Sequence[float], optional): mean values for normalization.
                 Defaults to (0.485, 0.456, 0.406).
             std (Sequence[float], optional): std values for normalization.
@@ -309,7 +311,7 @@ class CustomTransform(BaseTransform):
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    crop_size,
+                    size,
                     scale=(min_scale, 1.0),
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),

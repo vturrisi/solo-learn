@@ -149,7 +149,6 @@ class PretrainABC(ABC):
                     transform_pipeline(
                         device=dali_device,
                         **kwargs,
-                        size=224,
                         max_scale=1.0,
                     )
                     for kwargs in transform_kwargs
@@ -158,7 +157,6 @@ class PretrainABC(ABC):
                 transform = transform_pipeline(
                     device=dali_device,
                     **transform_kwargs,
-                    size=224,
                     max_scale=1.0,
                 )
 

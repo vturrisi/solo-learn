@@ -30,9 +30,6 @@ def dataset_args(parser: ArgumentParser):
 
     # custom dataset only
     parser.add_argument("--no_labels", action="store_true")
-    parser.add_argument("--crop_size", action="store_true")
-    parser.add_argument("--mean", type=float, default=None, nargs="+")
-    parser.add_argument("--std", type=float, default=None, nargs="+")
 
 
 def augmentations_args(parser: ArgumentParser):
@@ -55,6 +52,13 @@ def augmentations_args(parser: ArgumentParser):
     parser.add_argument("--gaussian_prob", type=float, default=[0.5], nargs="+")
     parser.add_argument("--solarization_prob", type=float, default=[0.0], nargs="+")
     parser.add_argument("--min_scale", type=float, default=[0.08], nargs="+")
+
+    # for imagenet or custom dataset
+    parser.add_argument("--size", type=int, default=[224], nargs="+")
+
+    # for custom dataset
+    parser.add_argument("--mean", type=float, default=[0.485, 0.456, 0.406], nargs="+")
+    parser.add_argument("--std", type=float, default=[0.228, 0.224, 0.225], nargs="+")
 
     # debug
     parser.add_argument("--debug_augmentations", action="store_true")
