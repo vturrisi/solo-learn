@@ -42,7 +42,7 @@ def additional_setup_pretrain(args: Namespace):
         dir_path = os.path.join(args.data_dir, args.train_dir)
         args.n_classes = max(
             1,
-            sum(os.path.isdir(os.path.join(dir_path, i)) for i in os.listdir(dir_path)),
+            len(entry.name for entry in os.scandir(dir_path) if entry.is_dir),
         )
 
     unique_augs = max(
