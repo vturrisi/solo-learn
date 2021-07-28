@@ -324,7 +324,9 @@ class BaseModel(pl.LightningModule):
         out = self._base_forward(X)
         logits, feats = out["logits"], out["feats"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
-        acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
+        # handle when the number of classes is smaller than 5
+        top_k_max = min(5, logits.size(1))
+        acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
         return {
             "loss": loss,
             "logits": logits,

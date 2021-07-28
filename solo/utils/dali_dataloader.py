@@ -1,4 +1,5 @@
-from typing import Callable, Iterable, Union, List
+import os
+from typing import Callable, Iterable, List, Union
 
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
@@ -329,6 +330,85 @@ class ImagenetTransform:
         return out
 
 
+class CustomTransform:
+    def __init__(
+        self,
+        device: str,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
+        size: int = 224,
+        min_scale: float = 0.08,
+        max_scale: float = 1.0,
+    ):
+        """Applies Custom transformations.
+        If you want to do exoteric augmentations, you can just re-write this class.
+
+        Args:
+            device (str): device on which the operations will be performed.
+            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): sampled uniformly in [-hue, hue].
+            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
+            solarization_prob (float, optional): probability of applying solarization. Defaults
+                to 0.0.
+            size (int, optional): size of the side of the image after transformation. Defaults
+                to 224.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+            max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
+        """
+
+        # random crop
+        self.random_crop = ops.RandomResizedCrop(
+            device=device,
+            size=size,
+            random_area=(min_scale, max_scale),
+            interp_type=types.INTERP_CUBIC,
+        )
+
+        # color jitter
+        self.random_color_jitter = RandomColorJitter(
+            brightness=brightness,
+            contrast=contrast,
+            saturation=saturation,
+            hue=hue,
+            prob=0.8,
+            device=device,
+        )
+
+        # grayscale conversion
+        self.random_grayscale = RandomGrayScaleConversion(prob=0.2, device=device)
+
+        # gaussian blur
+        self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
+
+        # solarization
+        self.random_solarization = RandomSolarize(prob=solarization_prob)
+
+        # normalize and horizontal flip
+        self.cmn = ops.CropMirrorNormalize(
+            device=device,
+            dtype=types.FLOAT,
+            output_layout=types.NCHW,
+            mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
+            std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
+        )
+        self.coin05 = ops.random.CoinFlip(probability=0.5)
+
+    def __call__(self, images):
+        out = self.random_crop(images)
+        out = self.random_color_jitter(out)
+        out = self.random_grayscale(out)
+        out = self.random_gaussian_blur(out)
+        out = self.random_solarization(out)
+        out = self.cmn(out, mirror=self.coin05())
+        return out
+
+
 class PretrainPipeline(Pipeline):
     def __init__(
         self,
@@ -343,6 +423,7 @@ class PretrainPipeline(Pipeline):
         num_shards: int = 1,
         num_threads: int = 4,
         seed: int = 12,
+        no_labels: bool = False,
     ):
         """Initializes the pipeline for pretraining.
 
@@ -361,6 +442,7 @@ class PretrainPipeline(Pipeline):
             num_shards (int, optional): total number of shards. Defaults to 1.
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
+            no_labels (bool, optional): if the data has no labels. Defaults to False.
         """
 
         seed += device_id
@@ -372,12 +454,24 @@ class PretrainPipeline(Pipeline):
         )
 
         self.device = device
-        self.reader = ops.readers.File(
-            file_root=data_path,
-            shard_id=shard_id,
-            num_shards=num_shards,
-            random_shuffle=random_shuffle,
-        )
+
+        if no_labels:
+            files = [os.path.join(data_path, f) for f in os.listdir(data_path)]
+            labels = [-1] * len(files)
+            self.reader = ops.readers.File(
+                files=files,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                random_shuffle=random_shuffle,
+                labels=labels,
+            )
+        else:
+            self.reader = ops.readers.File(
+                file_root=data_path,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                random_shuffle=random_shuffle,
+            )
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0
@@ -434,6 +528,7 @@ class MulticropPretrainPipeline(Pipeline):
         num_shards: int = 1,
         num_threads: int = 4,
         seed: int = 12,
+        no_labels: bool = False,
     ):
         """Initializes the pipeline for pretraining with multicrop.
 
@@ -451,6 +546,7 @@ class MulticropPretrainPipeline(Pipeline):
             num_shards (int, optional): total number of shards. Defaults to 1.
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
+            no_labels (bool, optional): if the data has no labels. Defaults to False.
         """
 
         seed += device_id
@@ -462,12 +558,21 @@ class MulticropPretrainPipeline(Pipeline):
         )
 
         self.device = device
-        self.reader = ops.readers.File(
-            file_root=data_path,
-            shard_id=shard_id,
-            num_shards=num_shards,
-            random_shuffle=random_shuffle,
-        )
+        if no_labels:
+            files = [os.path.join(data_path, f) for f in os.listdir(data_path)]
+            self.reader = ops.readers.File(
+                files=files,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                random_shuffle=random_shuffle,
+            )
+        else:
+            self.reader = ops.readers.File(
+                file_root=data_path,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                random_shuffle=random_shuffle,
+            )
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0

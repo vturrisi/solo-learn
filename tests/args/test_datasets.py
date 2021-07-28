@@ -13,7 +13,6 @@ def test_argparse_dataset():
     assert "val_dir" in actions
     assert "dali" in actions
     assert "dali_device" in actions
-    assert "last_batch_fill" in actions
 
 
 def test_argparse_augmentations():

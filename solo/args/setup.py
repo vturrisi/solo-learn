@@ -2,7 +2,7 @@ import argparse
 
 import pytorch_lightning as pl
 from solo.args.dataset import augmentations_args, dataset_args
-from solo.args.utils import additional_setup_pretrain, additional_setup_linear
+from solo.args.utils import additional_setup_linear, additional_setup_pretrain
 from solo.methods import METHODS
 from solo.utils.checkpointer import Checkpointer
 

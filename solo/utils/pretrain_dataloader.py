@@ -29,6 +29,23 @@ def dataset_with_index(DatasetClass: Type[Dataset]) -> Type[Dataset]:
     return DatasetWithIndex
 
 
+class CustomDatasetWithoutLabels(Dataset):
+    def __init__(self, root, transform=None):
+        self.root = root
+        self.transform = transform
+        self.images = os.listdir(root)
+
+    def __getitem__(self, index):
+        path = os.path.join(self.root, self.images[index])
+        x = Image.open(path).convert("RGB")
+        if self.transform is not None:
+            x = self.transform(x)
+        return x, -1
+
+    def __len__(self):
+        return len(self.images)
+
+
 class GaussianBlur:
     def __init__(self, sigma: Sequence[float] = [0.1, 2.0]):
         """Gaussian blur as a callable object.
@@ -218,6 +235,7 @@ class ImagenetTransform(BaseTransform):
         hue: float,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        size: int = 224,
         min_scale: float = 0.08,
     ):
         """Class that applies Imagenet transformations.
@@ -231,13 +249,14 @@ class ImagenetTransform(BaseTransform):
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+            size (int, optional): size of the crop. Defaults to 224.
         """
 
         super().__init__()
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
-                    224,
+                    size,
                     scale=(min_scale, 1.0),
                     interpolation=transforms.InterpolationMode.BICUBIC,
                 ),
@@ -251,6 +270,61 @@ class ImagenetTransform(BaseTransform):
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+            ]
+        )
+
+
+class CustomTransform(BaseTransform):
+    def __init__(
+        self,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
+        min_scale: float = 0.08,
+        size: int = 224,
+        mean: Sequence[float] = (0.485, 0.456, 0.406),
+        std: Sequence[float] = (0.228, 0.224, 0.225),
+    ):
+        """Class that applies Custom transformations.
+        If you want to do exoteric augmentations, you can just re-write this class.
+
+        Args:
+            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): sampled uniformly in [-hue, hue].
+            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.
+            solarization_prob (float, optional): probability of applying solarization. Defaults
+                to 0.0.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+            size (int, optional): size of the crop. Defaults to 224.
+            mean (Sequence[float], optional): mean values for normalization.
+                Defaults to (0.485, 0.456, 0.406).
+            std (Sequence[float], optional): std values for normalization.
+                Defaults to (0.228, 0.224, 0.225).
+        """
+
+        super().__init__()
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(
+                    size,
+                    scale=(min_scale, 1.0),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
+                ),
+                transforms.RandomApply(
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
+                ),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=mean, std=std),
             ]
         )
 
@@ -378,6 +452,45 @@ class MulticropImagenetTransform(BaseTransform):
         )
 
 
+class MulticropCustomTransform(BaseTransform):
+    def __init__(
+        self,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        gaussian_prob: float = 0.5,
+        solarization_prob: float = 0.0,
+    ):
+        """Class that applies multicrop transform for Custom Datasets.
+        If you want to do exoteric augmentations, you can just re-write this class.
+
+        Args:
+            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): sampled uniformly in [-hue, hue].
+            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
+            solarization_prob (float, optional): minimum scale of the crops. Defaults to 0.0.
+        """
+
+        super().__init__()
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomApply(
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)],
+                    p=0.8,
+                ),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+            ]
+        )
+
+
 def prepare_transform(dataset: str, multicrop: bool = False, **kwargs) -> Any:
     """Prepares transforms for a specific dataset. Optionally uses multi crop.
 
@@ -397,6 +510,8 @@ def prepare_transform(dataset: str, multicrop: bool = False, **kwargs) -> Any:
         return (
             ImagenetTransform(**kwargs) if not multicrop else MulticropImagenetTransform(**kwargs)
         )
+    elif dataset == "custom":
+        return CustomTransform(**kwargs) if not multicrop else MulticropCustomTransform(**kwargs)
 
 
 def prepare_n_crop_transform(
@@ -459,6 +574,7 @@ def prepare_datasets(
     transform: Callable,
     data_dir: Optional[str] = None,
     train_dir: Optional[str] = None,
+    no_labels: Optional[bool] = False,
 ) -> Dataset:
     """Prepares the desired dataset.
 
@@ -468,6 +584,7 @@ def prepare_datasets(
         data_dir (Optional[str], optional): the directory to load data from. Defaults to None.
         train_dir (Optional[str], optional): training data directory to be appended to data_dir.
             Defaults to None.
+        no_labels (Optional[bool], optional): if the custom dataset has no labels.
 
     Returns:
         Dataset: the desired dataset with transformations.
@@ -500,6 +617,16 @@ def prepare_datasets(
     elif dataset in ["imagenet", "imagenet100"]:
         train_dir = os.path.join(data_dir, train_dir)
         train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
+
+    elif dataset == "custom":
+        train_dir = os.path.join(data_dir, train_dir)
+
+        if no_labels:
+            dataset_class = CustomDatasetWithoutLabels
+        else:
+            dataset_class = ImageFolder
+
+        train_dataset = dataset_with_index(dataset_class)(train_dir, transform)
 
     return train_dataset
 

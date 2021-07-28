@@ -14,6 +14,13 @@ While the library is self contained, it is possible to use the models outside of
 
 ---
 
+## News
+
+* **[Jul 21]**: :test_tube: Added Custom Dataset support.
+* **[Jul 21]**: :carousel_horse: Added AutoUMAP.
+
+---
+
 ## Methods available:
 
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
