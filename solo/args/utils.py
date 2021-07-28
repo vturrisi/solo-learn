@@ -145,6 +145,13 @@ def additional_setup_pretrain(args: Namespace):
                 kwargs["mean"] = args.mean
                 kwargs["std"] = args.std
 
+    if args.dataset in ["cifar10", "cifar100", "stl10"]:
+        if isinstance(args.transform_kwargs, dict):
+            del args.transform_kwargs["size"]
+        else:
+            for kwargs in args.transform_kwargs:
+                del kwargs["size"]
+
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
     if args.dali:
