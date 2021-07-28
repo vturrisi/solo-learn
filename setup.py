@@ -18,7 +18,7 @@ def parse_requirements(path):
 setup(
     name="solo",
     packages=find_packages(exclude=["bash_files"]),
-    version="0.0.6",
+    version="0.0.8",
     license="MIT",
     author="Victor G. Turrisi da Costa, Enrico Fini",
     author_email="vturrisi@gmail.com, enrico.fini@gmail.com",
