@@ -44,8 +44,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
 
     # add auto umap args
-    if _umap_available:
-        parser.add_argument("--auto_umap", action="store_true")
+    parser.add_argument("--auto_umap", action="store_true")
 
     # optionally add checkpointer and AutoUMAP args
     temp_args, _ = parser.parse_known_args()
