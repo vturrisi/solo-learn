@@ -1,4 +1,5 @@
 from argparse import Namespace
+import os
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -33,8 +34,16 @@ def additional_setup_pretrain(args: Namespace):
 
     args.transform_kwargs = {}
 
-    assert args.dataset in N_CLASSES_PER_DATASET
-    args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
+    if args.dataset in N_CLASSES_PER_DATASET:
+        args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
+    else:
+        # hack to maintain the current pipeline
+        # even if the custom dataset doesn't have any labels
+        dir_path = os.path.join(args.data_dir, args.train_dir)
+        args.n_classes = max(
+            1,
+            sum(os.path.isdir(os.path.join(dir_path, i)) for i in os.listdir(dir_path)),
+        )
 
     unique_augs = max(
         len(p)

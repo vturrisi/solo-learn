@@ -74,6 +74,7 @@ def main():
                 size_crops = [32, 24]
             elif args.dataset == "stl10":
                 size_crops = [96, 58]
+            # imagenet or custom dataset
             else:
                 size_crops = [224, 96]
 
@@ -91,20 +92,24 @@ def main():
             transform,
             data_dir=args.data_dir,
             train_dir=args.train_dir,
+            no_labels=args.no_labels,
         )
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
-    # normal dataloader
-    _, val_loader = prepare_data_classification(
-        args.dataset,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-    )
+    # normal dataloader for when it is available
+    if args.dataset in ["imagenet100", "imagenet", "custom"] and args.val_dir is None:
+        val_loader = None
+    else:
+        _, val_loader = prepare_data_classification(
+            args.dataset,
+            data_dir=args.data_dir,
+            train_dir=args.train_dir,
+            val_dir=args.val_dir,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+        )
 
     callbacks = []
 

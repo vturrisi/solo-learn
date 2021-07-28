@@ -26,7 +26,6 @@ def test_dali_pretrain():
         kwargs = {**BASE_KWARGS, **DATA_KWARGS_WRAPPED, **method_kwargs}
 
         kwargs["dali_device"] = "cpu"
-        kwargs["last_batch_fill"] = False
         kwargs["train_dir"] = "dummy_train"
         kwargs["data_dir"] = "."
 
@@ -81,7 +80,6 @@ def test_dali_linear():
         backbone.fc = nn.Identity()
 
         kwargs["dali_device"] = "cpu"
-        kwargs["last_batch_fill"] = False
         kwargs["data_dir"] = "."
         kwargs["train_dir"] = "dummy_train"
         kwargs["val_dir"] = "dummy_val"

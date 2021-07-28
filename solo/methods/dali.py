@@ -90,7 +90,6 @@ class PretrainABC(ABC):
 
         # get data arguments from model
         dali_device = self.extra_args["dali_device"]
-        last_batch_fill = self.extra_args["last_batch_fill"]
 
         # data augmentations
         unique_augs = self.extra_args["unique_augs"]
@@ -164,7 +163,7 @@ class PretrainABC(ABC):
             )
             output_map = ["large1", "large2", "label"]
 
-        policy = LastBatchPolicy.FILL if last_batch_fill else LastBatchPolicy.DROP
+        policy = LastBatchPolicy.DROP
         train_loader = PretrainWrapper(
             model_batch_size=self.batch_size,
             model_rank=device_id,

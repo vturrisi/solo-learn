@@ -14,6 +14,7 @@ def dataset_args(parser: ArgumentParser):
         "stl10",
         "imagenet",
         "imagenet100",
+        "custom",
     ]
 
     parser.add_argument("--dataset", choices=SUPPORTED_DATASETS, type=str, required=True)
@@ -22,10 +23,16 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--data_dir", type=str, required=True)
     parser.add_argument("--train_dir", type=str, default=None)
     parser.add_argument("--val_dir", type=str, default=None)
-    # dali (imagenet-100/imagenet only)
+
+    # dali (imagenet-100/imagenet/custom only)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--dali_device", type=str, default="gpu")
-    parser.add_argument("--last_batch_fill", action="store_true")
+
+    # custom dataset only
+    parser.add_argument("--no_labels", action="store_true")
+    parser.add_argument("--crop_size", action="store_true")
+    parser.add_argument("--mean", type=float, default=None, nargs="+")
+    parser.add_argument("--std", type=float, default=None, nargs="+")
 
 
 def augmentations_args(parser: ArgumentParser):

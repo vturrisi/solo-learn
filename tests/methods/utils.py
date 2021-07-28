@@ -48,7 +48,6 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_s
         "eta_lars": 0.02,
         "lr_decay_steps": None,
         "dali_device": "gpu",
-        "last_batch_fill": False,
         "batch_size": 32,
         "num_workers": 4,
         "data_dir": "/data/datasets",
