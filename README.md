@@ -14,6 +14,13 @@ While the library is self contained, it is possible to use the models outside of
 
 ---
 
+## News
+
+* **[Jul 21]**: :test_tube: Added Custom Dataset support.
+* **[Jul 21]**: :carousel_horse: Added AutoUMAP.
+
+---
+
 ## Methods available:
 
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
@@ -40,7 +47,8 @@ While the library is self contained, it is possible to use the models outside of
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
 * Easy-to-extend modular code structure
 * Custom model logging with a simpler file organization
-* Common metrics and more to come (auto TSNE)
+* Automatic feature space visualization with UMAP
+* Common metrics and more to come...
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
     * **Note**: currently, only SimCLR supports this
@@ -59,7 +67,7 @@ While the library is self contained, it is possible to use the models outside of
 **Optional**:
 * nvidia-dali
 
-**NOTE:** if you are using CUDA 10.X use `nvidia-dali-cuda100` in `requirements.txt`.
+**NOTE:** if you are using CUDA 10.X change `nvidia-dali-cuda110` to `nvidia-dali-cuda100` in `setup.py`, line 7.
 
 ---
 
@@ -70,7 +78,7 @@ To install the repository with Dali and/or UMAP support, use:
 pip3 install .[dali,umap]
 ```
 
-If no dali support is needed, the repository can be installed as:
+If no Dali/UMAP support is needed, the repository can be installed as:
 ```
 pip3 install .
 ```

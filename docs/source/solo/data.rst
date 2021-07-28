@@ -65,6 +65,11 @@ ImagenetTransform
 .. automethod:: solo.utils.pretrain_dataloader.ImagenetTransform.__init__
    :noindex:
 
+CustomTransform
+~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.pretrain_dataloader.CustomTransform.__init__
+   :noindex:
+
 MulticropAugmentation
 ~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.utils.pretrain_dataloader.MulticropAugmentation.__init__
@@ -84,6 +89,12 @@ MulticropImagenetTransform
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.utils.pretrain_dataloader.MulticropImagenetTransform.__init__
    :noindex:
+
+MulticropCustomTransform
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: solo.utils.pretrain_dataloader.MulticropCustomTransform.__init__
+   :noindex:
+
 
 
 Pretrain dataloader
