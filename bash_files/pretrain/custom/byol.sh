@@ -1,6 +1,7 @@
 # Train without labels.
 # To train with labels, simply remove --no_labels
 # --val_dir is optional and will expect a directory with subfolder (classes)
+# --dali flag is also supported
 python3 ../../../main_pretrain.py \
     --dataset custom \
     --encoder resnet18 \
