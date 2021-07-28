@@ -5,7 +5,8 @@ import torch.nn.functional as F
 def ressl_loss_func(
     logits_query: torch.Tensor, logits_key: torch.Tensor, temperature: float = 0.4
 ) -> torch.Tensor:
-    """Computes ReSSL's loss given a batch of queries from view 1 and a batch of logits_keys from view 2.
+    """Computes ReSSL's loss given a batch of queries from view 1 and
+    a batch of logits_keys from view 2.
 
     Args:
         logits_query (torch.Tensor): NxD Tensor containing the queries from view 1.

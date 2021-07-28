@@ -150,9 +150,13 @@ class ReSSL(BaseMomentumModel):
         with torch.no_grad():
             k = self.momentum_projector(feats2_momentum)
 
+        q = F.normalize(q, dim=-1)
+        k = F.normalize(k, dim=-1)
+
         # ------- contrastive loss -------
-        logits_q = torch.einsum("nc,ck->nk", [q, self.queue.clone().detach()])
-        logits_k = torch.einsum("nc,ck->nk", [k, self.queue.clone().detach()])
+        queue = self.queue.clone().detach()
+        logits_q = torch.einsum("nc,kc->nk", [q, queue])
+        logits_k = torch.einsum("nc,kc->nk", [k, queue])
 
         ressl_loss = ressl_loss_func(logits_q, logits_k, self.temperature)
 
