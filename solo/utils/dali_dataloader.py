@@ -457,11 +457,13 @@ class PretrainPipeline(Pipeline):
 
         if no_labels:
             files = [os.path.join(data_path, f) for f in os.listdir(data_path)]
+            labels = [-1] * len(files)
             self.reader = ops.readers.File(
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
+                labels=labels,
             )
         else:
             self.reader = ops.readers.File(

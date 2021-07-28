@@ -132,7 +132,7 @@ def additional_setup_pretrain(args: Namespace):
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 
     if args.dali:
-        assert args.dataset in ["imagenet100", "imagenet"]
+        assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
