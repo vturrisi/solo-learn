@@ -28,6 +28,7 @@ def test_dali_pretrain():
         kwargs["dali_device"] = "cpu"
         kwargs["train_dir"] = "dummy_train"
         kwargs["data_dir"] = "."
+        kwargs["dataset"] = "custom"
 
         kwargs["transform_kwargs"] = dict(
             brightness=0.4,

@@ -5,6 +5,7 @@ from abc import ABC
 import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
+    CustomTransform,
     PretrainPipeline,
     ImagenetTransform,
     MulticropPretrainPipeline,
@@ -99,6 +100,15 @@ class PretrainABC(ABC):
         data_dir = self.extra_args["data_dir"]
         train_dir = self.extra_args["train_dir"]
 
+        # handle custom data by creating the needed pipeline
+        dataset = self.extra_args["dataset"]
+        if dataset in ["imagenet100", "imagenet"]:
+            transform_pipeline = ImagenetTransform
+        elif dataset == "custom":
+            transform_pipeline = CustomTransform
+        else:
+            raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
+
         if self.multicrop:
             n_crops = [self.n_crops, self.n_small_crops]
             size_crops = [224, 96]
@@ -107,7 +117,7 @@ class PretrainABC(ABC):
 
             transforms = []
             for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
-                transform = ImagenetTransform(
+                transform = transform_pipeline(
                     device=dali_device,
                     **transform_kwargs,
                     size=size,
@@ -125,6 +135,7 @@ class PretrainABC(ABC):
                 shard_id=shard_id,
                 num_shards=num_shards,
                 num_threads=num_workers,
+                no_labels=self.extra_args["no_labels"],
             )
             output_map = [
                 *[f"large{i}" for i in range(n_crops[0])],
@@ -135,7 +146,7 @@ class PretrainABC(ABC):
         else:
             if unique_augs > 1:
                 transform = [
-                    ImagenetTransform(
+                    transform_pipeline(
                         device=dali_device,
                         **kwargs,
                         size=224,
@@ -144,7 +155,7 @@ class PretrainABC(ABC):
                     for kwargs in transform_kwargs
                 ]
             else:
-                transform = ImagenetTransform(
+                transform = transform_pipeline(
                     device=dali_device,
                     **transform_kwargs,
                     size=224,
@@ -160,6 +171,7 @@ class PretrainABC(ABC):
                 shard_id=shard_id,
                 num_shards=num_shards,
                 num_threads=num_workers,
+                no_labels=self.extra_args["no_labels"],
             )
             output_map = ["large1", "large2", "label"]
 

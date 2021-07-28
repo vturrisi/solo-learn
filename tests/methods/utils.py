@@ -27,6 +27,7 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, n_crops=2, n_s
         "encoder": "resnet18",
         "n_classes": 10 if cifar else 100,
         "cifar": cifar,
+        "no_labels": False,
         "zero_init_residual": True,
         "max_epochs": 2,
         "optimizer": "sgd",

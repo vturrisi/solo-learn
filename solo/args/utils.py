@@ -1,5 +1,5 @@
-from argparse import Namespace
 import os
+from argparse import Namespace
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
