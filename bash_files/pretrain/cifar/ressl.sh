@@ -4,9 +4,8 @@ python3 ../../../main_pretrain.py \
     --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
+    --precision 16 \
     --optimizer sgd \
-    --eta_lars 0.02 \
-    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 1.0 \
     --classifier_lr 0.1 \
