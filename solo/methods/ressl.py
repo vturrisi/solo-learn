@@ -65,7 +65,7 @@ class ReSSL(BaseMomentumModel):
         parser.add_argument("--queue_size", default=65536, type=int)
 
         # parameters
-        parser.add_argument("--temperature", type=float, default=0.2)
+        parser.add_argument("--temperature", type=float, default=0.04)
 
         return parent_parser
 
@@ -155,10 +155,7 @@ class ReSSL(BaseMomentumModel):
 
         # ------- contrastive loss -------
         queue = self.queue.clone().detach()
-        logits_q = torch.einsum("nc,kc->nk", [q, queue])
-        logits_k = torch.einsum("nc,kc->nk", [k, queue])
-
-        ressl_loss = ressl_loss_func(logits_q, logits_k, self.temperature)
+        ressl_loss = ressl_loss_func(q, k, queue, self.temperature)
 
         self.log("ressl_loss", ressl_loss, on_epoch=True, sync_dist=True)
 
