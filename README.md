@@ -169,7 +169,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 ## Training efficiency for DALI
 
-We report the training efficiency of some methods using a ResNet18 with and without DALI in a server with an Intel i9-9820X and two RTX2080ti.
+We report the training efficiency of some methods using a ResNet18 with and without DALI (4 workers per GPU) in a server with an Intel i9-9820X and two RTX2080ti.
 
 | Method       |  Dali  |  Total time for 20 epochs  |  Time for a 1 epoch |  GPU memory (per GPU) |
 |--------------|:------:|:--------------------------:|:-------------------:|:---------------------:|
@@ -180,7 +180,7 @@ We report the training efficiency of some methods using a ResNet18 with and with
 | NNCLR        | :x:              | 1h 38m 30s |  4m 55s              |      5060 MB     |
 |              |:heavy_check_mark:| 42m 3s     |  2m 6s  (64% faster) |      9244 MB     |
 
-**Note**: GPU memory increase doesn't scale with the model.
+**Note**: GPU memory increase doesn't scale with the model, rather it scales with the number of workers.
 
 ---
 
