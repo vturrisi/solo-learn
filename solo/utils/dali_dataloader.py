@@ -74,24 +74,35 @@ class RandomColorJitter:
 
         self.mux = Mux(prob=prob)
 
+        self.color = ops.ColorTwist(device=device)
+
         # look at torchvision docs to see how colorjitter samples stuff
         # for bright, cont and sat, it samples from [1-v, 1+v]
         # for hue, it samples from [-hue, hue]
-        self.color = ops.ColorTwist(device=device)
-        self.brightness = ops.random.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
-        self.contrast = ops.random.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
-        self.saturation = ops.random.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
-        # dali uses hue in degrees for some reason...
-        hue = 360 * hue
-        self.hue = ops.random.Uniform(range=[-hue, hue])
+
+        self.brightness = self.contrast = self.saturation = self.hue = 0
+
+        if brightness:
+            self.brightness = ops.random.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
+
+        if contrast:
+            self.contrast = ops.random.Uniform(range=[max(0, 1 - contrast), 1 + contrast])
+
+        if saturation:
+            self.saturation = ops.random.Uniform(range=[max(0, 1 - saturation), 1 + saturation])
+
+        if hue:
+            # dali uses hue in degrees for some reason...
+            hue = 360 * hue
+            self.hue = ops.random.Uniform(range=[-hue, hue])
 
     def __call__(self, images):
         out = self.color(
             images,
-            brightness=self.brightness(),
-            contrast=self.contrast(),
-            saturation=self.saturation(),
-            hue=self.hue(),
+            brightness=self.brightness() if callable(self.brightness) else self.brightness,
+            contrast=self.contrast() if callable(self.contrast) else self.contrast,
+            saturation=self.saturation() if callable(self.saturation) else self.saturation,
+            hue=self.hue() if callable(self.hue) else self.hue,
         )
         return self.mux(true_case=out, false_case=images)
 
