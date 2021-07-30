@@ -80,7 +80,10 @@ class RandomColorJitter:
         # for bright, cont and sat, it samples from [1-v, 1+v]
         # for hue, it samples from [-hue, hue]
 
-        self.brightness = self.contrast = self.saturation = self.hue = 0
+        self.brightness = 1
+        self.contrast = 1
+        self.saturation = 1
+        self.hue = 0
 
         if brightness:
             self.brightness = ops.random.Uniform(range=[max(0, 1 - brightness), 1 + brightness])
