@@ -17,7 +17,7 @@ python3 ../../../main_pretrain.py \
     --dali \
     --brightness 0.4 0.0 \
     --contrast 0.4 0.0 \
-    --saturation 0.2 0.0 \
+    --saturation 0.4 0.0 \
     --hue 0.1 0.0 \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.0 \
@@ -30,4 +30,6 @@ python3 ../../../main_pretrain.py \
     --proj_hidden_dim 4096 \
     --base_tau_momentum 0.99 \
     --final_tau_momentum 1.0 \
-    --momentum_classifier
+    --momentum_classifier \
+    --temperature_q 0.1 \
+    --temperature_k 0.04

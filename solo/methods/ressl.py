@@ -15,7 +15,8 @@ class ReSSL(BaseMomentumModel):
         self,
         output_dim: int,
         proj_hidden_dim: int,
-        temperature: float,
+        temperature_q: float,
+        temperature_k: float,
         queue_size: int,
         **kwargs,
     ):
@@ -25,6 +26,8 @@ class ReSSL(BaseMomentumModel):
             output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+            temperature_q (float): temperature for the contrastive augmentations.
+            temperature_k (float): temperature for the weak augmentation.
         """
 
         super().__init__(**kwargs)
@@ -44,7 +47,8 @@ class ReSSL(BaseMomentumModel):
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
-        self.temperature = temperature
+        self.temperature_q = temperature_q
+        self.temperature_k = temperature_k
         self.queue_size = queue_size
 
         # queue
@@ -65,7 +69,8 @@ class ReSSL(BaseMomentumModel):
         parser.add_argument("--queue_size", default=65536, type=int)
 
         # parameters
-        parser.add_argument("--temperature", type=float, default=0.04)
+        parser.add_argument("--temperature_q", type=float, default=0.1)
+        parser.add_argument("--temperature_k", type=float, default=0.04)
 
         return parent_parser
 
@@ -155,7 +160,7 @@ class ReSSL(BaseMomentumModel):
 
         # ------- contrastive loss -------
         queue = self.queue.clone().detach()
-        ressl_loss = ressl_loss_func(q, k, queue, self.temperature)
+        ressl_loss = ressl_loss_func(q, k, queue, self.temperature_q, self.temperature_k)
 
         self.log("ressl_loss", ressl_loss, on_epoch=True, sync_dist=True)
 
