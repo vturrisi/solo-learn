@@ -17,5 +17,6 @@ python3 ../../main_linear.py \
     --dali \
     --name mocov2plus-linear-eval \
     --pretrained_feature_extractor PATH \
-    --project contrastive_learning \
+    --project solo-learn \
+    --entity unitn-mhug \
     --wandb
