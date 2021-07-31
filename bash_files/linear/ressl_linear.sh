@@ -15,7 +15,7 @@ python3 ../../main_linear.py \
     --batch_size 256 \
     --num_workers 10 \
     --dali \
-    --name ressl-linear-eval \
+    --name ressl-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
