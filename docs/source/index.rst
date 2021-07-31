@@ -55,6 +55,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/dino
    solo/methods/mocov2plus
    solo/methods/nnclr
+   solo/methods/ressl
    solo/methods/simclr
    solo/methods/simsiam
    solo/methods/swav
@@ -73,12 +74,12 @@ While the library is self contained, it is possible to use the models outside of
    solo/losses/dino
    solo/losses/mocov2plus
    solo/losses/nnclr
+   solo/losses/ressl
    solo/losses/simclr
    solo/losses/simsiam
    solo/losses/swav
    solo/losses/vicreg
    solo/losses/wmse
-
 
 
 ======================================

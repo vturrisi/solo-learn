@@ -129,8 +129,8 @@ class ReSSL(BaseMomentumModel):
         """
 
         out = super().forward(X, *args, **kwargs)
-        z = self.projector(out["feats"])
-        return {**out, "z": z}
+        q = F.normalize(self.projector(out["feats"]), dim=-1)
+        return {**out, "q": q}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for BYOL reusing BaseModel training step.
