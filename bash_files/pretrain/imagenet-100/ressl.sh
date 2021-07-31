@@ -1,7 +1,7 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /data/datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -9,7 +9,7 @@ python3 ../../../main_pretrain.py \
     --precision 16 \
     --optimizer sgd \
     --scheduler warmup_cosine \
-    --lr 0.05 \
+    --lr 0.3 \
     --classifier_lr 0.1 \
     --weight_decay 1e-4 \
     --batch_size 128 \
@@ -19,7 +19,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 0.0 \
     --saturation 0.4 0.0 \
     --hue 0.1 0.0 \
-    --gaussian_prob 0.0 0.0 \
+    --gaussian_prob 0.5 0.0 \
     --solarization_prob 0.0 0.0 \
     --name ressl-400ep-imagenet100 \
     --project solo-learn \
