@@ -3,7 +3,7 @@ python3 ../../main_linear.py \
     --encoder resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/val \
+    --val_dir imagenet-100/test \
     --max_epochs 100 \
     --gpus 0 \
     --precision 16 \
@@ -15,7 +15,7 @@ python3 ../../main_linear.py \
     --batch_size 256 \
     --num_workers 10 \
     --dali \
-    --name mocov2plus-imagenet100-linear-eval \
+    --name ressl-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \

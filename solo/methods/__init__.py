@@ -10,6 +10,7 @@ from solo.methods.simsiam import SimSiam
 from solo.methods.swav import SwAV
 from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
+from solo.methods.ressl import ReSSL
 
 METHODS = {
     # base classes
@@ -21,6 +22,7 @@ METHODS = {
     "dino": DINO,
     "mocov2plus": MoCoV2Plus,
     "nnclr": NNCLR,
+    "ressl": ReSSL,
     "simclr": SimCLR,
     "simsiam": SimSiam,
     "swav": SwAV,
