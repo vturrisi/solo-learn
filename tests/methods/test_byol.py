@@ -5,8 +5,7 @@ import torch
 from pytorch_lightning import Trainer
 from solo.methods import BYOL
 
-from .utils import (DATA_KWARGS, gen_base_kwargs, gen_batch,
-                    prepare_dummy_dataloaders)
+from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
 def test_byol():
