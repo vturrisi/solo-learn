@@ -1,7 +1,8 @@
 import math
 import os
 from argparse import ArgumentParser, Namespace
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import pandas as pd
 import pytorch_lightning as pl
@@ -19,7 +20,7 @@ class AutoUMAP(Callback):
     def __init__(
         self,
         args: Namespace,
-        logdir: str = "auto_umap",
+        logdir: Union[str, Path] = Path("auto_umap"),
         frequency: int = 1,
         keep_previous: bool = False,
         color_palette: str = "hls",
@@ -29,8 +30,8 @@ class AutoUMAP(Callback):
 
         Args:
             args (Namespace): namespace object containing at least an attribute name.
-            logdir (str, optional): base directory to store checkpoints.
-                Defaults to "auto_umap".
+            logdir (Union[str, Path], optional): base directory to store checkpoints.
+                Defaults to Path("auto_umap").
             frequency (int, optional): number of epochs between each UMAP. Defaults to 1.
             color_palette (str, optional): color scheme for the classes. Defaults to "hls".
             keep_previous (bool, optional): whether to keep previous plots or not.
@@ -40,7 +41,7 @@ class AutoUMAP(Callback):
         super().__init__()
 
         self.args = args
-        self.logdir = logdir
+        self.logdir = Path(logdir)
         self.frequency = frequency
         self.color_palette = color_palette
         self.keep_previous = keep_previous
@@ -54,7 +55,7 @@ class AutoUMAP(Callback):
         """
 
         parser = parent_parser.add_argument_group("auto_umap")
-        parser.add_argument("--auto_umap_dir", default="auto_umap", type=str)
+        parser.add_argument("--auto_umap_dir", default=Path("auto_umap"), type=Path)
         parser.add_argument("--auto_umap_frequency", default=1, type=int)
         return parent_parser
 
@@ -70,7 +71,7 @@ class AutoUMAP(Callback):
         else:
             version = str(trainer.logger.version)
         if version is not None:
-            self.path = os.path.join(self.logdir, version)
+            self.path = self.logdir / version
             self.umap_placeholder = f"{self.args.name}-{version}" + "-ep={}.pdf"
         else:
             self.path = self.logdir
@@ -162,7 +163,7 @@ class AutoUMAP(Callback):
 
             # save plot locally as well
             epoch = trainer.current_epoch  # type: ignore
-            plt.savefig(os.path.join(self.path, self.umap_placeholder.format(epoch)))
+            plt.savefig(self.path / self.umap_placeholder.format(epoch))
             plt.close()
 
     def on_validation_end(self, trainer: pl.Trainer, module: pl.LightningModule):

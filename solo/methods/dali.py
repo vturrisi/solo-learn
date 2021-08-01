@@ -1,7 +1,6 @@
 import math
-import os
 from abc import ABC
-
+from pathlib import Path
 import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
@@ -97,8 +96,8 @@ class PretrainABC(ABC):
         transform_kwargs = self.extra_args["transform_kwargs"]
 
         num_workers = self.extra_args["num_workers"]
-        data_dir = self.extra_args["data_dir"]
-        train_dir = self.extra_args["train_dir"]
+        data_dir = Path(self.extra_args["data_dir"])
+        train_dir = Path(self.extra_args["train_dir"])
 
         # handle custom data by creating the needed pipeline
         dataset = self.extra_args["dataset"]
@@ -126,7 +125,7 @@ class PretrainABC(ABC):
                 )
                 transforms.append(transform)
             train_pipeline = MulticropPretrainPipeline(
-                os.path.join(data_dir, train_dir),
+                data_dir / train_dir,
                 batch_size=self.batch_size,
                 transforms=transforms,
                 n_crops=n_crops,
@@ -161,7 +160,7 @@ class PretrainABC(ABC):
                 )
 
             train_pipeline = PretrainPipeline(
-                os.path.join(data_dir, train_dir),
+                data_dir / train_dir,
                 batch_size=self.batch_size,
                 transform=transform,
                 device=dali_device,
@@ -198,11 +197,11 @@ class ClassificationABC(ABC):
 
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
-        data_dir = self.extra_args["data_dir"]
-        train_dir = self.extra_args["train_dir"]
+        data_dir = Path(self.extra_args["data_dir"])
+        train_dir = Path(self.extra_args["train_dir"])
 
         train_pipeline = NormalPipeline(
-            os.path.join(data_dir, train_dir),
+            data_dir / train_dir,
             validation=False,
             batch_size=self.batch_size,
             device=dali_device,
@@ -227,11 +226,11 @@ class ClassificationABC(ABC):
 
         num_workers = self.extra_args["num_workers"]
         dali_device = self.extra_args["dali_device"]
-        data_dir = self.extra_args["data_dir"]
-        val_dir = self.extra_args["val_dir"]
+        data_dir = Path(self.extra_args["data_dir"])
+        val_dir = Path(self.extra_args["val_dir"])
 
         val_pipeline = NormalPipeline(
-            os.path.join(data_dir, val_dir),
+            data_dir / val_dir,
             validation=True,
             batch_size=self.batch_size,
             device=dali_device,

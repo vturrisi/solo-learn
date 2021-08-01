@@ -1,5 +1,4 @@
 import argparse
-import os
 import shutil
 
 from pytorch_lightning import Trainer
@@ -47,10 +46,8 @@ def test_auto_umap():
     trainer.fit(model, train_dl, val_dl)
 
     # check if checkpointer dumped the umap
-    umap_path = os.path.join(
-        auto_umap.path, auto_umap.umap_placeholder.format(trainer.current_epoch)
-    )
-    assert os.path.exists(umap_path)
+    umap_path = auto_umap.path / auto_umap.umap_placeholder.format(trainer.current_epoch)
+    assert umap_path.exists()
 
     # clean stuff
     shutil.rmtree(auto_umap.logdir)

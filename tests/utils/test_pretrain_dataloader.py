@@ -1,14 +1,14 @@
 import numpy as np
 from PIL import Image
-from torchvision.datasets.cifar import CIFAR10
-from torch.utils.data import DataLoader
 from solo.utils.pretrain_dataloader import (
-    prepare_n_crop_transform,
-    prepare_transform,
-    prepare_multicrop_transform,
     prepare_dataloader,
     prepare_datasets,
+    prepare_multicrop_transform,
+    prepare_n_crop_transform,
+    prepare_transform,
 )
+from torch.utils.data import DataLoader
+from torchvision.datasets.cifar import CIFAR10
 
 
 def test_transforms():

@@ -4,8 +4,8 @@ from PIL import Image
 from solo.utils.pretrain_dataloader import (
     dataset_with_index,
     prepare_dataloader,
-    prepare_n_crop_transform,
     prepare_multicrop_transform,
+    prepare_n_crop_transform,
     prepare_transform,
 )
 from torch.utils.data import DataLoader

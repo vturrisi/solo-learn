@@ -1,7 +1,8 @@
 import json
 import os
 from argparse import ArgumentParser, Namespace
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
@@ -11,7 +12,7 @@ class Checkpointer(Callback):
     def __init__(
         self,
         args: Namespace,
-        logdir: str = "trained_models",
+        logdir: Union[str, Path] = Path("trained_models"),
         frequency: int = 1,
         keep_previous_checkpoints: bool = False,
     ):
@@ -19,7 +20,7 @@ class Checkpointer(Callback):
 
         Args:
             args (Namespace): namespace object containing at least an attribute name.
-            logdir (str, optional): base directory to store checkpoints.
+            logdir (Union[str, Path], optional): base directory to store checkpoints.
                 Defaults to "trained_models".
             frequency (int, optional): number of epochs between each checkpoint. Defaults to 1.
             keep_previous_checkpoints (bool, optional): whether to keep previous checkpoints or not.
@@ -29,7 +30,7 @@ class Checkpointer(Callback):
         super().__init__()
 
         self.args = args
-        self.logdir = logdir
+        self.logdir = Path(logdir)
         self.frequency = frequency
         self.keep_previous_checkpoints = keep_previous_checkpoints
 
@@ -42,7 +43,7 @@ class Checkpointer(Callback):
         """
 
         parser = parent_parser.add_argument_group("checkpointer")
-        parser.add_argument("--checkpoint_dir", default="trained_models", type=str)
+        parser.add_argument("--checkpoint_dir", default=Path("trained_models"), type=Path)
         parser.add_argument("--checkpoint_frequency", default=1, type=int)
         return parent_parser
 
@@ -58,7 +59,7 @@ class Checkpointer(Callback):
         else:
             version = str(trainer.logger.version)
         if version is not None:
-            self.path = os.path.join(self.logdir, version)
+            self.path = self.logdir / version
             self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
         else:
             self.path = self.logdir
@@ -78,7 +79,7 @@ class Checkpointer(Callback):
 
         if trainer.is_global_zero:
             args = vars(self.args)
-            json_path = os.path.join(self.path, "args.json")
+            json_path = self.path / "args.json"
             json.dump(args, open(json_path, "w"), default=lambda o: "<not serializable>")
 
     def save(self, trainer: pl.Trainer):
@@ -90,7 +91,7 @@ class Checkpointer(Callback):
 
         if trainer.is_global_zero and not trainer.running_sanity_check:
             epoch = trainer.current_epoch  # type: ignore
-            ckpt = os.path.join(self.path, self.ckpt_placeholder.format(epoch))
+            ckpt = self.path / self.ckpt_placeholder.format(epoch)
             trainer.save_checkpoint(ckpt)
 
             if self.last_ckpt and self.last_ckpt != ckpt and not self.keep_previous_checkpoints:
