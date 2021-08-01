@@ -1,5 +1,4 @@
 import pytest
-
 import torch
 from solo.methods.base import BaseModel
 

@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import shutil
 
 import torch
@@ -49,18 +48,17 @@ def test_checkpointer():
     trainer.fit(model, train_dl, val_dl)
 
     # check if checkpointer dumped the args
-    args_path = os.path.join(ckpt_callback.path, "args.json")
-    assert os.path.exists(args_path)
+    args_path = ckpt_callback.path / "args.json"
+    assert args_path.exists()
 
     # check if the args are correct
     loaded_args = json.load(open(args_path))
     assert loaded_args == vars(args)
 
     # check if checkpointer dumped the checkpoint
-    ckpt_path = os.path.join(
-        ckpt_callback.path, ckpt_callback.ckpt_placeholder.format(trainer.current_epoch)
-    )
-    assert os.path.exists(ckpt_path)
+    ckpt_path = ckpt_callback.path / ckpt_callback.ckpt_placeholder.format(trainer.current_epoch)
+
+    assert ckpt_path.exists()
 
     # check if the checkpoint contains the correct keys
     ckpt = torch.load(ckpt_path)

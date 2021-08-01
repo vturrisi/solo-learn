@@ -1,5 +1,4 @@
 import torch
-
 from solo.losses import byol_loss_func
 
 

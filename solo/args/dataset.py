@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from pathlib import Path
 
 
 def dataset_args(parser: ArgumentParser):
@@ -20,9 +21,9 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--dataset", choices=SUPPORTED_DATASETS, type=str, required=True)
 
     # dataset path
-    parser.add_argument("--data_dir", type=str, required=True)
-    parser.add_argument("--train_dir", type=str, default=None)
-    parser.add_argument("--val_dir", type=str, default=None)
+    parser.add_argument("--data_dir", type=Path, required=True)
+    parser.add_argument("--train_dir", type=Path, default=None)
+    parser.add_argument("--val_dir", type=Path, default=None)
 
     # dali (imagenet-100/imagenet/custom only)
     parser.add_argument("--dali", action="store_true")

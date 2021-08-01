@@ -39,7 +39,7 @@ def additional_setup_pretrain(args: Namespace):
     else:
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
-        dir_path = os.path.join(args.data_dir, args.train_dir)
+        dir_path = args.data_dir / args.train_dir
         args.n_classes = max(
             1,
             len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),

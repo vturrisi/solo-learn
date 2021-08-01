@@ -1,9 +1,10 @@
 from typing import Any, Dict, Sequence
+
 import torch
 import torch.nn as nn
 from solo.losses.wmse import wmse_loss_func
-from solo.utils.whitening import Whitening2d
 from solo.methods.base import BaseModel
+from solo.utils.whitening import Whitening2d
 
 
 class WMSE(BaseModel):

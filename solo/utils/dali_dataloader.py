@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Callable, Iterable, List, Union
 
 import nvidia.dali.fn as fn
@@ -426,7 +427,7 @@ class CustomTransform:
 class PretrainPipeline(Pipeline):
     def __init__(
         self,
-        data_path: str,
+        data_path: Union[str, Path],
         batch_size: int,
         device: str,
         transform: Union[Callable, Iterable],
@@ -469,8 +470,10 @@ class PretrainPipeline(Pipeline):
 
         self.device = device
 
+        data_path = Path(data_path)
+
         if no_labels:
-            files = [os.path.join(data_path, f) for f in os.listdir(data_path)]
+            files = [data_path / f for f in os.listdir(data_path)]
             labels = [-1] * len(files)
             self.reader = ops.readers.File(
                 files=files,
@@ -531,7 +534,7 @@ class PretrainPipeline(Pipeline):
 class MulticropPretrainPipeline(Pipeline):
     def __init__(
         self,
-        data_path: str,
+        data_path: Union[str, Path],
         batch_size: int,
         device: str,
         transforms: List,
@@ -572,8 +575,10 @@ class MulticropPretrainPipeline(Pipeline):
         )
 
         self.device = device
+
+        data_path = Path(data_path)
         if no_labels:
-            files = [os.path.join(data_path, f) for f in os.listdir(data_path)]
+            files = [data_path / f for f in os.listdir(data_path)]
             self.reader = ops.readers.File(
                 files=files,
                 shard_id=shard_id,

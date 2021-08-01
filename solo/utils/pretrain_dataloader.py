@@ -1,12 +1,13 @@
 import os
 import random
+from pathlib import Path
 from typing import Any, Callable, Iterable, List, Optional, Sequence, Type, Union
 
 import torch
-from PIL import ImageFilter, ImageOps, Image
+import torchvision
+from PIL import Image, ImageFilter, ImageOps
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
-import torchvision
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
 
@@ -31,12 +32,12 @@ def dataset_with_index(DatasetClass: Type[Dataset]) -> Type[Dataset]:
 
 class CustomDatasetWithoutLabels(Dataset):
     def __init__(self, root, transform=None):
-        self.root = root
+        self.root = Path(root)
         self.transform = transform
         self.images = os.listdir(root)
 
     def __getitem__(self, index):
-        path = os.path.join(self.root, self.images[index])
+        path = self.root / self.images[index]
         x = Image.open(path).convert("RGB")
         if self.transform is not None:
             x = self.transform(x)
@@ -572,18 +573,19 @@ def prepare_multicrop_transform(
 def prepare_datasets(
     dataset: str,
     transform: Callable,
-    data_dir: Optional[str] = None,
-    train_dir: Optional[str] = None,
-    no_labels: Optional[bool] = False,
+    data_dir: Optional[Union[str, Path]] = None,
+    train_dir: Optional[Union[str, Path]] = None,
+    no_labels: Optional[Union[str, Path]] = False,
 ) -> Dataset:
     """Prepares the desired dataset.
 
     Args:
         dataset (str): the name of the dataset.
         transform (Callable): a transformation.
-        data_dir (Optional[str], optional): the directory to load data from. Defaults to None.
-        train_dir (Optional[str], optional): training data directory to be appended to data_dir.
+        data_dir (Optional[Union[str, Path]], optional): the directory to load data from.
             Defaults to None.
+        train_dir (Optional[Union[str, Path]], optional): training data directory
+            to be appended to data_dir. Defaults to None.
         no_labels (Optional[bool], optional): if the custom dataset has no labels.
 
     Returns:
@@ -591,16 +593,18 @@ def prepare_datasets(
     """
 
     if data_dir is None:
-        sandbox_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        data_dir = os.path.join(sandbox_folder, "datasets")
+        sandbox_folder = Path(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+        data_dir = sandbox_folder / "datasets"
 
     if train_dir is None:
-        train_dir = f"{dataset}/train"
+        train_dir = Path(f"{dataset}/train")
+    else:
+        train_dir = Path(train_dir)
 
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
-            os.path.join(data_dir, train_dir),
+            data_dir / train_dir,
             train=True,
             download=True,
             transform=transform,
@@ -608,18 +612,18 @@ def prepare_datasets(
 
     elif dataset == "stl10":
         train_dataset = dataset_with_index(STL10)(
-            os.path.join(data_dir, train_dir),
+            data_dir / train_dir,
             split="train+unlabeled",
             download=True,
             transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
-        train_dir = os.path.join(data_dir, train_dir)
+        train_dir = data_dir / train_dir
         train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
 
     elif dataset == "custom":
-        train_dir = os.path.join(data_dir, train_dir)
+        train_dir = data_dir / train_dir
 
         if no_labels:
             dataset_class = CustomDatasetWithoutLabels

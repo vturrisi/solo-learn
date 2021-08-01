@@ -1,5 +1,6 @@
 import os
-from typing import Callable, Optional, Tuple
+from pathlib import Path
+from typing import Callable, Optional, Tuple, Union
 
 from torch import nn
 import torchvision
@@ -93,9 +94,9 @@ def prepare_datasets(
     dataset: str,
     T_train: Callable,
     T_val: Callable,
-    data_dir: Optional[str] = None,
-    train_dir: Optional[str] = None,
-    val_dir: Optional[str] = None,
+    data_dir: Optional[Union[str, Path]] = None,
+    train_dir: Optional[Union[str, Path]] = None,
+    val_dir: Optional[Union[str, Path]] = None,
 ) -> Tuple[Dataset, Dataset]:
     """Prepares train and val datasets.
 
@@ -103,34 +104,41 @@ def prepare_datasets(
         dataset (str): dataset name.
         T_train (Callable): pipeline of transformations for training dataset.
         T_val (Callable): pipeline of transformations for validation dataset.
-        data_dir Optional[str]: path where to download/locate the dataset.
-        train_dir Optional[str]: subpath where the training data is located.
-        val_dir Optional[str]: subpath where the validation data is located.
+        data_dir Optional[Union[str, Path]]: path where to download/locate the dataset.
+        train_dir Optional[Union[str, Path]]: subpath where the training data is located.
+        val_dir Optional[Union[str, Path]]: subpath where the validation data is located.
 
     Returns:
         Tuple[Dataset, Dataset]: training dataset and validation dataset.
     """
 
     if data_dir is None:
-        sandbox_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        data_dir = os.path.join(sandbox_dir, "datasets")
+        sandbox_dir = Path(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+        data_dir = sandbox_dir / "datasets"
+    else:
+        data_dir = Path(data_dir)
 
     if train_dir is None:
-        train_dir = f"{dataset}/train"
+        train_dir = Path(f"{dataset}/train")
+    else:
+        train_dir = Path(train_dir)
+
     if val_dir is None:
-        val_dir = f"{dataset}/val"
+        val_dir = Path(f"{dataset}/val")
+    else:
+        val_dir = Path(val_dir)
 
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
-            os.path.join(data_dir, train_dir),
+            data_dir / train_dir,
             train=True,
             download=True,
             transform=T_train,
         )
 
         val_dataset = DatasetClass(
-            os.path.join(data_dir, val_dir),
+            data_dir / val_dir,
             train=False,
             download=True,
             transform=T_val,
@@ -138,21 +146,21 @@ def prepare_datasets(
 
     elif dataset == "stl10":
         train_dataset = STL10(
-            os.path.join(data_dir, train_dir),
+            data_dir / train_dir,
             split="train",
             download=True,
             transform=T_train,
         )
         val_dataset = STL10(
-            os.path.join(data_dir, val_dir),
+            data_dir / val_dir,
             split="test",
             download=True,
             transform=T_val,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
-        train_dir = os.path.join(data_dir, train_dir)
-        val_dir = os.path.join(data_dir, val_dir)
+        train_dir = data_dir / train_dir
+        val_dir = data_dir / val_dir
 
         train_dataset = ImageFolder(train_dir, T_train)
         val_dataset = ImageFolder(val_dir, T_val)
@@ -194,9 +202,9 @@ def prepare_dataloaders(
 
 def prepare_data(
     dataset: str,
-    data_dir: Optional[str] = None,
-    train_dir: Optional[str] = None,
-    val_dir: Optional[str] = None,
+    data_dir: Optional[Union[str, Path]] = None,
+    train_dir: Optional[Union[str, Path]] = None,
+    val_dir: Optional[Union[str, Path]] = None,
     batch_size: int = 64,
     num_workers: int = 4,
 ) -> Tuple[DataLoader, DataLoader]:
@@ -204,12 +212,12 @@ def prepare_data(
 
     Args:
         dataset (str): dataset name.
-        data_dir (Optional[str], optional): path where to download/locate the dataset.
+        data_dir (Optional[Union[str, Path]], optional): path where to download/locate the dataset.
             Defaults to None.
-        train_dir (Optional[str], optional): subpath where the training data is located.
-            Defaults to None.
-        val_dir (Optional[str], optional): subpath where the validation data is located.
-            Defaults to None.
+        train_dir (Optional[Union[str, Path]], optional): subpath where the
+            training data is located. Defaults to None.
+        val_dir (Optional[Union[str, Path]], optional): subpath where the
+            validation data is located. Defaults to None.
         batch_size (int, optional): batch size. Defaults to 64.
         num_workers (int, optional): number of parallel workers. Defaults to 4.
 
