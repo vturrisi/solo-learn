@@ -462,6 +462,8 @@ class MulticropCustomTransform(BaseTransform):
         hue: float,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        mean: Sequence[float] = (0.485, 0.456, 0.406),
+        std: Sequence[float] = (0.228, 0.224, 0.225),
     ):
         """Class that applies multicrop transform for Custom Datasets.
         If you want to do exoteric augmentations, you can just re-write this class.
@@ -473,6 +475,10 @@ class MulticropCustomTransform(BaseTransform):
             hue (float): sampled uniformly in [-hue, hue].
             gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
             solarization_prob (float, optional): minimum scale of the crops. Defaults to 0.0.
+            mean (Sequence[float], optional): mean values for normalization.
+                Defaults to (0.485, 0.456, 0.406).
+            std (Sequence[float], optional): std values for normalization.
+                Defaults to (0.228, 0.224, 0.225).
         """
 
         super().__init__()
@@ -487,7 +493,7 @@ class MulticropCustomTransform(BaseTransform):
                 transforms.RandomApply([Solarization()], p=solarization_prob),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+                transforms.Normalize(mean=mean, std=std),
             ]
         )
 

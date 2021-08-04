@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Callable, Iterable, List, Union
+from typing import Callable, Iterable, List, Sequence, Union
 
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
@@ -358,6 +358,8 @@ class CustomTransform:
         size: int = 224,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
+        mean: Sequence[float] = (0.485, 0.456, 0.406),
+        std: Sequence[float] = (0.228, 0.224, 0.225),
     ):
         """Applies Custom transformations.
         If you want to do exoteric augmentations, you can just re-write this class.
@@ -375,6 +377,10 @@ class CustomTransform:
                 to 224.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
+            mean (Sequence[float], optional): mean values for normalization.
+                Defaults to (0.485, 0.456, 0.406).
+            std (Sequence[float], optional): std values for normalization.
+                Defaults to (0.228, 0.224, 0.225).
         """
 
         # random crop
@@ -409,8 +415,8 @@ class CustomTransform:
             device=device,
             dtype=types.FLOAT,
             output_layout=types.NCHW,
-            mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
-            std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
+            mean=[v * 255 for v in mean],
+            std=[v * 255 for v in std],
         )
         self.coin05 = ops.random.CoinFlip(probability=0.5)
 

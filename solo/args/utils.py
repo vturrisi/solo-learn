@@ -136,7 +136,7 @@ def additional_setup_pretrain(args: Namespace):
         )
 
     # add support for custom mean and std
-    if not args.multicrop and args.dataset == "custom":
+    if args.dataset == "custom":
         if isinstance(args.transform_kwargs, dict):
             args.transform_kwargs["mean"] = args.mean
             args.transform_kwargs["std"] = args.std
