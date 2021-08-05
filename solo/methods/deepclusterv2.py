@@ -88,34 +88,41 @@ class DeepClusterV2(BaseModel):
         # initialize memory banks
         size_memory_per_process = len(self.trainer.train_dataloader) * self.batch_size
         self.register_buffer(
-            "local_memory_index", torch.zeros(size_memory_per_process).long().to(self.device)
+            "local_memory_index",
+            torch.zeros(size_memory_per_process).long().to(self.device, non_blocking=True),
         )
         self.register_buffer(
             "local_memory_embeddings",
             F.normalize(
                 torch.randn(self.num_crops, size_memory_per_process, self.output_dim), dim=-1
-            ).to(self.device),
+            ).to(self.device, non_blocking=True),
         )
+        # fill memory banks
+        for batch_idx, (idxs, X, _) in enumerate(self.trainer.train_dataloader):
+            with torch.no_grad():
+                z = [self(x.to(self.device, non_blocking=True))["z"] for x in X]
+            self.update_memory_banks(idxs, z, batch_idx)
 
     def on_train_epoch_start(self) -> None:
-        if self.current_epoch == 0:
-            self.assignments = -torch.ones(
-                len(self.num_prototypes), len(self.trainer.train_dataloader.dataset)
-            ).long()
-        else:
-            self.assignments, centroids = cluster_memory(
-                local_memory_index=self.local_memory_index,
-                local_memory_embeddings=self.local_memory_embeddings,
-                world_size=self.world_size,
-                rank=self.global_rank,
-                num_crops=self.num_crops,
-                dataset_size=len(self.trainer.train_dataloader.dataset),
-                proj_features_dim=self.output_dim,
-                num_prototypes=self.num_prototypes,
-                kmeans_iters=self.kmeans_iters,
-            )
-            for proto, centro in zip(self.prototypes, centroids):
-                proto.weight.copy_(centro)
+        self.assignments, centroids = cluster_memory(
+            local_memory_index=self.local_memory_index,
+            local_memory_embeddings=self.local_memory_embeddings,
+            world_size=self.world_size,
+            rank=self.global_rank,
+            num_crops=self.num_crops,
+            dataset_size=len(self.trainer.train_dataloader.dataset),
+            proj_features_dim=self.output_dim,
+            num_prototypes=self.num_prototypes,
+            kmeans_iters=self.kmeans_iters,
+        )
+        for proto, centro in zip(self.prototypes, centroids):
+            proto.weight.copy_(centro)
+
+    def update_memory_banks(self, idxs, z, batch_idx):
+        start_idx, end_idx = batch_idx * self.batch_size, (batch_idx + 1) * self.batch_size
+        self.local_memory_index[start_idx:end_idx] = idxs
+        for c, z_c in enumerate(z):
+            self.local_memory_embeddings[c][start_idx:end_idx] = z_c.detach()
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
         """Performs the forward pass of the encoder, the projector and the prototypes.
@@ -130,8 +137,7 @@ class DeepClusterV2(BaseModel):
         """
 
         out = super().forward(X, *args, **kwargs)
-        z = self.projector(out["feats"])
-        z = F.normalize(z)
+        z = F.normalize(self.projector(out["feats"]))
         p = torch.stack([p(z) for p in self.prototypes])
         return {**out, "z": z, "p": p}
 
@@ -164,11 +170,7 @@ class DeepClusterV2(BaseModel):
         deepcluster_loss = deepclusterv2_loss_func(preds, assignments, self.temperature)
 
         # ------- update memory banks -------
-        bs = self.batch_size
-        start_idx, end_idx = batch_idx * bs, (batch_idx + 1) * bs
-        self.local_memory_index[start_idx:end_idx] = idxs
-        for c, z in enumerate([z1, z2]):
-            self.local_memory_embeddings[c][start_idx:end_idx] = z.detach()
+        self.update_memory_banks(idxs, [z1, z2], batch_idx)
 
         self.log("train_deepcluster_loss", deepcluster_loss, on_epoch=True, sync_dist=True)
 

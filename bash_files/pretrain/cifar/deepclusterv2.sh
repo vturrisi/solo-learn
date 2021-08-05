@@ -24,7 +24,6 @@ python3 ../../../main_pretrain.py \
     --name deepclusterv2-$1 \
     --project solo-learn \
     --entity unitn-mhug \
-    --wandb \
     --method deepclusterv2 \
     --proj_hidden_dim 2048 \
     --output_dim 128 \
