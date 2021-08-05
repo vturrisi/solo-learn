@@ -98,7 +98,11 @@ class DeepClusterV2(BaseModel):
         )
 
     def on_train_epoch_start(self) -> None:
-        if self.current_epoch != -1:
+        if self.current_epoch == 0:
+            self.assignments = -torch.ones(
+                len(self.num_prototypes), len(self.trainer.train_dataloader.dataset)
+            ).long()
+        else:
             self.assignments, centroids = cluster_memory(
                 local_memory_index=self.local_memory_index,
                 local_memory_embeddings=self.local_memory_embeddings,
@@ -112,10 +116,6 @@ class DeepClusterV2(BaseModel):
             )
             for proto, centro in zip(self.prototypes, centroids):
                 proto.weight.copy_(centro)
-        else:
-            self.assignments = -torch.ones(
-                len(self.num_prototypes), len(self.trainer.train_dataloader.dataset)
-            ).long()
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
         """Performs the forward pass of the encoder, the projector and the prototypes.
