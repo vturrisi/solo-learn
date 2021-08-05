@@ -2,11 +2,38 @@ import os
 from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
-from torch import nn
 import torchvision
+from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
+
+
+def build_custom_pipeline():
+    """Builds augmentation pipelines for custom data.
+    If you want to do exoteric augmentations, you can just re-write this function.
+    Needs to return a dict with the same structure.
+    """
+
+    pipeline = {
+        "T_train": transforms.Compose(
+            [
+                transforms.RandomResizedCrop(size=224, scale=(0.08, 1.0)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+            ]
+        ),
+        "T_val": transforms.Compose(
+            [
+                transforms.Resize(256),  # resize shorter
+                transforms.CenterCrop(224),  # take center crop
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+            ]
+        ),
+    }
+    return pipeline
 
 
 def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
@@ -73,12 +100,15 @@ def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
         ),
     }
 
+    custom_pipeline = build_custom_pipeline()
+
     pipelines = {
         "cifar10": cifar_pipeline,
         "cifar100": cifar_pipeline,
         "stl10": stl_pipeline,
         "imagenet100": imagenet_pipeline,
         "imagenet": imagenet_pipeline,
+        "custom": custom_pipeline,
     }
 
     assert dataset in pipelines
@@ -128,6 +158,8 @@ def prepare_datasets(
     else:
         val_dir = Path(val_dir)
 
+    assert dataset in ["cifar10", "cifar100", "stl10", "imagenet", "imagenet100", "custom"]
+
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
@@ -158,7 +190,7 @@ def prepare_datasets(
             transform=T_val,
         )
 
-    elif dataset in ["imagenet", "imagenet100"]:
+    elif dataset in ["imagenet", "imagenet100", "custom"]:
         train_dir = data_dir / train_dir
         val_dir = data_dir / val_dir
 

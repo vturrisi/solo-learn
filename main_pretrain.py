@@ -99,7 +99,9 @@ def main():
         )
 
     # normal dataloader for when it is available
-    if args.dataset in ["imagenet100", "imagenet", "custom"] and args.val_dir is None:
+    if args.dataset == "custom" and (args.no_labels or args.val_dir is None):
+        val_loader = None
+    elif args.dataset in ["imagenet100", "imagenet"] and args.val_dir is None:
         val_loader = None
     else:
         _, val_loader = prepare_data_classification(

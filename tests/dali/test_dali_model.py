@@ -84,6 +84,7 @@ def test_dali_linear():
         kwargs["data_dir"] = "."
         kwargs["train_dir"] = "dummy_train"
         kwargs["val_dir"] = "dummy_val"
+        kwargs["dataset"] = "custom"
 
         MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
         model = MethodClass(backbone, **kwargs)

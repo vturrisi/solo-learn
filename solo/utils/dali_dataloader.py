@@ -267,6 +267,15 @@ class NormalPipeline(Pipeline):
         return (images, labels)
 
 
+class CustomNormalPipeline(NormalPipeline):
+    """Initializes the custom pipeline for validation or linear eval training.
+    This acts as a placeholder and behaves exactly like NormalPipeline.
+    If you want to do exoteric augmentations, you can just re-write this class.
+    """
+
+    pass
+
+
 class ImagenetTransform:
     def __init__(
         self,

@@ -4,6 +4,7 @@ from pathlib import Path
 import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
+    CustomNormalPipeline,
     CustomTransform,
     PretrainPipeline,
     ImagenetTransform,
@@ -200,7 +201,16 @@ class ClassificationABC(ABC):
         data_dir = Path(self.extra_args["data_dir"])
         train_dir = Path(self.extra_args["train_dir"])
 
-        train_pipeline = NormalPipeline(
+        # handle custom data by creating the needed pipeline
+        dataset = self.extra_args["dataset"]
+        if dataset in ["imagenet100", "imagenet"]:
+            pipeline_class = NormalPipeline
+        elif dataset == "custom":
+            pipeline_class = CustomNormalPipeline
+        else:
+            raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
+
+        train_pipeline = pipeline_class(
             data_dir / train_dir,
             validation=False,
             batch_size=self.batch_size,
@@ -229,7 +239,16 @@ class ClassificationABC(ABC):
         data_dir = Path(self.extra_args["data_dir"])
         val_dir = Path(self.extra_args["val_dir"])
 
-        val_pipeline = NormalPipeline(
+        # handle custom data by creating the needed pipeline
+        dataset = self.extra_args["dataset"]
+        if dataset in ["imagenet100", "imagenet"]:
+            pipeline_class = NormalPipeline
+        elif dataset == "custom":
+            pipeline_class = CustomNormalPipeline
+        else:
+            raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
+
+        val_pipeline = pipeline_class(
             data_dir / val_dir,
             validation=True,
             batch_size=self.batch_size,
