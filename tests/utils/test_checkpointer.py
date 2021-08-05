@@ -39,9 +39,9 @@ def test_checkpointer():
 
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        n_crops=BASE_KWARGS["n_crops"],
-        n_small_crops=0,
-        n_classes=BASE_KWARGS["n_classes"],
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
     )
 

@@ -18,6 +18,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
+    --gaussian_prob 0.0 0.0 \
     --min_scale 0.2 \
     --name wmse-$1 \
     --wandb \

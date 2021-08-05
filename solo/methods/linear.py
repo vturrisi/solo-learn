@@ -20,7 +20,7 @@ class LinearModel(pl.LightningModule):
     def __init__(
         self,
         backbone: nn.Module,
-        n_classes: int,
+        num_classes: int,
         max_epochs: int,
         batch_size: int,
         optimizer: str,
@@ -37,7 +37,7 @@ class LinearModel(pl.LightningModule):
 
         Args:
             backbone (nn.Module): backbone architecture for feature extraction.
-            n_classes (int): number of classes in the dataset.
+            num_classes (int): number of classes in the dataset.
             max_epochs (int): total number of epochs.
             batch_size (int): batch size.
             optimizer (str): optimizer to use.
@@ -55,7 +55,7 @@ class LinearModel(pl.LightningModule):
         super().__init__()
 
         self.backbone = backbone
-        self.classifier = nn.Linear(self.backbone.inplanes, n_classes)  # type: ignore
+        self.classifier = nn.Linear(self.backbone.inplanes, num_classes)  # type: ignore
 
         # training related
         self.max_epochs = max_epochs

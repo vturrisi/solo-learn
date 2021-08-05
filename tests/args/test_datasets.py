@@ -21,8 +21,8 @@ def test_argparse_augmentations():
     actions = [vars(action)["dest"] for action in vars(parser)["_actions"]]
 
     assert "multicrop" in actions
-    assert "n_crops" in actions
-    assert "n_small_crops" in actions
+    assert "num_crops" in actions
+    assert "num_small_crops" in actions
 
     assert "brightness" in actions
     assert "contrast" in actions

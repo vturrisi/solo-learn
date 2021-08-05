@@ -9,15 +9,15 @@ from PIL import Image
 
 
 class DummyDataset:
-    def __init__(self, train_dir, val_dir, size, n_classes):
+    def __init__(self, train_dir, val_dir, size, num_classes):
         self.train_dir = Path(train_dir)
         self.val_dir = Path(val_dir)
         self.size = size
-        self.n_classes = n_classes
+        self.num_classes = num_classes
 
     def __enter__(self):
         for dir in [self.train_dir, self.val_dir]:
-            for y in range(self.n_classes):
+            for y in range(self.num_classes):
                 # make needed directories
                 with contextlib.suppress(OSError):
                     os.makedirs(dir / str(y))

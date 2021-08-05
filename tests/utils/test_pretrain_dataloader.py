@@ -34,18 +34,18 @@ def test_transforms():
     T = prepare_transform("imagenet100", multicrop=False, **kwargs)
     assert T(im).size(1) == 224
 
-    n_crops = 10
-    assert len(prepare_n_crop_transform(T, n_crops=n_crops)(im)) == n_crops
+    num_crops = 10
+    assert len(prepare_n_crop_transform(T, num_crops=num_crops)(im)) == num_crops
 
     T = prepare_transform("imagenet100", multicrop=True, **kwargs)
-    n_crops = [3, 9]
+    num_crops = [3, 9]
     sizes = [224, 96]
-    T = prepare_multicrop_transform(T, sizes, n_crops=n_crops)
+    T = prepare_multicrop_transform(T, sizes, num_crops=num_crops)
     crops = T(im)
     cur = 0
     for i, crop in enumerate(crops):
         assert crop.size(1) == sizes[cur]
-        if i + 1 >= n_crops[cur] and len(n_crops) > cur + 1:
+        if i + 1 >= num_crops[cur] and len(num_crops) > cur + 1:
             cur += 1
 
 
@@ -61,7 +61,7 @@ def test_data():
     )
 
     T = prepare_transform("cifar10", multicrop=False, **kwargs)
-    T = prepare_n_crop_transform(T, n_crops=2)
+    T = prepare_n_crop_transform(T, num_crops=2)
     train_dataset = prepare_datasets("cifar10", T, data_dir="./datasets")
 
     assert isinstance(train_dataset, CIFAR10)

@@ -10,7 +10,7 @@ from .utils import DummyDataset
 def test_dali_dataloader():
     # creates a dummy dataset that autodeletes after usage
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
-        n_crops = [2, 4]
+        num_crops = [2, 4]
         size_crops = [224, 96]
         min_scales = [0.14, 0.05]
         max_scale_crops = [1.0, 0.14]
@@ -36,7 +36,7 @@ def test_dali_dataloader():
             "dummy_train",
             batch_size=4,
             transforms=transforms,
-            n_crops=n_crops,
+            num_crops=num_crops,
             device="cpu",
             device_id=0,
             shard_id=0,

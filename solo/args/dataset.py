@@ -42,8 +42,8 @@ def augmentations_args(parser: ArgumentParser):
 
     # cropping
     parser.add_argument("--multicrop", action="store_true")
-    parser.add_argument("--n_crops", type=int, default=2)
-    parser.add_argument("--n_small_crops", type=int, default=0)
+    parser.add_argument("--num_crops", type=int, default=2)
+    parser.add_argument("--num_small_crops", type=int, default=0)
 
     # augmentations
     parser.add_argument("--brightness", type=float, required=True, nargs="+")

@@ -21,6 +21,7 @@ python3 ../../../main_pretrain.py \
     --saturation 0.2 \
     --hue 0.1 \
     --solarization_prob 0.1 \
+    --gaussian_prob 0.0 0.0 \
     --name vicreg-$1 \
     --project solo-learn \
     --entity unitn-mhug \

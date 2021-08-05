@@ -35,12 +35,12 @@ def additional_setup_pretrain(args: Namespace):
     args.transform_kwargs = {}
 
     if args.dataset in N_CLASSES_PER_DATASET:
-        args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
+        args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
     else:
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
         dir_path = args.data_dir / args.train_dir
-        args.n_classes = max(
+        args.num_classes = max(
             1,
             len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
         )
@@ -58,7 +58,7 @@ def additional_setup_pretrain(args: Namespace):
             args.size,
         ]
     )
-    assert unique_augs == args.n_crops or unique_augs == 1
+    assert unique_augs == args.num_crops or unique_augs == 1
 
     # assert that either all unique augmentation pipelines have a unique
     # parameter or that a single parameter is replicated to all pipelines
@@ -185,7 +185,7 @@ def additional_setup_linear(args: Namespace):
     """
 
     assert args.dataset in N_CLASSES_PER_DATASET
-    args.n_classes = N_CLASSES_PER_DATASET[args.dataset]
+    args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
 
     args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
 

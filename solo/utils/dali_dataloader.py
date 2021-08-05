@@ -437,7 +437,7 @@ class PretrainPipeline(Pipeline):
         batch_size: int,
         device: str,
         transform: Union[Callable, Iterable],
-        n_crops: int = 2,
+        num_crops: int = 2,
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -454,7 +454,7 @@ class PretrainPipeline(Pipeline):
             device (str): device on which the operation will be performed.
             transform (Union[Callable, Iterable]): a transformation or a sequence
                 of transformations to be applied.
-            n_crops (int, optional): number of crops. Defaults to 2.
+            num_crops (int, optional): number of crops. Defaults to 2.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -506,7 +506,7 @@ class PretrainPipeline(Pipeline):
         )
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        self.n_crops = n_crops
+        self.num_crops = num_crops
 
         # transformations
         self.transform = transform
@@ -515,7 +515,7 @@ class PretrainPipeline(Pipeline):
             self.one_transform_per_crop = True
         else:
             self.one_transform_per_crop = False
-            self.n_crops = n_crops
+            self.num_crops = num_crops
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""
@@ -527,7 +527,7 @@ class PretrainPipeline(Pipeline):
         if self.one_transform_per_crop:
             crops = [transform(images) for transform in self.transform]
         else:
-            crops = [self.transform(images) for i in range(self.n_crops)]
+            crops = [self.transform(images) for i in range(self.num_crops)]
 
         if self.device == "gpu":
             labels = labels.gpu()
@@ -544,7 +544,7 @@ class MulticropPretrainPipeline(Pipeline):
         batch_size: int,
         device: str,
         transforms: List,
-        n_crops: List[int],
+        num_crops: List[int],
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -560,7 +560,7 @@ class MulticropPretrainPipeline(Pipeline):
             batch_size (int): batch size.
             device (str): device on which the operation will be performed.
             transforms (List): list of transformations to be applied.
-            n_crops (List[int]): number of crops.
+            num_crops (List[int]): number of crops.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -609,10 +609,10 @@ class MulticropPretrainPipeline(Pipeline):
         )
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        self.n_crops = n_crops
+        self.num_crops = num_crops
         self.transforms = transforms
 
-        assert len(transforms) == len(n_crops)
+        assert len(transforms) == len(num_crops)
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""
@@ -624,7 +624,7 @@ class MulticropPretrainPipeline(Pipeline):
         # crop into large and small images
         crops = []
         for i, transform in enumerate(self.transforms):
-            for _ in range(self.n_crops[i]):
+            for _ in range(self.num_crops[i]):
                 crop = transform(images)
                 crops.append(crop)
 

@@ -22,7 +22,9 @@ def test_wmse():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = WMSE(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "imagenet100")
+    batch, batch_idx = gen_batch(
+        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
+    )
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -31,7 +33,7 @@ def test_wmse():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = WMSE(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "cifar10")
+    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "cifar10")
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -48,12 +50,12 @@ def test_wmse():
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
-        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"])
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
     )
     assert (
         "feats" in out
         and isinstance(out["feats"], torch.Tensor)
-        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_size)
+        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
         "v" in out
@@ -62,8 +64,8 @@ def test_wmse():
     )
 
     # normal training
-    for n_crops in [2, 4]:
-        BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False, n_crops=n_crops)
+    for num_crops in [2, 4]:
+        BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False, num_crops=num_crops)
         BASE_KWARGS["batch_size"] = 8
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
@@ -79,9 +81,9 @@ def test_wmse():
         )
         train_dl, val_dl = prepare_dummy_dataloaders(
             "imagenet100",
-            n_crops=BASE_KWARGS["n_crops"],
-            n_small_crops=0,
-            n_classes=BASE_KWARGS["n_classes"],
+            num_crops=BASE_KWARGS["num_crops"],
+            num_small_crops=0,
+            num_classes=BASE_KWARGS["num_classes"],
             multicrop=False,
             batch_size=BASE_KWARGS["batch_size"],
         )
