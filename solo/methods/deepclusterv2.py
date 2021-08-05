@@ -1,5 +1,6 @@
 import argparse
 from typing import Any, Dict, List, Sequence
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -98,7 +99,9 @@ class DeepClusterV2(BaseModel):
             ).to(self.device, non_blocking=True),
         )
         # fill memory banks
-        for batch_idx, (idxs, X, _) in enumerate(self.trainer.train_dataloader):
+        for batch_idx, (idxs, X, _) in enumerate(
+            tqdm(self.trainer.train_dataloader, desc="Filling memory banks")
+        ):
             with torch.no_grad():
                 z = [self(x.to(self.device, non_blocking=True))["z"] for x in X]
             self.update_memory_banks(idxs, z, batch_idx)
