@@ -190,7 +190,7 @@ We report the training efficiency of some methods using a ResNet18 with and with
 ---
 
 ## Citation
-If you use solo-learn, please cite our preprint:
+If you use solo-learn, please cite our [preprint](https://arxiv.org/abs/2108.01775v1):
 ```
 @misc{turrisi2021sololearn,
       title={Solo-learn: A Library of Self-supervised Methods for Visual Representation Learning}, 
