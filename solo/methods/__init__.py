@@ -37,6 +37,7 @@ __all__ = [
     "LinearModel",
     "MoCoV2Plus",
     "NNCLR",
+    "ReSSL",
     "SimCLR",
     "SimSiam",
     "SwAV",
