@@ -1,7 +1,6 @@
 import math
 from abc import ABC
 from pathlib import Path
-import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
     CustomTransform,
@@ -39,6 +38,7 @@ class PretrainWrapper(BaseWrapper):
         model_batch_size: int,
         model_rank: int,
         model_device: str,
+        num_files: int,
         *args,
         **kwargs,
     ):
@@ -48,20 +48,27 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
+            num_files (int): number of files.
         """
 
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
+        self.num_files = num_files
 
     def __next__(self):
         batch = super().__next__()
-        indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-            self.model_rank * self.model_batch_size
-        )
-        *all_X, target = [batch[0][v] for v in self.output_map]
-        target = target.squeeze(-1).long()
+        # A = A' % N and B = A' / N
+        *all_X, encoded_target_n_idx = [batch[0][v] for v in self.output_map]
+        print(encoded_target_n_idx)
+        encoded_target_n_idx = encoded_target_n_idx.squeeze(-1).long()
+        target = encoded_target_n_idx % self.num_files
+        indexes = encoded_target_n_idx // self.num_files
+
+        print(encoded_target_n_idx, indexes, target)
+        exit()
+
         return indexes, all_X, target
 
 
@@ -177,6 +184,7 @@ class PretrainABC(ABC):
             model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
+            num_files=train_pipeline.num_files,
             pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",

@@ -18,7 +18,7 @@ python3 ../../../main_pretrain.py \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
-    --batch_size 128 \
+    --batch_size 2 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \
@@ -29,8 +29,8 @@ python3 ../../../main_pretrain.py \
     --name barlow-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
-    --wandb \
+    \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
     --output_dim 2048 \
-    --scale_loss 0.1
+    --scale_loss 0.1 # --wandb \

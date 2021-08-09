@@ -489,8 +489,25 @@ class PretrainPipeline(Pipeline):
                 labels=labels,
             )
         else:
+            labels = [Path(label) for label in os.listdir(data_path)]
+            data = [
+                (data_path / label / file, label_idx)
+                for label_idx, label in enumerate(labels)
+                for file in os.listdir(data_path / label)
+            ]
+            self.num_files = len(data)
+            # A' = A + (B * N) (here A is smaller than N)
+            # then now we can obtain both the value A and B from this new A as:
+            # A = A' % N and B = A' / N
+            data = [
+                (file, label_idx + (file_idx * self.num_files))
+                for file_idx, (file, label_idx) in enumerate(data)
+            ]
+            files, encoded_target_n_idx = map(list, zip(*data))
+
             self.reader = ops.readers.File(
-                file_root=data_path,
+                files=files,
+                labels=encoded_target_n_idx,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
