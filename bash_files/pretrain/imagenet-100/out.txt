@@ -1,1 +1,0 @@
-Validation sanity check: 0it [00:00, ?it/s]Validation sanity check:   0%|          | 0/2 [00:00<?, ?it/s]Validation sanity check:  50%|█████     | 1/2 [00:00<00:00,  2.82it/s]                                                                      
