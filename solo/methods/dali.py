@@ -183,6 +183,7 @@ class PretrainABC(ABC):
             last_batch_policy=policy,
             auto_reset=True,
         )
+        self.num_images = train_loader.size
         return train_loader
 
 

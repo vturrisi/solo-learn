@@ -1,6 +1,5 @@
 import argparse
 from typing import Any, Dict, List, Sequence
-from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -98,28 +97,31 @@ class DeepClusterV2(BaseModel):
                 torch.randn(self.num_crops, size_memory_per_process, self.output_dim), dim=-1
             ).to(self.device, non_blocking=True),
         )
-        # fill memory banks
-        for batch_idx, (idxs, X, _) in enumerate(
-            tqdm(self.trainer.train_dataloader, desc="Filling memory banks")
-        ):
-            with torch.no_grad():
-                z = [self(x.to(self.device, non_blocking=True))["z"] for x in X]
-            self.update_memory_banks(idxs, z, batch_idx)
 
     def on_train_epoch_start(self) -> None:
-        self.assignments, centroids = cluster_memory(
-            local_memory_index=self.local_memory_index,
-            local_memory_embeddings=self.local_memory_embeddings,
-            world_size=self.world_size,
-            rank=self.global_rank,
-            num_crops=self.num_crops,
-            dataset_size=len(self.trainer.train_dataloader.dataset),
-            proj_features_dim=self.output_dim,
-            num_prototypes=self.num_prototypes,
-            kmeans_iters=self.kmeans_iters,
-        )
-        for proto, centro in zip(self.prototypes, centroids):
-            proto.weight.copy_(centro)
+        if hasattr(self, "num_images"):
+            dataset_size = self.num_images
+        else:
+            dataset_size = len(self.trainer.train_dataloader.dataset)
+
+        if self.current_epoch == 0:
+            self.assignments = -torch.ones(
+                len(self.num_prototypes), dataset_size, device=self.device
+            ).long()
+        else:
+            self.assignments, centroids = cluster_memory(
+                local_memory_index=self.local_memory_index,
+                local_memory_embeddings=self.local_memory_embeddings,
+                world_size=self.world_size,
+                rank=self.global_rank,
+                num_crops=self.num_crops,
+                dataset_size=dataset_size,
+                proj_features_dim=self.output_dim,
+                num_prototypes=self.num_prototypes,
+                kmeans_iters=self.kmeans_iters,
+            )
+            for proto, centro in zip(self.prototypes, centroids):
+                proto.weight.copy_(centro)
 
     def update_memory_banks(self, idxs, z, batch_idx):
         start_idx, end_idx = batch_idx * self.batch_size, (batch_idx + 1) * self.batch_size
