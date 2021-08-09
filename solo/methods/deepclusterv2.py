@@ -99,10 +99,9 @@ class DeepClusterV2(BaseModel):
         )
 
     def on_train_epoch_start(self) -> None:
-        if hasattr(self, "num_images"):
-            dataset_size = self.num_images
-        else:
-            dataset_size = len(self.trainer.train_dataloader.dataset)
+        dataset_size = getattr(self, "dali_epoch_size", None) or len(
+            self.trainer.train_dataloader.dataset
+        )
 
         if self.current_epoch == 0:
             self.assignments = -torch.ones(
