@@ -29,7 +29,7 @@ python3 ../../../main_pretrain.py \
     --name barlow-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
-    --encode_indexes_into_label \
+    --wandb \
     --scale_loss 0.1 \
     --method barlow_twins \
     --proj_hidden_dim 2048 \

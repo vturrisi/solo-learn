@@ -72,7 +72,6 @@ class PretrainWrapper(BaseWrapper):
         model_batch_size: int,
         model_rank: int,
         model_device: str,
-        encode_indexes_into_label: bool,
         *args,
         **kwargs,
     ):
@@ -82,66 +81,24 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
-            encode_indexes_into_label (bool): use 10-bits to encode the class label
-                (up to a maximum of 1024 classes) and 21-bits to encode the image index
-                (up to a maximum of 2097152 images). Defaults to False.
         """
 
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
-        self.encode_indexes_into_label = encode_indexes_into_label
 
     def __next__(self):
         batch = super().__next__()
 
-        if self.encode_indexes_into_label:
-            *all_X, encoded_target_n_idx = [batch[0][v] for v in self.output_map]
-            encoded_target_n_idx = encoded_target_n_idx.squeeze(-1).long()
+        *all_X, targets = [batch[0][v] for v in self.output_map]
+        targets = targets.squeeze(-1).long()
+        # creates dummy indexes
+        indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
+            self.model_rank * self.model_batch_size
+        )
 
-            # when there's no encoding (just to check)
-            # manual_targets = encoded_target_n_idx
-            # manual_indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-            #     self.model_rank * self.model_batch_size
-            # )
-
-            # manually parsing the binary numbers
-            indexes = []
-            targets = []
-            for v in encoded_target_n_idx:
-                binary_repr = format(v, "031b")  # convert to 31 bit (no sign)
-                target = int(binary_repr[:10], 2)
-                idx = int(binary_repr[10:], 2)
-
-                indexes.append(idx)
-                targets.append(target)
-
-            manual_indexes = torch.tensor(indexes, device=self.model_device, dtype=torch.long)
-            manual_targets = torch.tensor(targets, device=self.model_device, dtype=torch.long)
-
-            # auto parsing (same result as manually parsing)
-            # and if we don't convert the labels at all
-            # binary_encoded_target_n_idx = int_to_binary(encoded_target_n_idx, 32)
-            # targets = binary_to_int(binary_encoded_target_n_idx[:, 1:-21], 10).long()
-            # indexes = binary_to_int(binary_encoded_target_n_idx[:, -21:], 21).long()
-            # assert (manual_indexes == indexes).all()
-            # assert (manual_targets == targets).all()
-
-            indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-                self.model_rank * self.model_batch_size
-            )
-
-        else:
-            *all_X, targets = [batch[0][v] for v in self.output_map]
-            targets = targets.squeeze(-1).long()
-            # creates dummy indexes
-            indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-                self.model_rank * self.model_batch_size
-            )
-
-        print("wrapper", all_X[0][0, 0, 0, 0], encoded_target_n_idx[0], manual_targets[0])
-        return indexes, all_X, (manual_targets, encoded_target_n_idx)
+        return indexes, all_X, targets
 
 
 class Wrapper(BaseWrapper):
@@ -179,7 +136,7 @@ class PretrainABC(ABC):
         train_dir = Path(self.extra_args["train_dir"])
 
         # hack to encode image indexes into the labels
-        self.encode_indexes_into_label = self.extra_args["encode_indexes_into_label"]
+        self.encode_indexes_into_labels = self.extra_args["encode_indexes_into_labels"]
 
         # handle custom data by creating the needed pipeline
         dataset = self.extra_args["dataset"]
@@ -217,7 +174,7 @@ class PretrainABC(ABC):
                 num_shards=num_shards,
                 num_threads=num_workers,
                 no_labels=self.extra_args["no_labels"],
-                encode_indexes_into_label=self.encode_indexes_into_label,
+                encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
             output_map = [
                 *[f"large{i}" for i in range(num_crops[0])],
@@ -252,7 +209,7 @@ class PretrainABC(ABC):
                 num_shards=num_shards,
                 num_threads=num_workers,
                 no_labels=self.extra_args["no_labels"],
-                encode_indexes_into_label=self.encode_indexes_into_label,
+                encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
             output_map = ["large1", "large2", "label"]
 
@@ -261,7 +218,7 @@ class PretrainABC(ABC):
             model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
-            encode_indexes_into_label=self.encode_indexes_into_label,
+            encode_indexes_into_labels=self.encode_indexes_into_labels,
             pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",

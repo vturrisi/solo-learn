@@ -446,7 +446,7 @@ class PretrainPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
         no_labels: bool = False,
-        encode_indexes_into_label: bool = False,
+        encode_indexes_into_labels: bool = False,
     ):
         """Initializes the pipeline for pretraining.
 
@@ -466,7 +466,7 @@ class PretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
-            encode_indexes_into_label (bool, optional): use 10-bits to encode the class label
+            encode_indexes_into_labels (bool, optional): use 10-bits to encode the class label
                 (up to a maximum of 1024 classes) and 21-bits to encode the image index
                 (up to a maximum of 2097152 images). Defaults to False.
         """
@@ -493,7 +493,7 @@ class PretrainPipeline(Pipeline):
                 random_shuffle=random_shuffle,
                 labels=labels,
             )
-        elif encode_indexes_into_label:
+        elif encode_indexes_into_labels:
             labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
 
             data = [
@@ -586,7 +586,7 @@ class MulticropPretrainPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
         no_labels: bool = False,
-        encode_indexes_into_label: bool = False,
+        encode_indexes_into_labels: bool = False,
     ):
         """Initializes the pipeline for pretraining with multicrop.
 
@@ -605,7 +605,7 @@ class MulticropPretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
-            encode_indexes_into_label (bool, optional): use 10-bits to encode the class label
+            encode_indexes_into_labels (bool, optional): use 10-bits to encode the class label
                 (up to a maximum of 1024 classes) and 21-bits to encode the image index
                 (up to a maximum of 2097152 images). Defaults to False.
         """
@@ -631,7 +631,7 @@ class MulticropPretrainPipeline(Pipeline):
                 random_shuffle=random_shuffle,
                 labels=labels,
             )
-        elif encode_indexes_into_label:
+        elif encode_indexes_into_labels:
             labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
 
             data = [

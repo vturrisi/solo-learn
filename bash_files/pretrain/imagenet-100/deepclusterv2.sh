@@ -24,6 +24,7 @@ python3 ../../../main_pretrain.py \
     --batch_size 128 \
     --num_workers 3 \
     --dali \
+    --encode_indexes_into_labels \
     --brightness 0.8 \
     --contrast 0.8 \
     --saturation 0.8 \

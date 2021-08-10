@@ -10,6 +10,7 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from solo.utils.decoder import BitShiftDecoder
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
 
@@ -132,6 +133,14 @@ class BaseModel(pl.LightningModule):
         assert encoder in ["resnet18", "resnet50"]
         from torchvision.models import resnet18, resnet50
 
+        # check that indices are being encoded and decoded only if dali is on
+        assert (
+            self.extra_args["dali"] or not self.extra_args["encode_indexes_into_labels"]
+        ), "Indexes can only be encoded into labels when dali is on."
+        # temporary fix to get indices from dali
+        if self.extra_args["encode_indexes_into_labels"]:
+            self.decoder = BitShiftDecoder()
+
         self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[encoder]
 
         # initialize encoder
@@ -210,7 +219,7 @@ class BaseModel(pl.LightningModule):
         # instead of dummy, batch-relative indexes
         # however, this limites the maxium number of classes to be 1024
         # and the maximum number of images 2097152, so use with care.
-        parser.add_argument("--encode_indexes_into_label", action="store_true")
+        parser.add_argument("--encode_indexes_into_labels", action="store_true")
 
         return parent_parser
 
@@ -357,19 +366,12 @@ class BaseModel(pl.LightningModule):
             Dict[str, Any]: dict with the classification loss, features and logits
         """
 
-        _, X, (targets, encoded) = batch
+        _, X, targets = batch
 
-        real_targets = []
-        for v in encoded:
-            binary_repr = format(v, "031b")  # convert to 31 bit (no sign)
-            target = int(binary_repr[:10], 2)
+        # temporary fix to get indices from dali
+        if self.extra_args["encode_indexes_into_labels"]:
+            targets = self.decoder.decode_targets(targets)
 
-            real_targets.append(target)
-
-        real_targets = torch.tensor(real_targets, device=self.device, dtype=torch.long)
-
-        print("encoded", X[0][0, 0, 0, 0], encoded[0], targets[0], real_targets[:3])
-        exit()
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
@@ -385,8 +387,6 @@ class BaseModel(pl.LightningModule):
         loss = sum(out["loss"] for out in outs) / self.num_crops
         acc1 = sum(out["acc1"] for out in outs) / self.num_crops
         acc5 = sum(out["acc5"] for out in outs) / self.num_crops
-
-        print(acc1, acc5)
 
         if self.multicrop:
             feats.extend([self.encoder(x) for x in X[self.num_crops :]])
