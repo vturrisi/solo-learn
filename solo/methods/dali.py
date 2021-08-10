@@ -218,7 +218,6 @@ class PretrainABC(ABC):
             model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
-            encode_indexes_into_labels=self.encode_indexes_into_labels,
             pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",
