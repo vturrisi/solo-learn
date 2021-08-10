@@ -79,6 +79,7 @@ class BarlowTwins(BaseModel):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
+
         feats1, feats2 = out["feats"]
 
         z1 = self.projector(feats1)

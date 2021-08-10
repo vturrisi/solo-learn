@@ -204,6 +204,14 @@ class BaseModel(pl.LightningModule):
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
+        # DALI only
+        # encodes image indexes into the labels
+        # this will make all the indexes returned to be the correct data indexes,
+        # instead of dummy, batch-relative indexes
+        # however, this limites the maxium number of classes to be 1024
+        # and the maximum number of images 2097152, so use with care.
+        parser.add_argument("--encode_indexes_into_label", action="store_true")
+
         return parent_parser
 
     @property
@@ -327,6 +335,7 @@ class BaseModel(pl.LightningModule):
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
+
         return {
             "loss": loss,
             "logits": logits,
@@ -364,6 +373,8 @@ class BaseModel(pl.LightningModule):
         loss = sum(out["loss"] for out in outs) / self.num_crops
         acc1 = sum(out["acc1"] for out in outs) / self.num_crops
         acc5 = sum(out["acc5"] for out in outs) / self.num_crops
+
+        print(acc1, acc5)
 
         if self.multicrop:
             feats.extend([self.encoder(x) for x in X[self.num_crops :]])

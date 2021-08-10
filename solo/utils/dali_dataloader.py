@@ -264,6 +264,7 @@ class NormalPipeline(Pipeline):
             labels = labels.gpu()
         # PyTorch expects labels as INT64
         labels = self.to_int64(labels)
+
         return (images, labels)
 
 
@@ -445,6 +446,7 @@ class PretrainPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
         no_labels: bool = False,
+        encode_indexes_into_label: bool = False,
     ):
         """Initializes the pipeline for pretraining.
 
@@ -464,6 +466,9 @@ class PretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
+            encode_indexes_into_label (bool, optional): use 10-bits to encode the class label
+                (up to a maximum of 1024 classes) and 21-bits to encode the image index
+                (up to a maximum of 2097152 images). Defaults to False.
         """
 
         seed += device_id
@@ -488,21 +493,24 @@ class PretrainPipeline(Pipeline):
                 random_shuffle=random_shuffle,
                 labels=labels,
             )
-        else:
-            labels = [Path(label) for label in os.listdir(data_path)]
+        elif encode_indexes_into_label:
+            labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
+
             data = [
                 (data_path / label / file, label_idx)
                 for label_idx, label in enumerate(labels)
                 for file in os.listdir(data_path / label)
             ]
+
             self.num_files = len(data)
-            # A' = A + (B * N) (here A is smaller than N)
-            # then now we can obtain both the value A and B from this new A as:
-            # A = A' % N and B = A' / N
+
+            # use the first 10 bits (after the sign) to store the class label
+            # and use the 21 remaining bits to store the image index
             data = [
-                (file, label_idx + (file_idx * self.num_files))
+                (file, (label_idx << 21) + file_idx)
                 for file_idx, (file, label_idx) in enumerate(data)
             ]
+
             files, encoded_target_n_idx = map(list, zip(*data))
 
             self.reader = ops.readers.File(
@@ -512,6 +520,14 @@ class PretrainPipeline(Pipeline):
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
             )
+        else:
+            self.reader = ops.readers.File(
+                file_root=data_path,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                random_shuffle=random_shuffle,
+            )
+
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0
@@ -539,6 +555,7 @@ class PretrainPipeline(Pipeline):
 
         # read images from memory
         inputs, labels = self.reader(name="Reader")
+
         images = self.decode(inputs)
 
         if self.one_transform_per_crop:
@@ -569,6 +586,7 @@ class MulticropPretrainPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
         no_labels: bool = False,
+        encode_indexes_into_label: bool = False,
     ):
         """Initializes the pipeline for pretraining with multicrop.
 
@@ -587,6 +605,9 @@ class MulticropPretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
+            encode_indexes_into_label (bool, optional): use 10-bits to encode the class label
+                (up to a maximum of 1024 classes) and 21-bits to encode the image index
+                (up to a maximum of 2097152 images). Defaults to False.
         """
 
         seed += device_id
@@ -601,9 +622,38 @@ class MulticropPretrainPipeline(Pipeline):
 
         data_path = Path(data_path)
         if no_labels:
-            files = [data_path / f for f in os.listdir(data_path)]
+            files = [data_path / f for f in sorted(os.listdir(data_path))]
+            labels = [-1] * len(files)
             self.reader = ops.readers.File(
                 files=files,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                random_shuffle=random_shuffle,
+                labels=labels,
+            )
+        elif encode_indexes_into_label:
+            labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
+
+            data = [
+                (data_path / label / file, label_idx)
+                for label_idx, label in enumerate(labels)
+                for file in os.listdir(data_path / label)
+            ]
+
+            self.num_files = len(data)
+
+            # use the first 10 bits (after the sign) to store the class label
+            # and use the 21 remaining bits to store the image index
+            data = [
+                (file, (label_idx << 21) + file_idx)
+                for file_idx, (file, label_idx) in enumerate(data)
+            ]
+
+            files, encoded_target_n_idx = map(list, zip(*data))
+
+            self.reader = ops.readers.File(
+                files=files,
+                labels=encoded_target_n_idx,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
@@ -615,6 +665,7 @@ class MulticropPretrainPipeline(Pipeline):
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
             )
+
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0

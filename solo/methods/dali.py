@@ -1,18 +1,20 @@
 import math
 from abc import ABC
 from pathlib import Path
+
+import torch
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
     CustomTransform,
-    PretrainPipeline,
     ImagenetTransform,
     MulticropPretrainPipeline,
     NormalPipeline,
+    PretrainPipeline,
 )
 
 
 class BaseWrapper(DALIGenericIterator):
-    """Temporary fix to handle LastBatchPolicy.DROP"""
+    """Temporary fix to handle LastBatchPolicy.DROP."""
 
     def __len__(self):
         size = (
@@ -32,13 +34,45 @@ class BaseWrapper(DALIGenericIterator):
                 return size // (self._num_gpus * self.batch_size)
 
 
+def int_to_binary(x: torch.Tensor, bits: int) -> torch.Tensor:
+    """Converts a Tensor of integers to a Tensor in binary format.
+    https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits
+
+    Args:
+        x (torch.Tensor): tensor of interges to convert to binary format.
+        bits (torch.Tensor): number of bits to use.
+
+    Returns:
+        torch.Tensor: x in binary format.
+    """
+
+    mask = 2 ** torch.arange(bits - 1, -1, -1).to(x.device, x.dtype)
+    return x.unsqueeze(-1).bitwise_and(mask).ne(0).float()
+
+
+def binary_to_int(b, bits):
+    """Converts a Tensor in binary format to a Tensor of integers.
+    https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits
+
+    Args:
+        x (torch.Tensor): tensor of binary data to convert to integer.
+        bits (torch.Tensor): number of bits.
+
+    Returns:
+        torch.Tensor: x in integer format.
+    """
+
+    mask = 2 ** torch.arange(bits - 1, -1, -1).to(b.device, b.dtype)
+    return torch.sum(mask * b, -1).detach()
+
+
 class PretrainWrapper(BaseWrapper):
     def __init__(
         self,
         model_batch_size: int,
         model_rank: int,
         model_device: str,
-        num_files: int,
+        encode_indexes_into_label: bool,
         *args,
         **kwargs,
     ):
@@ -48,28 +82,64 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
-            num_files (int): number of files.
+            encode_indexes_into_label (bool): use 10-bits to encode the class label
+                (up to a maximum of 1024 classes) and 21-bits to encode the image index
+                (up to a maximum of 2097152 images). Defaults to False.
         """
 
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
-        self.num_files = num_files
+        self.encode_indexes_into_label = encode_indexes_into_label
 
     def __next__(self):
         batch = super().__next__()
-        # A = A' % N and B = A' / N
-        *all_X, encoded_target_n_idx = [batch[0][v] for v in self.output_map]
-        print(encoded_target_n_idx)
-        encoded_target_n_idx = encoded_target_n_idx.squeeze(-1).long()
-        target = encoded_target_n_idx % self.num_files
-        indexes = encoded_target_n_idx // self.num_files
 
-        print(encoded_target_n_idx, indexes, target)
-        exit()
+        if self.encode_indexes_into_label:
+            *all_X, encoded_target_n_idx = [batch[0][v] for v in self.output_map]
+            encoded_target_n_idx = encoded_target_n_idx.squeeze(-1).long()
 
-        return indexes, all_X, target
+            # when there's no encoding (just to check)
+            # manual_targets = encoded_target_n_idx
+            # manual_indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
+            #     self.model_rank * self.model_batch_size
+            # )
+
+            # manually parsing the binary numbers
+            indexes = []
+            targets = []
+            for v in encoded_target_n_idx:
+                binary_repr = format(v, "031b")  # convert to 31 bit (no sign)
+                target = int(binary_repr[:10], 2)
+                idx = int(binary_repr[10:], 2)
+
+                indexes.append(idx)
+                targets.append(target)
+
+            manual_indexes = torch.tensor(indexes, device=self.model_device, dtype=torch.long)
+            manual_targets = torch.tensor(targets, device=self.model_device, dtype=torch.long)
+
+            # auto parsing (same result as manually parsing)
+            # and if we don't convert the labels at all
+            # binary_encoded_target_n_idx = int_to_binary(encoded_target_n_idx, 32)
+            # targets = binary_to_int(binary_encoded_target_n_idx[:, 1:-21], 10).long()
+            # indexes = binary_to_int(binary_encoded_target_n_idx[:, -21:], 21).long()
+            # assert (manual_indexes == indexes).all()
+            # assert (manual_targets == targets).all()
+
+            indexes = manual_indexes
+            targets = manual_targets
+
+        else:
+            *all_X, targets = [batch[0][v] for v in self.output_map]
+            targets = targets.squeeze(-1).long()
+            # creates dummy indexes
+            indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
+                self.model_rank * self.model_batch_size
+            )
+
+        return indexes, all_X, targets
 
 
 class Wrapper(BaseWrapper):
@@ -105,6 +175,9 @@ class PretrainABC(ABC):
         num_workers = self.extra_args["num_workers"]
         data_dir = Path(self.extra_args["data_dir"])
         train_dir = Path(self.extra_args["train_dir"])
+
+        # hack to encode image indexes into the labels
+        self.encode_indexes_into_label = self.extra_args["encode_indexes_into_label"]
 
         # handle custom data by creating the needed pipeline
         dataset = self.extra_args["dataset"]
@@ -142,6 +215,7 @@ class PretrainABC(ABC):
                 num_shards=num_shards,
                 num_threads=num_workers,
                 no_labels=self.extra_args["no_labels"],
+                encode_indexes_into_label=self.encode_indexes_into_label,
             )
             output_map = [
                 *[f"large{i}" for i in range(num_crops[0])],
@@ -176,6 +250,7 @@ class PretrainABC(ABC):
                 num_shards=num_shards,
                 num_threads=num_workers,
                 no_labels=self.extra_args["no_labels"],
+                encode_indexes_into_label=self.encode_indexes_into_label,
             )
             output_map = ["large1", "large2", "label"]
 
@@ -184,7 +259,7 @@ class PretrainABC(ABC):
             model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
-            num_files=train_pipeline.num_files,
+            encode_indexes_into_label=self.encode_indexes_into_label,
             pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",
