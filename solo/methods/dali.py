@@ -128,8 +128,9 @@ class PretrainWrapper(BaseWrapper):
             # assert (manual_indexes == indexes).all()
             # assert (manual_targets == targets).all()
 
-            indexes = manual_indexes
-            targets = manual_targets
+            indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
+                self.model_rank * self.model_batch_size
+            )
 
         else:
             *all_X, targets = [batch[0][v] for v in self.output_map]
@@ -139,7 +140,8 @@ class PretrainWrapper(BaseWrapper):
                 self.model_rank * self.model_batch_size
             )
 
-        return indexes, all_X, targets
+        print("wrapper", all_X[0][0, 0, 0, 0], encoded_target_n_idx[0], manual_targets[0])
+        return indexes, all_X, (manual_targets, encoded_target_n_idx)
 
 
 class Wrapper(BaseWrapper):

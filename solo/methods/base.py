@@ -357,7 +357,19 @@ class BaseModel(pl.LightningModule):
             Dict[str, Any]: dict with the classification loss, features and logits
         """
 
-        _, X, targets = batch
+        _, X, (targets, encoded) = batch
+
+        real_targets = []
+        for v in encoded:
+            binary_repr = format(v, "031b")  # convert to 31 bit (no sign)
+            target = int(binary_repr[:10], 2)
+
+            real_targets.append(target)
+
+        real_targets = torch.tensor(real_targets, device=self.device, dtype=torch.long)
+
+        print("encoded", X[0][0, 0, 0, 0], encoded[0], targets[0], real_targets[:3])
+        exit()
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
