@@ -502,8 +502,6 @@ class PretrainPipeline(Pipeline):
                 for file in os.listdir(data_path / label)
             ]
 
-            self.num_files = len(data)
-
             # use the first 10 bits (after the sign) to store the class label
             # and use the 21 remaining bits to store the image index
             data = [
@@ -639,8 +637,6 @@ class MulticropPretrainPipeline(Pipeline):
                 for label_idx, label in enumerate(labels)
                 for file in os.listdir(data_path / label)
             ]
-
-            self.num_files = len(data)
 
             # use the first 10 bits (after the sign) to store the class label
             # and use the 21 remaining bits to store the image index
