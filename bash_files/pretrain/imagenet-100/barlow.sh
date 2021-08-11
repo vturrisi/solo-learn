@@ -1,7 +1,7 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /data/datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -20,7 +20,6 @@ python3 ../../../main_pretrain.py \
     --weight_decay 1e-4 \
     --batch_size 128 \
     --dali \
-    --encode_indexes_into_labels \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \

@@ -1,8 +1,10 @@
 import math
 from abc import ABC
 from pathlib import Path
+from typing import List
 
 import torch
+import torch.nn as nn
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
     CustomTransform,
@@ -34,44 +36,13 @@ class BaseWrapper(DALIGenericIterator):
                 return size // (self._num_gpus * self.batch_size)
 
 
-def int_to_binary(x: torch.Tensor, bits: int) -> torch.Tensor:
-    """Converts a Tensor of integers to a Tensor in binary format.
-    https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits
-
-    Args:
-        x (torch.Tensor): tensor of interges to convert to binary format.
-        bits (torch.Tensor): number of bits to use.
-
-    Returns:
-        torch.Tensor: x in binary format.
-    """
-
-    mask = 2 ** torch.arange(bits - 1, -1, -1).to(x.device, x.dtype)
-    return x.unsqueeze(-1).bitwise_and(mask).ne(0).float()
-
-
-def binary_to_int(b, bits):
-    """Converts a Tensor in binary format to a Tensor of integers.
-    https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits
-
-    Args:
-        x (torch.Tensor): tensor of binary data to convert to integer.
-        bits (torch.Tensor): number of bits.
-
-    Returns:
-        torch.Tensor: x in integer format.
-    """
-
-    mask = 2 ** torch.arange(bits - 1, -1, -1).to(b.device, b.dtype)
-    return torch.sum(mask * b, -1).detach()
-
-
 class PretrainWrapper(BaseWrapper):
     def __init__(
         self,
         model_batch_size: int,
         model_rank: int,
         model_device: str,
+        conversion_map: List[int] = None,
         *args,
         **kwargs,
     ):
@@ -81,23 +52,47 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
+            conversion_map  (List[int], optional): list of integeres that map each index
+                to a class label. If nothing is passed, no label mapping needs to be done.
+                Defaults to None.
         """
 
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
+        self.conversion_map = conversion_map
+        if self.conversion_map is not None:
+            self.conversion_map = torch.tensor(
+                self.conversion_map, dtype=torch.float32, device=self.model_device
+            ).reshape(-1, 1)
+            self.conversion_map = nn.Embedding.from_pretrained(self.conversion_map)
 
     def __next__(self):
-        batch = super().__next__()
+        batch = super().__next__()[0]
+        # PyTorch Lightning does double buffering
+        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316\n",
+        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs\n",
+        # to be made before returning\n",
 
-        *all_X, targets = [batch[0][v] for v in self.output_map]
-        targets = targets.squeeze(-1).long()
-        # creates dummy indexes
-        indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-            self.model_rank * self.model_batch_size
-        )
+        if self.conversion_map is not None:
+            *all_X, indexes = [batch[v] for v in self.output_map]
+            targets = self.conversion_map(indexes).detach().flatten().long().detach().clone()
+            indexes = indexes.flatten().long().detach().clone()
+        else:
+            *all_X, targets = [batch[v] for v in self.output_map]
+            targets = targets.squeeze(-1).long().detach().clone()
+            # creates dummy indexes
+            indexes = (
+                (
+                    torch.arange(self.model_batch_size, device=self.model_device)
+                    + (self.model_rank * self.model_batch_size)
+                )
+                .detach()
+                .clone()
+            )
 
+        all_X = [x.detach().clone() for x in all_X]
         return indexes, all_X, targets
 
 
@@ -214,10 +209,12 @@ class PretrainABC(ABC):
             output_map = ["large1", "large2", "label"]
 
         policy = LastBatchPolicy.DROP
+        conversion_map = train_pipeline.conversion_map if self.encode_indexes_into_labels else None
         train_loader = PretrainWrapper(
             model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
+            conversion_map=conversion_map,
             pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",

@@ -157,11 +157,7 @@ class DeepClusterV2(BaseModel):
             Dict[str, Any]: total loss composed of DeepClusterV2 loss and classification loss.
         """
 
-        # temporary fix to get indices from dali
-        if self.extra_args["encode_indexes_into_labels"]:
-            idxs = self.decoder.decode_indexes(batch[2])
-        else:
-            idxs = batch[0]
+        idxs = batch[0]
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]

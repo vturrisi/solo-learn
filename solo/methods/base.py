@@ -10,7 +10,6 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
-from solo.utils.decoder import BitShiftDecoder
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
 
@@ -133,14 +132,6 @@ class BaseModel(pl.LightningModule):
         assert encoder in ["resnet18", "resnet50"]
         from torchvision.models import resnet18, resnet50
 
-        # check that indices are being encoded and decoded only if dali is on
-        assert (
-            self.extra_args["dali"] or not self.extra_args["encode_indexes_into_labels"]
-        ), "Indexes can only be encoded into labels when dali is on."
-        # temporary fix to get indices from dali
-        if self.extra_args["encode_indexes_into_labels"]:
-            self.decoder = BitShiftDecoder()
-
         self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[encoder]
 
         # initialize encoder
@@ -214,11 +205,8 @@ class BaseModel(pl.LightningModule):
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
         # DALI only
-        # encodes image indexes into the labels
-        # this will make all the indexes returned to be the correct data indexes,
-        # instead of dummy, batch-relative indexes
-        # however, this limites the maxium number of classes to be 1024
-        # and the maximum number of images 2097152, so use with care.
+        # uses sample indexes as labels and then gets the labels from a lookup table
+        # this may use more CPU memory, so just use when needed.
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
 
         return parent_parser
@@ -367,10 +355,6 @@ class BaseModel(pl.LightningModule):
         """
 
         _, X, targets = batch
-
-        # temporary fix to get indices from dali
-        if self.extra_args["encode_indexes_into_labels"]:
-            targets = self.decoder.decode_targets(targets)
 
         X = [X] if isinstance(X, torch.Tensor) else X
 

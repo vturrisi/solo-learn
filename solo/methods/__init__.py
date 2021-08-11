@@ -6,12 +6,12 @@ from solo.methods.dino import DINO
 from solo.methods.linear import LinearModel
 from solo.methods.mocov2plus import MoCoV2Plus
 from solo.methods.nnclr import NNCLR
+from solo.methods.ressl import ReSSL
 from solo.methods.simclr import SimCLR
 from solo.methods.simsiam import SimSiam
 from solo.methods.swav import SwAV
 from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
-from solo.methods.ressl import ReSSL
 
 METHODS = {
     # base classes

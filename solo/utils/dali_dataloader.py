@@ -466,9 +466,9 @@ class PretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
-            encode_indexes_into_labels (bool, optional): use 10-bits to encode the class label
-                (up to a maximum of 1024 classes) and 21-bits to encode the image index
-                (up to a maximum of 2097152 images). Defaults to False.
+            encode_indexes_into_labels (bool, optional): uses sample indexes as labels
+                and then gets the labels from a lookup table. This may use more CPU memory,
+                so just use when needed. Defaults to False.
         """
 
         seed += device_id
@@ -482,9 +482,8 @@ class PretrainPipeline(Pipeline):
         self.device = device
 
         data_path = Path(data_path)
-
         if no_labels:
-            files = [data_path / f for f in os.listdir(data_path)]
+            files = [data_path / f for f in sorted(os.listdir(data_path))]
             labels = [-1] * len(files)
             self.reader = ops.readers.File(
                 files=files,
@@ -502,18 +501,24 @@ class PretrainPipeline(Pipeline):
                 for file in os.listdir(data_path / label)
             ]
 
-            # use the first 10 bits (after the sign) to store the class label
-            # and use the 21 remaining bits to store the image index
-            data = [
-                (file, (label_idx << 21) + file_idx)
-                for file_idx, (file, label_idx) in enumerate(data)
-            ]
+            files = []
+            labels = []
+            # for debugging
+            true_labels = []
 
-            files, encoded_target_n_idx = map(list, zip(*data))
+            self.conversion_map = []
+            for file_idx, (file, label_idx) in enumerate(data):
+                files.append(file)
+                labels.append(file_idx)
+                true_labels.append(label_idx)
+                self.conversion_map.append(label_idx)
+
+            # debugging
+            for file, file_idx, label_idx in zip(files, labels, true_labels):
+                assert self.conversion_map[file_idx] == label_idx
 
             self.reader = ops.readers.File(
                 files=files,
-                labels=encoded_target_n_idx,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
@@ -603,9 +608,9 @@ class MulticropPretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
-            encode_indexes_into_labels (bool, optional): use 10-bits to encode the class label
-                (up to a maximum of 1024 classes) and 21-bits to encode the image index
-                (up to a maximum of 2097152 images). Defaults to False.
+            encode_indexes_into_labels (bool, optional): uses sample indexes as labels
+                and then gets the labels from a lookup table. This may use more CPU memory,
+                so just use when needed. Defaults to False.
         """
 
         seed += device_id
@@ -638,18 +643,24 @@ class MulticropPretrainPipeline(Pipeline):
                 for file in os.listdir(data_path / label)
             ]
 
-            # use the first 10 bits (after the sign) to store the class label
-            # and use the 21 remaining bits to store the image index
-            data = [
-                (file, (label_idx << 21) + file_idx)
-                for file_idx, (file, label_idx) in enumerate(data)
-            ]
+            files = []
+            labels = []
+            # for debugging
+            true_labels = []
 
-            files, encoded_target_n_idx = map(list, zip(*data))
+            self.conversion_map = []
+            for file_idx, (file, label_idx) in enumerate(data):
+                files.append(file)
+                labels.append(file_idx)
+                true_labels.append(label_idx)
+                self.conversion_map.append(label_idx)
+
+            # debugging
+            for file, file_idx, label_idx in zip(files, labels, true_labels):
+                assert self.conversion_map[file_idx] == label_idx
 
             self.reader = ops.readers.File(
                 files=files,
-                labels=encoded_target_n_idx,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 random_shuffle=random_shuffle,
