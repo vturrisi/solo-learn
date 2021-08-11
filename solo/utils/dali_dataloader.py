@@ -196,7 +196,6 @@ class NormalPipeline(Pipeline):
             file_root=data_path,
             shard_id=shard_id,
             num_shards=num_shards,
-            # random_shuffle=True if not self.validation else False,
             shuffle_after_epoch=True if not self.validation else False,
         )
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
