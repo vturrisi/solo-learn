@@ -22,7 +22,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-6 \
     --batch_size 128 \
-    --num_workers 3 \
+    --num_workers 2 \
     --dali \
     --encode_indexes_into_labels \
     --brightness 0.8 \

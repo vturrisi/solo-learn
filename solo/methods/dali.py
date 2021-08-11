@@ -71,13 +71,13 @@ class PretrainWrapper(BaseWrapper):
     def __next__(self):
         batch = super().__next__()[0]
         # PyTorch Lightning does double buffering
-        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316\n",
-        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs\n",
-        # to be made before returning\n",
+        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316,
+        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs,
+        # to be made before returning,
 
         if self.conversion_map is not None:
             *all_X, indexes = [batch[v] for v in self.output_map]
-            targets = self.conversion_map(indexes).detach().flatten().long().detach().clone()
+            targets = self.conversion_map(indexes).flatten().long().detach().clone()
             indexes = indexes.flatten().long().detach().clone()
         else:
             *all_X, targets = [batch[v] for v in self.output_map]
@@ -93,7 +93,7 @@ class PretrainWrapper(BaseWrapper):
             )
 
         all_X = [x.detach().clone() for x in all_X]
-        return indexes, all_X, targets
+        return [indexes, all_X, targets]
 
 
 class Wrapper(BaseWrapper):

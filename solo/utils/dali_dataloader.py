@@ -196,7 +196,8 @@ class NormalPipeline(Pipeline):
             file_root=data_path,
             shard_id=shard_id,
             num_shards=num_shards,
-            random_shuffle=True if not self.validation else False,
+            # random_shuffle=True if not self.validation else False,
+            shuffle_after_epoch=True if not self.validation else False,
         )
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
@@ -489,7 +490,7 @@ class PretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=True,
                 labels=labels,
             )
         elif encode_indexes_into_labels:
@@ -498,7 +499,7 @@ class PretrainPipeline(Pipeline):
             data = [
                 (data_path / label / file, label_idx)
                 for label_idx, label in enumerate(labels)
-                for file in os.listdir(data_path / label)
+                for file in sorted(os.listdir(data_path / label))
             ]
 
             files = []
@@ -521,14 +522,14 @@ class PretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=True,
             )
         else:
             self.reader = ops.readers.File(
                 file_root=data_path,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=True,
             )
 
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
@@ -631,7 +632,7 @@ class MulticropPretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=True,
                 labels=labels,
             )
         elif encode_indexes_into_labels:
@@ -640,7 +641,7 @@ class MulticropPretrainPipeline(Pipeline):
             data = [
                 (data_path / label / file, label_idx)
                 for label_idx, label in enumerate(labels)
-                for file in os.listdir(data_path / label)
+                for file in sorted(os.listdir(data_path / label))
             ]
 
             files = []
@@ -663,14 +664,14 @@ class MulticropPretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=True,
             )
         else:
             self.reader = ops.readers.File(
                 file_root=data_path,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=True,
             )
 
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
