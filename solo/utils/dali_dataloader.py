@@ -336,6 +336,19 @@ class ImagenetTransform:
         )
         self.coin05 = ops.random.CoinFlip(probability=0.5)
 
+        self.str = (
+            "ImagenetTransform("
+            f"random_crop({min_scale}, {max_scale}), "
+            f"random_color_jitter(brightness={brightness}, "
+            f"contrast={contrast}, saturation={saturation}, hue={hue}), "
+            f"random_gray_scale, random_gaussian_blur({gaussian_prob}), "
+            f"random_solarization({solarization_prob}), "
+            "crop_mirror_resize())"
+        )
+
+    def __str__(self) -> str:
+        return self.str
+
     def __call__(self, images):
         out = self.random_crop(images)
         out = self.random_color_jitter(out)
@@ -421,6 +434,16 @@ class CustomTransform:
         )
         self.coin05 = ops.random.CoinFlip(probability=0.5)
 
+        self.str = (
+            "CustomTransform("
+            f"random_crop({min_scale}, {max_scale}), "
+            f"random_color_jitter(brightness={brightness}, "
+            f"contrast={contrast}, saturation={saturation}, hue={hue}), "
+            f"random_gray_scale, random_gaussian_blur({gaussian_prob}), "
+            f"random_solarization({solarization_prob}), "
+            "crop_mirror_resize())"
+        )
+
     def __call__(self, images):
         out = self.random_crop(images)
         out = self.random_color_jitter(out)
@@ -429,6 +452,9 @@ class CustomTransform:
         out = self.random_solarization(out)
         out = self.cmn(out, mirror=self.coin05())
         return out
+
+    def __str__(self):
+        return self.str
 
 
 class PretrainPipeline(Pipeline):
@@ -489,7 +515,7 @@ class PretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                shuffle_after_epoch=True,
+                shuffle_after_epoch=random_shuffle,
                 labels=labels,
             )
         elif encode_indexes_into_labels:
@@ -521,14 +547,14 @@ class PretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                shuffle_after_epoch=True,
+                shuffle_after_epoch=random_shuffle,
             )
         else:
             self.reader = ops.readers.File(
                 file_root=data_path,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                shuffle_after_epoch=True,
+                shuffle_after_epoch=random_shuffle,
             )
 
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
@@ -631,7 +657,7 @@ class MulticropPretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                shuffle_after_epoch=True,
+                shuffle_after_epoch=random_shuffle,
                 labels=labels,
             )
         elif encode_indexes_into_labels:
@@ -663,14 +689,14 @@ class MulticropPretrainPipeline(Pipeline):
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                shuffle_after_epoch=True,
+                shuffle_after_epoch=random_shuffle,
             )
         else:
             self.reader = ops.readers.File(
                 file_root=data_path,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                shuffle_after_epoch=True,
+                shuffle_after_epoch=random_shuffle,
             )
 
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
