@@ -132,7 +132,7 @@ class ReSSL(BaseMomentumModel):
         q = F.normalize(self.projector(out["feats"]), dim=-1)
         return {**out, "q": q}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for BYOL reusing BaseModel training step.
 
         Args:
@@ -141,7 +141,7 @@ class ReSSL(BaseMomentumModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of BYOL and classification loss.
+            torch.Tensor: total loss composed of BYOL and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

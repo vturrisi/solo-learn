@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.deepclusterv2 import deepclusterv2_loss_func
 from solo.methods.base import BaseModel
-from solo.utils.kmeans import cluster_memory
+from solo.utils.kmeans import KMeans
 
 
 class DeepClusterV2(BaseModel):
@@ -25,7 +25,8 @@ class DeepClusterV2(BaseModel):
             output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             num_prototypes (Sequence[int]): number of prototypes.
-            temperature (float): temperature for the softmax normalization.
+            temperature (float): temperature for the softmax.
+            kmeans_iters (int): number of iterations for k-means clustering.
         """
 
         super().__init__(**kwargs)
@@ -81,9 +82,23 @@ class DeepClusterV2(BaseModel):
         return super().learnable_params + extra_learnable_params
 
     def on_train_start(self):
-        """Gets the world size and sets it in the sinkhorn and the queue."""
-        #  k-means needs the world size
+        """Gets the world size and initializes the memory banks."""
+        #  k-means needs the world size and the dataset size
         self.world_size = self.trainer.world_size if self.trainer else 1
+        self.dataset_size = getattr(self, "dali_epoch_size", None) or len(
+            self.trainer.train_dataloader.dataset
+        )
+
+        # build k-means helper object
+        self.kmeans = KMeans(
+            world_size=self.world_size,
+            rank=self.global_rank,
+            num_crops=self.num_crops,
+            dataset_size=self.dataset_size,
+            proj_features_dim=self.output_dim,
+            num_prototypes=self.num_prototypes,
+            kmeans_iters=self.kmeans_iters,
+        )
 
         # initialize memory banks
         size_memory_per_process = len(self.trainer.train_dataloader) * self.batch_size
@@ -99,30 +114,28 @@ class DeepClusterV2(BaseModel):
         )
 
     def on_train_epoch_start(self) -> None:
-        dataset_size = getattr(self, "dali_epoch_size", None) or len(
-            self.trainer.train_dataloader.dataset
-        )
+        """Prepares assigments and prototype centroids for the next epoch."""
 
         if self.current_epoch == 0:
             self.assignments = -torch.ones(
-                len(self.num_prototypes), dataset_size, device=self.device
+                len(self.num_prototypes), self.dataset_size, device=self.device
             ).long()
         else:
-            self.assignments, centroids = cluster_memory(
-                local_memory_index=self.local_memory_index,
-                local_memory_embeddings=self.local_memory_embeddings,
-                world_size=self.world_size,
-                rank=self.global_rank,
-                num_crops=self.num_crops,
-                dataset_size=dataset_size,
-                proj_features_dim=self.output_dim,
-                num_prototypes=self.num_prototypes,
-                kmeans_iters=self.kmeans_iters,
+            self.assignments, centroids = self.kmeans.cluster_memory(
+                self.local_memory_index, self.local_memory_embeddings
             )
             for proto, centro in zip(self.prototypes, centroids):
                 proto.weight.copy_(centro)
 
-    def update_memory_banks(self, idxs, z, batch_idx):
+    def update_memory_banks(self, idxs: torch.Tensor, z: torch.Tensor, batch_idx: int) -> None:
+        """Updates DeepClusterV2's memory banks of indices and features.
+
+        Args:
+            idxs (torch.Tensor): set of indices of the samples of the current batch.
+            z (torch.Tensor): projected features of the samples of the current batch.
+            batch_idx (int): batch index relative to the current epoch.
+        """
+
         start_idx, end_idx = batch_idx * self.batch_size, (batch_idx + 1) * self.batch_size
         self.local_memory_index[start_idx:end_idx] = idxs
         for c, z_c in enumerate(z):
@@ -145,7 +158,7 @@ class DeepClusterV2(BaseModel):
         p = torch.stack([p(z) for p in self.prototypes])
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for DeepClusterV2 reusing BaseModel training step.
 
         Args:
@@ -154,7 +167,7 @@ class DeepClusterV2(BaseModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of DeepClusterV2 loss and classification loss.
+            torch.Tensor: total loss composed of DeepClusterV2 loss and classification loss.
         """
 
         idxs = batch[0]

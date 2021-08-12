@@ -295,7 +295,7 @@ class BaseModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def forward(self, *args, **kwargs):
+    def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
 
         return self._base_forward(*args, **kwargs)

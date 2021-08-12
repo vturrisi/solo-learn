@@ -91,7 +91,7 @@ class SimSiam(BaseModel):
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SimSiam reusing BaseModel training step.
 
         Args:
@@ -100,7 +100,7 @@ class SimSiam(BaseModel):
             batch_idx (int): index of the batch
 
         Returns:
-            Dict[str, Any]: total loss composed of SimSiam loss and classification loss
+            torch.Tensor: total loss composed of SimSiam loss and classification loss
         """
 
         out = super().training_step(batch, batch_idx)

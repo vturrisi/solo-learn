@@ -1,7 +1,7 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /datasets \
+    --data_dir /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -32,7 +32,6 @@ python3 ../../../main_pretrain.py \
     --name deepclusterv2-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
-    --wandb \
     --method deepclusterv2 \
     --proj_hidden_dim 2048 \
     --output_dim 128 \

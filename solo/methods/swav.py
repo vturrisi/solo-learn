@@ -150,7 +150,7 @@ class SwAV(BaseModel):
             assignments.append(self.sk(p)[:bs])
         return assignments
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SwAV reusing BaseModel training step.
 
         Args:
@@ -159,7 +159,7 @@ class SwAV(BaseModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of SwAV loss and classification loss.
+            torch.Tensor: total loss composed of SwAV loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

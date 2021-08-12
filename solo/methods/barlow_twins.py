@@ -1,6 +1,7 @@
 import argparse
-from typing import Any, Dict, List, Sequence
+from typing import Any, List, Sequence
 
+import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
 from solo.methods.base import BaseModel
@@ -65,7 +66,7 @@ class BarlowTwins(BaseModel):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for Barlow Twins reusing BaseModel training step.
 
         Args:
@@ -74,7 +75,7 @@ class BarlowTwins(BaseModel):
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of Barlow loss and classification loss.
+            torch.Tensor: total loss composed of Barlow loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
