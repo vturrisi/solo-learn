@@ -1,9 +1,10 @@
 from typing import Any, Sequence
-import torch
-import torch.nn.functional as F
-import torch.distributed as dist
-from scipy.sparse import csr_matrix
+
 import numpy as np
+import torch
+import torch.distributed as dist
+import torch.nn.functional as F
+from scipy.sparse import csr_matrix
 
 
 class KMeans:
