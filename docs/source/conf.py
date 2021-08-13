@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath("../../solo"))
 # -- Project information -----------------------------------------------------
 
 project = "solo-learn"
-copyright = "2021, solo-learn development team."
+copyright = "2021, solo-learn development team"
 author = "solo-learn development team"
 
 # The full version, including alpha/beta/rc tags
@@ -35,7 +35,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    # "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
