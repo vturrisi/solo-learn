@@ -8,7 +8,7 @@ build:
 python:
   version: 3.8
   install:
-    - requirements: requirements/docs.txt
+    - requirements: docs/requirements.txt
     - requirements: matplotlib seaborn pandas umap-learn
     - method: setuptools
       path: .
