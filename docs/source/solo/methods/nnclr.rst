@@ -10,12 +10,10 @@ add_model_specific_args
 .. automethod:: solo.methods.nnclr.NNCLR.add_model_specific_args
    :noindex:
 
-
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.nnclr.NNCLR.learnable_params
+.. autoattribute:: solo.methods.nnclr.NNCLR.learnable_params
    :noindex:
-
 
 dequeue_and_enqueue
 ~~~~~~~~~~~~~~~~~~~
@@ -27,12 +25,10 @@ find_nn
 .. automethod:: solo.methods.nnclr.NNCLR.find_nn
    :noindex:
 
-
 forward
 ~~~~~~~
 .. automethod:: solo.methods.nnclr.NNCLR.forward
    :noindex:
-
 
 training_step
 ~~~~~~~~~~~~~

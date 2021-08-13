@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.simclr.SimCLR.learnable_params
+.. autoattribute:: solo.methods.simclr.SimCLR.learnable_params
    :noindex:
 
 forward

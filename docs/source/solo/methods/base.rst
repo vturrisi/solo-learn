@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseModel.learnable_params
+.. autoattribute:: solo.methods.base.BaseModel.learnable_params
    :noindex:
 
 configure_optimizers
@@ -61,12 +61,12 @@ BaseMomentumModel
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMomentumModel.learnable_params
+.. autoattribute:: solo.methods.base.BaseMomentumModel.learnable_params
    :noindex:
 
 momentum_pairs
 ~~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMomentumModel.momentum_pairs
+.. autoattribute:: solo.methods.base.BaseMomentumModel.momentum_pairs
    :noindex:
 
 add_model_specific_args

@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.deepclusterv2.DeepClusterV2.learnable_params
+.. autoattribute:: solo.methods.deepclusterv2.DeepClusterV2.learnable_params
    :noindex:
 
 on_train_start

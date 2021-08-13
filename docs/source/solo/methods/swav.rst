@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.swav.SwAV.learnable_params
+.. autoattribute:: solo.methods.swav.SwAV.learnable_params
    :noindex:
 
 on_train_start

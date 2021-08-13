@@ -12,12 +12,12 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.byol.BYOL.learnable_params
+.. autoattribute:: solo.methods.byol.BYOL.learnable_params
    :noindex:
 
 momentum_pairs
 ~~~~~~~~~~~~~~
-.. automethod:: solo.methods.byol.BYOL.momentum_pairs
+.. autoattribute:: solo.methods.byol.BYOL.momentum_pairs
    :noindex:
 
 forward

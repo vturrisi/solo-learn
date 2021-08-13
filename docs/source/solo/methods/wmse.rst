@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.wmse.WMSE.learnable_params
+.. autoattribute:: solo.methods.wmse.WMSE.learnable_params
    :noindex:
 
 forward
