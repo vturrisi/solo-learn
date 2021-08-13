@@ -354,6 +354,9 @@ class BaseModel(pl.LightningModule):
             Dict[str, Any]: dict with the classification loss, features and logits
         """
 
+        # keys that are used by default
+        default_keys = set(["loss", "logits", "feats", "acc1", "acc5"])
+
         _, X, targets = batch
 
         X = [X] if isinstance(X, torch.Tensor) else X
@@ -366,6 +369,8 @@ class BaseModel(pl.LightningModule):
         # collect data
         logits = [out["logits"] for out in outs]
         feats = [out["feats"] for out in outs]
+        # collect extra data
+        extra = {k: [out[k] for out in outs] for k in outs[0].keys() if k not in default_keys}
 
         # loss and stats
         loss = sum(out["loss"] for out in outs) / self.num_crops
@@ -382,7 +387,7 @@ class BaseModel(pl.LightningModule):
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-        return {"loss": loss, "feats": feats, "logits": logits}
+        return {"loss": loss, "feats": feats, "logits": logits, **extra}
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
