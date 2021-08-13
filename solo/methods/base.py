@@ -528,7 +528,7 @@ class BaseMomentumModel(BaseModel):
         return parent_parser
 
     def on_train_start(self):
-        """Resents the step counter at the beginning of training."""
+        """Resets the step counter at the beginning of training."""
         self.last_step = 0
 
     def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> Dict[str, Any]:
