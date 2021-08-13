@@ -15,10 +15,10 @@ While the library is self contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Aug 13]**: :whale: [DeepCluster V2](https://arxiv.org/abs/2006.09882) is now available.
-* **[Jul 31]**: :hedgehog: [ReSSL](https://arxiv.org/abs/2107.09282) is now available.
-* **[Jul 21]**: :test_tube: Added Custom Dataset support.
-* **[Jul 21]**: :carousel_horse: Added AutoUMAP.
+* **[Aug 13 2021]**: :whale: [DeepCluster V2](https://arxiv.org/abs/2006.09882) is now available.
+* **[Jul 31 2021]**: :hedgehog: [ReSSL](https://arxiv.org/abs/2107.09282) is now available.
+* **[Jul 21 2021]**: :test_tube: Added Custom Dataset support.
+* **[Jul 21 2021]**: :carousel_horse: Added AutoUMAP.
 
 ---
 
