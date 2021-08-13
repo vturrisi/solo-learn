@@ -22,7 +22,9 @@ DATA_KWARGS = {
 }
 
 
-def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, num_crops=2, num_small_crops=0):
+def gen_base_kwargs(
+    cifar=False, momentum=False, multicrop=False, num_crops=2, num_small_crops=0, batch_size=32
+):
     BASE_KWARGS = {
         "encoder": "resnet18",
         "num_classes": 10 if cifar else 100,
@@ -49,7 +51,7 @@ def gen_base_kwargs(cifar=False, momentum=False, multicrop=False, num_crops=2, n
         "eta_lars": 0.02,
         "lr_decay_steps": None,
         "dali_device": "gpu",
-        "batch_size": 32,
+        "batch_size": batch_size,
         "num_workers": 4,
         "data_dir": "/data/datasets",
         "train_dir": "cifar10/train",

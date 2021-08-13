@@ -22,7 +22,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-6 \
     --batch_size 128 \
-    --num_workers 2 \
+    --num_workers 4 \
     --dali \
     --encode_indexes_into_labels \
     --brightness 0.8 \
@@ -32,6 +32,7 @@ python3 ../../../main_pretrain.py \
     --name deepclusterv2-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
+    --wandb \
     --method deepclusterv2 \
     --proj_hidden_dim 2048 \
     --output_dim 128 \

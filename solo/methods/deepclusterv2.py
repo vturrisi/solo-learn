@@ -182,7 +182,7 @@ class DeepClusterV2(BaseModel):
         p1 = torch.stack([proto(z1) for proto in self.prototypes])
         p2 = torch.stack([proto(z2) for proto in self.prototypes])
 
-        # ------- swav loss -------
+        # ------- deeplcusterv2 loss -------
         preds = torch.stack([p1.unsqueeze(1), p2.unsqueeze(1)], dim=1)
         assignments = self.assignments[:, idxs]
         deepcluster_loss = deepclusterv2_loss_func(preds, assignments, self.temperature)

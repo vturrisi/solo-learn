@@ -61,6 +61,7 @@ class KMeans:
             Sequence[Any]: assignments and centroids.
         """
         j = 0
+        device = local_memory_embeddings.device
         assignments = -torch.ones(len(self.num_prototypes), self.dataset_size).long()
         centroids_list = []
         with torch.no_grad():
@@ -68,12 +69,13 @@ class KMeans:
                 # run distributed k-means
 
                 # init centroids with elements from memory bank of rank 0
-                centroids = torch.empty(K, self.proj_features_dim).cuda(non_blocking=True)
+                centroids = torch.empty(K, self.proj_features_dim).to(device, non_blocking=True)
                 if self.rank == 0:
                     random_idx = torch.randperm(len(local_memory_embeddings[j]))[:K]
                     assert len(random_idx) >= K, "please reduce the number of centroids"
                     centroids = local_memory_embeddings[j][random_idx]
-                dist.broadcast(centroids, 0)
+                if dist.is_available() and dist.is_initialized():
+                    dist.broadcast(centroids, 0)
 
                 for n_iter in range(self.kmeans_iters + 1):
 
@@ -87,8 +89,8 @@ class KMeans:
 
                     # M step
                     where_helper = self.get_indices_sparse(local_assignments.cpu().numpy())
-                    counts = torch.zeros(K).cuda(non_blocking=True).int()
-                    emb_sums = torch.zeros(K, self.proj_features_dim).cuda(non_blocking=True)
+                    counts = torch.zeros(K).to(device, non_blocking=True).int()
+                    emb_sums = torch.zeros(K, self.proj_features_dim).to(device, non_blocking=True)
                     for k in range(len(where_helper)):
                         if len(where_helper[k][0]) > 0:
                             emb_sums[k] = torch.sum(
@@ -96,9 +98,10 @@ class KMeans:
                                 dim=0,
                             )
                             counts[k] = len(where_helper[k][0])
-                    dist.all_reduce(counts)
+                    if dist.is_available() and dist.is_initialized():
+                        dist.all_reduce(counts)
+                        dist.all_reduce(emb_sums)
                     mask = counts > 0
-                    dist.all_reduce(emb_sums)
                     centroids[mask] = emb_sums[mask] / counts[mask].unsqueeze(1)
 
                     # normalize centroids
@@ -106,29 +109,37 @@ class KMeans:
 
                 centroids_list.append(centroids)
 
-                # gather the assignments
-                assignments_all = torch.empty(
-                    self.world_size,
-                    local_assignments.size(0),
-                    dtype=local_assignments.dtype,
-                    device=local_assignments.device,
-                )
-                assignments_all = list(assignments_all.unbind(0))
-                dist_process = dist.all_gather(assignments_all, local_assignments, async_op=True)
-                dist_process.wait()
-                assignments_all = torch.cat(assignments_all).cpu()
+                if dist.is_available() and dist.is_initialized():
+                    # gather the assignments
+                    assignments_all = torch.empty(
+                        self.world_size,
+                        local_assignments.size(0),
+                        dtype=local_assignments.dtype,
+                        device=local_assignments.device,
+                    )
+                    assignments_all = list(assignments_all.unbind(0))
 
-                # gather the indexes
-                indexes_all = torch.empty(
-                    self.world_size,
-                    local_memory_index.size(0),
-                    dtype=local_memory_index.dtype,
-                    device=local_memory_index.device,
-                )
-                indexes_all = list(indexes_all.unbind(0))
-                dist_process = dist.all_gather(indexes_all, local_memory_index, async_op=True)
-                dist_process.wait()
-                indexes_all = torch.cat(indexes_all).cpu()
+                    dist_process = dist.all_gather(
+                        assignments_all, local_assignments, async_op=True
+                    )
+                    dist_process.wait()
+                    assignments_all = torch.cat(assignments_all).cpu()
+
+                    # gather the indexes
+                    indexes_all = torch.empty(
+                        self.world_size,
+                        local_memory_index.size(0),
+                        dtype=local_memory_index.dtype,
+                        device=local_memory_index.device,
+                    )
+                    indexes_all = list(indexes_all.unbind(0))
+                    dist_process = dist.all_gather(indexes_all, local_memory_index, async_op=True)
+                    dist_process.wait()
+                    indexes_all = torch.cat(indexes_all).cpu()
+
+                else:
+                    assignments_all = local_assignments
+                    indexes_all = local_memory_index
 
                 # log assignments
                 assignments[i_K][indexes_all] = assignments_all
