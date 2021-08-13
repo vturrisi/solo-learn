@@ -327,7 +327,7 @@ class BaseModel(pl.LightningModule):
         """
 
         out = self._base_forward(X)
-        logits, feats = out["logits"], out["feats"]
+        logits = out["logits"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
@@ -336,7 +336,7 @@ class BaseModel(pl.LightningModule):
         return {
             "loss": loss,
             "logits": logits,
-            "feats": feats,
+            **out,
             "acc1": acc1,
             "acc5": acc5,
         }
@@ -531,6 +531,20 @@ class BaseMomentumModel(BaseModel):
         """Resets the step counter at the beginning of training."""
         self.last_step = 0
 
+    @torch.no_grad()
+    def forward_momentum(self, X: torch.Tensor) -> Dict:
+        """Momentum forward that allows children classes to override how the momentum encoder is used.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict: dict of logits and features.
+        """
+
+        feats = self.momentum_encoder(X)
+        return {"feats": feats}
+
     def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> Dict[str, Any]:
         """Forwards a batch of images X in the momentum encoder and optionally computes the
         classification loss, the logits, the features, acc@1 and acc@5 for of momentum classifier.
@@ -545,11 +559,10 @@ class BaseMomentumModel(BaseModel):
                 acc@5 of the momentum encoder / classifier.
         """
 
-        with torch.no_grad():
-            feats = self.momentum_encoder(X)
-        out = {"feats": feats}
+        out = self.forward_momentum(X)
 
         if self.momentum_classifier is not None:
+            feats = out["feats"]
             logits = self.momentum_classifier(feats)
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
