@@ -110,6 +110,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |  1000  |  :x: |      92.10     |                 |     99.73      |                 | [:link:](https://drive.google.com/drive/folders/1L5RAM3lCSViD2zEqLtC-GQKVw6mxtxJ_?usp=sharing) |
 | BYOL         | ResNet18 |  1000  |  :x: |      92.58     |                 |     99.79      |                 | [:link:](https://drive.google.com/drive/folders/1KxeYAEE7Ev9kdFFhXWkPZhG-ya3_UwGP?usp=sharing) |
+|DeepCluster V2| ResNet18 |  1000  |  :x: |      88.85     |                 |     99.58      |                 | [:link:](https://drive.google.com/drive/folders/1tkEbiDQ38vZaQUsT6_vEpxbDxSUAGwF-?usp=sharing) |
 | DINO         | ResNet18 |  1000  |  :x: |      89.52     |                 |     99.71      |                 | [:link:](https://drive.google.com/drive/folders/1vyqZKUyP8sQyEyf2cqonxlGMbQC-D1Gi?usp=sharing) |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      92.94     |                 |     99.79      |                 | [:link:](https://drive.google.com/drive/folders/1ruNFEB3F-Otxv2Y0p62wrjA4v5Fr2cKC?usp=sharing) |
 | NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |                 |     99.78      |                 | [:link:](https://drive.google.com/drive/folders/1xdCzhvRehPmxinphuiZqFlfBwfwWDcLh?usp=sharing) |
@@ -127,6 +128,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:----:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet18 |  1000  |  :x: |      70.90     |                 |     91.91      |                 | [:link:](https://drive.google.com/drive/folders/1hDLSApF3zSMAKco1Ck4DMjyNxhsIR2yq?usp=sharing) |
 | BYOL         | ResNet18 |  1000  |  :x: |      70.46     |                 |     91.96      |                 | [:link:](https://drive.google.com/drive/folders/1hwsEdsfsUulD2tAwa4epKK9pkSuvFv6m?usp=sharing) |
+|DeepCluster V2| ResNet18 |  1000  |  :x: |      63.61     |                 |     88.09      |                 | [:link:](https://drive.google.com/drive/folders/1gAKyMz41mvGh1BBOYdc_xu6JPSkKlWqK?usp=sharing) |
 | DINO         | ResNet18 |  1000  |  :x: |      66.76     |                 |     90.34      |                 | [:link:](https://drive.google.com/drive/folders/1TxeZi2YLprDDtbt_y5m29t4euroWr1Fy?usp=sharing) |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      69.89     |                 |     91.65      |                 | [:link:](https://drive.google.com/drive/folders/15oWNM16vO6YVYmk_yOmw2XUrFivRXam4?usp=sharing) |
 | NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |                 |     91.52      |                 | [:link:](https://drive.google.com/drive/folders/1Dz72o0-5hugYPW1kCCQDBb0Xi3kzMLzu?usp=sharing) |
@@ -143,6 +145,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |-------------------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.38     |     80.16       |      95.28     |      95.14      | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
 | BYOL         :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.76     |     80.16       |      94.80     |      95.14      | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
+| DeepCluster V2          | ResNet18 |   400  |         :x:        |      75.36     |     75.4        |      93.22     |      93.10      | [:link:](https://drive.google.com/drive/folders/1d5jPuavrQ7lMlQZn5m2KnN5sPMGhHFo8?usp=sharing) |
 | DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
 | MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
 | NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
@@ -161,6 +164,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
 | Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |       88.66     | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
+|DeepCluster V2| ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |

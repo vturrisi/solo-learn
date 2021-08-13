@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, List, Sequence
 
 import torch
 import torch.nn as nn
@@ -36,7 +36,7 @@ class WMSE(BaseModel):
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
@@ -61,7 +61,7 @@ class WMSE(BaseModel):
         return parent_parser
 
     @property
-    def learnable_params(self):
+    def learnable_params(self) -> List[Dict]:
         """Adds projector parameters to the parent's learnable parameters.
 
         Returns:
@@ -85,16 +85,16 @@ class WMSE(BaseModel):
         v = self.projector(out["feats"])
         return {**out, "v": v}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for W-MSE reusing BaseModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
+                [X] is a list of size self.num_crops containing batches of images
             batch_idx (int): index of the batch
 
         Returns:
-            Dict[str, Any]: total loss composed of W-MSE loss and classification loss
+            torch.Tensor: total loss composed of W-MSE loss and classification loss
         """
 
         out = super().training_step(batch, batch_idx)
@@ -110,10 +110,10 @@ class WMSE(BaseModel):
             z = torch.empty_like(v)
             perm = torch.randperm(bs).view(-1, self.whitening_size)
             for idx in perm:
-                for i in range(self.n_crops):
+                for i in range(self.num_crops):
                     z[idx + i * bs] = self.whitening(v[idx + i * bs]).type_as(z)
-            for i in range(self.n_crops - 1):
-                for j in range(i + 1, self.n_crops):
+            for i in range(self.num_crops - 1):
+                for j in range(i + 1, self.num_crops):
                     x0 = z[i * bs : (i + 1) * bs]
                     x1 = z[j * bs : (j + 1) * bs]
                     wmse_loss += wmse_loss_func(x0, x1)

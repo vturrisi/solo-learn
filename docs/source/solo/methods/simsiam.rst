@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.simsiam.SimSiam.learnable_params
+.. autoattribute:: solo.methods.simsiam.SimSiam.learnable_params
    :noindex:
 
 forward

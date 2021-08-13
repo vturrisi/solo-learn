@@ -12,12 +12,12 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.ressl.ReSSL.learnable_params
+.. autoattribute:: solo.methods.ressl.ReSSL.learnable_params
    :noindex:
 
 momentum_pairs
 ~~~~~~~~~~~~~~
-.. automethod:: solo.methods.ressl.ReSSL.momentum_pairs
+.. autoattribute:: solo.methods.ressl.ReSSL.momentum_pairs
    :noindex:
 
 dequeue_and_enqueue

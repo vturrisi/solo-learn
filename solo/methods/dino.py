@@ -131,7 +131,7 @@ class DINO(BaseMomentumModel):
 
         # dino head
         self.head = DINOHead(
-            in_dim=self.features_size,
+            in_dim=self.features_dim,
             hidden_dim=proj_hidden_dim,
             bottleneck_dim=output_dim,
             num_prototypes=num_prototypes,
@@ -140,7 +140,7 @@ class DINO(BaseMomentumModel):
 
         # instantiate and initialize momentum dino head
         self.momentum_head = DINOHead(
-            in_dim=self.features_size,
+            in_dim=self.features_dim,
             hidden_dim=proj_hidden_dim,
             bottleneck_dim=output_dim,
             num_prototypes=num_prototypes,
@@ -240,7 +240,7 @@ class DINO(BaseMomentumModel):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where [X]
-                is a list of size self.n_crops containing batches of images.
+                is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:

@@ -196,7 +196,7 @@ class NormalPipeline(Pipeline):
             file_root=data_path,
             shard_id=shard_id,
             num_shards=num_shards,
-            random_shuffle=True if not self.validation else False,
+            shuffle_after_epoch=True if not self.validation else False,
         )
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
@@ -264,6 +264,7 @@ class NormalPipeline(Pipeline):
             labels = labels.gpu()
         # PyTorch expects labels as INT64
         labels = self.to_int64(labels)
+
         return (images, labels)
 
 
@@ -343,6 +344,19 @@ class ImagenetTransform:
             std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
         )
         self.coin05 = ops.random.CoinFlip(probability=0.5)
+
+        self.str = (
+            "ImagenetTransform("
+            f"random_crop({min_scale}, {max_scale}), "
+            f"random_color_jitter(brightness={brightness}, "
+            f"contrast={contrast}, saturation={saturation}, hue={hue}), "
+            f"random_gray_scale, random_gaussian_blur({gaussian_prob}), "
+            f"random_solarization({solarization_prob}), "
+            "crop_mirror_resize())"
+        )
+
+    def __str__(self) -> str:
+        return self.str
 
     def __call__(self, images):
         out = self.random_crop(images)
@@ -429,6 +443,16 @@ class CustomTransform:
         )
         self.coin05 = ops.random.CoinFlip(probability=0.5)
 
+        self.str = (
+            "CustomTransform("
+            f"random_crop({min_scale}, {max_scale}), "
+            f"random_color_jitter(brightness={brightness}, "
+            f"contrast={contrast}, saturation={saturation}, hue={hue}), "
+            f"random_gray_scale, random_gaussian_blur({gaussian_prob}), "
+            f"random_solarization({solarization_prob}), "
+            "crop_mirror_resize())"
+        )
+
     def __call__(self, images):
         out = self.random_crop(images)
         out = self.random_color_jitter(out)
@@ -438,6 +462,9 @@ class CustomTransform:
         out = self.cmn(out, mirror=self.coin05())
         return out
 
+    def __str__(self):
+        return self.str
+
 
 class PretrainPipeline(Pipeline):
     def __init__(
@@ -446,7 +473,7 @@ class PretrainPipeline(Pipeline):
         batch_size: int,
         device: str,
         transform: Union[Callable, Iterable],
-        n_crops: int = 2,
+        num_crops: int = 2,
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -454,6 +481,7 @@ class PretrainPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
         no_labels: bool = False,
+        encode_indexes_into_labels: bool = False,
     ):
         """Initializes the pipeline for pretraining.
 
@@ -463,7 +491,7 @@ class PretrainPipeline(Pipeline):
             device (str): device on which the operation will be performed.
             transform (Union[Callable, Iterable]): a transformation or a sequence
                 of transformations to be applied.
-            n_crops (int, optional): number of crops. Defaults to 2.
+            num_crops (int, optional): number of crops. Defaults to 2.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -473,6 +501,9 @@ class PretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
+            encode_indexes_into_labels (bool, optional): uses sample indexes as labels
+                and then gets the labels from a lookup table. This may use more CPU memory,
+                so just use when needed. Defaults to False.
         """
 
         seed += device_id
@@ -486,24 +517,55 @@ class PretrainPipeline(Pipeline):
         self.device = device
 
         data_path = Path(data_path)
-
         if no_labels:
-            files = [data_path / f for f in os.listdir(data_path)]
+            files = [data_path / f for f in sorted(os.listdir(data_path))]
             labels = [-1] * len(files)
             self.reader = ops.readers.File(
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=random_shuffle,
                 labels=labels,
+            )
+        elif encode_indexes_into_labels:
+            labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
+
+            data = [
+                (data_path / label / file, label_idx)
+                for label_idx, label in enumerate(labels)
+                for file in sorted(os.listdir(data_path / label))
+            ]
+
+            files = []
+            labels = []
+            # for debugging
+            true_labels = []
+
+            self.conversion_map = []
+            for file_idx, (file, label_idx) in enumerate(data):
+                files.append(file)
+                labels.append(file_idx)
+                true_labels.append(label_idx)
+                self.conversion_map.append(label_idx)
+
+            # debugging
+            for file, file_idx, label_idx in zip(files, labels, true_labels):
+                assert self.conversion_map[file_idx] == label_idx
+
+            self.reader = ops.readers.File(
+                files=files,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                shuffle_after_epoch=random_shuffle,
             )
         else:
             self.reader = ops.readers.File(
                 file_root=data_path,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=random_shuffle,
             )
+
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0
@@ -515,7 +577,7 @@ class PretrainPipeline(Pipeline):
         )
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        self.n_crops = n_crops
+        self.num_crops = num_crops
 
         # transformations
         self.transform = transform
@@ -524,19 +586,20 @@ class PretrainPipeline(Pipeline):
             self.one_transform_per_crop = True
         else:
             self.one_transform_per_crop = False
-            self.n_crops = n_crops
+            self.num_crops = num_crops
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""
 
         # read images from memory
         inputs, labels = self.reader(name="Reader")
+
         images = self.decode(inputs)
 
         if self.one_transform_per_crop:
             crops = [transform(images) for transform in self.transform]
         else:
-            crops = [self.transform(images) for i in range(self.n_crops)]
+            crops = [self.transform(images) for i in range(self.num_crops)]
 
         if self.device == "gpu":
             labels = labels.gpu()
@@ -553,7 +616,7 @@ class MulticropPretrainPipeline(Pipeline):
         batch_size: int,
         device: str,
         transforms: List,
-        n_crops: List[int],
+        num_crops: List[int],
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -561,6 +624,7 @@ class MulticropPretrainPipeline(Pipeline):
         num_threads: int = 4,
         seed: int = 12,
         no_labels: bool = False,
+        encode_indexes_into_labels: bool = False,
     ):
         """Initializes the pipeline for pretraining with multicrop.
 
@@ -569,7 +633,7 @@ class MulticropPretrainPipeline(Pipeline):
             batch_size (int): batch size.
             device (str): device on which the operation will be performed.
             transforms (List): list of transformations to be applied.
-            n_crops (List[int]): number of crops.
+            num_crops (List[int]): number of crops.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -579,6 +643,9 @@ class MulticropPretrainPipeline(Pipeline):
             num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
             seed (int, optional): seed for random number generation. Defaults to 12.
             no_labels (bool, optional): if the data has no labels. Defaults to False.
+            encode_indexes_into_labels (bool, optional): uses sample indexes as labels
+                and then gets the labels from a lookup table. This may use more CPU memory,
+                so just use when needed. Defaults to False.
         """
 
         seed += device_id
@@ -593,20 +660,54 @@ class MulticropPretrainPipeline(Pipeline):
 
         data_path = Path(data_path)
         if no_labels:
-            files = [data_path / f for f in os.listdir(data_path)]
+            files = [data_path / f for f in sorted(os.listdir(data_path))]
+            labels = [-1] * len(files)
             self.reader = ops.readers.File(
                 files=files,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=random_shuffle,
+                labels=labels,
+            )
+        elif encode_indexes_into_labels:
+            labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
+
+            data = [
+                (data_path / label / file, label_idx)
+                for label_idx, label in enumerate(labels)
+                for file in sorted(os.listdir(data_path / label))
+            ]
+
+            files = []
+            labels = []
+            # for debugging
+            true_labels = []
+
+            self.conversion_map = []
+            for file_idx, (file, label_idx) in enumerate(data):
+                files.append(file)
+                labels.append(file_idx)
+                true_labels.append(label_idx)
+                self.conversion_map.append(label_idx)
+
+            # debugging
+            for file, file_idx, label_idx in zip(files, labels, true_labels):
+                assert self.conversion_map[file_idx] == label_idx
+
+            self.reader = ops.readers.File(
+                files=files,
+                shard_id=shard_id,
+                num_shards=num_shards,
+                shuffle_after_epoch=random_shuffle,
             )
         else:
             self.reader = ops.readers.File(
                 file_root=data_path,
                 shard_id=shard_id,
                 num_shards=num_shards,
-                random_shuffle=random_shuffle,
+                shuffle_after_epoch=random_shuffle,
             )
+
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
         host_memory_padding = 140544512 if decoder_device == "mixed" else 0
@@ -618,10 +719,10 @@ class MulticropPretrainPipeline(Pipeline):
         )
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        self.n_crops = n_crops
+        self.num_crops = num_crops
         self.transforms = transforms
 
-        assert len(transforms) == len(n_crops)
+        assert len(transforms) == len(num_crops)
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""
@@ -633,7 +734,7 @@ class MulticropPretrainPipeline(Pipeline):
         # crop into large and small images
         crops = []
         for i, transform in enumerate(self.transforms):
-            for _ in range(self.n_crops[i]):
+            for _ in range(self.num_crops[i]):
                 crop = transform(images)
                 crops.append(crop)
 

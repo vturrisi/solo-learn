@@ -90,14 +90,14 @@ class Solarization:
 
 
 class NCropAugmentation:
-    def __init__(self, transform: Union[Callable, Sequence], n_crops: Optional[int] = None):
+    def __init__(self, transform: Union[Callable, Sequence], num_crops: Optional[int] = None):
         """Creates a pipeline that apply a transformation pipeline multiple times.
 
         Args:
             transform (Union[Callable, Sequence]): transformation pipeline or list of
                 transformation pipelines.
-            n_crops: if transformation pipeline is not a list, applies the same
-                pipeline n_crops times, if it is a list, this is ignored and each
+            num_crops: if transformation pipeline is not a list, applies the same
+                pipeline num_crops times, if it is a list, this is ignored and each
                 element of the list is applied once.
         """
 
@@ -105,10 +105,10 @@ class NCropAugmentation:
 
         if isinstance(transform, Iterable):
             self.one_transform_per_crop = True
-            assert n_crops == len(transform)
+            assert num_crops == len(transform)
         else:
             self.one_transform_per_crop = False
-            self.n_crops = n_crops
+            self.num_crops = num_crops
 
     def __call__(self, x: Image) -> List[torch.Tensor]:
         """Applies transforms n times to generate n crops.
@@ -123,7 +123,7 @@ class NCropAugmentation:
         if self.one_transform_per_crop:
             return [transform(x) for transform in self.transform]
         else:
-            return [self.transform(x) for _ in range(self.n_crops)]
+            return [self.transform(x) for _ in range(self.num_crops)]
 
 
 class BaseTransform:
@@ -335,7 +335,7 @@ class MulticropAugmentation:
         self,
         transform: Callable,
         size_crops: Sequence[int],
-        n_crops: Sequence[int],
+        num_crops: Sequence[int],
         min_scales: Sequence[float],
         max_scale_crops: Sequence[float],
     ):
@@ -344,7 +344,7 @@ class MulticropAugmentation:
         Args:
             transform (Callable): transformation callable without cropping.
             size_crops (Sequence[int]): a sequence of sizes of the crops.
-            n_crops (Sequence[int]): a sequence number of crops per crop size.
+            num_crops (Sequence[int]): a sequence number of crops per crop size.
             min_scales (Sequence[float]): sequence of minimum crop scales per crop
                 size.
             max_scale_crops (Sequence[float]): sequence of maximum crop scales per crop
@@ -352,7 +352,7 @@ class MulticropAugmentation:
         """
 
         self.size_crops = size_crops
-        self.n_crops = n_crops
+        self.num_crops = num_crops
         self.min_scales = min_scales
         self.max_scale_crops = max_scale_crops
 
@@ -377,7 +377,7 @@ class MulticropAugmentation:
         """
 
         imgs = []
-        for n, transform in zip(self.n_crops, self.transforms):
+        for n, transform in zip(self.num_crops, self.transforms):
             imgs.extend([transform(x) for i in range(n)])
         return imgs
 
@@ -522,25 +522,25 @@ def prepare_transform(dataset: str, multicrop: bool = False, **kwargs) -> Any:
 
 
 def prepare_n_crop_transform(
-    transform: Callable, n_crops: Optional[int] = None
+    transform: Callable, num_crops: Optional[int] = None
 ) -> NCropAugmentation:
     """Turns a single crop transformation to an N crops transformation.
 
     Args:
         transform (Callable): a transformation.
-        n_crops (Optional[int], optional): number of crops. Defaults to None.
+        num_crops (Optional[int], optional): number of crops. Defaults to None.
 
     Returns:
         NCropAugmentation: an N crop transformation.
     """
 
-    return NCropAugmentation(transform, n_crops)
+    return NCropAugmentation(transform, num_crops)
 
 
 def prepare_multicrop_transform(
     transform: Callable,
     size_crops: Sequence[int],
-    n_crops: Optional[Sequence[int]] = None,
+    num_crops: Optional[Sequence[int]] = None,
     min_scales: Optional[Sequence[float]] = None,
     max_scale_crops: Optional[Sequence[float]] = None,
 ) -> MulticropAugmentation:
@@ -549,7 +549,7 @@ def prepare_multicrop_transform(
     Args:
         transform (Callable): transformation callable without cropping.
         size_crops (Sequence[int]): a sequence of sizes of the crops.
-        n_crops (Optional[Sequence[int]]): list of number of crops per crop size.
+        num_crops (Optional[Sequence[int]]): list of number of crops per crop size.
         min_scales (Optional[Sequence[float]]): sequence of minimum crop scales per crop
             size.
         max_scale_crops (Optional[Sequence[float]]): sequence of maximum crop scales per crop
@@ -560,8 +560,8 @@ def prepare_multicrop_transform(
             different sizes.
     """
 
-    if n_crops is None:
-        n_crops = [2, 6]
+    if num_crops is None:
+        num_crops = [2, 6]
     if min_scales is None:
         min_scales = [0.14, 0.05]
     if max_scale_crops is None:
@@ -570,7 +570,7 @@ def prepare_multicrop_transform(
     return MulticropAugmentation(
         transform,
         size_crops=size_crops,
-        n_crops=n_crops,
+        num_crops=num_crops,
         min_scales=min_scales,
         max_scale_crops=max_scale_crops,
     )

@@ -20,7 +20,9 @@ def test_simclr():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = SimCLR(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "imagenet100")
+    batch, batch_idx = gen_batch(
+        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
+    )
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -29,7 +31,7 @@ def test_simclr():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = SimCLR(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "cifar10")
+    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "cifar10")
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -45,7 +47,9 @@ def test_simclr():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = SimCLR(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "imagenet100")
+    batch, batch_idx = gen_batch(
+        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
+    )
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -62,12 +66,12 @@ def test_simclr():
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
-        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"])
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
     )
     assert (
         "feats" in out
         and isinstance(out["feats"], torch.Tensor)
-        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_size)
+        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
         "z" in out
@@ -83,7 +87,7 @@ def test_simclr():
         limit_val_batches=2,
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
-        "imagenet100", BASE_KWARGS["n_crops"], BASE_KWARGS["n_classes"], multicrop=False
+        "imagenet100", BASE_KWARGS["num_crops"], BASE_KWARGS["num_classes"], multicrop=False
     )
     trainer.fit(model, train_dl, val_dl)
 
@@ -101,15 +105,15 @@ def test_simclr():
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        n_crops=BASE_KWARGS["n_crops"],
-        n_small_crops=0,
-        n_classes=BASE_KWARGS["n_classes"],
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
     )
     trainer.fit(model, train_dl, val_dl)
 
     # multicrop
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, n_small_crops=6)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, num_small_crops=6)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = SimCLR(**kwargs)
 
@@ -122,9 +126,9 @@ def test_simclr():
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        n_crops=BASE_KWARGS["n_crops"],
-        n_small_crops=6,
-        n_classes=BASE_KWARGS["n_classes"],
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=6,
+        num_classes=BASE_KWARGS["num_classes"],
         multicrop=True,
     )
     trainer.fit(model, train_dl, val_dl)

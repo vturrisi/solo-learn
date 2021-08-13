@@ -79,13 +79,13 @@ def main():
                 size_crops = [224, 96]
 
             transform = prepare_multicrop_transform(
-                transform, size_crops=size_crops, n_crops=[args.n_crops, args.n_small_crops]
+                transform, size_crops=size_crops, num_crops=[args.num_crops, args.num_small_crops]
             )
         else:
-            if args.n_crops != 2:
+            if args.num_crops != 2:
                 assert args.method == "wmse"
 
-            transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
+            transform = prepare_n_crop_transform(transform, num_crops=args.num_crops)
 
         train_dataset = prepare_datasets(
             args.dataset,

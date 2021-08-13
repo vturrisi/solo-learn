@@ -49,7 +49,7 @@ class SwAV(BaseModel):
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
@@ -150,16 +150,16 @@ class SwAV(BaseModel):
             assignments.append(self.sk(p)[:bs])
         return assignments
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SwAV reusing BaseModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of SwAV loss and classification loss.
+            torch.Tensor: total loss composed of SwAV loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

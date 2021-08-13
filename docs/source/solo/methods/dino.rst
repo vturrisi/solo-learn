@@ -12,12 +12,12 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.dino.DINO.learnable_params
+.. autoattribute:: solo.methods.dino.DINO.learnable_params
    :noindex:
 
 momentum_pairs
 ~~~~~~~~~~~~~~
-.. automethod:: solo.methods.dino.DINO.momentum_pairs
+.. autoattribute:: solo.methods.dino.DINO.momentum_pairs
    :noindex:
 
 clip_gradients
@@ -25,10 +25,6 @@ clip_gradients
 .. automethod:: solo.methods.dino.DINO.clip_gradients
    :noindex:
 
-momentum_pairs
-~~~~~~~~~~~~~~
-.. automethod:: solo.methods.dino.DINO.momentum_pairs
-   :noindex:
 
 forward
 ~~~~~~~

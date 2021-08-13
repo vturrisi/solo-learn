@@ -16,6 +16,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
+    --gaussian_prob 0.0 0.0 \
     --name mocov2plus-$1 \
     --project solo-learn \
     --entity unitn-mhug \

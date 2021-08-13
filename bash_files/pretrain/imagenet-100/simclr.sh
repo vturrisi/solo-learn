@@ -58,8 +58,8 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --multicrop \
-    --n_crops 2 \
-    --n_small_crops 6 \
+    --num_crops 2 \
+    --num_small_crops 6 \
     --name multicrop-simclr-400ep-imagenet100 \
     --dali \
     --entity unitn-mhug \
@@ -96,8 +96,8 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --multicrop \
-    --n_crops 2 \
-    --n_small_crops 6 \
+    --num_crops 2 \
+    --num_small_crops 6 \
     --name multicrop-supervised-simclr-400ep-imagenet100 \
     --dali \
     --entity unitn-mhug \

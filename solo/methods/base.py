@@ -26,7 +26,7 @@ class BaseModel(pl.LightningModule):
     def __init__(
         self,
         encoder: str,
-        n_classes: int,
+        num_classes: int,
         cifar: bool,
         zero_init_residual: bool,
         max_epochs: int,
@@ -44,8 +44,8 @@ class BaseModel(pl.LightningModule):
         warmup_start_lr: float,
         warmup_epochs: float,
         multicrop: bool,
-        n_crops: int,
-        n_small_crops: int,
+        num_crops: int,
+        num_small_crops: int,
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
@@ -58,7 +58,7 @@ class BaseModel(pl.LightningModule):
 
         Args:
             encoder (str): architecture of the base encoder.
-            n_classes (int): number of classes.
+            num_classes (int): number of classes.
             cifar (bool): flag indicating if cifar is being used.
             zero_init_residual (bool): change the initialization of the resnet encoder.
             max_epochs (int): number of training epochs.
@@ -77,8 +77,8 @@ class BaseModel(pl.LightningModule):
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
             multicrop (bool): flag indicating if multi-resolution crop is being used.
-            n_crops (int): number of big crops
-            n_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
+            num_crops (int): number of big crops
+            num_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
@@ -92,7 +92,7 @@ class BaseModel(pl.LightningModule):
         self.zero_init_residual = zero_init_residual
 
         # training related
-        self.n_classes = n_classes
+        self.num_classes = num_classes
         self.max_epochs = max_epochs
         self.batch_size = batch_size
         self.optimizer = optimizer
@@ -109,16 +109,16 @@ class BaseModel(pl.LightningModule):
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
         self.multicrop = multicrop
-        self.n_crops = n_crops
-        self.n_small_crops = n_small_crops
+        self.num_crops = num_crops
+        self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
 
         # sanity checks on multicrop
         if self.multicrop:
-            assert n_small_crops > 0
+            assert num_small_crops > 0
         else:
-            self.n_small_crops = 0
+            self.num_small_crops = 0
 
         # all the other parameters
         self.extra_args = kwargs
@@ -136,14 +136,14 @@ class BaseModel(pl.LightningModule):
 
         # initialize encoder
         self.encoder = self.base_model(zero_init_residual=zero_init_residual)
-        self.features_size = self.encoder.inplanes
+        self.features_dim = self.encoder.inplanes
         # remove fc layer
         self.encoder.fc = nn.Identity()
         if cifar:
             self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
             self.encoder.maxpool = nn.Identity()
 
-        self.classifier = nn.Linear(self.features_size, n_classes)
+        self.classifier = nn.Linear(self.features_dim, num_classes)
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -203,6 +203,11 @@ class BaseModel(pl.LightningModule):
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
+
+        # DALI only
+        # uses sample indexes as labels and then gets the labels from a lookup table
+        # this may use more CPU memory, so just use when needed.
+        parser.add_argument("--encode_indexes_into_labels", action="store_true")
 
         return parent_parser
 
@@ -290,7 +295,7 @@ class BaseModel(pl.LightningModule):
 
             return [optimizer], [scheduler]
 
-    def forward(self, *args, **kwargs):
+    def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
 
         return self._base_forward(*args, **kwargs)
@@ -327,6 +332,7 @@ class BaseModel(pl.LightningModule):
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
+
         return {
             "loss": loss,
             "logits": logits,
@@ -341,7 +347,7 @@ class BaseModel(pl.LightningModule):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images
+                [X] is a list of size self.num_crops containing batches of images
             batch_idx (int): index of the batch
 
         Returns:
@@ -349,24 +355,25 @@ class BaseModel(pl.LightningModule):
         """
 
         _, X, targets = batch
+
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
-        assert len(X) == self.n_crops + self.n_small_crops
+        assert len(X) == self.num_crops + self.num_small_crops
 
-        outs = [self._shared_step(x, targets) for x in X[: self.n_crops]]
+        outs = [self._shared_step(x, targets) for x in X[: self.num_crops]]
 
         # collect data
         logits = [out["logits"] for out in outs]
         feats = [out["feats"] for out in outs]
 
         # loss and stats
-        loss = sum(out["loss"] for out in outs) / self.n_crops
-        acc1 = sum(out["acc1"] for out in outs) / self.n_crops
-        acc5 = sum(out["acc5"] for out in outs) / self.n_crops
+        loss = sum(out["loss"] for out in outs) / self.num_crops
+        acc1 = sum(out["acc1"] for out in outs) / self.num_crops
+        acc5 = sum(out["acc5"] for out in outs) / self.num_crops
 
         if self.multicrop:
-            feats.extend([self.encoder(x) for x in X[self.n_crops :]])
+            feats.extend([self.encoder(x) for x in X[self.num_crops :]])
 
         metrics = {
             "train_acc1": acc1,
@@ -458,7 +465,7 @@ class BaseMomentumModel(BaseModel):
 
         # momentum classifier
         if momentum_classifier:
-            self.momentum_classifier: Any = nn.Linear(self.features_size, self.n_classes)
+            self.momentum_classifier: Any = nn.Linear(self.features_dim, self.num_classes)
         else:
             self.momentum_classifier = None
 
@@ -557,7 +564,7 @@ class BaseMomentumModel(BaseModel):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -571,7 +578,7 @@ class BaseMomentumModel(BaseModel):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # remove small crops
-        X = X[: self.n_crops]
+        X = X[: self.num_crops]
 
         outs = [self._shared_step_momentum(x, targets) for x in X]
 
@@ -583,9 +590,9 @@ class BaseMomentumModel(BaseModel):
             logits = [out["logits"] for out in outs]
 
             # momentum loss and stats
-            loss = sum(out["loss"] for out in outs) / self.n_crops
-            acc1 = sum(out["acc1"] for out in outs) / self.n_crops
-            acc5 = sum(out["acc5"] for out in outs) / self.n_crops
+            loss = sum(out["loss"] for out in outs) / self.num_crops
+            acc1 = sum(out["acc1"] for out in outs) / self.num_crops
+            acc5 = sum(out["acc5"] for out in outs) / self.num_crops
 
             metrics = {
                 "train_momentum_acc1": acc1,
@@ -608,7 +615,7 @@ class BaseMomentumModel(BaseModel):
         Args:
             outputs (Dict[str, Any]): the outputs of the training step.
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
             dataloader_idx (int): index of the dataloader.
         """

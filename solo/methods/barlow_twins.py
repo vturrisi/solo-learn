@@ -1,6 +1,7 @@
 import argparse
-from typing import Any, Dict, List, Sequence
+from typing import Any, List, Sequence
 
+import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
 from solo.methods.base import BaseModel
@@ -26,7 +27,7 @@ class BarlowTwins(BaseModel):
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
@@ -65,20 +66,21 @@ class BarlowTwins(BaseModel):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for Barlow Twins reusing BaseModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of Barlow loss and classification loss.
+            torch.Tensor: total loss composed of Barlow loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
+
         feats1, feats2 = out["feats"]
 
         z1 = self.projector(feats1)

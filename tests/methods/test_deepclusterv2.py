@@ -3,45 +3,25 @@ import argparse
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning import Trainer
-from solo.methods import SwAV
+from solo.methods import DeepClusterV2
 
 from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
-def test_swav():
+def test_deepclusterv2():
     method_kwargs = {
-        "output_dim": 256,
+        "output_dim": 128,
         "proj_hidden_dim": 2048,
-        "num_prototypes": 300,
-        "sk_iters": 3,
-        "sk_epsilon": 0.05,
-        "temperature": 0.2,
-        "queue_size": 65536,
-        "epoch_queue_starts": 0,
-        "freeze_prototypes_epochs": 1,
+        "num_prototypes": [10, 10, 10],
+        "kmeans_iters": 3,
+        "temperature": 0.1,
     }
 
     BASE_KWARGS = gen_base_kwargs(cifar=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SwAV(**kwargs)
-    model.on_train_start()
+    model = DeepClusterV2(**kwargs)
 
-    batch, batch_idx = gen_batch(
-        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
-    )
-    loss = model.training_step(batch, batch_idx)
-
-    assert loss != 0
-
-    BASE_KWARGS = gen_base_kwargs(cifar=True)
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SwAV(**kwargs)
-    model.on_train_start()
-
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "cifar10")
-    loss = model.training_step(batch, batch_idx)
-
-    assert loss != 0
+    batch, _ = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100")
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -67,16 +47,22 @@ def test_swav():
         and isinstance(out["z"], torch.Tensor)
         and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
     )
+
     assert (
         "p" in out
         and isinstance(out["p"], torch.Tensor)
-        and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["num_prototypes"])
+        and out["p"].size()
+        == (
+            len(method_kwargs["num_prototypes"]),
+            BASE_KWARGS["batch_size"],
+            method_kwargs["num_prototypes"][0],
+        )
     )
 
     # normal training
     BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SwAV(**kwargs)
+    model = DeepClusterV2(**kwargs)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(
@@ -91,5 +77,6 @@ def test_swav():
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
     )
     trainer.fit(model, train_dl, val_dl)

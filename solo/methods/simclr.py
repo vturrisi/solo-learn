@@ -33,7 +33,7 @@ class SimCLR(BaseModel):
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_dim, proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
         )
@@ -93,7 +93,7 @@ class SimCLR(BaseModel):
         """
 
         if self.multicrop:
-            n_augs = self.n_crops + self.n_small_crops
+            n_augs = self.num_crops + self.num_small_crops
         else:
             n_augs = 2
         labels_matrix = repeat(Y, "b -> c (d b)", c=n_augs * Y.size(0), d=n_augs)
@@ -105,7 +105,7 @@ class SimCLR(BaseModel):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -118,7 +118,7 @@ class SimCLR(BaseModel):
         class_loss = out["loss"]
 
         if self.multicrop:
-            n_augs = self.n_crops + self.n_small_crops
+            n_augs = self.num_crops + self.num_small_crops
 
             feats = out["feats"]
 

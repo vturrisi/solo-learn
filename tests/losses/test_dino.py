@@ -28,6 +28,5 @@ def test_dino_loss():
         p.data.add_(-0.5 * p.grad)
 
         p.grad = None
-        print(loss.item())
 
     assert loss < initial_loss

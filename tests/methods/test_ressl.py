@@ -22,7 +22,9 @@ def test_mocov2plus():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = ReSSL(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "imagenet100")
+    batch, batch_idx = gen_batch(
+        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
+    )
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -31,7 +33,7 @@ def test_mocov2plus():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = ReSSL(**kwargs)
 
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "cifar10")
+    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "cifar10")
     loss = model.training_step(batch, batch_idx)
 
     assert loss != 0
@@ -48,12 +50,12 @@ def test_mocov2plus():
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
-        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"])
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
     )
     assert (
         "feats" in out
         and isinstance(out["feats"], torch.Tensor)
-        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_size)
+        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
         "q" in out
@@ -75,9 +77,9 @@ def test_mocov2plus():
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        n_crops=BASE_KWARGS["n_crops"],
-        n_small_crops=0,
-        n_classes=BASE_KWARGS["n_classes"],
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
     )
     trainer.fit(model, train_dl, val_dl)
@@ -95,9 +97,9 @@ def test_mocov2plus():
     )
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        n_crops=BASE_KWARGS["n_crops"],
-        n_small_crops=0,
-        n_classes=BASE_KWARGS["n_classes"],
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
     )
     trainer.fit(model, train_dl, val_dl)

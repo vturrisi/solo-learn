@@ -123,7 +123,7 @@ class AutoUMAP(Callback):
         if trainer.is_global_zero and len(data):
             data = torch.cat(data, dim=0).numpy()
             Y = torch.cat(Y, dim=0)
-            n_classes = len(torch.unique(Y))
+            num_classes = len(torch.unique(Y))
             Y = Y.numpy()
 
             data = umap.UMAP(n_components=2).fit_transform(data)
@@ -138,7 +138,7 @@ class AutoUMAP(Callback):
                 x="feat_1",
                 y="feat_2",
                 hue="Y",
-                palette=sns.color_palette(self.color_palette, n_classes),
+                palette=sns.color_palette(self.color_palette, num_classes),
                 data=df,
                 legend="full",
                 alpha=0.3,
@@ -147,12 +147,12 @@ class AutoUMAP(Callback):
             ax.tick_params(left=False, right=False, bottom=False, top=False)
 
             # manually improve quality of imagenet umaps
-            if n_classes > 100:
+            if num_classes > 100:
                 anchor = (0.5, 1.8)
             else:
                 anchor = (0.5, 1.35)
 
-            plt.legend(loc="upper center", bbox_to_anchor=anchor, ncol=math.ceil(n_classes / 10))
+            plt.legend(loc="upper center", bbox_to_anchor=anchor, ncol=math.ceil(num_classes / 10))
             plt.tight_layout()
 
             if isinstance(trainer.logger, pl.loggers.WandbLogger):

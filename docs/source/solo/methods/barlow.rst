@@ -12,7 +12,7 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.barlow_twins.BarlowTwins.learnable_params
+.. autoattribute:: solo.methods.barlow_twins.BarlowTwins.learnable_params
    :noindex:
 
 forward

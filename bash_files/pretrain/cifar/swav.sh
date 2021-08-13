@@ -20,6 +20,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
+    --gaussian_prob 0.0 0.0 \
     --name swav-$1 \
     --wandb \
     --project solo-learn \

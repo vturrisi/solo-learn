@@ -28,14 +28,14 @@ def test_linear():
     assert model.add_model_specific_args(parser) is not None
 
     batch, batch_idx = gen_classification_batch(
-        BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"], "imagenet100"
+        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
     )
     out = model(batch[0])
 
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
-        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["n_classes"])
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
     )
     assert (
         "feats" in out
@@ -52,7 +52,7 @@ def test_linear():
     )
     train_dl, val_dl = prepare_classification_dummy_dataloaders(
         "imagenet100",
-        n_classes=BASE_KWARGS["n_classes"],
+        num_classes=BASE_KWARGS["num_classes"],
     )
     trainer.fit(model, train_dl, val_dl)
 

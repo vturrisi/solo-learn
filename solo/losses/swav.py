@@ -14,7 +14,7 @@ def swav_loss_func(
         preds (torch.Tensor): list of NxC Tensors containing nearest neighbors' features from
             view 1.
         assignments (torch.Tensor): list of NxC Tensor containing predicted features from view 2.
-        temperature (torch.Tensor): temperature factor for the loss.
+        temperature (torch.Tensor): softmax temperature for the loss. Defaults to 0.1.
 
     Returns:
         torch.Tensor: SwAV loss.

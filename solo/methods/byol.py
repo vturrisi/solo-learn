@@ -29,7 +29,7 @@ class BYOL(BaseMomentumModel):
 
         # projector
         self.projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
@@ -37,7 +37,7 @@ class BYOL(BaseMomentumModel):
 
         # momentum projector
         self.momentum_projector = nn.Sequential(
-            nn.Linear(self.features_size, proj_hidden_dim),
+            nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, output_dim),
@@ -106,16 +106,16 @@ class BYOL(BaseMomentumModel):
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-    def training_step(self, batch: Sequence[Any], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for BYOL reusing BaseModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.n_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: total loss composed of BYOL and classification loss.
+            torch.Tensor: total loss composed of BYOL and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

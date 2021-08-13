@@ -1,20 +1,23 @@
 import math
 from abc import ABC
 from pathlib import Path
+from typing import List
+
 import torch
+import torch.nn as nn
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.dali_dataloader import (
     CustomNormalPipeline,
     CustomTransform,
-    PretrainPipeline,
     ImagenetTransform,
     MulticropPretrainPipeline,
     NormalPipeline,
+    PretrainPipeline,
 )
 
 
 class BaseWrapper(DALIGenericIterator):
-    """Temporary fix to handle LastBatchPolicy.DROP"""
+    """Temporary fix to handle LastBatchPolicy.DROP."""
 
     def __len__(self):
         size = (
@@ -40,6 +43,7 @@ class PretrainWrapper(BaseWrapper):
         model_batch_size: int,
         model_rank: int,
         model_device: str,
+        conversion_map: List[int] = None,
         *args,
         **kwargs,
     ):
@@ -49,21 +53,48 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
+            conversion_map  (List[int], optional): list of integeres that map each index
+                to a class label. If nothing is passed, no label mapping needs to be done.
+                Defaults to None.
         """
 
         super().__init__(*args, **kwargs)
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
+        self.conversion_map = conversion_map
+        if self.conversion_map is not None:
+            self.conversion_map = torch.tensor(
+                self.conversion_map, dtype=torch.float32, device=self.model_device
+            ).reshape(-1, 1)
+            self.conversion_map = nn.Embedding.from_pretrained(self.conversion_map)
 
     def __next__(self):
-        batch = super().__next__()
-        indexes = torch.arange(self.model_batch_size, device=self.model_device) + (
-            self.model_rank * self.model_batch_size
-        )
-        *all_X, target = [batch[0][v] for v in self.output_map]
-        target = target.squeeze(-1).long()
-        return indexes, all_X, target
+        batch = super().__next__()[0]
+        # PyTorch Lightning does double buffering
+        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316,
+        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs,
+        # to be made before returning.
+
+        if self.conversion_map is not None:
+            *all_X, indexes = [batch[v] for v in self.output_map]
+            targets = self.conversion_map(indexes).flatten().long().detach().clone()
+            indexes = indexes.flatten().long().detach().clone()
+        else:
+            *all_X, targets = [batch[v] for v in self.output_map]
+            targets = targets.squeeze(-1).long().detach().clone()
+            # creates dummy indexes
+            indexes = (
+                (
+                    torch.arange(self.model_batch_size, device=self.model_device)
+                    + (self.model_rank * self.model_batch_size)
+                )
+                .detach()
+                .clone()
+            )
+
+        all_X = [x.detach().clone() for x in all_X]
+        return [indexes, all_X, targets]
 
 
 class Wrapper(BaseWrapper):
@@ -71,6 +102,12 @@ class Wrapper(BaseWrapper):
         batch = super().__next__()
         x, target = batch[0]["x"], batch[0]["label"]
         target = target.squeeze(-1).long()
+        # PyTorch Lightning does double buffering
+        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316,
+        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs,
+        # to be made before returning.
+        x = x.detach().clone()
+        target = target.detach().clone()
         return x, target
 
 
@@ -100,6 +137,9 @@ class PretrainABC(ABC):
         data_dir = Path(self.extra_args["data_dir"])
         train_dir = Path(self.extra_args["train_dir"])
 
+        # hack to encode image indexes into the labels
+        self.encode_indexes_into_labels = self.extra_args["encode_indexes_into_labels"]
+
         # handle custom data by creating the needed pipeline
         dataset = self.extra_args["dataset"]
         if dataset in ["imagenet100", "imagenet"]:
@@ -110,7 +150,7 @@ class PretrainABC(ABC):
             raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
 
         if self.multicrop:
-            n_crops = [self.n_crops, self.n_small_crops]
+            num_crops = [self.num_crops, self.num_small_crops]
             size_crops = [224, 96]
             min_scales = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]
@@ -129,17 +169,18 @@ class PretrainABC(ABC):
                 data_dir / train_dir,
                 batch_size=self.batch_size,
                 transforms=transforms,
-                n_crops=n_crops,
+                num_crops=num_crops,
                 device=dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 num_threads=num_workers,
                 no_labels=self.extra_args["no_labels"],
+                encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
             output_map = [
-                *[f"large{i}" for i in range(n_crops[0])],
-                *[f"small{i}" for i in range(n_crops[1])],
+                *[f"large{i}" for i in range(num_crops[0])],
+                *[f"small{i}" for i in range(num_crops[1])],
                 "label",
             ]
 
@@ -170,20 +211,26 @@ class PretrainABC(ABC):
                 num_shards=num_shards,
                 num_threads=num_workers,
                 no_labels=self.extra_args["no_labels"],
+                encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
             output_map = ["large1", "large2", "label"]
 
         policy = LastBatchPolicy.DROP
+        conversion_map = train_pipeline.conversion_map if self.encode_indexes_into_labels else None
         train_loader = PretrainWrapper(
             model_batch_size=self.batch_size,
             model_rank=device_id,
             model_device=self.device,
+            conversion_map=conversion_map,
             pipelines=train_pipeline,
             output_map=output_map,
             reader_name="Reader",
             last_batch_policy=policy,
             auto_reset=True,
         )
+
+        self.dali_epoch_size = train_pipeline.epoch_size("Reader")
+
         return train_loader
 
 

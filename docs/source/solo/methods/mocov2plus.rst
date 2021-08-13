@@ -12,12 +12,12 @@ add_model_specific_args
 
 learnable_params
 ~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.mocov2plus.MoCoV2Plus.learnable_params
+.. autoattribute:: solo.methods.mocov2plus.MoCoV2Plus.learnable_params
    :noindex:
 
 momentum_pairs
 ~~~~~~~~~~~~~~
-.. automethod:: solo.methods.mocov2plus.MoCoV2Plus.momentum_pairs
+.. autoattribute:: solo.methods.mocov2plus.MoCoV2Plus.momentum_pairs
    :noindex:
 
 _dequeue_and_enqueue
