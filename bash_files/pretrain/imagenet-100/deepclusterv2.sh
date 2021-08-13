@@ -33,6 +33,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --method deepclusterv2 \
+    --wandb \
     --proj_hidden_dim 2048 \
     --output_dim 128 \
     --num_prototypes 3000 3000 3000
