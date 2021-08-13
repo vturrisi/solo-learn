@@ -15,7 +15,8 @@ While the library is self contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Aug 21]**: :hedgehog: [ReSSL](https://arxiv.org/abs/2107.09282) is now available.
+* **[Aug 13]**: :whale: [DeepCluster V2](https://arxiv.org/abs/2006.09882) is now available.
+* **[Jul 31]**: :hedgehog: [ReSSL](https://arxiv.org/abs/2107.09282) is now available.
 * **[Jul 21]**: :test_tube: Added Custom Dataset support.
 * **[Jul 21]**: :carousel_horse: Added AutoUMAP.
 
@@ -25,6 +26,7 @@ While the library is self contained, it is possible to use the models outside of
 
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
 * [BYOL](https://arxiv.org/abs/2006.07733)
+* [DeepCluster V2](https://arxiv.org/abs/2006.09882)
 * [DINO](https://arxiv.org/abs/2104.14294)
 * [MoCo V2+](https://arxiv.org/abs/2003.04297)
 * [NNCLR](https://arxiv.org/abs/2104.14548)
