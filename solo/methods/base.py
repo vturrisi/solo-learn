@@ -531,6 +531,7 @@ class BaseMomentumModel(BaseModel):
         """Resets the step counter at the beginning of training."""
         self.last_step = 0
 
+    @torch.no_grad()
     def forward_momentum(self, X: torch.Tensor) -> Dict:
         """Momentum forward that allows children classes to override how the momentum encoder is used.
 
@@ -541,8 +542,7 @@ class BaseMomentumModel(BaseModel):
             Dict: dict of logits and features.
         """
 
-        with torch.no_grad():
-            feats = self.momentum_encoder(X)
+        feats = self.momentum_encoder(X)
         return {"feats": feats}
 
     def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> Dict[str, Any]:
