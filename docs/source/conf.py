@@ -19,11 +19,11 @@ sys.path.insert(0, os.path.abspath("../../solo"))
 # -- Project information -----------------------------------------------------
 
 project = "solo-learn"
-copyright = "2021, Victor G. Turrisi da Costa and Enrico Fini"
-author = "Victor G. Turrisi da Costa and Enrico Fini"
+copyright = "2021, solo-learn development team"
+author = "solo-learn development team"
 
 # The full version, including alpha/beta/rc tags
-release = "0.6"
+release = "0.9"
 
 
 # -- General configuration ---------------------------------------------------
@@ -35,7 +35,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    # "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,8 +50,7 @@ exclude_patterns = []
 # Ignoring Third-party packages
 # https://stackoverflow.com/questions/15889621/sphinx-how-to-exclude-imports-in-automodule
 def package_list_from_file(file):
-    """List up package name (not containing version and extras) from a package list file
-    """
+    """List up package name (not containing version and extras) from a package list file"""
     mocked_packages = []
     with open(file, "r") as fp:
         for ln in fp.readlines():
