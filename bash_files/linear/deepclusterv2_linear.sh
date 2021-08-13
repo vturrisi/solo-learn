@@ -16,7 +16,7 @@ python3 ../../main_linear.py \
     --num_workers 5 \
     --dali \
     --name deepclusterv2-imagenet100-linear-eval \
-    --pretrained_feature_extractor ../pretrain/imagenet-100/trained_models/deepclusterv2/w6i04kjv/deepclusterv2-400ep-imagenet100-w6i04kjv-ep\=399.ckpt \
+    --pretrained_feature_extractor PATH\
     --project solo-learn \
     --entity unitn-mhug \
     --wandb
