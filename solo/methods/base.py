@@ -539,10 +539,8 @@ class BaseMomentumModel(BaseModel):
     @torch.no_grad()
     def forward_momentum(self, X: torch.Tensor) -> Dict:
         """Momentum forward that allows children classes to override how the momentum encoder is used.
-
         Args:
             X (torch.Tensor): batch of images in tensor format.
-
         Returns:
             Dict: dict of logits and features.
         """
@@ -602,6 +600,11 @@ class BaseMomentumModel(BaseModel):
 
         # collect features
         parent_outs["feats_momentum"] = [out["feats"] for out in outs]
+        # collect extra data
+        default_keys = set(["loss", "logits", "feats", "acc1", "acc5"])
+        for k in outs[0].keys():
+            if k not in default_keys:
+                parent_outs[f"{k}_momentum"] = [out[k] for out in outs]
 
         if self.momentum_classifier is not None:
             # collect logits
