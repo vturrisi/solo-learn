@@ -298,9 +298,9 @@ class BaseModel(pl.LightningModule):
     def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
 
-        return self._base_forward(*args, **kwargs)
+        return self.base_forward(*args, **kwargs)
 
-    def _base_forward(self, X: torch.Tensor) -> Dict:
+    def base_forward(self, X: torch.Tensor) -> Dict:
         """Basic forward that allows children classes to override forward().
 
         Args:
@@ -326,7 +326,7 @@ class BaseModel(pl.LightningModule):
             Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
         """
 
-        out = self._base_forward(X)
+        out = self.base_forward(X)
         logits = out["logits"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
@@ -537,7 +537,7 @@ class BaseMomentumModel(BaseModel):
         self.last_step = 0
 
     @torch.no_grad()
-    def forward_momentum(self, X: torch.Tensor) -> Dict:
+    def base_momentum_forward(self, X: torch.Tensor) -> Dict:
         """Momentum forward that allows children classes to override how the momentum encoder is used.
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -562,7 +562,7 @@ class BaseMomentumModel(BaseModel):
                 acc@5 of the momentum encoder / classifier.
         """
 
-        out = self.forward_momentum(X)
+        out = self.base_momentum_forward(X)
 
         if self.momentum_classifier is not None:
             feats = out["feats"]
