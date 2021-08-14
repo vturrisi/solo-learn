@@ -588,7 +588,7 @@ class BaseMomentumModel(BaseModel):
                 loss and logits of the momentum classifier.
         """
 
-        parent_outs = super().training_step(batch, batch_idx)
+        outs = super().training_step(batch, batch_idx)
 
         _, X, targets = batch
         X = [X] if isinstance(X, torch.Tensor) else X
@@ -596,15 +596,15 @@ class BaseMomentumModel(BaseModel):
         # remove small crops
         X = X[: self.num_crops]
 
-        outs = [self._shared_step_momentum(x, targets) for x in X]
+        momentum_outs = [self._shared_step_momentum(x, targets) for x in X]
 
         # collect features
-        parent_outs["feats_momentum"] = [out["feats"] for out in outs]
+        outs["feats_momentum"] = [out["feats"] for out in momentum_outs]
         # collect extra data
         default_keys = set(["loss", "logits", "feats", "acc1", "acc5"])
-        for k in outs[0].keys():
+        for k in momentum_outs[0].keys():
             if k not in default_keys:
-                parent_outs[f"{k}_momentum"] = [out[k] for out in outs]
+                outs[f"{k}_momentum"] = [out[k] for out in momentum_outs]
 
         if self.momentum_classifier is not None:
             # collect logits
@@ -622,10 +622,10 @@ class BaseMomentumModel(BaseModel):
             }
             self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-            parent_outs["loss"] += loss
-            parent_outs["logits_momentum"] = logits
+            outs["loss"] += loss
+            outs["logits_momentum"] = logits
 
-        return parent_outs
+        return outs
 
     def on_train_batch_end(
         self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int
