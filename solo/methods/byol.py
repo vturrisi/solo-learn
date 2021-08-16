@@ -121,7 +121,7 @@ class BYOL(BaseMomentumModel):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]
-        feats1_momentum, feats2_momentum = out["feats_momentum"]
+        momentum_feats1, momentum_feats2 = out["momentum_feats"]
 
         z1 = self.projector(feats1)
         z2 = self.projector(feats2)
@@ -130,8 +130,8 @@ class BYOL(BaseMomentumModel):
 
         # forward momentum encoder
         with torch.no_grad():
-            z1_momentum = self.momentum_projector(feats1_momentum)
-            z2_momentum = self.momentum_projector(feats2_momentum)
+            z1_momentum = self.momentum_projector(momentum_feats1)
+            z2_momentum = self.momentum_projector(momentum_feats2)
 
         # ------- contrastive loss -------
         neg_cos_sim = byol_loss_func(p1, z2_momentum) + byol_loss_func(p2, z1_momentum)

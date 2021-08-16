@@ -298,9 +298,9 @@ class BaseModel(pl.LightningModule):
     def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
 
-        return self._base_forward(*args, **kwargs)
+        return self.base_forward(*args, **kwargs)
 
-    def _base_forward(self, X: torch.Tensor) -> Dict:
+    def base_forward(self, X: torch.Tensor) -> Dict:
         """Basic forward that allows children classes to override forward().
 
         Args:
@@ -326,7 +326,7 @@ class BaseModel(pl.LightningModule):
             Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
         """
 
-        out = self._base_forward(X)
+        out = self.base_forward(X)
         logits = out["logits"]
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
@@ -337,8 +337,8 @@ class BaseModel(pl.LightningModule):
             "loss": loss,
             "logits": logits,
             **out,
-            "acc1": acc1,
-            "acc5": acc5,
+            "acc1": acc1.detach(),
+            "acc5": acc5.detach(),
         }
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
@@ -362,27 +362,25 @@ class BaseModel(pl.LightningModule):
         assert len(X) == self.num_crops + self.num_small_crops
 
         outs = [self._shared_step(x, targets) for x in X[: self.num_crops]]
-
-        # collect data
-        logits = [out["logits"] for out in outs]
-        feats = [out["feats"] for out in outs]
-
-        # loss and stats
-        loss = sum(out["loss"] for out in outs) / self.num_crops
-        acc1 = sum(out["acc1"] for out in outs) / self.num_crops
-        acc5 = sum(out["acc5"] for out in outs) / self.num_crops
+        outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            feats.extend([self.encoder(x) for x in X[self.num_crops :]])
+            outs["feats"].extend([self.encoder(x) for x in X[self.num_crops :]])
+
+        # loss and stats
+        outs["loss"] = sum(outs["loss"]) / self.num_crops
+        outs["acc1"] = sum(outs["acc1"]) / self.num_crops
+        outs["acc5"] = sum(outs["acc5"]) / self.num_crops
 
         metrics = {
-            "train_acc1": acc1,
-            "train_acc5": acc5,
-            "train_class_loss": loss,
+            "train_class_loss": outs["loss"],
+            "train_acc1": outs["acc1"],
+            "train_acc5": outs["acc5"],
         }
+
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-        return {"loss": loss, "feats": feats, "logits": logits}
+        return outs
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
@@ -532,12 +530,10 @@ class BaseMomentumModel(BaseModel):
         self.last_step = 0
 
     @torch.no_grad()
-    def forward_momentum(self, X: torch.Tensor) -> Dict:
+    def base_momentum_forward(self, X: torch.Tensor) -> Dict:
         """Momentum forward that allows children classes to override how the momentum encoder is used.
-
         Args:
             X (torch.Tensor): batch of images in tensor format.
-
         Returns:
             Dict: dict of logits and features.
         """
@@ -559,14 +555,16 @@ class BaseMomentumModel(BaseModel):
                 acc@5 of the momentum encoder / classifier.
         """
 
-        out = self.forward_momentum(X)
+        out = self.base_momentum_forward(X)
 
         if self.momentum_classifier is not None:
             feats = out["feats"]
             logits = self.momentum_classifier(feats)
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
-            out.update({"logits": logits, "loss": loss, "acc1": acc1, "acc5": acc5})
+            out.update(
+                {"logits": logits, "loss": loss, "acc1": acc1.detach(), "acc5": acc5.detach()}
+            )
 
         return out
 
@@ -585,7 +583,7 @@ class BaseMomentumModel(BaseModel):
                 loss and logits of the momentum classifier.
         """
 
-        parent_outs = super().training_step(batch, batch_idx)
+        outs = super().training_step(batch, batch_idx)
 
         _, X, targets = batch
         X = [X] if isinstance(X, torch.Tensor) else X
@@ -593,31 +591,25 @@ class BaseMomentumModel(BaseModel):
         # remove small crops
         X = X[: self.num_crops]
 
-        outs = [self._shared_step_momentum(x, targets) for x in X]
-
-        # collect features
-        parent_outs["feats_momentum"] = [out["feats"] for out in outs]
+        momentum_outs = [self._shared_step_momentum(x, targets) for x in X]
+        momentum_outs = {
+            "momentum_" + k: [out[k] for out in momentum_outs] for k in momentum_outs[0].keys()
+        }
 
         if self.momentum_classifier is not None:
-            # collect logits
-            logits = [out["logits"] for out in outs]
-
             # momentum loss and stats
-            loss = sum(out["loss"] for out in outs) / self.num_crops
-            acc1 = sum(out["acc1"] for out in outs) / self.num_crops
-            acc5 = sum(out["acc5"] for out in outs) / self.num_crops
+            momentum_outs["momentum_loss"] = sum(momentum_outs["momentum_loss"]) / self.num_crops
+            momentum_outs["momentum_acc1"] = sum(momentum_outs["momentum_acc1"]) / self.num_crops
+            momentum_outs["momentum_acc5"] = sum(momentum_outs["momentum_acc5"]) / self.num_crops
 
             metrics = {
-                "train_momentum_acc1": acc1,
-                "train_momentum_acc5": acc5,
-                "train_momentum_class_loss": loss,
+                "train_momentum_class_loss": momentum_outs["momentum_loss"],
+                "train_momentum_acc1": momentum_outs["momentum_acc1"],
+                "train_momentum_acc5": momentum_outs["momentum_acc5"],
             }
             self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-            parent_outs["loss"] += loss
-            parent_outs["logits_momentum"] = logits
-
-        return parent_outs
+        return {**outs, **momentum_outs}
 
     def on_train_batch_end(
         self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int

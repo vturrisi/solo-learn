@@ -25,9 +25,9 @@ forward
 .. automethod:: solo.methods.base.BaseModel.forward
    :noindex:
 
-_base_forward
+base_forward
 ~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseModel._base_forward
+.. automethod:: solo.methods.base.BaseModel.base_forward
    :noindex:
 
 _shared_step
@@ -77,6 +77,11 @@ add_model_specific_args
 on_train_start
 ~~~~~~~~~~~~~~
 .. automethod:: solo.methods.base.BaseMomentumModel.on_train_start
+   :noindex:
+
+base_momentum_forward
+~~~~~~~~~~~~~~
+.. automethod:: solo.methods.base.BaseMomentumModel.base_momentum_forward
    :noindex:
 
 _shared_step_momentum

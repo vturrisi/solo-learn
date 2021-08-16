@@ -139,7 +139,7 @@ class MoCoV2Plus(BaseMomentumModel):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]
-        feats1_momentum, feats2_momentum = out["feats_momentum"]
+        momentum_feats1, momentum_feats2 = out["momentum_feats"]
 
         q1 = self.projector(feats1)
         q2 = self.projector(feats2)
@@ -147,8 +147,8 @@ class MoCoV2Plus(BaseMomentumModel):
         q2 = F.normalize(q2, dim=-1)
 
         with torch.no_grad():
-            k1 = self.momentum_projector(feats1_momentum)
-            k2 = self.momentum_projector(feats2_momentum)
+            k1 = self.momentum_projector(momentum_feats1)
+            k2 = self.momentum_projector(momentum_feats2)
             k1 = F.normalize(k1, dim=-1)
             k2 = F.normalize(k2, dim=-1)
 
