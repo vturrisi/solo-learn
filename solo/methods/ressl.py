@@ -147,13 +147,13 @@ class ReSSL(BaseMomentumModel):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, _ = out["feats"]
-        _, feats2_momentum = out["feats_momentum"]
+        _, momentum_feats2 = out["momentum_feats"]
 
         q = self.projector(feats1)
 
         # forward momentum encoder
         with torch.no_grad():
-            k = self.momentum_projector(feats2_momentum)
+            k = self.momentum_projector(momentum_feats2)
 
         q = F.normalize(q, dim=-1)
         k = F.normalize(k, dim=-1)

@@ -250,7 +250,7 @@ class DINO(BaseMomentumModel):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]
-        feats1_momentum, feats2_momentum = out["feats_momentum"]
+        momentum_feats1, momentum_feats2 = out["momentum_feats"]
 
         # forward online encoder
         p1 = self.head(feats1)
@@ -258,8 +258,8 @@ class DINO(BaseMomentumModel):
         p = torch.cat((p1, p2))
 
         # forward momentum encoder
-        p1_momentum = self.momentum_head(feats1_momentum)
-        p2_momentum = self.momentum_head(feats2_momentum)
+        p1_momentum = self.momentum_head(momentum_feats1)
+        p2_momentum = self.momentum_head(momentum_feats2)
         p_momentum = torch.cat((p1_momentum, p2_momentum))
 
         # ------- contrastive loss -------

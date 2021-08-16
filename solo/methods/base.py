@@ -337,8 +337,8 @@ class BaseModel(pl.LightningModule):
             "loss": loss,
             "logits": logits,
             **out,
-            "acc1": acc1,
-            "acc5": acc5,
+            "acc1": acc1.detach(),
+            "acc5": acc5.detach(),
         }
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
@@ -354,9 +354,6 @@ class BaseModel(pl.LightningModule):
             Dict[str, Any]: dict with the classification loss, features and logits
         """
 
-        # keys that are used by default
-        default_keys = set(["loss", "logits", "feats", "acc1", "acc5"])
-
         _, X, targets = batch
 
         X = [X] if isinstance(X, torch.Tensor) else X
@@ -365,29 +362,25 @@ class BaseModel(pl.LightningModule):
         assert len(X) == self.num_crops + self.num_small_crops
 
         outs = [self._shared_step(x, targets) for x in X[: self.num_crops]]
-
-        # collect data
-        logits = [out["logits"] for out in outs]
-        feats = [out["feats"] for out in outs]
-        # collect extra data
-        extra = {k: [out[k] for out in outs] for k in outs[0].keys() if k not in default_keys}
-
-        # loss and stats
-        loss = sum(out["loss"] for out in outs) / self.num_crops
-        acc1 = sum(out["acc1"] for out in outs) / self.num_crops
-        acc5 = sum(out["acc5"] for out in outs) / self.num_crops
+        outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            feats.extend([self.encoder(x) for x in X[self.num_crops :]])
+            outs["feats"].extend([self.encoder(x) for x in X[self.num_crops :]])
+
+        # loss and stats
+        outs["loss"] = sum(outs["loss"]) / self.num_crops
+        outs["acc1"] = sum(outs["acc1"]) / self.num_crops
+        outs["acc5"] = sum(outs["acc5"]) / self.num_crops
 
         metrics = {
-            "train_acc1": acc1,
-            "train_acc5": acc5,
-            "train_class_loss": loss,
+            "train_class_loss": outs["loss"],
+            "train_acc1": outs["acc1"],
+            "train_acc5": outs["acc5"],
         }
+
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-        return {"loss": loss, "feats": feats, "logits": logits, **extra}
+        return outs
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
@@ -569,7 +562,9 @@ class BaseMomentumModel(BaseModel):
             logits = self.momentum_classifier(feats)
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
-            out.update({"logits": logits, "loss": loss, "acc1": acc1, "acc5": acc5})
+            out.update(
+                {"logits": logits, "loss": loss, "acc1": acc1.detach(), "acc5": acc5.detach()}
+            )
 
         return out
 
@@ -597,35 +592,24 @@ class BaseMomentumModel(BaseModel):
         X = X[: self.num_crops]
 
         momentum_outs = [self._shared_step_momentum(x, targets) for x in X]
-
-        # collect features
-        outs["feats_momentum"] = [out["feats"] for out in momentum_outs]
-        # collect extra data
-        default_keys = set(["loss", "logits", "feats", "acc1", "acc5"])
-        for k in momentum_outs[0].keys():
-            if k not in default_keys:
-                outs[f"{k}_momentum"] = [out[k] for out in momentum_outs]
+        momentum_outs = {
+            "momentum_" + k: [out[k] for out in momentum_outs] for k in momentum_outs[0].keys()
+        }
 
         if self.momentum_classifier is not None:
-            # collect logits
-            logits = [out["logits"] for out in outs]
-
             # momentum loss and stats
-            loss = sum(out["loss"] for out in outs) / self.num_crops
-            acc1 = sum(out["acc1"] for out in outs) / self.num_crops
-            acc5 = sum(out["acc5"] for out in outs) / self.num_crops
+            momentum_outs["momentum_loss"] = sum(momentum_outs["momentum_loss"]) / self.num_crops
+            momentum_outs["momentum_acc1"] = sum(momentum_outs["momentum_acc1"]) / self.num_crops
+            momentum_outs["momentum_acc5"] = sum(momentum_outs["momentum_acc5"]) / self.num_crops
 
             metrics = {
-                "train_momentum_acc1": acc1,
-                "train_momentum_acc5": acc5,
-                "train_momentum_class_loss": loss,
+                "train_momentum_class_loss": momentum_outs["momentum_loss"],
+                "train_momentum_acc1": momentum_outs["momentum_acc1"],
+                "train_momentum_acc5": momentum_outs["momentum_acc5"],
             }
             self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-            outs["loss"] += loss
-            outs["logits_momentum"] = logits
-
-        return outs
+        return {**outs, **momentum_outs}
 
     def on_train_batch_end(
         self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int
