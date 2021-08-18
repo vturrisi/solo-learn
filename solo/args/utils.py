@@ -152,7 +152,11 @@ def additional_setup_pretrain(args: Namespace):
             for kwargs in args.transform_kwargs:
                 del kwargs["size"]
 
-    args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
+    args.backbone_args = {
+        "zero_init_residual": args.zero_init_residual,
+        "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
+    }
+    del args.zero_init_residual
 
     if args.dali:
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
@@ -187,7 +191,11 @@ def additional_setup_linear(args: Namespace):
     assert args.dataset in N_CLASSES_PER_DATASET
     args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
 
-    args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
+    args.backbone_args = {
+        "zero_init_residual": args.zero_init_residual,
+        "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
+    }
+    del args.zero_init_residual
 
     if args.dali:
         assert args.dataset in ["imagenet100", "imagenet"]

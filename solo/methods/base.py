@@ -27,8 +27,7 @@ class BaseModel(pl.LightningModule):
         self,
         encoder: str,
         num_classes: int,
-        cifar: bool,
-        zero_init_residual: bool,
+        backbone_args: dict,
         max_epochs: int,
         batch_size: int,
         optimizer: str,
@@ -59,8 +58,9 @@ class BaseModel(pl.LightningModule):
         Args:
             encoder (str): architecture of the base encoder.
             num_classes (int): number of classes.
-            cifar (bool): flag indicating if cifar is being used.
-            zero_init_residual (bool): change the initialization of the resnet encoder.
+            backbone_params (dict): dict containing extra backbone args, namely:
+                cifar (bool): flag indicating if cifar is being used.
+                zero_init_residual (bool): change the initialization of the resnet encoder.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
@@ -87,9 +87,8 @@ class BaseModel(pl.LightningModule):
 
         super().__init__()
 
-        # back-bone related
-        self.cifar = cifar
-        self.zero_init_residual = zero_init_residual
+        # resnet backbone related
+        self.backbone_args = backbone_args
 
         # training related
         self.num_classes = num_classes
@@ -129,19 +128,33 @@ class BaseModel(pl.LightningModule):
         self.min_lr = self.min_lr * self.accumulate_grad_batches
         self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert encoder in ["resnet18", "resnet50"]
+        assert encoder in ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
+        from solo.backbones.vit import vit_base, vit_small, vit_tiny
         from torchvision.models import resnet18, resnet50
 
-        self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[encoder]
+        self.base_model = {
+            "resnet18": resnet18,
+            "resnet50": resnet50,
+            "vit_tiny": vit_tiny,
+            "vit_small": vit_small,
+            "vit_base": vit_base,
+        }[encoder]
 
+        self.encoder_name = encoder
         # initialize encoder
-        self.encoder = self.base_model(zero_init_residual=zero_init_residual)
-        self.features_dim = self.encoder.inplanes
-        # remove fc layer
-        self.encoder.fc = nn.Identity()
-        if cifar:
-            self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
-            self.encoder.maxpool = nn.Identity()
+        if "resnet" in self.encoder_name:
+            self.encoder = self.base_model(zero_init_residual=backbone_args["zero_init_residual"])
+            self.features_dim = self.encoder.inplanes
+            # remove fc layer
+            self.encoder.fc = nn.Identity()
+            if backbone_args["cifar"]:
+                self.encoder.conv1 = nn.Conv2d(
+                    3, 64, kernel_size=3, stride=1, padding=2, bias=False
+                )
+                self.encoder.maxpool = nn.Identity()
+        else:
+            self.encoder = self.base_model()
+            self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
@@ -163,6 +176,7 @@ class BaseModel(pl.LightningModule):
         SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
 
         parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
+        # extra backbone args for resnet
         parser.add_argument("--zero_init_residual", action="store_true")
 
         # general train
@@ -452,13 +466,14 @@ class BaseMomentumModel(BaseModel):
         super().__init__(**kwargs)
 
         # momentum encoder
-        self.momentum_encoder = self.base_model(zero_init_residual=self.zero_init_residual)
-        self.momentum_encoder.fc = nn.Identity()
-        if self.cifar:
-            self.momentum_encoder.conv1 = nn.Conv2d(
-                3, 64, kernel_size=3, stride=1, padding=2, bias=False
-            )
-            self.momentum_encoder.maxpool = nn.Identity()
+        self.momentum_encoder = self.base_model()
+        if "resnet" in self.encoder_name:
+            self.momentum_encoder.fc = nn.Identity()
+            if self.backbone_args["cifar"]:
+                self.momentum_encoder.conv1 = nn.Conv2d(
+                    3, 64, kernel_size=3, stride=1, padding=2, bias=False
+                )
+                self.momentum_encoder.maxpool = nn.Identity()
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
