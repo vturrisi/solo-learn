@@ -3,7 +3,7 @@ Mostly copy-paste from timm library.
 https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py
 and https://raw.githubusercontent.com/facebookresearch/dino/main/vision_transformer.py.
 
-With added typing, docstrings and some renaming.
+With added typing and some renaming.
 """
 
 import math
