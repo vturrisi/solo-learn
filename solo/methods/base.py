@@ -173,7 +173,7 @@ class BaseModel(pl.LightningModule):
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
-        SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
+        SUPPORTED_NETWORKS = ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
 
         parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
         # extra backbone args for resnet

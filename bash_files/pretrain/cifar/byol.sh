@@ -4,7 +4,7 @@ python3 ../../../main_pretrain.py \
     --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
-    --precision 32 \
+    --precision 16 \
     --optimizer sgd \
     --lars \
     --grad_clip_lars \
@@ -25,6 +25,7 @@ python3 ../../../main_pretrain.py \
     --name byol-$1 \
     --project solo-learn \
     --entity unitn-mhug \
+    --wandb \
     --method byol \
     --output_dim 256 \
     --proj_hidden_dim 4096 \
