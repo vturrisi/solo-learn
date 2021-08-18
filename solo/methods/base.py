@@ -483,11 +483,6 @@ class BaseMomentumModel(BaseModel):
         # momentum classifier
         if momentum_classifier:
             self.momentum_classifier: Any = nn.Linear(self.features_dim, self.num_classes)
-            # make momentum classifier have the same weights
-            params_online = self.classifier.parameters()
-            params_momentum = self.momentum_classifier.parameters()
-            for po, pm in zip(params_online, params_momentum):
-                pm.data.copy_(po.data)
         else:
             self.momentum_classifier = None
 
@@ -632,6 +627,8 @@ class BaseMomentumModel(BaseModel):
                 "train_momentum_acc5": momentum_outs["momentum_acc5"],
             }
             self.log_dict(metrics, on_epoch=True, sync_dist=True)
+
+            outs["loss"] += momentum_outs["momentum_loss"]
 
         return {**outs, **momentum_outs}
 
