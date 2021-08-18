@@ -153,7 +153,7 @@ class BaseModel(pl.LightningModule):
                 )
                 self.encoder.maxpool = nn.Identity()
         else:
-            self.encoder = self.base_model()
+            self.encoder = self.base_model(backbone_args["patch_size"])
             self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
@@ -468,14 +468,16 @@ class BaseMomentumModel(BaseModel):
         super().__init__(**kwargs)
 
         # momentum encoder
-        self.momentum_encoder = self.base_model()
         if "resnet" in self.encoder_name:
+            self.momentum_encoder = self.base_model()
             self.momentum_encoder.fc = nn.Identity()
             if self.backbone_args["cifar"]:
                 self.momentum_encoder.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.momentum_encoder.maxpool = nn.Identity()
+        else:
+            self.momentum_encoder = self.base_model(self.backbone_args["patch_size"])
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier

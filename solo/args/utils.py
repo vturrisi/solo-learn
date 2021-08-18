@@ -153,8 +153,11 @@ def additional_setup_pretrain(args: Namespace):
                 del kwargs["size"]
 
     args.backbone_args = {
+        # resnet only
         "zero_init_residual": args.zero_init_residual,
         "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
+        # vit only
+        "patch_size": args.patch_size,
     }
     del args.zero_init_residual
 
@@ -192,8 +195,11 @@ def additional_setup_linear(args: Namespace):
     args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
 
     args.backbone_args = {
+        # resnet only
         "zero_init_residual": args.zero_init_residual,
         "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
+        # vit only
+        "patch_size": args.patch_size,
     }
     del args.zero_init_residual
 
