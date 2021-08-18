@@ -176,8 +176,10 @@ class BaseModel(pl.LightningModule):
         SUPPORTED_NETWORKS = ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
 
         parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
-        # extra backbone args for resnet
+        # extra args for resnet
         parser.add_argument("--zero_init_residual", action="store_true")
+        # extra args for vit
+        parser.add_argument("--patch_size", type=int, default=16)
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)

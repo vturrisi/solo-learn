@@ -1,6 +1,7 @@
 python3 ../../../main_pretrain.py \
     --dataset $1 \
-    --encoder resnet18 \
+    --encoder vit_tiny \
+    --patch_size 4 \
     --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
@@ -11,9 +12,9 @@ python3 ../../../main_pretrain.py \
     --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 1.0 \
+    --lr 0.001 \
     --classifier_lr 0.1 \
-    --weight_decay 1e-5 \
+    --weight_decay 0.04 \
     --batch_size 256 \
     --num_workers 5 \
     --brightness 0.4 \
@@ -24,7 +25,6 @@ python3 ../../../main_pretrain.py \
     --solarization_prob 0.0 0.2 \
     --name byol-$1 \
     --project solo-learn \
-    --entity unitn-mhug \
     --wandb \
     --method byol \
     --output_dim 256 \
