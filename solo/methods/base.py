@@ -335,7 +335,6 @@ class BaseModel(pl.LightningModule):
 
         return {
             "loss": loss,
-            "logits": logits,
             **out,
             "acc1": acc1.detach(),
             "acc5": acc5.detach(),
