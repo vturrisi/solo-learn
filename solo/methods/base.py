@@ -628,6 +628,7 @@ class BaseMomentumModel(BaseModel):
             }
             self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
+            # adds the momentum classifier loss together with the general loss
             outs["loss"] += momentum_outs["momentum_loss"]
 
         return {**outs, **momentum_outs}
