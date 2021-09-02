@@ -5,10 +5,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.simsiam import simsiam_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 
 
-class SimSiam(BaseModel):
+class SimSiam(BaseMethod):
     def __init__(
         self,
         output_dim: int,
@@ -92,7 +92,7 @@ class SimSiam(BaseModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for SimSiam reusing BaseModel training step.
+        """Training step for SimSiam reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

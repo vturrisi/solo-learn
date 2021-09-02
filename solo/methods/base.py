@@ -22,7 +22,7 @@ def static_lr(
     return lrs
 
 
-class BaseModel(pl.LightningModule):
+class BaseMethod(pl.LightningModule):
     def __init__(
         self,
         encoder: str,
@@ -425,7 +425,7 @@ class BaseModel(pl.LightningModule):
         self.log_dict(log, sync_dist=True)
 
 
-class BaseMomentumModel(BaseModel):
+class BaseMomentumMethod(BaseMethod):
     def __init__(
         self,
         base_tau_momentum: float,
@@ -512,7 +512,7 @@ class BaseMomentumModel(BaseModel):
             ArgumentParser: same as the argument, used to avoid errors.
         """
 
-        parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
+        parent_parser = super(BaseMomentumMethod, BaseMomentumMethod).add_model_specific_args(
             parent_parser
         )
         parser = parent_parser.add_argument_group("base")

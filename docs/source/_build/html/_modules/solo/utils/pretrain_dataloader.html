@@ -1,0 +1,923 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>solo.utils.pretrain_dataloader &mdash; solo-learn 0.9 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> solo-learn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../start/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start/available.html">Methods available</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start/available.html#extra-flavor">Extra flavor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/general_guide.html">General Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Args</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/args.html">Args</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utils</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/utils.html">Utils</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/base.html">BaseMethod</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/dali.html">DALI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/linear.html">LinearModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Losses</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html">Classification dataloaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#augmentations">Augmentations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#transformation-pipelines">Transformation Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#pretrain-dataloader">Pretrain dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#module-solo.utils.dali_dataloader">DALI dataloaders</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">solo-learn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>solo.utils.pretrain_dataloader</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for solo.utils.pretrain_dataloader</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torchvision</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageFilter</span><span class="p">,</span> <span class="n">ImageOps</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data.dataset</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
+<span class="kn">from</span> <span class="nn">torchvision.datasets</span> <span class="kn">import</span> <span class="n">STL10</span><span class="p">,</span> <span class="n">ImageFolder</span>
+
+
+<div class="viewcode-block" id="dataset_with_index"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.dataset_with_index">[docs]</a><span class="k">def</span> <span class="nf">dataset_with_index</span><span class="p">(</span><span class="n">DatasetClass</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Dataset</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Factory for datasets that also returns the data index.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        DatasetClass (Type[Dataset]): Dataset class to be wrapped.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Type[Dataset]: dataset with index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">class</span> <span class="nc">DatasetWithIndex</span><span class="p">(</span><span class="n">DatasetClass</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">DatasetWithIndex</span></div>
+
+
+<span class="k">class</span> <span class="nc">CustomDatasetWithoutLabels</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GaussianBlur"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.GaussianBlur">[docs]</a><span class="k">class</span> <span class="nc">GaussianBlur</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Gaussian blur as a callable object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sigma (Sequence[float]): range to sample the radius of the gaussian blur filter.</span>
+<span class="sd">                Defaults to [0.1, 2.0].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Applies gaussian blur to an input image.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): an image in the tensor format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: returns a blurred image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ImageFilter</span><span class="o">.</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="Solarization"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.Solarization">[docs]</a><span class="k">class</span> <span class="nc">Solarization</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Solarization as a callable object.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Image</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Applies solarization to an input image.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            img (Image): an image in the PIL.Image format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Image: a solarized image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">ImageOps</span><span class="o">.</span><span class="n">solarize</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NCropAugmentation"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.NCropAugmentation">[docs]</a><span class="k">class</span> <span class="nc">NCropAugmentation</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">],</span> <span class="n">num_crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a pipeline that apply a transformation pipeline multiple times.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            transform (Union[Callable, Sequence]): transformation pipeline or list of</span>
+<span class="sd">                transformation pipelines.</span>
+<span class="sd">            num_crops: if transformation pipeline is not a list, applies the same</span>
+<span class="sd">                pipeline num_crops times, if it is a list, this is ignored and each</span>
+<span class="sd">                element of the list is applied once.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">one_transform_per_crop</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">assert</span> <span class="n">num_crops</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">one_transform_per_crop</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_crops</span> <span class="o">=</span> <span class="n">num_crops</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Applies transforms n times to generate n crops.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (Image): an image in the PIL.Image format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[torch.Tensor]: an image in the tensor format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">one_transform_per_crop</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_crops</span><span class="p">)]</span></div>
+
+
+<span class="k">class</span> <span class="nc">BaseTransform</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Adds callable base class to implement different transformation pipelines.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">CifarTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="CifarTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.CifarTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">brightness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">contrast</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">saturation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gaussian_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">solarization_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">min_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.08</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Applies cifar transformations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].</span>
+<span class="sd">            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].</span>
+<span class="sd">            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].</span>
+<span class="sd">            hue (float): sampled uniformly in [-hue, hue].</span>
+<span class="sd">            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.</span>
+<span class="sd">            solarization_prob (float, optional): probability of applying solarization. Defaults</span>
+<span class="sd">                to 0.0.</span>
+<span class="sd">            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomResizedCrop</span><span class="p">(</span>
+                    <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="n">min_scale</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                    <span class="n">interpolation</span><span class="o">=</span><span class="n">transforms</span><span class="o">.</span><span class="n">InterpolationMode</span><span class="o">.</span><span class="n">BICUBIC</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="p">,</span> <span class="n">contrast</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">hue</span><span class="p">)],</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">GaussianBlur</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">gaussian_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">Solarization</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">solarization_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4822</span><span class="p">,</span> <span class="mf">0.4465</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.247</span><span class="p">,</span> <span class="mf">0.243</span><span class="p">,</span> <span class="mf">0.261</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">STLTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="STLTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.STLTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">brightness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">contrast</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">saturation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gaussian_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">solarization_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">min_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.08</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Applies STL10 transformations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].</span>
+<span class="sd">            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].</span>
+<span class="sd">            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].</span>
+<span class="sd">            hue (float): sampled uniformly in [-hue, hue].</span>
+<span class="sd">            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.</span>
+<span class="sd">            solarization_prob (float, optional): probability of applying solarization. Defaults</span>
+<span class="sd">                to 0.0.</span>
+<span class="sd">            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomResizedCrop</span><span class="p">(</span>
+                    <span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">96</span><span class="p">),</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="n">min_scale</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                    <span class="n">interpolation</span><span class="o">=</span><span class="n">transforms</span><span class="o">.</span><span class="n">InterpolationMode</span><span class="o">.</span><span class="n">BICUBIC</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="p">,</span> <span class="n">contrast</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">hue</span><span class="p">)],</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">GaussianBlur</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">gaussian_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">Solarization</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">solarization_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4823</span><span class="p">,</span> <span class="mf">0.4466</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.247</span><span class="p">,</span> <span class="mf">0.243</span><span class="p">,</span> <span class="mf">0.261</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">ImagenetTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="ImagenetTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.ImagenetTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">brightness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">contrast</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">saturation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gaussian_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">solarization_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">224</span><span class="p">,</span>
+        <span class="n">min_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.08</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies Imagenet transformations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].</span>
+<span class="sd">            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].</span>
+<span class="sd">            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].</span>
+<span class="sd">            hue (float): sampled uniformly in [-hue, hue].</span>
+<span class="sd">            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.</span>
+<span class="sd">            solarization_prob (float, optional): probability of applying solarization. Defaults</span>
+<span class="sd">                to 0.0.</span>
+<span class="sd">            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.</span>
+<span class="sd">            size (int, optional): size of the crop. Defaults to 224.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomResizedCrop</span><span class="p">(</span>
+                    <span class="n">size</span><span class="p">,</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="n">min_scale</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                    <span class="n">interpolation</span><span class="o">=</span><span class="n">transforms</span><span class="o">.</span><span class="n">InterpolationMode</span><span class="o">.</span><span class="n">BICUBIC</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="p">,</span> <span class="n">contrast</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">hue</span><span class="p">)],</span>
+                    <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">GaussianBlur</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">gaussian_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">Solarization</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">solarization_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">(</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">),</span> <span class="n">std</span><span class="o">=</span><span class="p">(</span><span class="mf">0.228</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">CustomTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="CustomTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.CustomTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">brightness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">contrast</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">saturation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gaussian_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">solarization_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">min_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.08</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">224</span><span class="p">,</span>
+        <span class="n">mean</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">),</span>
+        <span class="n">std</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.228</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies Custom transformations.</span>
+<span class="sd">        If you want to do exoteric augmentations, you can just re-write this class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].</span>
+<span class="sd">            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].</span>
+<span class="sd">            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].</span>
+<span class="sd">            hue (float): sampled uniformly in [-hue, hue].</span>
+<span class="sd">            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.</span>
+<span class="sd">            solarization_prob (float, optional): probability of applying solarization. Defaults</span>
+<span class="sd">                to 0.0.</span>
+<span class="sd">            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.</span>
+<span class="sd">            size (int, optional): size of the crop. Defaults to 224.</span>
+<span class="sd">            mean (Sequence[float], optional): mean values for normalization.</span>
+<span class="sd">                Defaults to (0.485, 0.456, 0.406).</span>
+<span class="sd">            std (Sequence[float], optional): std values for normalization.</span>
+<span class="sd">                Defaults to (0.228, 0.224, 0.225).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomResizedCrop</span><span class="p">(</span>
+                    <span class="n">size</span><span class="p">,</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="n">min_scale</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                    <span class="n">interpolation</span><span class="o">=</span><span class="n">transforms</span><span class="o">.</span><span class="n">InterpolationMode</span><span class="o">.</span><span class="n">BICUBIC</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="p">,</span> <span class="n">contrast</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">hue</span><span class="p">)],</span>
+                    <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">GaussianBlur</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">gaussian_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">Solarization</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">solarization_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">MulticropAugmentation</span><span class="p">:</span>
+<div class="viewcode-block" id="MulticropAugmentation.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.MulticropAugmentation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+        <span class="n">size_crops</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">num_crops</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">min_scales</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">max_scale_crops</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies multi crop augmentation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            transform (Callable): transformation callable without cropping.</span>
+<span class="sd">            size_crops (Sequence[int]): a sequence of sizes of the crops.</span>
+<span class="sd">            num_crops (Sequence[int]): a sequence number of crops per crop size.</span>
+<span class="sd">            min_scales (Sequence[float]): sequence of minimum crop scales per crop</span>
+<span class="sd">                size.</span>
+<span class="sd">            max_scale_crops (Sequence[float]): sequence of maximum crop scales per crop</span>
+<span class="sd">                size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_crops</span> <span class="o">=</span> <span class="n">size_crops</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_crops</span> <span class="o">=</span> <span class="n">num_crops</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_scales</span> <span class="o">=</span> <span class="n">min_scales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_scale_crops</span> <span class="o">=</span> <span class="n">max_scale_crops</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">size_crops</span><span class="p">)):</span>
+            <span class="n">rrc</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">RandomResizedCrop</span><span class="p">(</span>
+                <span class="n">size_crops</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="n">min_scales</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">max_scale_crops</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                <span class="n">interpolation</span><span class="o">=</span><span class="n">transforms</span><span class="o">.</span><span class="n">InterpolationMode</span><span class="o">.</span><span class="n">BICUBIC</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">full_transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">rrc</span><span class="p">,</span> <span class="n">transform</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">full_transform</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Applies multi crop augmentations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (Image): an image in the PIL.Image format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[torch.Tensor]: a list of crops in the tensor format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">imgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">transform</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_crops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">):</span>
+            <span class="n">imgs</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">imgs</span>
+
+
+<span class="k">class</span> <span class="nc">MulticropCifarTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="MulticropCifarTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.MulticropCifarTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies multicrop transform for CIFAR&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)],</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4822</span><span class="p">,</span> <span class="mf">0.4465</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.247</span><span class="p">,</span> <span class="mf">0.243</span><span class="p">,</span> <span class="mf">0.261</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">MulticropSTLTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="MulticropSTLTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.MulticropSTLTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies multicrop transform for STL10&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)],</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.4914</span><span class="p">,</span> <span class="mf">0.4823</span><span class="p">,</span> <span class="mf">0.4466</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.247</span><span class="p">,</span> <span class="mf">0.243</span><span class="p">,</span> <span class="mf">0.261</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">MulticropImagenetTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="MulticropImagenetTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.MulticropImagenetTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">brightness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">contrast</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">saturation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gaussian_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">solarization_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies multicrop transform for Imagenet.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].</span>
+<span class="sd">            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].</span>
+<span class="sd">            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].</span>
+<span class="sd">            hue (float): sampled uniformly in [-hue, hue].</span>
+<span class="sd">            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.</span>
+<span class="sd">            solarization_prob (float, optional): minimum scale of the crops. Defaults to 0.0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="p">,</span> <span class="n">contrast</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">hue</span><span class="p">)],</span>
+                    <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">GaussianBlur</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">gaussian_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">Solarization</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">solarization_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">(</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">),</span> <span class="n">std</span><span class="o">=</span><span class="p">(</span><span class="mf">0.228</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">MulticropCustomTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<div class="viewcode-block" id="MulticropCustomTransform.__init__"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.MulticropCustomTransform.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">brightness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">contrast</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">saturation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gaussian_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">solarization_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">mean</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">),</span>
+        <span class="n">std</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.228</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class that applies multicrop transform for Custom Datasets.</span>
+<span class="sd">        If you want to do exoteric augmentations, you can just re-write this class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].</span>
+<span class="sd">            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].</span>
+<span class="sd">            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].</span>
+<span class="sd">            hue (float): sampled uniformly in [-hue, hue].</span>
+<span class="sd">            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.</span>
+<span class="sd">            solarization_prob (float, optional): minimum scale of the crops. Defaults to 0.0.</span>
+<span class="sd">            mean (Sequence[float], optional): mean values for normalization.</span>
+<span class="sd">                Defaults to (0.485, 0.456, 0.406).</span>
+<span class="sd">            std (Sequence[float], optional): std values for normalization.</span>
+<span class="sd">                Defaults to (0.228, 0.224, 0.225).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">transforms</span><span class="o">.</span><span class="n">ColorJitter</span><span class="p">(</span><span class="n">brightness</span><span class="p">,</span> <span class="n">contrast</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">hue</span><span class="p">)],</span>
+                    <span class="n">p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomGrayscale</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">GaussianBlur</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">gaussian_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomApply</span><span class="p">([</span><span class="n">Solarization</span><span class="p">()],</span> <span class="n">p</span><span class="o">=</span><span class="n">solarization_prob</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_transform"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.prepare_transform">[docs]</a><span class="k">def</span> <span class="nf">prepare_transform</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">multicrop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepares transforms for a specific dataset. Optionally uses multi crop.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (str): name of the dataset.</span>
+<span class="sd">        multicrop (bool, optional): whether or not to use multi crop. Defaults to False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Any: a transformation for a specific dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cifar10&quot;</span><span class="p">,</span> <span class="s2">&quot;cifar100&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">CifarTransform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">multicrop</span> <span class="k">else</span> <span class="n">MulticropCifarTransform</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;stl10&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">STLTransform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">multicrop</span> <span class="k">else</span> <span class="n">MulticropSTLTransform</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;imagenet&quot;</span><span class="p">,</span> <span class="s2">&quot;imagenet100&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">ImagenetTransform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">multicrop</span> <span class="k">else</span> <span class="n">MulticropImagenetTransform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;custom&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CustomTransform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">multicrop</span> <span class="k">else</span> <span class="n">MulticropCustomTransform</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_n_crop_transform"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.prepare_n_crop_transform">[docs]</a><span class="k">def</span> <span class="nf">prepare_n_crop_transform</span><span class="p">(</span>
+    <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">num_crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NCropAugmentation</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Turns a single crop transformation to an N crops transformation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transform (Callable): a transformation.</span>
+<span class="sd">        num_crops (Optional[int], optional): number of crops. Defaults to None.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        NCropAugmentation: an N crop transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">NCropAugmentation</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">num_crops</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_multicrop_transform"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.prepare_multicrop_transform">[docs]</a><span class="k">def</span> <span class="nf">prepare_multicrop_transform</span><span class="p">(</span>
+    <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">size_crops</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">num_crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_scales</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_scale_crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MulticropAugmentation</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepares multicrop transformations by creating custom crops given the parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transform (Callable): transformation callable without cropping.</span>
+<span class="sd">        size_crops (Sequence[int]): a sequence of sizes of the crops.</span>
+<span class="sd">        num_crops (Optional[Sequence[int]]): list of number of crops per crop size.</span>
+<span class="sd">        min_scales (Optional[Sequence[float]]): sequence of minimum crop scales per crop</span>
+<span class="sd">            size.</span>
+<span class="sd">        max_scale_crops (Optional[Sequence[float]]): sequence of maximum crop scales per crop</span>
+<span class="sd">            size.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        MulticropAugmentation: prepared augmentation pipeline that supports multicrop with</span>
+<span class="sd">            different sizes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">num_crops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">num_crops</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">min_scales</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">min_scales</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.14</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">max_scale_crops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_scale_crops</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.14</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">MulticropAugmentation</span><span class="p">(</span>
+        <span class="n">transform</span><span class="p">,</span>
+        <span class="n">size_crops</span><span class="o">=</span><span class="n">size_crops</span><span class="p">,</span>
+        <span class="n">num_crops</span><span class="o">=</span><span class="n">num_crops</span><span class="p">,</span>
+        <span class="n">min_scales</span><span class="o">=</span><span class="n">min_scales</span><span class="p">,</span>
+        <span class="n">max_scale_crops</span><span class="o">=</span><span class="n">max_scale_crops</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_datasets"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.prepare_datasets">[docs]</a><span class="k">def</span> <span class="nf">prepare_datasets</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">data_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">train_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">no_labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepares the desired dataset.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset (str): the name of the dataset.</span>
+<span class="sd">        transform (Callable): a transformation.</span>
+<span class="sd">        data_dir (Optional[Union[str, Path]], optional): the directory to load data from.</span>
+<span class="sd">            Defaults to None.</span>
+<span class="sd">        train_dir (Optional[Union[str, Path]], optional): training data directory</span>
+<span class="sd">            to be appended to data_dir. Defaults to None.</span>
+<span class="sd">        no_labels (Optional[bool], optional): if the custom dataset has no labels.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dataset: the desired dataset with transformations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">data_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sandbox_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))))</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">sandbox_folder</span> <span class="o">/</span> <span class="s2">&quot;datasets&quot;</span>
+
+    <span class="k">if</span> <span class="n">train_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">train_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">/train&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">train_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">train_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cifar10&quot;</span><span class="p">,</span> <span class="s2">&quot;cifar100&quot;</span><span class="p">]:</span>
+        <span class="n">DatasetClass</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="p">)[</span><span class="n">dataset</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+        <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">dataset_with_index</span><span class="p">(</span><span class="n">DatasetClass</span><span class="p">)(</span>
+            <span class="n">data_dir</span> <span class="o">/</span> <span class="n">train_dir</span><span class="p">,</span>
+            <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;stl10&quot;</span><span class="p">:</span>
+        <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">dataset_with_index</span><span class="p">(</span><span class="n">STL10</span><span class="p">)(</span>
+            <span class="n">data_dir</span> <span class="o">/</span> <span class="n">train_dir</span><span class="p">,</span>
+            <span class="n">split</span><span class="o">=</span><span class="s2">&quot;train+unlabeled&quot;</span><span class="p">,</span>
+            <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;imagenet&quot;</span><span class="p">,</span> <span class="s2">&quot;imagenet100&quot;</span><span class="p">]:</span>
+        <span class="n">train_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="n">train_dir</span>
+        <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">dataset_with_index</span><span class="p">(</span><span class="n">ImageFolder</span><span class="p">)(</span><span class="n">train_dir</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="o">==</span> <span class="s2">&quot;custom&quot;</span><span class="p">:</span>
+        <span class="n">train_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="n">train_dir</span>
+
+        <span class="k">if</span> <span class="n">no_labels</span><span class="p">:</span>
+            <span class="n">dataset_class</span> <span class="o">=</span> <span class="n">CustomDatasetWithoutLabels</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dataset_class</span> <span class="o">=</span> <span class="n">ImageFolder</span>
+
+        <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">dataset_with_index</span><span class="p">(</span><span class="n">dataset_class</span><span class="p">)(</span><span class="n">train_dir</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">train_dataset</span></div>
+
+
+<div class="viewcode-block" id="prepare_dataloader"><a class="viewcode-back" href="../../../solo/data.html#solo.utils.pretrain_dataloader.prepare_dataloader">[docs]</a><span class="k">def</span> <span class="nf">prepare_dataloader</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataLoader</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepares the training dataloader for pretraining.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        train_dataset (Dataset): the name of the dataset.</span>
+<span class="sd">        batch_size (int, optional): batch size. Defaults to 64.</span>
+<span class="sd">        num_workers (int, optional): number of workers. Defaults to 4.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataLoader: the training dataloader with the desired dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">train_dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+        <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_loader</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, solo-learn development team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

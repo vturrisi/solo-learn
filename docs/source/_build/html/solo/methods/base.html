@@ -1,0 +1,727 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>BaseMethod &mdash; solo-learn 0.9 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="DALI" href="dali.html" />
+    <link rel="prev" title="Utils" href="../utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> solo-learn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../start/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../start/available.html">Methods available</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../start/available.html#extra-flavor">Extra flavor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/general_guide.html">General Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Args</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../args.html">Args</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utils</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utils</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Methods</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">BaseMethod</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#add-model-specific-args">add_model_specific_args</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#learnable-params">learnable_params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configure-optimizers">configure_optimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forward">forward</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#base-forward">base_forward</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shared-step">_shared_step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#training-step">training_step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-step">validation_step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-epoch-end">validation_epoch_end</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basemomentummethod">BaseMomentumMethod</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">learnable_params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#momentum-pairs">momentum_pairs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">add_model_specific_args</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#on-train-start">on_train_start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#base-momentum-forward">base_momentum_forward</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shared-step-momentum">_shared_step_momentum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">training_step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#on-train-batch-end">on_train_batch_end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">validation_step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">validation_epoch_end</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dali.html">DALI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="linear.html">LinearModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Losses</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../losses/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../data.html">Classification dataloaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html#augmentations">Augmentations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html#transformation-pipelines">Transformation Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html#pretrain-dataloader">Pretrain dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html#module-solo.utils.dali_dataloader">DALI dataloaders</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">solo-learn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>BaseMethod</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/solo/methods/base.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="basemethod">
+<h1>BaseMethod<a class="headerlink" href="#basemethod" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cifar</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_init_residual</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epochs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier_lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_bias_n_norm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accumulate_grad_batches</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_optimizer_args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_start_lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_epochs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multicrop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_crops</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_small_crops</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta_lars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_clip_lars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr_decay_steps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Base model that implements all basic operations for all self-supervised methods.
+It adds shared arguments, extract basic learnable parameters, creates optimizers
+and schedulers, implements basic training_step for any number of crops,
+trains the online classifier and implements validation_step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encoder</strong> (<em>str</em>) – architecture of the base encoder.</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>) – number of classes.</p></li>
+<li><p><strong>cifar</strong> (<em>bool</em>) – flag indicating if cifar is being used.</p></li>
+<li><p><strong>zero_init_residual</strong> (<em>bool</em>) – change the initialization of the resnet encoder.</p></li>
+<li><p><strong>max_epochs</strong> (<em>int</em>) – number of training epochs.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – number of samples in the batch.</p></li>
+<li><p><strong>optimizer</strong> (<em>str</em>) – name of the optimizer.</p></li>
+<li><p><strong>lars</strong> (<em>bool</em>) – flag indicating if lars should be used.</p></li>
+<li><p><strong>lr</strong> (<em>float</em>) – learning rate.</p></li>
+<li><p><strong>weight_decay</strong> (<em>float</em>) – weight decay for optimizer.</p></li>
+<li><p><strong>classifier_lr</strong> (<em>float</em>) – learning rate for the online linear classifier.</p></li>
+<li><p><strong>exclude_bias_n_norm</strong> (<em>bool</em>) – flag indicating if bias and norms should be excluded from
+lars.</p></li>
+<li><p><strong>accumulate_grad_batches</strong> (<em>int</em>) – number of batches for gradient accumulation.</p></li>
+<li><p><strong>extra_optimizer_args</strong> (<em>Dict</em>) – extra named arguments for the optimizer.</p></li>
+<li><p><strong>scheduler</strong> (<em>str</em>) – name of the scheduler.</p></li>
+<li><p><strong>min_lr</strong> (<em>float</em>) – minimum learning rate for warmup scheduler.</p></li>
+<li><p><strong>warmup_start_lr</strong> (<em>float</em>) – initial learning rate for warmup scheduler.</p></li>
+<li><p><strong>warmup_epochs</strong> (<em>float</em>) – number of warmup epochs.</p></li>
+<li><p><strong>multicrop</strong> (<em>bool</em>) – flag indicating if multi-resolution crop is being used.</p></li>
+<li><p><strong>num_crops</strong> (<em>int</em>) – number of big crops</p></li>
+<li><p><strong>num_small_crops</strong> (<em>int</em>) – number of small crops (will be set to 0 if multicrop is False).</p></li>
+<li><p><strong>eta_lars</strong> (<em>float</em>) – eta parameter for lars.</p></li>
+<li><p><strong>grad_clip_lars</strong> (<em>bool</em>) – whether to clip the gradients in lars.</p></li>
+<li><p><strong>lr_decay_steps</strong> (<em>Sequence</em><em>, </em><em>optional</em>) – steps to decay the learning rate if scheduler is
+step. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="add-model-specific-args">
+<h2>add_model_specific_args<a class="headerlink" href="#add-model-specific-args" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">static</span> </em><span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">add_model_specific_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_parser</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">argparse.ArgumentParser</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">argparse.ArgumentParser</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.add_model_specific_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds shared basic arguments that are shared for all methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parent_parser</strong> (<em>ArgumentParser</em>) – argument parser that is used to create a
+argument group.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>same as the argument, used to avoid errors.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ArgumentParser</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="learnable-params">
+<h2>learnable_params<a class="headerlink" href="#learnable-params" title="Permalink to this headline">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">learnable_params</span></span></dt>
+<dd><p>Defines learnable parameters for the base class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of dicts containing learnable parameters and possible settings.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="configure-optimizers">
+<h2>configure_optimizers<a class="headerlink" href="#configure-optimizers" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.configure_optimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Collects learnable parameters and configures the optimizer and learning rate scheduler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>two lists containing the optimizer and the scheduler.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tuple[List, List]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="forward">
+<h2>forward<a class="headerlink" href="#forward" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Dummy forward, calls base forward.</p>
+</dd></dl>
+
+</section>
+<section id="base-forward">
+<h2>base_forward<a class="headerlink" href="#base-forward" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">base_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.base_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Basic forward that allows children classes to override forward().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>torch.Tensor</em>) – batch of images in tensor format.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict of logits and features.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="shared-step">
+<h2>_shared_step<a class="headerlink" href="#shared-step" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">_shared_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod._shared_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Forwards a batch of images X and computes the classification loss, the logits, the
+features, acc&#64;1 and acc&#64;5.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>torch.Tensor</em>) – batch of images in tensor format</p></li>
+<li><p><strong>targets</strong> (<em>torch.Tensor</em>) – batch of labels for X</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict containing the classification loss, logits, features, acc&#64;1 and acc&#64;5</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="training-step">
+<h2>training_step<a class="headerlink" href="#training-step" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.training_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Training step for pytorch lightning. It does all the shared operations, such as
+forwarding the crops, computing logits and computing statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>List</em><em>[</em><em>Any</em><em>]</em>) – a batch of data in the format of [img_indexes, [X], Y], where
+[X] is a list of size self.num_crops containing batches of images</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – index of the batch</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict with the classification loss, features and logits</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="validation-step">
+<h2>validation_step<a class="headerlink" href="#validation-step" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.validation_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Validation step for pytorch lightning. It does all the shared operations, such as
+forwarding a batch of images, computing logits and computing metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>) – a batch of data in the format of [img_indexes, X, Y]</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – index of the batch</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict with the batch_size (used for averaging),
+the classification loss and accuracies</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="validation-epoch-end">
+<h2>validation_epoch_end<a class="headerlink" href="#validation-epoch-end" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">validation_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.validation_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Averages the losses and accuracies of all the validation batches.
+This is needed because the last batch can be smaller than the others,
+slightly skewing the metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outs</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – list of outputs of the validation step.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="basemomentummethod">
+<h3>BaseMomentumMethod<a class="headerlink" href="#basemomentummethod" title="Permalink to this headline">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_tau_momentum</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_tau_momentum</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momentum_classifier</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMomentumMethod.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Base momentum model that implements all basic operations for all self-supervised methods
+that use a momentum encoder. It adds shared momentum arguments, adds basic learnable
+parameters, implements basic training and validation steps for the momentum encoder and
+classifier. Also implements momentum update using exponential moving average and cosine
+annealing of the weighting decrease coefficient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_tau_momentum</strong> (<em>float</em>) – base value of the weighting decrease coefficient (should be
+in [0,1]).</p></li>
+<li><p><strong>final_tau_momentum</strong> (<em>float</em>) – final value of the weighting decrease coefficient (should be
+in [0,1]).</p></li>
+<li><p><strong>momentum_classifier</strong> (<em>bool</em>) – whether or not to train a classifier on top of the momentum
+encoder.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="id1">
+<h2>learnable_params<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">learnable_params</span></span></dt>
+<dd><p>Adds momentum classifier parameters to the parameters of the base class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of dicts containing learnable parameters and possible settings.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="momentum-pairs">
+<h2>momentum_pairs<a class="headerlink" href="#momentum-pairs" title="Permalink to this headline">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">momentum_pairs</span></span></dt>
+<dd><p>Defines base momentum pairs that will be updated using exponential moving average.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of momentum pairs (two element tuples).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[Tuple[Any, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id2">
+<h2>add_model_specific_args<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">static</span> </em><span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">add_model_specific_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_parser</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">argparse.ArgumentParser</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">argparse.ArgumentParser</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMomentumMethod.add_model_specific_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds basic momentum arguments that are shared for all methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parent_parser</strong> (<em>ArgumentParser</em>) – argument parser that is used to create a
+argument group.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>same as the argument, used to avoid errors.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ArgumentParser</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="on-train-start">
+<h2>on_train_start<a class="headerlink" href="#on-train-start" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">on_train_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMomentumMethod.on_train_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Resets the step counter at the beginning of training.</p>
+</dd></dl>
+
+</section>
+<section id="base-momentum-forward">
+<h2>base_momentum_forward<a class="headerlink" href="#base-momentum-forward" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">base_momentum_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMomentumMethod.base_momentum_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Momentum forward that allows children classes to override how the momentum encoder is used.
+:param X: batch of images in tensor format.
+:type X: torch.Tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of logits and features.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="shared-step-momentum">
+<h2>_shared_step_momentum<a class="headerlink" href="#shared-step-momentum" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">_shared_step_momentum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMomentumMethod._shared_step_momentum"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Forwards a batch of images X in the momentum encoder and optionally computes the
+classification loss, the logits, the features, acc&#64;1 and acc&#64;5 for of momentum classifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>torch.Tensor</em>) – batch of images in tensor format.</p></li>
+<li><p><strong>targets</strong> (<em>torch.Tensor</em>) – batch of labels for X.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dict containing the classification loss, logits, features, acc&#64;1 and
+acc&#64;5 of the momentum encoder / classifier.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id3">
+<h2>training_step<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.training_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Training step for pytorch lightning. It does all the shared operations, such as
+forwarding the crops, computing logits and computing statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>List</em><em>[</em><em>Any</em><em>]</em>) – a batch of data in the format of [img_indexes, [X], Y], where
+[X] is a list of size self.num_crops containing batches of images</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – index of the batch</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict with the classification loss, features and logits</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="on-train-batch-end">
+<h2>on_train_batch_end<a class="headerlink" href="#on-train-batch-end" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMomentumMethod.</span></span><span class="sig-name descname"><span class="pre">on_train_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader_idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMomentumMethod.on_train_batch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Performs the momentum update of momentum pairs using exponential moving average at the
+end of the current training step if an optimizer step was performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – the outputs of the training step.</p></li>
+<li><p><strong>batch</strong> (<em>Sequence</em><em>[</em><em>Any</em><em>]</em>) – a batch of data in the format of [img_indexes, [X], Y], where
+[X] is a list of size self.num_crops containing batches of images.</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – index of the batch.</p></li>
+<li><p><strong>dataloader_idx</strong> (<em>int</em>) – index of the dataloader.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id4">
+<h2>validation_step<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.validation_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Validation step for pytorch lightning. It does all the shared operations, such as
+forwarding a batch of images, computing logits and computing metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>) – a batch of data in the format of [img_indexes, X, Y]</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – index of the batch</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict with the batch_size (used for averaging),
+the classification loss and accuracies</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id5">
+<h2>validation_epoch_end<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">BaseMethod.</span></span><span class="sig-name descname"><span class="pre">validation_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/solo/methods/base.html#BaseMethod.validation_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Averages the losses and accuracies of all the validation batches.
+This is needed because the last batch can be smaller than the others,
+slightly skewing the metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outs</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – list of outputs of the validation step.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="dali.html" class="btn btn-neutral float-right" title="DALI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../utils.html" class="btn btn-neutral float-left" title="Utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, solo-learn development team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

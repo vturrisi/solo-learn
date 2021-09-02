@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Args &mdash; solo-learn 0.9 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utils" href="utils.html" />
+    <link rel="prev" title="General Tutorial" href="../tutorials/general_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> solo-learn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../start/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start/available.html">Methods available</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start/available.html#extra-flavor">Extra flavor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/general_guide.html">General Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Args</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Args</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dataset">dataset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dataset-args">dataset_args</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#augmentations-args">augmentations_args</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#setup">setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parse-args-pretrain">parse_args_pretrain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parse-args-linear">parse_args_linear</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utils">utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">parse_args_pretrain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">parse_args_linear</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Utils</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="methods/base.html">BaseMethod</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/dali.html">DALI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/linear.html">LinearModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Losses</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="losses/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Classification dataloaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html#augmentations">Augmentations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html#transformation-pipelines">Transformation Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html#pretrain-dataloader">Pretrain dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html#module-solo.utils.dali_dataloader">DALI dataloaders</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">solo-learn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Args</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/solo/args.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="args">
+<h1>Args<a class="headerlink" href="#args" title="Permalink to this headline">¶</a></h1>
+<section id="dataset">
+<h2>dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h2>
+<section id="dataset-args">
+<h3>dataset_args<a class="headerlink" href="#dataset-args" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">solo.args.dataset.</span></span><span class="sig-name descname"><span class="pre">dataset_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">argparse.ArgumentParser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/solo/args/dataset.html#dataset_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds dataset-related arguments to a parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parser</strong> (<em>ArgumentParser</em>) – parser to add dataset args to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="augmentations-args">
+<h3>augmentations_args<a class="headerlink" href="#augmentations-args" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">solo.args.dataset.</span></span><span class="sig-name descname"><span class="pre">augmentations_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">argparse.ArgumentParser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/solo/args/dataset.html#augmentations_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds augmentation-related arguments to a parser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parser</strong> (<em>ArgumentParser</em>) – parser to add augmentation args to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="setup">
+<h2>setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<section id="parse-args-pretrain">
+<h3>parse_args_pretrain<a class="headerlink" href="#parse-args-pretrain" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">solo.args.setup.</span></span><span class="sig-name descname"><span class="pre">parse_args_pretrain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">argparse.Namespace</span><a class="reference internal" href="../_modules/solo/args/setup.html#parse_args_pretrain"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Parses dataset, augmentation, pytorch lightning, model specific and additional args.</p>
+<p>First adds shared args such as dataset, augmentation and pytorch lightning args, then pulls the
+model name from the command and proceeds to add model specific args from the desired class. If
+wandb is enabled, it adds checkpointer args. Finally, adds additional non-user given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a namespace containing all args needed for pretraining.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>argparse.Namespace</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="parse-args-linear">
+<h3>parse_args_linear<a class="headerlink" href="#parse-args-linear" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">solo.args.setup.</span></span><span class="sig-name descname"><span class="pre">parse_args_linear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">argparse.Namespace</span><a class="reference internal" href="../_modules/solo/args/setup.html#parse_args_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Parses feature extractor, dataset, pytorch lightning, linear eval specific and additional args.</p>
+<p>First adds and arg for the pretrained feature extractor, then adds dataset, pytorch lightning
+and linear eval specific args. If wandb is enabled, it adds checkpointer args. Finally, adds
+additional non-user given parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a namespace containing all args needed for pretraining.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>argparse.Namespace</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="utils">
+<h2>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>parse_args_pretrain<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">solo.args.utils.</span></span><span class="sig-name descname"><span class="pre">additional_setup_pretrain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">argparse.Namespace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/solo/args/utils.html#additional_setup_pretrain"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Provides final setup for pretraining to non-user given parameters by changing args.</p>
+<p>Parsers arguments to extract the number of classes of a dataset, create
+transformations kwargs, correctly parse gpus, identify if a cifar dataset
+is being used and adjust the lr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Namespace</em>) – object that needs to contain, at least:</p></li>
+<li><p><strong>dataset</strong> (<em>-</em>) – dataset name.</p></li>
+<li><p><strong>brightness</strong> (<em>-</em>) – required augmentations
+settings.</p></li>
+<li><p><strong>contrast</strong> – required augmentations
+settings.</p></li>
+<li><p><strong>saturation</strong> – required augmentations
+settings.</p></li>
+<li><p><strong>hue</strong> – required augmentations
+settings.</p></li>
+<li><p><strong>min_scale</strong> – required augmentations
+settings.</p></li>
+<li><p><strong>multicrop</strong> (<em>-</em>) – flag to use multicrop.</p></li>
+<li><p><strong>dali</strong> (<em>-</em>) – flag to use dali.</p></li>
+<li><p><strong>optimizer</strong> (<em>-</em>) – optimizer name being used.</p></li>
+<li><p><strong>gpus</strong> (<em>-</em>) – list of gpus to use.</p></li>
+<li><p><strong>lr</strong> (<em>-</em>) – learning rate.</p></li>
+<li><p><strong>[</strong><strong>optional</strong><strong>]</strong> – </p></li>
+<li><p><strong>gaussian_prob</strong> (<em>-</em>) – optional augmentations settings.</p></li>
+<li><p><strong>solarization_prob</strong> – optional augmentations settings.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id2">
+<h3>parse_args_linear<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">solo.args.utils.</span></span><span class="sig-name descname"><span class="pre">additional_setup_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">argparse.Namespace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/solo/args/utils.html#additional_setup_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Provides final setup for linear evaluation to non-user given parameters by changing args.</p>
+<p>Parsers arguments to extract the number of classes of a dataset, correctly parse gpus, identify
+if a cifar dataset is being used and adjust the lr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Namespace object that needs to contain, at least:</p></li>
+<li><p><strong>dataset</strong> (<em>-</em>) – dataset name.</p></li>
+<li><p><strong>optimizer</strong> (<em>-</em>) – optimizer name being used.</p></li>
+<li><p><strong>gpus</strong> (<em>-</em>) – list of gpus to use.</p></li>
+<li><p><strong>lr</strong> (<em>-</em>) – learning rate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="utils.html" class="btn btn-neutral float-right" title="Utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../tutorials/general_guide.html" class="btn btn-neutral float-left" title="General Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, solo-learn development team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

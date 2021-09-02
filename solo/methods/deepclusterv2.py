@@ -5,11 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.deepclusterv2 import deepclusterv2_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.utils.kmeans import KMeans
 
 
-class DeepClusterV2(BaseModel):
+class DeepClusterV2(BaseMethod):
     def __init__(
         self,
         output_dim: int,
@@ -159,7 +159,7 @@ class DeepClusterV2(BaseModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for DeepClusterV2 reusing BaseModel training step.
+        """Training step for DeepClusterV2 reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

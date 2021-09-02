@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.moco import moco_loss_func
-from solo.methods.base import BaseMomentumModel
+from solo.methods.base import BaseMomentumMethod
 from solo.utils.gather_layer import gather
 from solo.utils.momentum import initialize_momentum_params
 
 
-class MoCoV2Plus(BaseMomentumModel):
+class MoCoV2Plus(BaseMomentumMethod):
     queue: torch.Tensor
 
     def __init__(
@@ -123,7 +123,7 @@ class MoCoV2Plus(BaseMomentumModel):
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
-        Training step for MoCo reusing BaseMomentumModel training step.
+        Training step for MoCo reusing BaseMomentumMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the

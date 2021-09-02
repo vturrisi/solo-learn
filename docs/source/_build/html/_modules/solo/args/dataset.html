@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>solo.args.dataset &mdash; solo-learn 0.9 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> solo-learn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../start/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start/available.html">Methods available</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start/available.html#extra-flavor">Extra flavor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/general_guide.html">General Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Args</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/args.html">Args</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utils</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/utils.html">Utils</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Methods</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/base.html">BaseMethod</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/dali.html">DALI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/linear.html">LinearModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/methods/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Losses</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/barlow.html">Barlow Twins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/byol.html">BYOL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/deepclusterv2.html">DeepClusterV2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/dino.html">DINO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/mocov2plus.html">MoCo-V2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/nnclr.html">NNCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/ressl.html">ReSSL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/simclr.html">SimCLR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/simsiam.html">SimSiam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/swav.html">SwAV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/vicreg.html">VICReg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/losses/wmse.html">W-MSE</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html">Classification dataloaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#augmentations">Augmentations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#transformation-pipelines">Transformation Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#pretrain-dataloader">Pretrain dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../solo/data.html#module-solo.utils.dali_dataloader">DALI dataloaders</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">solo-learn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>solo.args.dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for solo.args.dataset</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+
+<div class="viewcode-block" id="dataset_args"><a class="viewcode-back" href="../../../solo/args.html#solo.args.dataset.dataset_args">[docs]</a><span class="k">def</span> <span class="nf">dataset_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds dataset-related arguments to a parser.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        parser (ArgumentParser): parser to add dataset args to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUPPORTED_DATASETS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;cifar10&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cifar100&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;stl10&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;imagenet&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;imagenet100&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--dataset&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">SUPPORTED_DATASETS</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># dataset path</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--data_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--train_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--val_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># dali (imagenet-100/imagenet/custom only)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--dali&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--dali_device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">)</span>
+
+    <span class="c1"># custom dataset only</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--no_labels&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="augmentations_args"><a class="viewcode-back" href="../../../solo/args.html#solo.args.dataset.augmentations_args">[docs]</a><span class="k">def</span> <span class="nf">augmentations_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds augmentation-related arguments to a parser.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        parser (ArgumentParser): parser to add augmentation args to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># cropping</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--multicrop&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--num_crops&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--num_small_crops&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># augmentations</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--brightness&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--contrast&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--saturation&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--hue&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--gaussian_prob&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--solarization_prob&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--min_scale&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mf">0.08</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+
+    <span class="c1"># for imagenet or custom dataset</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--size&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mi">224</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+
+    <span class="c1"># for custom dataset</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--mean&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--std&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mf">0.228</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">],</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+
+    <span class="c1"># debug</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--debug_augmentations&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, solo-learn development team.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.ressl import ressl_loss_func
-from solo.methods.base import BaseMomentumModel
+from solo.methods.base import BaseMomentumMethod
 from solo.utils.gather_layer import gather
 from solo.utils.momentum import initialize_momentum_params
 
 
-class ReSSL(BaseMomentumModel):
+class ReSSL(BaseMomentumMethod):
     def __init__(
         self,
         output_dim: int,
@@ -133,7 +133,7 @@ class ReSSL(BaseMomentumModel):
         return {**out, "q": q}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for BYOL reusing BaseModel training step.
+        """Training step for BYOL reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
