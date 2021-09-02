@@ -60,6 +60,7 @@ However, for now, we won't rely on this, so let's just define all the needed par
         "optimizer": "sgd",
         "lars": True,
         "lr": 0.01,
+        "gpus": "0",
         "grad_clip_lars": True,
         "weight_decay": 0.00001,
         "classifier_lr": 0.5,
@@ -75,7 +76,6 @@ However, for now, we won't rely on this, so let's just define all the needed par
         "num_small_crops": 0,
         "eta_lars": 0.02,
         "lr_decay_steps": None,
-        "dali_device": "gpu",
         "batch_size": 128,
         "num_workers": 4,
     }
