@@ -60,7 +60,7 @@ def test_wmse():
     assert (
         "v" in out
         and isinstance(out["v"], torch.Tensor)
-        and out["v"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["v"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     # normal training

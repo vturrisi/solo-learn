@@ -21,6 +21,7 @@ def test_dino():
         "warmup_teacher_temperature": 0.4,
         "warmup_teacher_temperature_epochs": 1,
         "momentum_classifier": False,
+        "use_bn_in_head": False,
     }
 
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)

@@ -57,12 +57,12 @@ def test_simsiam():
     assert (
         "z" in out
         and isinstance(out["z"], torch.Tensor)
-        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
     assert (
         "p" in out
         and isinstance(out["p"], torch.Tensor)
-        and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     # normal training

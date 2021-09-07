@@ -59,7 +59,7 @@ def test_mocov2plus():
     assert (
         "q" in out
         and isinstance(out["q"], torch.Tensor)
-        and out["q"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["q"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     # normal training
