@@ -213,7 +213,7 @@ class PretrainABC(ABC):
                 no_labels=self.extra_args["no_labels"],
                 encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
-            output_map = ["large1", "large2", "label"]
+            output_map = [f"large{i}" for i in range(self.num_crops)] + ["label"]
 
         policy = LastBatchPolicy.DROP
         conversion_map = train_pipeline.conversion_map if self.encode_indexes_into_labels else None

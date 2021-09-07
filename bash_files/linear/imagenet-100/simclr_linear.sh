@@ -1,22 +1,22 @@
-python3 ../../main_linear.py \
+python3 ../../../main_linear.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /datasets \
+    --data_dir /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0,1 \
-    --distributed_backend ddp \
-    --sync_batchnorm \
+    --gpus 0 \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
-    --lr 0.1 \
+    --lr 1.0 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
-    --batch_size 128 \
+    --batch_size 256 \
     --num_workers 10 \
-    --name simclr-linear-eval \
+    --dali \
+    --name simclr-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
-    --project contrastive_learning \
+    --project solo-learn \
+    --entity unitn-mhug \
     --wandb

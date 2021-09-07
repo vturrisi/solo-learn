@@ -1,4 +1,4 @@
-python3 ../../main_linear.py \
+python3 ../../../main_linear.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_dir /data0/SHARED/datasets \

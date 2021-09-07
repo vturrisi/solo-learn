@@ -1,4 +1,4 @@
-python3 ../../main_linear.py \
+python3 ../../../main_linear.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_dir /data0/SHARED/datasets \
@@ -12,10 +12,10 @@ python3 ../../main_linear.py \
     --lr 0.3 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
-    --batch_size 256 \
-    --num_workers 4 \
+    --batch_size 512 \
+    --num_workers 5 \
     --dali \
-    --name dino-imagenet100-linear-eval \
+    --name vicreg-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \

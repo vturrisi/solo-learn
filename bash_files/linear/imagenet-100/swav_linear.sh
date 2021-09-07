@@ -1,4 +1,4 @@
-python3 ../../main_linear.py \
+python3 ../../../main_linear.py \
     --dataset imagenet100 \
     --encoder resnet18 \
     --data_dir /data/datasets \
@@ -15,8 +15,8 @@ python3 ../../main_linear.py \
     --batch_size 256 \
     --num_workers 5 \
     --dali \
-    --name deepclusterv2-imagenet100-linear-eval \
-    --pretrained_feature_extractor PATH\
+    --name swav-imagenet100-linear-eval \
+    --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb

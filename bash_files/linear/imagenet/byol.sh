@@ -1,22 +1,24 @@
-python3 ../../main_linear.py \
-    --dataset imagenet100 \
-    --encoder resnet18 \
+python3 ../../../main_linear.py \
+    --dataset imagenet \
+    --encoder resnet50 \
     --data_dir /datasets \
-    --train_dir imagenet-100/train \
-    --val_dir imagenet-100/val \
+    --train_dir ILSVRC2012/train \
+    --val_dir ILSVRC2012/val \
     --max_epochs 100 \
     --gpus 0 \
+    --distributed_backend ddp \
+    --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
-    --lr 3.0 \
+    --lr 0.1 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
     --batch_size 256 \
     --num_workers 10 \
     --dali \
-    --name mocov2plus-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
-    --project solo-learn \
+    --name byol-resnet50-imagenet-linear-eval \
     --entity unitn-mhug \
+    --project solo-learn \
     --wandb
