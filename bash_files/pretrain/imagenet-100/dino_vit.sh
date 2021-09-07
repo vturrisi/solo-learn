@@ -11,7 +11,8 @@ python3 ../../../main_pretrain.py \
     --precision 16 \
     --optimizer adamw \
     --scheduler warmup_cosine \
-    --lr 0.003 \
+    --lr 0.005 \
+    --warmup_start_lr 1e-6 \
     --classifier_lr 3e-3 \
     --weight_decay 1e-4 \
     --batch_size 64 \
