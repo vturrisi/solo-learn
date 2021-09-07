@@ -160,6 +160,7 @@ def additional_setup_pretrain(args: Namespace):
         "patch_size": args.patch_size,
     }
     del args.zero_init_residual
+    del args.patch_size
 
     if args.dali:
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
