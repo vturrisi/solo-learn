@@ -13,7 +13,7 @@ def test_wmse():
 
     method_kwargs = {
         "proj_hidden_dim": 1024,
-        "output_dim": BASE_KWARGS["batch_size"] // 4,
+        "proj_output_dim": BASE_KWARGS["batch_size"] // 4,
         "whitening_size": BASE_KWARGS["batch_size"] // 2,
         "whitening_iters": 1,
         "whitening_eps": 1e-2,

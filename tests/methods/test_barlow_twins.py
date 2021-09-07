@@ -9,7 +9,12 @@ from .utils import gen_base_kwargs, DATA_KWARGS, gen_batch, prepare_dummy_datalo
 
 
 def test_barlow():
-    method_kwargs = {"proj_hidden_dim": 2048, "output_dim": 2048, "lamb": 5e-3, "scale_loss": 0.025}
+    method_kwargs = {
+        "proj_hidden_dim": 2048,
+        "proj_output_dim": 2048,
+        "lamb": 5e-3,
+        "scale_loss": 0.025,
+    }
 
     BASE_KWARGS = gen_base_kwargs(cifar=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}

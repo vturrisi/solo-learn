@@ -10,7 +10,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 def test_dino():
     method_kwargs = {
-        "output_dim": 256,
+        "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
         "num_prototypes": 4096,
         "norm_last_layer": True,

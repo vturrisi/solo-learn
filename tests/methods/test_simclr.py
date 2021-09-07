@@ -10,7 +10,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 def test_simclr():
     method_kwargs = {
-        "output_dim": 256,
+        "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
         "temperature": 0.2,
         "supervised": False,

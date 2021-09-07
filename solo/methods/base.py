@@ -61,6 +61,7 @@ class BaseModel(pl.LightningModule):
             backbone_params (dict): dict containing extra backbone args, namely:
                 cifar (bool): flag indicating if cifar is being used.
                 zero_init_residual (bool): change the initialization of the resnet encoder.
+                patch_size (int): size of the patches for visual transformers.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
@@ -266,7 +267,7 @@ class BaseModel(pl.LightningModule):
         elif self.optimizer == "adamw":
             optimizer = torch.optim.AdamW
         else:
-            raise ValueError(f"{self.optimizer} not in (sgd, adam)")
+            raise ValueError(f"{self.optimizer} not in (sgd, adam, adamw)")
 
         # create optimizer
         optimizer = optimizer(

@@ -10,7 +10,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 def test_deepclusterv2():
     method_kwargs = {
-        "output_dim": 128,
+        "proj_output_dim": 128,
         "proj_hidden_dim": 2048,
         "num_prototypes": [10, 10, 10],
         "kmeans_iters": 3,

@@ -11,7 +11,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 def test_vicreg():
     method_kwargs = {
         "proj_hidden_dim": 2048,
-        "output_dim": 2048,
+        "proj_output_dim": 2048,
         "sim_loss_weight": 25.0,
         "var_loss_weight": 25.0,
         "cov_loss_weight": 1.0,
