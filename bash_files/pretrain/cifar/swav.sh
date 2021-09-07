@@ -28,7 +28,7 @@ python3 ../../../main_pretrain.py \
     --method swav \
     --proj_hidden_dim 2048 \
     --queue_size 3840 \
-    --output_dim 128 \
+    --proj_output_dim 128 \
     --num_prototypes 3000 \
     --epoch_queue_starts 50 \
     --freeze_prototypes_epochs 2

@@ -14,7 +14,7 @@ class NNCLR(BaseModel):
 
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         pred_hidden_dim: int,
         temperature: float,
@@ -24,7 +24,7 @@ class NNCLR(BaseModel):
         """Implements NNCLR (https://arxiv.org/abs/2104.14548).
 
         Args:
-            output_dim (int): number of dimensions of projected features.
+            proj_output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons in the hidden layers of the predictor.
             temperature (float): temperature for the softmax in the contrastive loss.
@@ -43,20 +43,20 @@ class NNCLR(BaseModel):
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
-            nn.BatchNorm1d(output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
+            nn.BatchNorm1d(proj_output_dim),
         )
 
         # predictor
         self.predictor = nn.Sequential(
-            nn.Linear(output_dim, pred_hidden_dim),
+            nn.Linear(proj_output_dim, pred_hidden_dim),
             nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(),
-            nn.Linear(pred_hidden_dim, output_dim),
+            nn.Linear(pred_hidden_dim, proj_output_dim),
         )
 
         # queue
-        self.register_buffer("queue", torch.randn(self.queue_size, output_dim))
+        self.register_buffer("queue", torch.randn(self.queue_size, proj_output_dim))
         self.register_buffer("queue_y", -torch.ones(self.queue_size, dtype=torch.long))
         self.queue = F.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
@@ -67,7 +67,7 @@ class NNCLR(BaseModel):
         parser = parent_parser.add_argument_group("nnclr")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # predictor

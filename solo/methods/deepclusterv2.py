@@ -12,7 +12,7 @@ from solo.utils.kmeans import KMeans
 class DeepClusterV2(BaseModel):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         num_prototypes: Sequence[int],
         temperature: float,
@@ -22,7 +22,7 @@ class DeepClusterV2(BaseModel):
         """Implements DeepCluster V2 (https://arxiv.org/abs/2006.09882).
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             num_prototypes (Sequence[int]): number of prototypes.
             temperature (float): temperature for the softmax.
@@ -31,7 +31,7 @@ class DeepClusterV2(BaseModel):
 
         super().__init__(**kwargs)
 
-        self.output_dim = output_dim
+        self.proj_output_dim = proj_output_dim
         self.temperature = temperature
         self.num_prototypes = num_prototypes
         self.kmeans_iters = kmeans_iters
@@ -41,12 +41,12 @@ class DeepClusterV2(BaseModel):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # prototypes
         self.prototypes = nn.ModuleList(
-            [nn.Linear(output_dim, np, bias=False) for np in num_prototypes]
+            [nn.Linear(proj_output_dim, np, bias=False) for np in num_prototypes]
         )
         # normalize and set requires grad to false
         for proto in self.prototypes:
@@ -60,7 +60,7 @@ class DeepClusterV2(BaseModel):
         parser = parent_parser.add_argument_group("deepclusterv2")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters
@@ -95,7 +95,7 @@ class DeepClusterV2(BaseModel):
             rank=self.global_rank,
             num_crops=self.num_crops,
             dataset_size=self.dataset_size,
-            proj_features_dim=self.output_dim,
+            proj_features_dim=self.proj_output_dim,
             num_prototypes=self.num_prototypes,
             kmeans_iters=self.kmeans_iters,
         )
@@ -109,7 +109,7 @@ class DeepClusterV2(BaseModel):
         self.register_buffer(
             "local_memory_embeddings",
             F.normalize(
-                torch.randn(self.num_crops, size_memory_per_process, self.output_dim), dim=-1
+                torch.randn(self.num_crops, size_memory_per_process, self.proj_output_dim), dim=-1
             ).to(self.device, non_blocking=True),
         )
 

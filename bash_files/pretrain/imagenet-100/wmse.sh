@@ -28,5 +28,5 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --entity unitn-mhug \
     --method wmse \
-    --output_dim 64 \
+    --proj_output_dim 64 \
     --whitening_size 128

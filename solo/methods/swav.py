@@ -12,7 +12,7 @@ from solo.utils.sinkhorn_knopp import SinkhornKnopp
 class SwAV(BaseModel):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         num_prototypes: int,
         sk_iters: int,
@@ -26,7 +26,7 @@ class SwAV(BaseModel):
         """Implements SwAV (https://arxiv.org/abs/2006.09882).
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             num_prototypes (int): number of prototypes.
             sk_iters (int): number of iterations for the sinkhorn-knopp algorithm.
@@ -39,7 +39,7 @@ class SwAV(BaseModel):
 
         super().__init__(**kwargs)
 
-        self.output_dim = output_dim
+        self.proj_output_dim = proj_output_dim
         self.sk_iters = sk_iters
         self.sk_epsilon = sk_epsilon
         self.temperature = temperature
@@ -52,11 +52,13 @@ class SwAV(BaseModel):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # prototypes
-        self.prototypes = nn.utils.weight_norm(nn.Linear(output_dim, num_prototypes, bias=False))
+        self.prototypes = nn.utils.weight_norm(
+            nn.Linear(proj_output_dim, num_prototypes, bias=False)
+        )
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -64,7 +66,7 @@ class SwAV(BaseModel):
         parser = parent_parser.add_argument_group("swav")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # queue settings
@@ -105,7 +107,7 @@ class SwAV(BaseModel):
                 torch.zeros(
                     2,
                     self.queue_size // world_size,
-                    self.output_dim,
+                    self.proj_output_dim,
                     device=self.device,
                 ),
             )

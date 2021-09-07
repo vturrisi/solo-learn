@@ -9,17 +9,13 @@ python3 ../../../main_pretrain.py \
     --distributed_backend ddp \
     --sync_batchnorm \
     --precision 16 \
-    --optimizer sgd \
-    --lars \
-    --grad_clip_lars \
-    --eta_lars 0.02 \
-    --exclude_bias_n_norm \
+    --optimizer adamw \
     --scheduler warmup_cosine \
     --lr 0.003 \
-    --classifier_lr 0.1 \
+    --classifier_lr 3e-3 \
     --weight_decay 1e-4 \
-    --batch_size 128 \
-    --num_workers 8 \
+    --batch_size 64 \
+    --num_workers 4 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \
@@ -31,8 +27,9 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --method dino \
-    --output_dim 65536 \
+    --proj_output_dim 256 \
     --proj_hidden_dim 2048 \
-    --num_prototypes 4096 \
+    --num_prototypes 65536 \
+    --norm_last_layer false \
     --base_tau_momentum 0.9995 \
     --final_tau_momentum 1.0

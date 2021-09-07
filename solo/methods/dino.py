@@ -96,9 +96,10 @@ class DINOHead(nn.Module):
 class DINO(BaseMomentumModel):
     def __init__(
         self,
-        output_dim: int,
         proj_hidden_dim: int,
+        proj_output_dim: int,
         num_prototypes: int,
+        use_bn_in_head: bool,
         norm_last_layer: bool,
         clip_grad: float,
         freeze_last_layer: bool,
@@ -111,9 +112,10 @@ class DINO(BaseMomentumModel):
         """Adds DINO head to the student and momentum DINO head to the teacher.
 
         Args:
-            output_dim (int): number of prototypes.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+            proj_output_dim (int): number of output neurons in the projector.
             num_prototypes (int): number of prototypes.
+            use_bn_in_head (bool): whether or not to use bn in the head.
             norm_last_layer (bool): whether or not to normalize the last layer (prototypes).
             clip_grad (float): threshold for gradient clipping.
             freeze_last_layer (bool): whether or not to freeze the last layer (prototypes).
@@ -133,7 +135,8 @@ class DINO(BaseMomentumModel):
         self.head = DINOHead(
             in_dim=self.features_dim,
             hidden_dim=proj_hidden_dim,
-            bottleneck_dim=output_dim,
+            use_bn=use_bn_in_head,
+            bottleneck_dim=proj_output_dim,
             num_prototypes=num_prototypes,
             norm_last_layer=norm_last_layer,
         )
@@ -142,7 +145,8 @@ class DINO(BaseMomentumModel):
         self.momentum_head = DINOHead(
             in_dim=self.features_dim,
             hidden_dim=proj_hidden_dim,
-            bottleneck_dim=output_dim,
+            use_bn=use_bn_in_head,
+            bottleneck_dim=proj_output_dim,
             num_prototypes=num_prototypes,
             norm_last_layer=norm_last_layer,
         )
@@ -168,10 +172,11 @@ class DINO(BaseMomentumModel):
         parser.add_argument("--freeze_last_layer", type=int, default=1)
 
         # dino head
-        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
         parser.add_argument("--num_prototypes", type=int, default=4096)
         parser.add_argument("--norm_last_layer", type=distutils.util.strtobool, default=True)
+        parser.add_argument("--use_bn_in_head", type=distutils.util.strtobool, default=False)
 
         # temperature settings
         parser.add_argument("--student_temperature", type=float, default=0.1)

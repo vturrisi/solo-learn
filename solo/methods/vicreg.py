@@ -10,7 +10,7 @@ from solo.methods.base import BaseModel
 class VICReg(BaseModel):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         sim_loss_weight: float,
         var_loss_weight: float,
@@ -20,7 +20,7 @@ class VICReg(BaseModel):
         """Implements VICReg (https://arxiv.org/abs/2105.04906)
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             sim_loss_weight (float): weight of the invariance term.
             var_loss_weight (float): weight of the variance term.
@@ -41,7 +41,7 @@ class VICReg(BaseModel):
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
     @staticmethod
@@ -50,7 +50,7 @@ class VICReg(BaseModel):
         parser = parent_parser.add_argument_group("vicreg")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=2048)
+        parser.add_argument("--proj_output_dim", type=int, default=2048)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters

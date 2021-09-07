@@ -27,7 +27,7 @@ python3 ../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --method dino \
-    --output_dim 256 \
+    --proj_output_dim 256 \
     --proj_hidden_dim 2048 \
     --num_prototypes 4096 \
     --base_tau_momentum 0.9995 \

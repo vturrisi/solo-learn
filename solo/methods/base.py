@@ -196,7 +196,7 @@ class BaseModel(pl.LightningModule):
         parser.add_argument("--offline", action="store_true")
 
         # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
+        SUPPORTED_OPTIMIZERS = ["sgd", "adam", "adamw"]
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
         parser.add_argument("--lars", action="store_true")
@@ -263,6 +263,8 @@ class BaseModel(pl.LightningModule):
             optimizer = torch.optim.SGD
         elif self.optimizer == "adam":
             optimizer = torch.optim.Adam
+        elif self.optimizer == "adamw":
+            optimizer = torch.optim.AdamW
         else:
             raise ValueError(f"{self.optimizer} not in (sgd, adam)")
 
@@ -275,6 +277,7 @@ class BaseModel(pl.LightningModule):
         )
         # optionally wrap with lars
         if self.lars:
+            assert self.optimizer == "sgd", "LARS is only compatible with SGD."
             optimizer = LARSWrapper(
                 optimizer,
                 eta=self.eta_lars,

@@ -29,5 +29,5 @@ python3 ../../../main_pretrain.py \
     --wandb \
     --method deepclusterv2 \
     --proj_hidden_dim 2048 \
-    --output_dim 128 \
+    --proj_output_dim 128 \
     --num_prototypes 3000 3000 3000
