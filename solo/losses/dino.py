@@ -3,7 +3,6 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-from solo.utils.general import filter_inf_n_nan
 
 
 class DINOLoss(nn.Module):
@@ -75,11 +74,7 @@ class DINOLoss(nn.Module):
                 if iv == iq:
                     # we skip cases where student and teacher operate on the same view
                     continue
-                # filter out nan/inf values due to precision issues
-                # seems like the feature values after the MLP are very large
-                # which makes them inf due to some problem with float16
-                loss = filter_inf_n_nan(torch.sum(-q * F.log_softmax(v, dim=-1), dim=-1))
-
+                loss = torch.sum(-q * F.log_softmax(v, dim=-1), dim=-1)
                 total_loss += loss.mean()
                 n_loss_terms += 1
         total_loss /= n_loss_terms

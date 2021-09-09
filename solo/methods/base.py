@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+from solo.utils.general import FilterInfNNan
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
@@ -154,7 +155,10 @@ class BaseModel(pl.LightningModule):
                 )
                 self.encoder.maxpool = nn.Identity()
         else:
-            self.encoder = self.base_model(backbone_args["patch_size"])
+            # filter out nan/inf outputs due to precision issues
+            # seems like the outputs after the MLP are very large
+            # which makes them inf due to some problem with float16
+            self.encoder = FilterInfNNan(self.base_model(backbone_args["patch_size"]))
             self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
@@ -480,7 +484,10 @@ class BaseMomentumModel(BaseModel):
                 )
                 self.momentum_encoder.maxpool = nn.Identity()
         else:
-            self.momentum_encoder = self.base_model(self.backbone_args["patch_size"])
+            # filter out nan/inf outputs due to precision issues
+            # seems like the outputs after the MLP are very large
+            # which makes them inf due to some problem with float16
+            self.momentum_encoder = FilterInfNNan(self.base_model(self.backbone_args["patch_size"]))
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
