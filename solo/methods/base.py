@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from solo.utils.general import FilterInfNNan
+from solo.utils.general import filter_inf_n_nan
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
@@ -155,10 +155,7 @@ class BaseModel(pl.LightningModule):
                 )
                 self.encoder.maxpool = nn.Identity()
         else:
-            # filter out nan/inf outputs due to precision issues
-            # seems like the outputs after the MLP are very large
-            # which makes them inf due to some problem with float16
-            self.encoder = FilterInfNNan(self.base_model(backbone_args["patch_size"]))
+            self.encoder = self.base_model(backbone_args["patch_size"])
             self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
@@ -352,6 +349,12 @@ class BaseModel(pl.LightningModule):
 
         out = self.base_forward(X)
         logits = out["logits"]
+
+        if "vit" in self.encoder_name:
+            # filter out nan/inf outputs due to precision issues with vit
+            logits, selected = filter_inf_n_nan(logits)
+            targets = targets[selected]
+
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
@@ -484,10 +487,7 @@ class BaseMomentumModel(BaseModel):
                 )
                 self.momentum_encoder.maxpool = nn.Identity()
         else:
-            # filter out nan/inf outputs due to precision issues
-            # seems like the outputs after the MLP are very large
-            # which makes them inf due to some problem with float16
-            self.momentum_encoder = FilterInfNNan(self.base_model(self.backbone_args["patch_size"]))
+            self.momentum_encoder = self.base_model(self.backbone_args["patch_size"])
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
@@ -589,6 +589,12 @@ class BaseMomentumModel(BaseModel):
         if self.momentum_classifier is not None:
             feats = out["feats"]
             logits = self.momentum_classifier(feats)
+
+            if "vit" in self.encoder_name:
+                # filter out nan/inf outputs due to precision issues with vit
+                logits, selected = filter_inf_n_nan(logits)
+                targets = targets[selected]
+
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
             out.update(

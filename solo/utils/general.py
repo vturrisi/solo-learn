@@ -14,13 +14,12 @@ def filter_inf_n_nan(tensor: torch.Tensor) -> torch.Tensor:
         torch.Tensor: filtered view of the tensor without nans or infs.
     """
     if len(tensor.size()) == 1:
-        tensor = tensor[~tensor.isnan()]
-        tensor = tensor[~tensor.isinf()]
+        selected = tensor.isfinite()
     elif len(tensor.size()) == 2:
-        tensor = tensor[~torch.any(tensor.isnan(), dim=1)]
-        tensor = tensor[~torch.any(tensor.isinf(), dim=1)]
+        selected = tensor.isfinite().all(dim=1)
 
-    return tensor
+    tensor = tensor[selected]
+    return tensor, selected
 
 
 class FilterInfNNan(nn.Module):
@@ -31,7 +30,7 @@ class FilterInfNNan(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.module(x)
-        out = filter_inf_n_nan(out)
+        out = filter_inf_n_nan(out)[0]
         return out
 
     def __getattr__(self, name):
