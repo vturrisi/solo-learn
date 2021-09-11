@@ -83,6 +83,25 @@ class BaseMethod(pl.LightningModule):
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
+
+        .. note::
+            When using distributed data parallel, the batch size and the number of workers are
+            specified on a per process basis. Therefore, the total batch size (number of workers)
+            is calculated as the product of the number of GPUs with the batch size (number of
+            workers).
+
+        .. note::
+            The learning rate (base, min and warmup) is automatically scaled linearly based on the
+            batch size and gradient accumulation.
+
+        .. note::
+            For CIFAR10/100, the first convolutional and maxpooling layers of the ResNet encoder
+            are slightly adjusted to handle lower resolution images (32x32 instead of 224x224).
+
+        .. note::
+            If multicrop is activated, the number of small crops must be greater than zero. When
+            multicrop is deactivated (default) the number of small crops is ignored.
+
         """
 
         super().__init__()
