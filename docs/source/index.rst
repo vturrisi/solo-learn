@@ -13,6 +13,7 @@ While the library is self contained, it is possible to use the models outside of
 
 ======================================
 
+
 .. toctree::
    :maxdepth: 2
    :caption: Getting started
@@ -23,11 +24,13 @@ While the library is self contained, it is possible to use the models outside of
 
 ======================================
 
+
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials
 
    tutorials/overview
+   tutorials/offline_linear_eval
 
 
 ======================================

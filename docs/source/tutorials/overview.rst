@@ -27,6 +27,7 @@ We start by importing everything that we will need (we will be relying on Pytorc
     import torch
     from pytorch_lightning import Trainer
     from pytorch_lightning.loggers import WandbLogger
+    from pytorch_lightning.callbacks import LearningRateMonitor
     from pytorch_lightning.plugins import DDPPlugin
     
     from solo.methods import BarlowTwins  # imports the method class
@@ -43,7 +44,7 @@ We start by importing everything that we will need (we will be relying on Pytorc
         prepare_transform,
     )
 
-There are tons of parameters that need to be set and, fortunatelly, ``main_pretrain.py`` takes care of this for us.
+There are tons of parameters that need to be set and, fortunately, ``main_pretrain.py`` takes care of this for us.
 We can also call specific methods from the many ``solo`` classes to automatically change an argparse and add new subparsers.
 However, for now, we won't rely on this, so let's just define all the needed parameters and create a Barlow Twins object:
 
