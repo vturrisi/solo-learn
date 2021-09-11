@@ -1,6 +1,6 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder vit_tiny \
+    --encoder vit_small \
     --data_dir /data/datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
@@ -17,7 +17,6 @@ python3 ../../../main_pretrain.py \
     --weight_decay 1e-4 \
     --batch_size 64 \
     --num_workers 4 \
-    --dali \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
