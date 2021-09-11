@@ -1,5 +1,5 @@
 BaseMethod
-=========
+==========
 
 
 .. automethod:: solo.methods.base.BaseMethod.__init__
@@ -53,7 +53,7 @@ validation_epoch_end
 
 
 BaseMomentumMethod
------------------
+==================
 
 
 .. automethod:: solo.methods.base.BaseMomentumMethod.__init__
@@ -80,7 +80,7 @@ on_train_start
    :noindex:
 
 base_momentum_forward
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.base.BaseMomentumMethod.base_momentum_forward
    :noindex:
 
