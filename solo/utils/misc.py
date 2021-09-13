@@ -3,8 +3,8 @@ import warnings
 from typing import List, Tuple
 
 import torch
-import torch.nn as nn
 import torch.distributed as dist
+import torch.nn as nn
 
 
 def _1d_filter(tensor: torch.Tensor) -> torch.Tensor:
