@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.dino import DINOLoss
-from solo.methods.base import BaseMomentumModel
+from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
 from solo.utils.trunc_normal import trunc_normal_
 
@@ -93,7 +93,7 @@ class DINOHead(nn.Module):
         return x
 
 
-class DINO(BaseMomentumModel):
+class DINO(BaseMomentumMethod):
     def __init__(
         self,
         output_dim: int,
@@ -236,7 +236,7 @@ class DINO(BaseMomentumModel):
         return {**out, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for DINO reusing BaseMomentumModel training step.
+        """Training step for DINO reusing BaseMomentumMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where [X]

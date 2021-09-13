@@ -15,6 +15,7 @@ While the library is self contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Sep 13 2021]**: :book: Improved [Docs](https://solo-learn.readthedocs.io/en/latest/?badge=latest) and added turorials for [pretraining]() and [offline linear eval]()
 * **[Aug 13 2021]**: :whale: [DeepCluster V2](https://arxiv.org/abs/2006.09882) is now available.
 * **[Jul 31 2021]**: :hedgehog: [ReSSL](https://arxiv.org/abs/2107.09282) is now available.
 * **[Jul 21 2021]**: :test_tube: Added Custom Dataset support.

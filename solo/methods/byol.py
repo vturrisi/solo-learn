@@ -5,11 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.byol import byol_loss_func
-from solo.methods.base import BaseMomentumModel
+from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
 
 
-class BYOL(BaseMomentumModel):
+class BYOL(BaseMomentumMethod):
     def __init__(
         self,
         output_dim: int,
@@ -107,7 +107,7 @@ class BYOL(BaseMomentumModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for BYOL reusing BaseModel training step.
+        """Training step for BYOL reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

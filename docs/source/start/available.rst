@@ -19,7 +19,7 @@ Extra flavor
 Data
 ====
 
-* Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI)
+* Increased data processing speed by up to 100% using `Nvidia Dali <https://github.com/NVIDIA/DALI>`_
 * Asymmetric and symmetric augmentations
 
 Evaluation and logging
@@ -38,7 +38,7 @@ Evaluation and logging
 Training tricks
 ===============
 
-* Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
+* Multi-cropping dataloading following `SwAV <https://arxiv.org/abs/2006.09882>`_:
     * **Note**: currently, only SimCLR supports this
 * Exclude batchnorm and biases from LARS
 * No LR scheduler for the projection head in SimSiam

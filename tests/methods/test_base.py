@@ -1,6 +1,6 @@
 import pytest
 import torch
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 
 from .utils import DATA_KWARGS, gen_base_kwargs
 
@@ -11,7 +11,7 @@ def test_barlow():
         **BASE_KWARGS,
         **DATA_KWARGS,
     }
-    model = BaseModel(**kwargs)
+    model = BaseMethod(**kwargs)
 
     # test optimizers/scheduler
     model.optimizer = "random"

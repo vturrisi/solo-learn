@@ -5,11 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.nnclr import nnclr_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.utils.gather_layer import gather
 
 
-class NNCLR(BaseModel):
+class NNCLR(BaseMethod):
     queue: torch.Tensor
 
     def __init__(
@@ -152,7 +152,7 @@ class NNCLR(BaseModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for NNCLR reusing BaseModel training step.
+        """Training step for NNCLR reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y]

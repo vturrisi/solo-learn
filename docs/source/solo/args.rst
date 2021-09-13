@@ -1,8 +1,8 @@
 Args
-=================
+====
 
 dataset
-------------------------
+-------
 
 dataset_args
 ~~~~~~~~~~~~
@@ -19,7 +19,7 @@ augmentations_args
 
 
 setup
-------------------------
+-----
 
 parse_args_pretrain
 ~~~~~~~~~~~~~~~~~~~
@@ -36,7 +36,7 @@ parse_args_linear
 
 
 utils
-------------------------
+-----
 
 parse_args_pretrain
 ~~~~~~~~~~~~~~~~~~~

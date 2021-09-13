@@ -1,5 +1,5 @@
 from solo.methods.barlow_twins import BarlowTwins
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.methods.byol import BYOL
 from solo.methods.deepclusterv2 import DeepClusterV2
 from solo.methods.dino import DINO
@@ -15,7 +15,7 @@ from solo.methods.wmse import WMSE
 
 METHODS = {
     # base classes
-    "base": BaseModel,
+    "base": BaseMethod,
     "linear": LinearModel,
     # methods
     "barlow_twins": BarlowTwins,
@@ -34,7 +34,7 @@ METHODS = {
 __all__ = [
     "BarlowTwins",
     "BYOL",
-    "BaseModel",
+    "BaseMethod",
     "DeepClusterV2",
     "DINO",
     "LinearModel",

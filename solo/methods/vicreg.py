@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Sequence
 import torch
 import torch.nn as nn
 from solo.losses.vicreg import vicreg_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 
 
-class VICReg(BaseModel):
+class VICReg(BaseMethod):
     def __init__(
         self,
         output_dim: int,
@@ -85,7 +85,7 @@ class VICReg(BaseModel):
         return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for VICReg reusing BaseModel training step.
+        """Training step for VICReg reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
