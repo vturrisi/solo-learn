@@ -29,4 +29,4 @@ python3 ../../../main_pretrain.py \
     --method simsiam \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 512 \
-    --output_dim 2048
+    --proj_output_dim 2048

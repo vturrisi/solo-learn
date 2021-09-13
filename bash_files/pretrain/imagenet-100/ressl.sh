@@ -26,7 +26,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --wandb \
     --method ressl \
-    --output_dim 256 \
+    --proj_output_dim 256 \
     --proj_hidden_dim 4096 \
     --base_tau_momentum 0.99 \
     --final_tau_momentum 1.0 \

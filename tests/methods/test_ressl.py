@@ -10,7 +10,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 def test_mocov2plus():
     method_kwargs = {
-        "output_dim": 256,
+        "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
         "temperature_q": 0.1,
         "temperature_k": 0.04,
@@ -60,7 +60,7 @@ def test_mocov2plus():
     assert (
         "q" in out
         and isinstance(out["q"], torch.Tensor)
-        and out["q"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["q"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     # normal training

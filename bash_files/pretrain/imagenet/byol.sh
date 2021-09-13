@@ -32,7 +32,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --method byol \
-    --output_dim 256 \
+    --proj_output_dim 256 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \
     --base_tau_momentum 0.99 \

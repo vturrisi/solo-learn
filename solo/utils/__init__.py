@@ -1,7 +1,7 @@
 from solo.utils import (
     checkpointer,
     classification_dataloader,
-    gather_layer,
+    misc,
     lars,
     metrics,
     momentum,
@@ -13,7 +13,7 @@ __all__ = [
     "classification_dataloader",
     "pretrain_dataloader",
     "checkpointer",
-    "gather_layer",
+    "misc",
     "lars",
     "metrics",
     "momentum",

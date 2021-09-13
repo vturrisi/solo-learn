@@ -27,5 +27,5 @@ python3 ../../../main_pretrain.py \
     --wandb \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
-    --output_dim 2048 \
+    --proj_proj_output_dim 2048 \
     --scale_loss 0.1

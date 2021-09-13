@@ -12,7 +12,7 @@ def test_auto_umap():
     method_kwargs = {
         "name": "barlow_twins",
         "proj_hidden_dim": 2048,
-        "output_dim": 2048,
+        "proj_output_dim": 2048,
         "lamb": 5e-3,
         "scale_loss": 0.001,
     }

@@ -9,13 +9,13 @@ from solo.methods.base import BaseMethod
 
 class BarlowTwins(BaseMethod):
     def __init__(
-        self, proj_hidden_dim: int, output_dim: int, lamb: float, scale_loss: float, **kwargs
+        self, proj_hidden_dim: int, proj_output_dim: int, lamb: float, scale_loss: float, **kwargs
     ):
         """Implements Barlow Twins (https://arxiv.org/abs/2103.03230)
 
         Args:
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            output_dim (int): number of dimensions of projected features.
+            proj_output_dim (int): number of dimensions of projected features.
             lamb (float): off-diagonal scaling factor for the cross-covariance matrix.
             scale_loss (float): scaling factor of the loss.
         """
@@ -33,7 +33,7 @@ class BarlowTwins(BaseMethod):
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
     @staticmethod
@@ -42,7 +42,7 @@ class BarlowTwins(BaseMethod):
         parser = parent_parser.add_argument_group("barlow_twins")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=2048)
+        parser.add_argument("--proj_output_dim", type=int, default=2048)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters

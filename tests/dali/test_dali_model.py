@@ -18,7 +18,7 @@ def test_dali_pretrain():
         with DummyDataset("dummy_train", "dummy_val", 128, 4):
             method_kwargs = {
                 "proj_hidden_dim": 2048,
-                "output_dim": 2048,
+                "proj_output_dim": 2048,
                 "lamb": 5e-3,
                 "scale_loss": 0.025,
                 "encode_indexes_into_labels": encode_indexes_into_labels,

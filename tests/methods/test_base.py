@@ -5,7 +5,7 @@ from solo.methods.base import BaseMethod
 from .utils import DATA_KWARGS, gen_base_kwargs
 
 
-def test_barlow():
+def test_base():
     BASE_KWARGS = gen_base_kwargs(cifar=False)
     kwargs = {
         **BASE_KWARGS,
@@ -36,7 +36,15 @@ def test_barlow():
     with pytest.raises(ValueError):
         model.configure_optimizers()
 
+    model.lars = False
+
     model.optimizer = "adam"
+    model.scheduler = "none"
+    model.extra_optimizer_args = {}
+    optimizer = model.configure_optimizers()
+    assert isinstance(optimizer, torch.optim.Optimizer)
+
+    model.optimizer = "adamw"
     model.scheduler = "none"
     model.extra_optimizer_args = {}
     optimizer = model.configure_optimizers()

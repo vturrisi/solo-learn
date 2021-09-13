@@ -179,12 +179,14 @@ def test_additional_setup_pretrain():
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
+        "patch_size": 16,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
@@ -207,12 +209,14 @@ def test_additional_setup_pretrain():
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
+        "patch_size": 16,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
@@ -235,12 +239,14 @@ def test_additional_setup_pretrain():
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
+        "patch_size": 16,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
@@ -263,12 +269,14 @@ def test_additional_setup_pretrain():
         "gpus": 0,
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
+        "patch_size": 16,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
@@ -282,12 +290,14 @@ def test_additional_setup_linear():
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
+        "patch_size": 16,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_linear(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
 
@@ -299,11 +309,13 @@ def test_additional_setup_linear():
         "gpus": 0,
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
+        "patch_size": 16,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_linear(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)

@@ -1,8 +1,8 @@
+import numpy as np
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
-import numpy as np
 
 
 class DINOLoss(nn.Module):
@@ -70,11 +70,11 @@ class DINOLoss(nn.Module):
         total_loss = 0
         n_loss_terms = 0
         for iq, q in enumerate(teacher_out):
-            for v in range(len(student_out)):
-                if v == iq:
+            for iv, v in enumerate(student_out):
+                if iv == iq:
                     # we skip cases where student and teacher operate on the same view
                     continue
-                loss = torch.sum(-q * F.log_softmax(student_out[v], dim=-1), dim=-1)
+                loss = torch.sum(-q * F.log_softmax(v, dim=-1), dim=-1)
                 total_loss += loss.mean()
                 n_loss_terms += 1
         total_loss /= n_loss_terms

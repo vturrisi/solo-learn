@@ -27,8 +27,7 @@ class BaseMethod(pl.LightningModule):
         self,
         encoder: str,
         num_classes: int,
-        cifar: bool,
-        zero_init_residual: bool,
+        backbone_args: dict,
         max_epochs: int,
         batch_size: int,
         optimizer: str,
@@ -59,8 +58,10 @@ class BaseMethod(pl.LightningModule):
         Args:
             encoder (str): architecture of the base encoder.
             num_classes (int): number of classes.
-            cifar (bool): flag indicating if cifar is being used.
-            zero_init_residual (bool): change the initialization of the resnet encoder.
+            backbone_params (dict): dict containing extra backbone args, namely:
+                cifar (bool): flag indicating if cifar is being used.
+                zero_init_residual (bool): change the initialization of the resnet encoder.
+                patch_size (int): size of the patches for visual transformers.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
@@ -106,9 +107,8 @@ class BaseMethod(pl.LightningModule):
 
         super().__init__()
 
-        # back-bone related
-        self.cifar = cifar
-        self.zero_init_residual = zero_init_residual
+        # resnet backbone related
+        self.backbone_args = backbone_args
 
         # training related
         self.num_classes = num_classes
@@ -148,19 +148,33 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = self.min_lr * self.accumulate_grad_batches
         self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert encoder in ["resnet18", "resnet50"]
+        assert encoder in ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
+        from solo.backbones.vit import vit_base, vit_small, vit_tiny
         from torchvision.models import resnet18, resnet50
 
-        self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[encoder]
+        self.base_model = {
+            "resnet18": resnet18,
+            "resnet50": resnet50,
+            "vit_tiny": vit_tiny,
+            "vit_small": vit_small,
+            "vit_base": vit_base,
+        }[encoder]
 
+        self.encoder_name = encoder
         # initialize encoder
-        self.encoder = self.base_model(zero_init_residual=zero_init_residual)
-        self.features_dim = self.encoder.inplanes
-        # remove fc layer
-        self.encoder.fc = nn.Identity()
-        if cifar:
-            self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
-            self.encoder.maxpool = nn.Identity()
+        if "resnet" in self.encoder_name:
+            self.encoder = self.base_model(zero_init_residual=backbone_args["zero_init_residual"])
+            self.features_dim = self.encoder.inplanes
+            # remove fc layer
+            self.encoder.fc = nn.Identity()
+            if backbone_args["cifar"]:
+                self.encoder.conv1 = nn.Conv2d(
+                    3, 64, kernel_size=3, stride=1, padding=2, bias=False
+                )
+                self.encoder.maxpool = nn.Identity()
+        else:
+            self.encoder = self.base_model(backbone_args["patch_size"])
+            self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
@@ -179,10 +193,13 @@ class BaseMethod(pl.LightningModule):
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
-        SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
+        SUPPORTED_NETWORKS = ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
 
         parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
+        # extra args for resnet
         parser.add_argument("--zero_init_residual", action="store_true")
+        # extra args for vit
+        parser.add_argument("--patch_size", type=int, default=16)
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)
@@ -199,7 +216,7 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--offline", action="store_true")
 
         # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
+        SUPPORTED_OPTIMIZERS = ["sgd", "adam", "adamw"]
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
         parser.add_argument("--lars", action="store_true")
@@ -266,8 +283,10 @@ class BaseMethod(pl.LightningModule):
             optimizer = torch.optim.SGD
         elif self.optimizer == "adam":
             optimizer = torch.optim.Adam
+        elif self.optimizer == "adamw":
+            optimizer = torch.optim.AdamW
         else:
-            raise ValueError(f"{self.optimizer} not in (sgd, adam)")
+            raise ValueError(f"{self.optimizer} not in (sgd, adam, adamw)")
 
         # create optimizer
         optimizer = optimizer(
@@ -278,6 +297,7 @@ class BaseMethod(pl.LightningModule):
         )
         # optionally wrap with lars
         if self.lars:
+            assert self.optimizer == "sgd", "LARS is only compatible with SGD."
             optimizer = LARSWrapper(
                 optimizer,
                 eta=self.eta_lars,
@@ -347,17 +367,13 @@ class BaseMethod(pl.LightningModule):
 
         out = self.base_forward(X)
         logits = out["logits"]
+
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
 
-        return {
-            "loss": loss,
-            **out,
-            "acc1": acc1.detach(),
-            "acc5": acc5.detach(),
-        }
+        return {"loss": loss, **out, "acc1": acc1, "acc5": acc5}
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
@@ -470,13 +486,16 @@ class BaseMomentumMethod(BaseMethod):
         super().__init__(**kwargs)
 
         # momentum encoder
-        self.momentum_encoder = self.base_model(zero_init_residual=self.zero_init_residual)
-        self.momentum_encoder.fc = nn.Identity()
-        if self.cifar:
-            self.momentum_encoder.conv1 = nn.Conv2d(
-                3, 64, kernel_size=3, stride=1, padding=2, bias=False
-            )
-            self.momentum_encoder.maxpool = nn.Identity()
+        if "resnet" in self.encoder_name:
+            self.momentum_encoder = self.base_model()
+            self.momentum_encoder.fc = nn.Identity()
+            if self.backbone_args["cifar"]:
+                self.momentum_encoder.conv1 = nn.Conv2d(
+                    3, 64, kernel_size=3, stride=1, padding=2, bias=False
+                )
+                self.momentum_encoder.maxpool = nn.Identity()
+        else:
+            self.momentum_encoder = self.base_model(self.backbone_args["patch_size"])
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
@@ -578,11 +597,10 @@ class BaseMomentumMethod(BaseMethod):
         if self.momentum_classifier is not None:
             feats = out["feats"]
             logits = self.momentum_classifier(feats)
+
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
-            out.update(
-                {"logits": logits, "loss": loss, "acc1": acc1.detach(), "acc5": acc5.detach()}
-            )
+            out.update({"logits": logits, "loss": loss, "acc1": acc1, "acc5": acc5})
 
         return out
 

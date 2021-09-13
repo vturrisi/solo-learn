@@ -34,5 +34,5 @@ python3 ../../../main_pretrain.py \
     --temperature 0.2 \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 4096 \
-    --output_dim 256 \
+    --proj_output_dim 256 \
     --queue_size 65536

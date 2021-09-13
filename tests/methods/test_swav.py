@@ -10,7 +10,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 def test_swav():
     method_kwargs = {
-        "output_dim": 256,
+        "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
         "num_prototypes": 300,
         "sk_iters": 3,
@@ -65,7 +65,7 @@ def test_swav():
     assert (
         "z" in out
         and isinstance(out["z"], torch.Tensor)
-        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
     assert (
         "p" in out

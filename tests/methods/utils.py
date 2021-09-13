@@ -28,9 +28,11 @@ def gen_base_kwargs(
     BASE_KWARGS = {
         "encoder": "resnet18",
         "num_classes": 10 if cifar else 100,
-        "cifar": cifar,
         "no_labels": False,
-        "zero_init_residual": True,
+        "backbone_args": {
+            "zero_init_residual": True,
+            "cifar": cifar,
+        },
         "max_epochs": 2,
         "optimizer": "sgd",
         "lars": True,

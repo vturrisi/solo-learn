@@ -6,14 +6,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.ressl import ressl_loss_func
 from solo.methods.base import BaseMomentumMethod
-from solo.utils.gather_layer import gather
 from solo.utils.momentum import initialize_momentum_params
+from solo.utils.misc import gather
 
 
 class ReSSL(BaseMomentumMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         temperature_q: float,
         temperature_k: float,
@@ -23,7 +23,7 @@ class ReSSL(BaseMomentumMethod):
         """Implements ReSSL (https://arxiv.org/abs/2107.09282v1).
 
         Args:
-            output_dim (int): number of dimensions of projected features.
+            proj_output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
             temperature_q (float): temperature for the contrastive augmentations.
@@ -36,14 +36,14 @@ class ReSSL(BaseMomentumMethod):
         self.projector = nn.Sequential(
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # momentum projector
         self.momentum_projector = nn.Sequential(
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
@@ -52,7 +52,7 @@ class ReSSL(BaseMomentumMethod):
         self.queue_size = queue_size
 
         # queue
-        self.register_buffer("queue", torch.randn(self.queue_size, output_dim))
+        self.register_buffer("queue", torch.randn(self.queue_size, proj_output_dim))
         self.queue = F.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
@@ -62,7 +62,7 @@ class ReSSL(BaseMomentumMethod):
         parser = parent_parser.add_argument_group("ressl")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # queue settings

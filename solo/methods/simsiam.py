@@ -11,7 +11,7 @@ from solo.methods.base import BaseMethod
 class SimSiam(BaseMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         pred_hidden_dim: int,
         **kwargs,
@@ -19,7 +19,7 @@ class SimSiam(BaseMethod):
         """Implements SimSiam (https://arxiv.org/abs/2011.10566).
 
         Args:
-            output_dim (int): number of dimensions of projected features.
+            proj_output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
         """
@@ -34,17 +34,17 @@ class SimSiam(BaseMethod):
             nn.Linear(proj_hidden_dim, proj_hidden_dim, bias=False),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
-            nn.BatchNorm1d(output_dim, affine=False),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
+            nn.BatchNorm1d(proj_output_dim, affine=False),
         )
         self.projector[6].bias.requires_grad = False  # hack: not use bias as it is followed by BN
 
         # predictor
         self.predictor = nn.Sequential(
-            nn.Linear(output_dim, pred_hidden_dim, bias=False),
+            nn.Linear(proj_output_dim, pred_hidden_dim, bias=False),
             nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(),
-            nn.Linear(pred_hidden_dim, output_dim),
+            nn.Linear(pred_hidden_dim, proj_output_dim),
         )
 
     @staticmethod
@@ -53,7 +53,7 @@ class SimSiam(BaseMethod):
         parser = parent_parser.add_argument_group("simsiam")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # predictor

@@ -11,7 +11,7 @@ from solo.methods.base import BaseMethod
 class SimCLR(BaseMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         temperature: float,
         supervised: bool = False,
@@ -20,7 +20,7 @@ class SimCLR(BaseMethod):
         """Implements SimCLR (https://arxiv.org/abs/2002.05709).
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             temperature (float): temperature for the softmax in the contrastive loss.
             supervised (bool): whether or not to use supervised contrastive loss. Defaults to False.
@@ -35,7 +35,7 @@ class SimCLR(BaseMethod):
         self.projector = nn.Sequential(
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
     @staticmethod
@@ -44,7 +44,7 @@ class SimCLR(BaseMethod):
         parser = parent_parser.add_argument_group("simclr")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters

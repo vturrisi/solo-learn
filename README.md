@@ -150,6 +150,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | BYOL         :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.76     |     80.16       |      94.80     |      95.14      | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
 | DeepCluster V2          | ResNet18 |   400  |         :x:        |      75.36     |     75.4        |      93.22     |      93.10      | [:link:](https://drive.google.com/drive/folders/1d5jPuavrQ7lMlQZn5m2KnN5sPMGhHFo8?usp=sharing) |
 | DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
+| DINO         :sleepy:   | ViT Tiny |   400  |         :x:        |      63.04     |      TODO       |      87.72     |      TODO       | [:link:](https://drive.google.com/drive/folders/16AfsM-UpKky43kdSMlqj4XRe69pRdJLc?usp=sharing) |
 | MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
 | NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
 | ReSSL                   | ResNet18 |   400  | :heavy_check_mark: |      76.92     |     78.48       |      94.20     |      94.24      | [:link:](https://drive.google.com/drive/folders/1urWIFACLont4GAduis6l0jcEbl080c9U?usp=sharing) |
@@ -160,6 +161,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |     69.06       |      90.94     |      91.22      | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
 
 :rocket: methods where hyperparameters were heavily tuned.
+
+:sleepy: ViT is very compute intensive and unstable, so we are slowly running larger architectures and with a larger batch size. Atm, total batch size is 128 and we needed to use float32 precision. If you want to contribute by running it, let us know!
 
 ### ImageNet
 

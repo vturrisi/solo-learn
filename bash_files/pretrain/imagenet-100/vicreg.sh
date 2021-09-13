@@ -32,7 +32,7 @@ python3 ../../../main_pretrain.py \
     --wandb \
     --method vicreg \
     --proj_hidden_dim 2048 \
-    --output_dim 2048 \
+    --proj_output_dim 2048 \
     --sim_loss_weight 25.0 \
     --var_loss_weight 25.0 \
     --cov_loss_weight 1.0

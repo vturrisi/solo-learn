@@ -10,7 +10,7 @@ from solo.utils.whitening import Whitening2d
 class WMSE(BaseMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         whitening_iters: int,
         whitening_size: int,
@@ -20,7 +20,7 @@ class WMSE(BaseMethod):
         """Implements W-MSE (https://arxiv.org/abs/2007.06346)
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             whitening_iters (int): number of times to perform whitening.
             whitening_size (int): size of the batch slice for whitening.
@@ -39,10 +39,10 @@ class WMSE(BaseMethod):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
-        self.whitening = Whitening2d(output_dim, eps=whitening_eps)
+        self.whitening = Whitening2d(proj_output_dim, eps=whitening_eps)
 
     @staticmethod
     def add_model_specific_args(parent_parser):
@@ -50,7 +50,7 @@ class WMSE(BaseMethod):
         parser = parent_parser.add_argument_group("simclr")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=1024)
 
         # wmse

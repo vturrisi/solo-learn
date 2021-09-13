@@ -12,7 +12,7 @@ from solo.utils.momentum import initialize_momentum_params
 class BYOL(BaseMomentumMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         pred_hidden_dim: int,
         **kwargs,
@@ -20,7 +20,7 @@ class BYOL(BaseMomentumMethod):
         """Implements BYOL (https://arxiv.org/abs/2006.07733).
 
         Args:
-            output_dim (int): number of dimensions of projected features.
+            proj_output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
         """
@@ -32,7 +32,7 @@ class BYOL(BaseMomentumMethod):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # momentum projector
@@ -40,16 +40,16 @@ class BYOL(BaseMomentumMethod):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
         # predictor
         self.predictor = nn.Sequential(
-            nn.Linear(output_dim, pred_hidden_dim),
+            nn.Linear(proj_output_dim, pred_hidden_dim),
             nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(),
-            nn.Linear(pred_hidden_dim, output_dim),
+            nn.Linear(pred_hidden_dim, proj_output_dim),
         )
 
     @staticmethod
@@ -58,7 +58,7 @@ class BYOL(BaseMomentumMethod):
         parser = parent_parser.add_argument_group("byol")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # predictor

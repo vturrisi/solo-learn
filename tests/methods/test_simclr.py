@@ -10,7 +10,7 @@ from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_datalo
 
 def test_simclr():
     method_kwargs = {
-        "output_dim": 256,
+        "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
         "temperature": 0.2,
         "supervised": False,
@@ -37,7 +37,7 @@ def test_simclr():
     assert loss != 0
 
     method_kwargs = {
-        "output_dim": 256,
+        "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
         "temperature": 0.2,
         "supervised": True,
@@ -76,7 +76,7 @@ def test_simclr():
     assert (
         "z" in out
         and isinstance(out["z"], torch.Tensor)
-        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["output_dim"])
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     args = argparse.Namespace(**kwargs)
