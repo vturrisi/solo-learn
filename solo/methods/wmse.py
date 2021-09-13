@@ -3,11 +3,11 @@ from typing import Any, Dict, List, Sequence
 import torch
 import torch.nn as nn
 from solo.losses.wmse import wmse_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.utils.whitening import Whitening2d
 
 
-class WMSE(BaseModel):
+class WMSE(BaseMethod):
     def __init__(
         self,
         proj_output_dim: int,
@@ -86,7 +86,7 @@ class WMSE(BaseModel):
         return {**out, "v": v}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for W-MSE reusing BaseModel training step.
+        """Training step for W-MSE reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

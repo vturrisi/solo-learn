@@ -4,10 +4,10 @@ from typing import Any, List, Sequence
 import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 
 
-class BarlowTwins(BaseModel):
+class BarlowTwins(BaseMethod):
     def __init__(
         self, proj_hidden_dim: int, proj_output_dim: int, lamb: float, scale_loss: float, **kwargs
     ):
@@ -67,7 +67,7 @@ class BarlowTwins(BaseModel):
         return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for Barlow Twins reusing BaseModel training step.
+        """Training step for Barlow Twins reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

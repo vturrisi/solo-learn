@@ -5,11 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.swav import swav_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
 
-class SwAV(BaseModel):
+class SwAV(BaseMethod):
     def __init__(
         self,
         proj_output_dim: int,
@@ -153,7 +153,7 @@ class SwAV(BaseModel):
         return assignments
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for SwAV reusing BaseModel training step.
+        """Training step for SwAV reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

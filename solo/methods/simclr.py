@@ -5,10 +5,10 @@ import torch
 import torch.nn as nn
 from einops import repeat
 from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 
 
-class SimCLR(BaseModel):
+class SimCLR(BaseMethod):
     def __init__(
         self,
         proj_output_dim: int,
@@ -101,7 +101,7 @@ class SimCLR(BaseModel):
         return labels_matrix
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for SimCLR and supervised SimCLR reusing BaseModel training step.
+        """Training step for SimCLR and supervised SimCLR reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where

@@ -22,7 +22,7 @@ def static_lr(
     return lrs
 
 
-class BaseModel(pl.LightningModule):
+class BaseMethod(pl.LightningModule):
     def __init__(
         self,
         encoder: str,
@@ -84,6 +84,25 @@ class BaseModel(pl.LightningModule):
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
+
+        .. note::
+            When using distributed data parallel, the batch size and the number of workers are
+            specified on a per process basis. Therefore, the total batch size (number of workers)
+            is calculated as the product of the number of GPUs with the batch size (number of
+            workers).
+
+        .. note::
+            The learning rate (base, min and warmup) is automatically scaled linearly based on the
+            batch size and gradient accumulation.
+
+        .. note::
+            For CIFAR10/100, the first convolutional and maxpooling layers of the ResNet encoder
+            are slightly adjusted to handle lower resolution images (32x32 instead of 224x224).
+
+        .. note::
+            If multicrop is activated, the number of small crops must be greater than zero. When
+            multicrop is deactivated (default) the number of small crops is ignored.
+
         """
 
         super().__init__()
@@ -441,7 +460,7 @@ class BaseModel(pl.LightningModule):
         self.log_dict(log, sync_dist=True)
 
 
-class BaseMomentumModel(BaseModel):
+class BaseMomentumMethod(BaseMethod):
     def __init__(
         self,
         base_tau_momentum: float,
@@ -531,7 +550,7 @@ class BaseMomentumModel(BaseModel):
             ArgumentParser: same as the argument, used to avoid errors.
         """
 
-        parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
+        parent_parser = super(BaseMomentumMethod, BaseMomentumMethod).add_model_specific_args(
             parent_parser
         )
         parser = parent_parser.add_argument_group("base")
