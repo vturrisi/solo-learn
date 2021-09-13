@@ -25,6 +25,7 @@ python3 ../../../main_pretrain.py \
     --solarization_prob 0.0 0.2 \
     --name vit_tiny-dino-400ep-imagenet100 \
     --project solo-learn \
+    --entity unitn-mhug \
     --wandb \
     --method dino \
     --proj_output_dim 256 \
