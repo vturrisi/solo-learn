@@ -66,6 +66,16 @@ def filter_inf_n_nan(tensors: List[torch.Tensor], return_indexes: bool = False):
 
 class FilterInfNNan(nn.Module):
     def __init__(self, module):
+        """Layer that filters out inf and nans from any tensor.
+        This is usefull when there are instability issues,
+        which cause a small number of values to go bad.
+
+        Args:
+            tensor (List): tensor to remove nans and infs from.
+
+        Returns:
+            torch.Tensor: filtered view of the tensor without nans or infs.
+        """
         super().__init__()
 
         self.module = module
