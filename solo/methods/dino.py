@@ -272,11 +272,6 @@ class DINO(BaseMomentumModel):
 
         self.log("dino_loss", dino_loss, on_epoch=True, sync_dist=True)
 
-        if not dino_loss.isfinite() or not class_loss.isfinite():
-            print(dino_loss)
-            print(class_loss)
-            exit()
-
         return dino_loss + class_loss
 
     def on_after_backward(self):
