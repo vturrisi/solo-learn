@@ -161,7 +161,8 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 
 :rocket: methods where hyperparameters were heavily tuned.
 
-:sleepy: ViT is very heavy and unstable, so we are the process of slowly running larger architectures and with a larger batch. Atm, total batch size is 128 and we needed to use float32 precision. If you want to contribute by running it, let us know!
+:sleepy: ViT is very compute intensive and unstable, so we are slowly running larger architectures and with a larger batch size. Atm, total batch size is 128 and we needed to use float32 precision. If you want to contribute by running it, let us know!
+
 ### ImageNet
 
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
