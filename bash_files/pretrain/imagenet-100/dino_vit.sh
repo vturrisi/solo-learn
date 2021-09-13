@@ -8,7 +8,7 @@ python3 ../../../main_pretrain.py \
     --gpus 0,1 \
     --distributed_backend ddp \
     --sync_batchnorm \
-    --precision 16 \
+    --precision 32 \
     --optimizer adamw \
     --scheduler warmup_cosine \
     --lr 0.005 \
@@ -16,8 +16,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 3e-3 \
     --weight_decay 1e-4 \
     --batch_size 64 \
-    --num_workers 4 \
-    --dali \
+    --num_workers 6 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
@@ -26,6 +25,7 @@ python3 ../../../main_pretrain.py \
     --solarization_prob 0.0 0.2 \
     --name vit_tiny-dino-400ep-imagenet100 \
     --project solo-learn \
+    --entity unitn-mhug \
     --wandb \
     --method dino \
     --proj_output_dim 256 \

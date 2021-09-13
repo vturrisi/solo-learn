@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from solo.utils.misc import filter_inf_n_nan
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
@@ -350,22 +349,12 @@ class BaseModel(pl.LightningModule):
         out = self.base_forward(X)
         logits = out["logits"]
 
-        if "vit" in self.encoder_name:
-            # filter out nan/inf outputs due to precision issues with vit
-            logits, selected = filter_inf_n_nan(logits)
-            targets = targets[selected]
-
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
 
-        return {
-            "loss": loss,
-            **out,
-            "acc1": acc1.detach(),
-            "acc5": acc5.detach(),
-        }
+        return {"loss": loss, **out, "acc1": acc1, "acc5": acc5}
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
@@ -590,16 +579,9 @@ class BaseMomentumModel(BaseModel):
             feats = out["feats"]
             logits = self.momentum_classifier(feats)
 
-            if "vit" in self.encoder_name:
-                # filter out nan/inf outputs due to precision issues with vit
-                logits, selected = filter_inf_n_nan(logits)
-                targets = targets[selected]
-
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
-            out.update(
-                {"logits": logits, "loss": loss, "acc1": acc1.detach(), "acc5": acc5.detach()}
-            )
+            out.update({"logits": logits, "loss": loss, "acc1": acc1, "acc5": acc5})
 
         return out
 
