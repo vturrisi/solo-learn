@@ -1,7 +1,7 @@
 Offline Linear Eval
 *******************
 
-Now that you know how to pretrain a model, let's go through the procedure to perform offline linear evaluation. Here you have it:
+Now that you know how to pretrain a model, let's go through the procedure to perform offline linear evaluation.
 
 As for pretraining, we start by importing the required packages:
 
@@ -18,7 +18,7 @@ As for pretraining, we start by importing the required packages:
 
 There are tons of parameters that need to be set and, fortunatelly, ``main_linear.py`` takes care of this for us.
 If we want to be able to specify the arguments from the command line, we can simply call the function ``parse_args_linear`` in ``solo.args.setup``.
-However, in this tutorial, we will simply define all the needed parameters to perform linear evaluation.
+However, in this tutorial, we will simply define all the needed parameters to perform linear evaluation:
 
 .. code-block:: python
     
@@ -43,13 +43,13 @@ However, in this tutorial, we will simply define all the needed parameters to pe
         "pretrained_feature_extractor": "path/to/pretrained/feature/extractor"
     }
 
-Apart from the hyperparameters, we also need to load the pretrained model.
+Apart from the hyperparameters, we also need to load the pretrained model:
 
 .. code-block:: python
 
     # create the backbone network
     # the first convolutional and maxpooling layers of the ResNet encoder
-    # #are adjusted to handle lower resolution images (32x32 instead of 224x224).
+    # are adjusted to handle lower resolution images (32x32 instead of 224x224).
     backbone = resnet18()
     backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
     backbone.maxpool = nn.Identity()
@@ -65,7 +65,7 @@ Apart from the hyperparameters, we also need to load the pretrained model.
 
     model = LinearModel(backbone, **kwargs)
 
-Now, let's create the data loaders. This time we will not use multiple augmentations.
+Now, let's create the data loaders. Unlike when we are doing pretraining, this time we will not use multiple augmentations:
 
 .. code-block:: python
 
@@ -78,7 +78,7 @@ Now, let's create the data loaders. This time we will not use multiple augmentat
         num_workers=base_kwargs["num_workers"],
     )
 
-Now, we just need to define some extra magic for Pytorch Lightning to automatically log some stuff for us and then we can just create our lightning Trainer.
+Lastly, we just need to define some extra utilities for Pytorch Lightning to automatically log some stuff for us and then we can just create our lightning Trainer:
 
 .. code-block:: python
     
