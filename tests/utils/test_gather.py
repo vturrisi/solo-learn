@@ -1,5 +1,5 @@
 import torch
-from solo.utils.gather_layer import gather
+from solo.utils.misc import gather
 
 
 def test_gather_layer():

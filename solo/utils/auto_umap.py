@@ -13,7 +13,7 @@ import wandb
 from matplotlib import pyplot as plt
 from pytorch_lightning.callbacks import Callback
 
-from .gather_layer import gather
+from .misc import gather
 
 
 class AutoUMAP(Callback):

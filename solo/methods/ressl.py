@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.ressl import ressl_loss_func
 from solo.methods.base import BaseMomentumModel
-from solo.utils.gather_layer import gather
+from solo.utils.misc import gather
 from solo.utils.momentum import initialize_momentum_params
 
 

@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.nnclr import nnclr_loss_func
 from solo.methods.base import BaseModel
-from solo.utils.gather_layer import gather
+from solo.utils.misc import gather
 
 
 class NNCLR(BaseModel):

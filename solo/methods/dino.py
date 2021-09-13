@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from solo.losses.dino import DINOLoss
 from solo.methods.base import BaseMomentumModel
 from solo.utils.momentum import initialize_momentum_params
-from solo.utils.trunc_normal import trunc_normal_
+from solo.utils.misc import trunc_normal_
 
 
 class DINOHead(nn.Module):

@@ -72,7 +72,7 @@ on_validation_end
 Gather layer
 ------------
 
-.. autofunction:: solo.utils.gather_layer.gather
+.. autofunction:: solo.utils.misc.gather
    :noindex:
 
 

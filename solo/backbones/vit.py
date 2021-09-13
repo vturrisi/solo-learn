@@ -12,7 +12,7 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-from solo.utils.trunc_normal import trunc_normal_
+from solo.utils.misc import trunc_normal_
 
 
 def drop_path(x: torch.Tensor, drop_prob: float = 0.0, training: bool = False):

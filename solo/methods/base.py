@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from solo.utils.general import filter_inf_n_nan
+from solo.utils.misc import filter_inf_n_nan
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
