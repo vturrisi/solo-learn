@@ -143,4 +143,4 @@ And that's it, we basically replicated a small version of ``main_linear.py``. Of
         --project self-supervised \
         --wandb
 
-Now you are fully able to use the repository and you can make your research ideas become reality! 
+Now you are fully able to use solo-learn and you can make your research ideas become reality! 
