@@ -49,41 +49,20 @@ def main():
         "swin_large": swin_large,
     }[args.encoder]
 
+    # initialize encoder
+    kwargs = args.backbone_args
+    cifar = kwargs.pop("cifar", False)
+    # swin specific
+    if "swin" in args.encoder and cifar:
+        kwargs["window_size"] = 4
+
+    backbone = backbone_model(**kwargs)
     if "resnet" in args.encoder:
-        backbone = backbone_model()
+        # remove fc layer
         backbone.fc = nn.Identity()
-        if args.backbone_args["cifar"]:
+        if cifar:
             backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
             backbone.maxpool = nn.Identity()
-    else:
-
-        kwargs = {}
-
-        # dataset related for all transformers
-        dataset = args.dataset
-        if "cifar" in dataset:
-            kwargs["img_size"] = 32
-
-        elif "stl" in dataset:
-            kwargs["img_size"] = 96
-
-        elif "imagenet" in dataset:
-            kwargs["img_size"] = 224
-
-        elif "custom" in dataset:
-            transform_kwargs = args.transform_kwargs
-            if isinstance(transform_kwargs, list):
-                kwargs["img_size"] = transform_kwargs[0]["size"]
-            else:
-                kwargs["img_size"] = transform_kwargs["size"]
-
-        # transformer specific
-        if "swin" in args.encoder and args.backbone_args["cifar"]:
-            kwargs["window_size"] = 4
-        elif "vit" in args.encoder:
-            kwargs["patch_size"] = args.backbone_args["patch_size"]
-
-        backbone = backbone_model(**kwargs)
 
     assert (
         args.pretrained_feature_extractor.endswith(".ckpt")

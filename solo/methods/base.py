@@ -189,45 +189,25 @@ class BaseMethod(pl.LightningModule):
         }[encoder]
 
         self.encoder_name = encoder
+
         # initialize encoder
+        kwargs = self.backbone_args.copy()
+        cifar = kwargs.pop("cifar", False)
+        # swin specific
+        if "swin" in self.encoder_name and cifar:
+            kwargs["window_size"] = 4
+
+        self.encoder = self.base_model(**kwargs)
         if "resnet" in self.encoder_name:
-            self.encoder = self.base_model(zero_init_residual=backbone_args["zero_init_residual"])
             self.features_dim = self.encoder.inplanes
             # remove fc layer
             self.encoder.fc = nn.Identity()
-            if backbone_args["cifar"]:
+            if cifar:
                 self.encoder.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.encoder.maxpool = nn.Identity()
         else:
-            kwargs = {}
-
-            # dataset related for all transformers
-            dataset = self.extra_args["dataset"]
-            if "cifar" in dataset:
-                kwargs["img_size"] = 32
-
-            elif "stl" in dataset:
-                kwargs["img_size"] = 96
-
-            elif "imagenet" in dataset:
-                kwargs["img_size"] = 224
-
-            elif "custom" in dataset:
-                transform_kwargs = self.extra_args["transform_kwargs"]
-                if isinstance(transform_kwargs, list):
-                    kwargs["img_size"] = transform_kwargs[0]["size"]
-                else:
-                    kwargs["img_size"] = transform_kwargs["size"]
-
-            # transformer specific
-            if "swin" in self.encoder_name and backbone_args["cifar"]:
-                kwargs["window_size"] = 4
-            elif "vit" in self.encoder_name:
-                kwargs["patch_size"] = backbone_args["patch_size"]
-
-            self.encoder = self.base_model(**kwargs)
             self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
@@ -540,42 +520,24 @@ class BaseMomentumMethod(BaseMethod):
         super().__init__(**kwargs)
 
         # momentum encoder
+        kwargs = self.backbone_args.copy()
+        cifar = kwargs.pop("cifar", False)
+        # swin specific
+        if "swin" in self.encoder_name and cifar:
+            kwargs["window_size"] = 4
+
+        self.momentum_encoder = self.base_model(**kwargs)
         if "resnet" in self.encoder_name:
-            self.momentum_encoder = self.base_model()
+            self.features_dim = self.momentum_encoder.inplanes
+            # remove fc layer
             self.momentum_encoder.fc = nn.Identity()
-            if self.backbone_args["cifar"]:
+            if cifar:
                 self.momentum_encoder.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.momentum_encoder.maxpool = nn.Identity()
         else:
-            kwargs = {}
-
-            # dataset related for all transformers
-            dataset = self.extra_args["dataset"]
-            if "cifar" in dataset:
-                kwargs["img_size"] = 32
-
-            elif "stl" in dataset:
-                kwargs["img_size"] = 96
-
-            elif "imagenet" in dataset:
-                kwargs["img_size"] = 224
-
-            elif "custom" in dataset:
-                transform_kwargs = self.extra_args["transform_kwargs"]
-                if isinstance(transform_kwargs, list):
-                    kwargs["img_size"] = transform_kwargs[0]["size"]
-                else:
-                    kwargs["img_size"] = transform_kwargs["size"]
-
-            # transformer specific
-            if "swin" in self.encoder_name and self.backbone_args["cifar"]:
-                kwargs["window_size"] = 4
-            elif "vit" in self.encoder_name:
-                kwargs["patch_size"] = self.backbone_args["patch_size"]
-
-            self.momentum_encoder = self.base_model(**kwargs)
+            self.features_dim = self.momentum_encoder.num_features
 
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
