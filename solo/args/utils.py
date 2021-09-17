@@ -32,8 +32,6 @@ def additional_setup_pretrain(args: Namespace):
         - gaussian_prob, solarization_prob: optional augmentations settings.
     """
 
-    args.transform_kwargs = {}
-
     if args.dataset in N_CLASSES_PER_DATASET:
         args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
     else:
@@ -197,12 +195,11 @@ def additional_setup_linear(args: Namespace):
 
     args.backbone_args = {
         # resnet only
-        "zero_init_residual": args.zero_init_residual,
         "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
         # vit only
         "patch_size": args.patch_size,
     }
-    del args.zero_init_residual
+    # del args.zero_init_residual
     del args.patch_size
 
     if args.dali:

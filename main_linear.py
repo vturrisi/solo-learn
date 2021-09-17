@@ -9,6 +9,17 @@ from pytorch_lightning.plugins import DDPPlugin
 from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
+from solo.methods.base import BaseMethod
+from solo.utils.backbones import (
+    swin_base,
+    swin_large,
+    swin_small,
+    swin_tiny,
+    vit_base,
+    vit_large,
+    vit_small,
+    vit_tiny,
+)
 
 try:
     from solo.methods.dali import ClassificationABC
@@ -17,24 +28,62 @@ except ImportError:
 else:
     _dali_avaliable = True
 from solo.methods.linear import LinearModel
-from solo.utils.classification_dataloader import prepare_data
 from solo.utils.checkpointer import Checkpointer
+from solo.utils.classification_dataloader import prepare_data
 
 
 def main():
     args = parse_args_linear()
 
-    if args.encoder == "resnet18":
-        backbone = resnet18()
-    elif args.encoder == "resnet50":
-        backbone = resnet50()
-    else:
-        raise ValueError("Only [resnet18, resnet50] are currently supported.")
+    assert args.encoder in BaseMethod._SUPPORTED_ENCODERS
+    backbone_model = {
+        "resnet18": resnet18,
+        "resnet50": resnet50,
+        "vit_tiny": vit_tiny,
+        "vit_small": vit_small,
+        "vit_base": vit_base,
+        "vit_large": vit_large,
+        "swin_tiny": swin_tiny,
+        "swin_small": swin_small,
+        "swin_base": swin_base,
+        "swin_large": swin_large,
+    }[args.encoder]
 
-    if args.cifar:
-        backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
-        backbone.maxpool = nn.Identity()
-    backbone.fc = nn.Identity()
+    if "resnet" in args.encoder:
+        backbone = backbone_model()
+        backbone.fc = nn.Identity()
+        if args.backbone_args["cifar"]:
+            backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
+            backbone.maxpool = nn.Identity()
+    else:
+
+        kwargs = {}
+
+        # dataset related for all transformers
+        dataset = args.dataset
+        if "cifar" in dataset:
+            kwargs["img_size"] = 32
+
+        elif "stl" in dataset:
+            kwargs["img_size"] = 96
+
+        elif "imagenet" in dataset:
+            kwargs["img_size"] = 224
+
+        elif "custom" in dataset:
+            transform_kwargs = args.transform_kwargs
+            if isinstance(transform_kwargs, list):
+                kwargs["img_size"] = transform_kwargs[0]["size"]
+            else:
+                kwargs["img_size"] = transform_kwargs["size"]
+
+        # transformer specific
+        if "swin" in args.encoder and args.backbone_args["cifar"]:
+            kwargs["window_size"] = 4
+        elif "vit" in args.encoder:
+            kwargs["patch_size"] = args.backbone_args["patch_size"]
+
+        backbone = backbone_model(**kwargs)
 
     assert (
         args.pretrained_feature_extractor.endswith(".ckpt")
