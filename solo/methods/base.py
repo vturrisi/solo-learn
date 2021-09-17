@@ -185,6 +185,9 @@ class BaseMethod(pl.LightningModule):
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
+        if self.online_knn_eval:
+            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
+
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds shared basic arguments that are shared for all methods.
@@ -344,10 +347,6 @@ class BaseMethod(pl.LightningModule):
                 scheduler.get_lr = partial_fn
 
             return [optimizer], [scheduler]
-
-    def on_train_start(self) -> None:
-        if self.online_knn_eval:
-            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
     def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
