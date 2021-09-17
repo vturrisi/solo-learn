@@ -24,6 +24,20 @@ def static_lr(
 
 
 class BaseMethod(pl.LightningModule):
+
+    _SUPPORTED_ENCODERS = [
+        "resnet18",
+        "resnet50",
+        "vit_tiny",
+        "vit_small",
+        "vit_base",
+        "vit_large",
+        "swin_tiny",
+        "swin_small",
+        "swin_base",
+        "swin_large",
+    ]
+
     def __init__(
         self,
         encoder: str,
@@ -62,9 +76,12 @@ class BaseMethod(pl.LightningModule):
             encoder (str): architecture of the base encoder.
             num_classes (int): number of classes.
             backbone_params (dict): dict containing extra backbone args, namely:
+                #! optional, if it's not present, it is considered as False
                 cifar (bool): flag indicating if cifar is being used.
+                #! only for resnet
                 zero_init_residual (bool): change the initialization of the resnet encoder.
-                patch_size (int): size of the patches for visual transformers.
+                #! only for vit
+                patch_size (int): size of the patches for ViT.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
@@ -155,8 +172,17 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = self.min_lr * self.accumulate_grad_batches
         self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert encoder in ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
-        from solo.backbones.vit import vit_base, vit_small, vit_tiny
+        assert encoder in BaseMethod._SUPPORTED_ENCODERS
+        from solo.utils.backbones import (
+            swin_base,
+            swin_large,
+            swin_small,
+            swin_tiny,
+            vit_base,
+            vit_large,
+            vit_small,
+            vit_tiny,
+        )
         from torchvision.models import resnet18, resnet50
 
         self.base_model = {
@@ -165,22 +191,33 @@ class BaseMethod(pl.LightningModule):
             "vit_tiny": vit_tiny,
             "vit_small": vit_small,
             "vit_base": vit_base,
+            "vit_large": vit_large,
+            "swin_tiny": swin_tiny,
+            "swin_small": swin_small,
+            "swin_base": swin_base,
+            "swin_large": swin_large,
         }[encoder]
 
         self.encoder_name = encoder
+
         # initialize encoder
+        kwargs = self.backbone_args.copy()
+        cifar = kwargs.pop("cifar", False)
+        # swin specific
+        if "swin" in self.encoder_name and cifar:
+            kwargs["window_size"] = 4
+
+        self.encoder = self.base_model(**kwargs)
         if "resnet" in self.encoder_name:
-            self.encoder = self.base_model(zero_init_residual=backbone_args["zero_init_residual"])
             self.features_dim = self.encoder.inplanes
             # remove fc layer
             self.encoder.fc = nn.Identity()
-            if backbone_args["cifar"]:
+            if cifar:
                 self.encoder.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.encoder.maxpool = nn.Identity()
         else:
-            self.encoder = self.base_model(backbone_args["patch_size"])
             self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
@@ -203,12 +240,12 @@ class BaseMethod(pl.LightningModule):
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
-        SUPPORTED_NETWORKS = ["resnet18", "resnet50", "vit_tiny", "vit_small", "vit_base"]
+        SUPPORTED_ENCODERS = BaseMethod._SUPPORTED_ENCODERS
 
-        parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
+        parser.add_argument("--encoder", choices=SUPPORTED_ENCODERS, type=str)
         # extra args for resnet
         parser.add_argument("--zero_init_residual", action="store_true")
-        # extra args for vit
+        # extra args for ViT
         parser.add_argument("--patch_size", type=int, default=16)
 
         # general train
@@ -514,16 +551,25 @@ class BaseMomentumMethod(BaseMethod):
         super().__init__(**kwargs)
 
         # momentum encoder
+        kwargs = self.backbone_args.copy()
+        cifar = kwargs.pop("cifar", False)
+        # swin specific
+        if "swin" in self.encoder_name and cifar:
+            kwargs["window_size"] = 4
+
+        self.momentum_encoder = self.base_model(**kwargs)
         if "resnet" in self.encoder_name:
-            self.momentum_encoder = self.base_model()
+            self.features_dim = self.momentum_encoder.inplanes
+            # remove fc layer
             self.momentum_encoder.fc = nn.Identity()
-            if self.backbone_args["cifar"]:
+            if cifar:
                 self.momentum_encoder.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.momentum_encoder.maxpool = nn.Identity()
         else:
-            self.momentum_encoder = self.base_model(self.backbone_args["patch_size"])
+            self.features_dim = self.momentum_encoder.num_features
+
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
