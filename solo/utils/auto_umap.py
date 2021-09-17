@@ -175,5 +175,5 @@ class AutoUMAP(Callback):
         """
 
         epoch = trainer.current_epoch  # type: ignore
-        if epoch % self.frequency == 0 and not trainer.running_sanity_check:
+        if epoch % self.frequency == 0 and not trainer.sanity_checking:
             self.plot(trainer, module)

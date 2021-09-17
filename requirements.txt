@@ -1,7 +1,7 @@
 torch<=1.8.1
 torchvision<=0.9.1
 einops
-pytorch-lightning<=1.3.8
+pytorch-lightning
 lightning-bolts
 tqdm
 wandb

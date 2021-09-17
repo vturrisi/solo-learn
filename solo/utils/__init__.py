@@ -1,6 +1,7 @@
 from solo.utils import (
     checkpointer,
     classification_dataloader,
+    knn,
     misc,
     lars,
     metrics,
@@ -13,6 +14,7 @@ __all__ = [
     "classification_dataloader",
     "pretrain_dataloader",
     "checkpointer",
+    "knn",
     "misc",
     "lars",
     "metrics",
