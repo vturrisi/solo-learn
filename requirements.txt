@@ -6,3 +6,4 @@ lightning-bolts
 tqdm
 wandb
 scipy
+timm

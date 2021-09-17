@@ -32,8 +32,6 @@ def additional_setup_pretrain(args: Namespace):
         - gaussian_prob, solarization_prob: optional augmentations settings.
     """
 
-    args.transform_kwargs = {}
-
     if args.dataset in N_CLASSES_PER_DATASET:
         args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
     else:
@@ -152,13 +150,29 @@ def additional_setup_pretrain(args: Namespace):
             for kwargs in args.transform_kwargs:
                 del kwargs["size"]
 
-    args.backbone_args = {
-        # resnet only
-        "zero_init_residual": args.zero_init_residual,
-        "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
-        # vit only
-        "patch_size": args.patch_size,
-    }
+    # create backbone-specific arguments
+    args.backbone_args = {"cifar": True if args.dataset in ["cifar10", "cifar100"] else False}
+    if "resnet" in args.encoder:
+        args.backbone_args["zero_init_residual"] = args.zero_init_residual
+    else:
+        # dataset related for all transformers
+        dataset = args.dataset
+        if "cifar" in dataset:
+            args.backbone_args["img_size"] = 32
+        elif "stl" in dataset:
+            args.backbone_args["img_size"] = 96
+        elif "imagenet" in dataset:
+            args.backbone_args["img_size"] = 224
+        elif "custom" in dataset:
+            transform_kwargs = args.transform_kwargs
+            if isinstance(transform_kwargs, list):
+                args.backbone_args["img_size"] = transform_kwargs[0]["size"]
+            else:
+                args.backbone_args["img_size"] = transform_kwargs["size"]
+
+        if "vit" in args.encoder:
+            args.backbone_args["patch_size"] = args.patch_size
+
     del args.zero_init_residual
     del args.patch_size
 
@@ -195,14 +209,28 @@ def additional_setup_linear(args: Namespace):
     assert args.dataset in N_CLASSES_PER_DATASET
     args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
 
-    args.backbone_args = {
-        # resnet only
-        "zero_init_residual": args.zero_init_residual,
-        "cifar": True if args.dataset in ["cifar10", "cifar100"] else False,
-        # vit only
-        "patch_size": args.patch_size,
-    }
-    del args.zero_init_residual
+    # create backbone-specific arguments
+    args.backbone_args = {"cifar": True if args.dataset in ["cifar10", "cifar100"] else False}
+
+    if "resnet" not in args.encoder:
+        # dataset related for all transformers
+        dataset = args.dataset
+        if "cifar" in dataset:
+            args.backbone_args["img_size"] = 32
+        elif "stl" in dataset:
+            args.backbone_args["img_size"] = 96
+        elif "imagenet" in dataset:
+            args.backbone_args["img_size"] = 224
+        elif "custom" in dataset:
+            transform_kwargs = args.transform_kwargs
+            if isinstance(transform_kwargs, list):
+                args.backbone_args["img_size"] = transform_kwargs[0]["size"]
+            else:
+                args.backbone_args["img_size"] = transform_kwargs["size"]
+
+        if "vit" in args.encoder:
+            args.backbone_args["patch_size"] = args.patch_size
+
     del args.patch_size
 
     if args.dali:

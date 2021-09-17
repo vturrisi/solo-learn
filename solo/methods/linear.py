@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+from solo.methods.base import BaseMethod
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from torch.optim.lr_scheduler import (
@@ -55,7 +56,11 @@ class LinearModel(pl.LightningModule):
         super().__init__()
 
         self.backbone = backbone
-        self.classifier = nn.Linear(self.backbone.inplanes, num_classes)  # type: ignore
+        if hasattr(self.backbone, "inplanes"):
+            features_dim = self.backbone.inplanes
+        else:
+            features_dim = self.backbone.num_features
+        self.classifier = nn.Linear(features_dim, num_classes)  # type: ignore
 
         # training related
         self.max_epochs = max_epochs
@@ -90,10 +95,9 @@ class LinearModel(pl.LightningModule):
         parser = parent_parser.add_argument_group("linear")
 
         # encoder args
-        SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
-
-        parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
-        parser.add_argument("--zero_init_residual", action="store_true")
+        parser.add_argument("--encoder", choices=BaseMethod._SUPPORTED_ENCODERS, type=str)
+        # for ViT
+        parser.add_argument("--patch_size", type=int, default=16)
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)

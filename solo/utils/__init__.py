@@ -1,15 +1,17 @@
 from solo.utils import (
+    backbones,
     checkpointer,
     classification_dataloader,
-    misc,
     lars,
     metrics,
+    misc,
     momentum,
     pretrain_dataloader,
     sinkhorn_knopp,
 )
 
 __all__ = [
+    "backbones",
     "classification_dataloader",
     "pretrain_dataloader",
     "checkpointer",
