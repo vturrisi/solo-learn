@@ -199,7 +199,6 @@ def additional_setup_linear(args: Namespace):
         # vit only
         "patch_size": args.patch_size,
     }
-    # del args.zero_init_residual
     del args.patch_size
 
     if args.dali:

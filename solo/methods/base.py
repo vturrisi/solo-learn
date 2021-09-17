@@ -549,7 +549,34 @@ class BaseMomentumMethod(BaseMethod):
                 )
                 self.momentum_encoder.maxpool = nn.Identity()
         else:
-            self.momentum_encoder = self.base_model()
+            kwargs = {}
+
+            # dataset related for all transformers
+            dataset = self.extra_args["dataset"]
+            if "cifar" in dataset:
+                kwargs["img_size"] = 32
+
+            elif "stl" in dataset:
+                kwargs["img_size"] = 96
+
+            elif "imagenet" in dataset:
+                kwargs["img_size"] = 224
+
+            elif "custom" in dataset:
+                transform_kwargs = self.extra_args["transform_kwargs"]
+                if isinstance(transform_kwargs, list):
+                    kwargs["img_size"] = transform_kwargs[0]["size"]
+                else:
+                    kwargs["img_size"] = transform_kwargs["size"]
+
+            # transformer specific
+            if "swin" in self.encoder_name and self.backbone_args["cifar"]:
+                kwargs["window_size"] = 4
+            elif "vit" in self.encoder_name:
+                kwargs["patch_size"] = self.backbone_args["patch_size"]
+
+            self.momentum_encoder = self.base_model(**kwargs)
+
         initialize_momentum_params(self.encoder, self.momentum_encoder)
 
         # momentum classifier
