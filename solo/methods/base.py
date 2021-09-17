@@ -73,8 +73,11 @@ class BaseMethod(pl.LightningModule):
             encoder (str): architecture of the base encoder.
             num_classes (int): number of classes.
             backbone_params (dict): dict containing extra backbone args, namely:
+                #! optional, if it's not present, it is considered as False
                 cifar (bool): flag indicating if cifar is being used.
+                #! only for resnet
                 zero_init_residual (bool): change the initialization of the resnet encoder.
+                #! only for vit
                 patch_size (int): size of the patches for ViT.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.

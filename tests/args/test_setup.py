@@ -163,6 +163,7 @@ def test_setup_linear():
 
 def test_additional_setup_pretrain():
     args = {
+        "encoder": "resnet18",
         "dataset": "imagenet100",
         "multicrop": False,
         "brightness": [0.4],
@@ -193,6 +194,7 @@ def test_additional_setup_pretrain():
 
     # - asymmetric - multicrop
     args = {
+        "encoder": "resnet18",
         "dataset": "imagenet100",
         "multicrop": False,
         "brightness": [0.4],
@@ -223,6 +225,7 @@ def test_additional_setup_pretrain():
 
     # + multicrop
     args = {
+        "encoder": "resnet18",
         "dataset": "imagenet100",
         "multicrop": True,
         "brightness": [0.4],
@@ -253,6 +256,7 @@ def test_additional_setup_pretrain():
 
     # check for different gpu syntax
     args = {
+        "encoder": "resnet18",
         "dataset": "imagenet100",
         "multicrop": False,
         "brightness": [0.4],
@@ -284,6 +288,7 @@ def test_additional_setup_pretrain():
 
 def test_additional_setup_linear():
     args = {
+        "encoder": "resnet18",
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
@@ -303,6 +308,7 @@ def test_additional_setup_linear():
 
     # check for different gpu syntax
     args = {
+        "encoder": "resnet18",
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
