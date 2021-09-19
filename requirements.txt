@@ -7,3 +7,4 @@ lightning-bolts==0.3.4
 tqdm
 wandb
 scipy
+timm

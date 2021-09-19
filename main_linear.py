@@ -9,6 +9,17 @@ from pytorch_lightning.plugins import DDPPlugin
 from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
+from solo.methods.base import BaseMethod
+from solo.utils.backbones import (
+    swin_base,
+    swin_large,
+    swin_small,
+    swin_tiny,
+    vit_base,
+    vit_large,
+    vit_small,
+    vit_tiny,
+)
 
 try:
     from solo.methods.dali import ClassificationABC
@@ -17,24 +28,41 @@ except ImportError:
 else:
     _dali_avaliable = True
 from solo.methods.linear import LinearModel
-from solo.utils.classification_dataloader import prepare_data
 from solo.utils.checkpointer import Checkpointer
+from solo.utils.classification_dataloader import prepare_data
 
 
 def main():
     args = parse_args_linear()
 
-    if args.encoder == "resnet18":
-        backbone = resnet18()
-    elif args.encoder == "resnet50":
-        backbone = resnet50()
-    else:
-        raise ValueError("Only [resnet18, resnet50] are currently supported.")
+    assert args.encoder in BaseMethod._SUPPORTED_ENCODERS
+    backbone_model = {
+        "resnet18": resnet18,
+        "resnet50": resnet50,
+        "vit_tiny": vit_tiny,
+        "vit_small": vit_small,
+        "vit_base": vit_base,
+        "vit_large": vit_large,
+        "swin_tiny": swin_tiny,
+        "swin_small": swin_small,
+        "swin_base": swin_base,
+        "swin_large": swin_large,
+    }[args.encoder]
 
-    if args.cifar:
-        backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
-        backbone.maxpool = nn.Identity()
-    backbone.fc = nn.Identity()
+    # initialize encoder
+    kwargs = args.backbone_args
+    cifar = kwargs.pop("cifar", False)
+    # swin specific
+    if "swin" in args.encoder and cifar:
+        kwargs["window_size"] = 4
+
+    backbone = backbone_model(**kwargs)
+    if "resnet" in args.encoder:
+        # remove fc layer
+        backbone.fc = nn.Identity()
+        if cifar:
+            backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
+            backbone.maxpool = nn.Identity()
 
     assert (
         args.pretrained_feature_extractor.endswith(".ckpt")
