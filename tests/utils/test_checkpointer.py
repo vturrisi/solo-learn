@@ -20,9 +20,9 @@ def test_checkpointer():
     }
 
     # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = BarlowTwins(**kwargs)
+    model = BarlowTwins(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
 
@@ -43,6 +43,7 @@ def test_checkpointer():
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
     )
 
     trainer.fit(model, train_dl, val_dl)

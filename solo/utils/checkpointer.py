@@ -89,7 +89,7 @@ class Checkpointer(Callback):
             trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
-        if trainer.is_global_zero and not trainer.running_sanity_check:
+        if trainer.is_global_zero and not trainer.sanity_checking:
             epoch = trainer.current_epoch  # type: ignore
             ckpt = self.path / self.ckpt_placeholder.format(epoch)
             trainer.save_checkpoint(ckpt)

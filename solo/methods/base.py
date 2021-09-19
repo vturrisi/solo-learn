@@ -10,6 +10,7 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from solo.utils.knn import WeightedKNNClassifier
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
 
@@ -62,6 +63,8 @@ class BaseMethod(pl.LightningModule):
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
+        disable_knn_eval: bool = True,
+        knn_k: int = 20,
         **kwargs,
     ):
         """Base model that implements all basic operations for all self-supervised methods.
@@ -101,6 +104,8 @@ class BaseMethod(pl.LightningModule):
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
+            disable_knn_eval (bool): disables online knn evaluation while training.
+            knn_k (int): the number of neighbors to use for knn.
 
         .. note::
             When using distributed data parallel, the batch size and the number of workers are
@@ -149,6 +154,8 @@ class BaseMethod(pl.LightningModule):
         self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
+        self.disable_knn_eval = disable_knn_eval
+        self.knn_k = knn_k
 
         # sanity checks on multicrop
         if self.multicrop:
@@ -214,6 +221,9 @@ class BaseMethod(pl.LightningModule):
             self.features_dim = self.encoder.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
+
+        if not self.disable_knn_eval:
+            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -281,6 +291,10 @@ class BaseMethod(pl.LightningModule):
         # uses sample indexes as labels and then gets the labels from a lookup table
         # this may use more CPU memory, so just use when needed.
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
+
+        # online knn eval
+        parser.add_argument("--disable_knn_eval", default=True, action="store_false")
+        parser.add_argument("--knn_k", default=20, type=int)
 
         return parent_parser
 
@@ -410,7 +424,7 @@ class BaseMethod(pl.LightningModule):
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
 
-        return {"loss": loss, **out, "acc1": acc1, "acc5": acc5}
+        return {**out, "loss": loss, "acc1": acc1, "acc5": acc5}
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
@@ -451,6 +465,12 @@ class BaseMethod(pl.LightningModule):
 
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
+        if not self.disable_knn_eval:
+            self.knn(
+                train_features=torch.cat(outs["feats"][: self.num_crops]).detach(),
+                train_targets=targets.repeat(self.num_crops),
+            )
+
         return outs
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
@@ -471,6 +491,9 @@ class BaseMethod(pl.LightningModule):
         batch_size = targets.size(0)
 
         out = self._shared_step(X, targets)
+
+        if not self.disable_knn_eval and not self.trainer.sanity_checking:
+            self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
 
         metrics = {
             "batch_size": batch_size,
@@ -494,6 +517,11 @@ class BaseMethod(pl.LightningModule):
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
+
+        if not self.disable_knn_eval and not self.trainer.sanity_checking:
+            val_knn_acc1, val_knn_acc5 = self.knn.compute()
+            log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
+
         self.log_dict(log, sync_dist=True)
 
 

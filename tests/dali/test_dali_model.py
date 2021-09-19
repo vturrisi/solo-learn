@@ -22,6 +22,7 @@ def test_dali_pretrain():
                 "lamb": 5e-3,
                 "scale_loss": 0.025,
                 "encode_indexes_into_labels": encode_indexes_into_labels,
+                "disable_knn_eval": True,
             }
             BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
             DATA_KWARGS_WRAPPED = {k: [v] for k, v in DATA_KWARGS.items()}

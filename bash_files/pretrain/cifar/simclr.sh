@@ -3,7 +3,7 @@ python3 ../../../main_pretrain.py \
     --encoder resnet18 \
     --data_dir /data/datasets \
     --max_epochs 1000 \
-    --gpus 1 \
+    --gpus 0 \
     --precision 16 \
     --optimizer sgd \
     --lars \
