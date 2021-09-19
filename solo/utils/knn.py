@@ -1,3 +1,4 @@
+from typing import Sequence
 import torch
 from torchmetrics.metric import Metric
 
@@ -5,13 +6,28 @@ from torchmetrics.metric import Metric
 class WeightedKNNClassifier(Metric):
     def __init__(
         self,
-        k=20,
-        T=0.07,
-        num_chunks=100,
-        distance_fx="cosine",
-        epsilon=0.00001,
-        dist_sync_on_step=False,
+        k: int = 20,
+        T: float = 0.07,
+        num_chunks: int = 100,
+        distance_fx: str = "cosine",
+        epsilon: float = 0.00001,
+        dist_sync_on_step: bool = False,
     ):
+        """Implements the weighted k-NN classifier used for evaluation.
+
+        Args:
+            k (int, optional): number of neighbors. Defaults to 20.
+            T (float, optional): temperature for the exponential. Only used with cosine
+                distance. Defaults to 0.07.
+            num_chunks (int, optional): number of chunks of test features. Defaults to 100.
+            distance_fx (str, optional): Distance function. Accepted arguments: "cosine" or
+                "euclidean". Defaults to "cosine".
+            epsilon (float, optional): Small value for numerical stability. Only used with
+                euclidean distance. Defaults to 0.00001.
+            dist_sync_on_step (bool, optional): whether to sync distributed values at every
+                step. Defaults to False.
+        """
+
         super().__init__(dist_sync_on_step=dist_sync_on_step, compute_on_step=False)
 
         self.k = k
@@ -32,6 +48,15 @@ class WeightedKNNClassifier(Metric):
         test_features: torch.Tensor = None,
         test_targets: torch.Tensor = None,
     ):
+        """Updates the memory banks. If train (test) features are passed as input, the
+        corresponding train (test) targets must be passed as well.
+
+        Args:
+            train_features (torch.Tensor, optional): a batch of train features. Defaults to None.
+            train_targets (torch.Tensor, optional): a batch of train targets. Defaults to None.
+            test_features (torch.Tensor, optional): a batch of test features. Defaults to None.
+            test_targets (torch.Tensor, optional): a batch of test targets. Defaults to None.
+        """
         assert (train_features is None) == (train_targets is None)
         assert (test_features is None) == (test_targets is None)
 
@@ -46,7 +71,15 @@ class WeightedKNNClassifier(Metric):
             self.test_targets.append(test_targets)
 
     @torch.no_grad()
-    def compute(self):
+    def compute(self) -> Sequence[float]:
+        """Computes weighted k-NN accuracy @1 and @5. If cosine distance is selected,
+        the weight is computed using the exponential of the temperature scaled cosine
+        distance of the samples. If euclidean distance is selected, the weight corresponds
+        to the inverse of the euclidean distance.
+
+        Returns:
+            Sequence[float]: k-NN accuracy @1 and @5.
+        """
         train_features = torch.cat(self.train_features)
         train_targets = torch.cat(self.train_targets)
         test_features = torch.cat(self.test_features)

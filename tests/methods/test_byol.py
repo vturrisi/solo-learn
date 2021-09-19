@@ -51,7 +51,7 @@ def test_byol():
         and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
-    # imgaenet
+    # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = BYOL(**kwargs, online_knn_eval=False)

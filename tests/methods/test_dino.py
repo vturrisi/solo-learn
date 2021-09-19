@@ -55,7 +55,7 @@ def test_dino():
         and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["num_prototypes"])
     )
 
-    # imgenet
+    # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = DINO(**kwargs, online_knn_eval=False)
