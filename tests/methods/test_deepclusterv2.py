@@ -18,7 +18,7 @@ def test_deepclusterv2():
     }
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = DeepClusterV2(**kwargs, online_knn_eval=False)
+    model = DeepClusterV2(**kwargs, disable_knn_eval=True)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -61,7 +61,7 @@ def test_deepclusterv2():
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = DeepClusterV2(**kwargs, online_knn_eval=False)
+    model = DeepClusterV2(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -78,7 +78,7 @@ def test_deepclusterv2():
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = DeepClusterV2(**kwargs, online_knn_eval=False)
+    model = DeepClusterV2(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)

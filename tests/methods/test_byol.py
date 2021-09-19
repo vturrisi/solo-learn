@@ -17,7 +17,7 @@ def test_byol():
     }
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = BYOL(**kwargs, online_knn_eval=False)
+    model = BYOL(**kwargs, disable_knn_eval=True)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -54,7 +54,7 @@ def test_byol():
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = BYOL(**kwargs, online_knn_eval=False)
+    model = BYOL(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -71,7 +71,7 @@ def test_byol():
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = BYOL(**kwargs, online_knn_eval=False)
+    model = BYOL(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)

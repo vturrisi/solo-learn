@@ -20,7 +20,7 @@ def test_wmse():
     }
 
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = WMSE(**kwargs, online_knn_eval=False)
+    model = WMSE(**kwargs, disable_knn_eval=True)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -57,7 +57,7 @@ def test_wmse():
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
         kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-        model = WMSE(**kwargs, online_knn_eval=False)
+        model = WMSE(**kwargs, disable_knn_eval=True)
 
         args = argparse.Namespace(**kwargs)
         trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -78,7 +78,7 @@ def test_wmse():
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
         kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-        model = WMSE(**kwargs, online_knn_eval=False)
+        model = WMSE(**kwargs, disable_knn_eval=True)
 
         args = argparse.Namespace(**kwargs)
         trainer = Trainer.from_argparse_args(args, fast_dev_run=True)

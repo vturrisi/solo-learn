@@ -17,7 +17,7 @@ def test_simclr():
     }
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs, online_knn_eval=False)
+    model = SimCLR(**kwargs, disable_knn_eval=True)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -49,7 +49,7 @@ def test_simclr():
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs, online_knn_eval=False)
+    model = SimCLR(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -66,7 +66,7 @@ def test_simclr():
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs, online_knn_eval=False)
+    model = SimCLR(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -83,7 +83,7 @@ def test_simclr():
     # multicrop
     BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, num_small_crops=6, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs, online_knn_eval=False)
+    model = SimCLR(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)

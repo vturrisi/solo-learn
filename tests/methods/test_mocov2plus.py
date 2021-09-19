@@ -19,7 +19,7 @@ def test_mocov2plus():
 
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MoCoV2Plus(**kwargs, online_knn_eval=False)
+    model = MoCoV2Plus(**kwargs, disable_knn_eval=True)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -51,7 +51,7 @@ def test_mocov2plus():
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MoCoV2Plus(**kwargs, online_knn_eval=False)
+    model = MoCoV2Plus(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -68,7 +68,7 @@ def test_mocov2plus():
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=True, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MoCoV2Plus(**kwargs, online_knn_eval=False)
+    model = MoCoV2Plus(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
