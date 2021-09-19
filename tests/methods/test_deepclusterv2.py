@@ -16,12 +16,9 @@ def test_deepclusterv2():
         "kmeans_iters": 3,
         "temperature": 0.1,
     }
-
-    BASE_KWARGS = gen_base_kwargs(cifar=False)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = DeepClusterV2(**kwargs)
-
-    batch, _ = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100")
+    model = DeepClusterV2(**kwargs, online_knn_eval=False)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -31,6 +28,8 @@ def test_deepclusterv2():
     # test parameters
     assert model.learnable_params is not None
 
+    # test forward
+    batch, _ = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100")
     out = model(batch[1][0])
     assert (
         "logits" in out
@@ -59,20 +58,32 @@ def test_deepclusterv2():
         )
     )
 
-    # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+    # imagenet
+    BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = DeepClusterV2(**kwargs)
+    model = DeepClusterV2(**kwargs, online_knn_eval=False)
 
     args = argparse.Namespace(**kwargs)
-    trainer = Trainer.from_argparse_args(
-        args,
-        checkpoint_callback=False,
-        limit_train_batches=2,
-        limit_val_batches=2,
-    )
+    trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
+        multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
+    )
+    trainer.fit(model, train_dl, val_dl)
+
+    # cifar
+    BASE_KWARGS = gen_base_kwargs(cifar=True, batch_size=2)
+    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = DeepClusterV2(**kwargs, online_knn_eval=False)
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "cifar10",
         num_crops=BASE_KWARGS["num_crops"],
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],

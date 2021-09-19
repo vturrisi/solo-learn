@@ -15,44 +15,9 @@ def test_simclr():
         "temperature": 0.2,
         "supervised": False,
     }
-
-    BASE_KWARGS = gen_base_kwargs(cifar=False)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs)
-
-    batch, batch_idx = gen_batch(
-        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
-    )
-    loss = model.training_step(batch, batch_idx)
-
-    assert loss != 0
-
-    BASE_KWARGS = gen_base_kwargs(cifar=True)
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs)
-
-    batch, batch_idx = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "cifar10")
-    loss = model.training_step(batch, batch_idx)
-
-    assert loss != 0
-
-    method_kwargs = {
-        "proj_output_dim": 256,
-        "proj_hidden_dim": 2048,
-        "temperature": 0.2,
-        "supervised": True,
-    }
-
-    BASE_KWARGS = gen_base_kwargs(cifar=False)
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs)
-
-    batch, batch_idx = gen_batch(
-        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
-    )
-    loss = model.training_step(batch, batch_idx)
-
-    assert loss != 0
+    model = SimCLR(**kwargs, online_knn_eval=False)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -62,6 +27,8 @@ def test_simclr():
     # test parameters
     assert model.learnable_params is not None
 
+    # test forward
+    batch, _ = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100")
     out = model(batch[1][0])
     assert (
         "logits" in out
@@ -79,56 +46,53 @@ def test_simclr():
         and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
-    args = argparse.Namespace(**kwargs)
-    trainer = Trainer.from_argparse_args(
-        args,
-        checkpoint_callback=False,
-        limit_train_batches=2,
-        limit_val_batches=2,
-    )
-    train_dl, val_dl = prepare_dummy_dataloaders(
-        "imagenet100", BASE_KWARGS["num_crops"], BASE_KWARGS["num_classes"], multicrop=False
-    )
-    trainer.fit(model, train_dl, val_dl)
-
-    # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+    # imagenet
+    BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs)
+    model = SimCLR(**kwargs, online_knn_eval=False)
 
     args = argparse.Namespace(**kwargs)
-    trainer = Trainer.from_argparse_args(
-        args,
-        checkpoint_callback=False,
-        limit_train_batches=2,
-        limit_val_batches=2,
-    )
+    trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
         num_crops=BASE_KWARGS["num_crops"],
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
+    )
+    trainer.fit(model, train_dl, val_dl)
+
+    # cifar
+    BASE_KWARGS = gen_base_kwargs(cifar=True, batch_size=2)
+    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = SimCLR(**kwargs, online_knn_eval=False)
+
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "cifar10",
+        num_crops=BASE_KWARGS["num_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
+        multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
     )
     trainer.fit(model, train_dl, val_dl)
 
     # multicrop
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, num_small_crops=6)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, num_small_crops=6, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = SimCLR(**kwargs)
+    model = SimCLR(**kwargs, online_knn_eval=False)
 
     args = argparse.Namespace(**kwargs)
-    trainer = Trainer.from_argparse_args(
-        args,
-        checkpoint_callback=False,
-        limit_train_batches=2,
-        limit_val_batches=2,
-    )
+    trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
         num_crops=BASE_KWARGS["num_crops"],
         num_small_crops=6,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=True,
+        batch_size=BASE_KWARGS["batch_size"],
     )
     trainer.fit(model, train_dl, val_dl)

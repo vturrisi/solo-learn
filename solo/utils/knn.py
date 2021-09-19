@@ -57,9 +57,10 @@ class WeightedKNNClassifier(Metric):
 
         top1, top5, total = 0.0, 0.0, 0
         num_classes = torch.unique(test_targets).numel()
-        num_test_images = test_targets.shape[0]
-        chunk_size = num_test_images // self.num_chunks
-        retrieval_one_hot = torch.zeros(self.k, num_classes).to(train_features.device)
+        num_test_images = test_targets.size(0)
+        chunk_size = max(1, num_test_images // self.num_chunks)
+        k = min(self.k, train_targets.size(0))
+        retrieval_one_hot = torch.zeros(k, num_classes).to(train_features.device)
         for idx in range(0, num_test_images, chunk_size):
             # get the features for test images
             features = test_features[idx : min((idx + chunk_size), num_test_images), :]
@@ -74,11 +75,11 @@ class WeightedKNNClassifier(Metric):
             else:
                 raise NotImplementedError
 
-            distances, indices = similarity.topk(self.k, largest=True, sorted=True)
+            distances, indices = similarity.topk(k, largest=True, sorted=True)
             candidates = train_targets.view(1, -1).expand(batch_size, -1)
             retrieved_neighbors = torch.gather(candidates, 1, indices)
 
-            retrieval_one_hot.resize_(batch_size * self.k, num_classes).zero_()
+            retrieval_one_hot.resize_(batch_size * k, num_classes).zero_()
             retrieval_one_hot.scatter_(1, retrieved_neighbors.view(-1, 1), 1)
 
             if self.distance_fx == "cosine":
@@ -97,7 +98,7 @@ class WeightedKNNClassifier(Metric):
             correct = predictions.eq(targets.data.view(-1, 1))
             top1 = top1 + correct.narrow(1, 0, 1).sum().item()
             top5 = (
-                top5 + correct.narrow(1, 0, min(5, self.k)).sum().item()
+                top5 + correct.narrow(1, 0, min(5, k)).sum().item()
             )  # top5 does not make sense if k < 5
             total += targets.size(0)
 

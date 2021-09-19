@@ -20,7 +20,7 @@ def test_auto_umap():
     # normal training
     BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = BarlowTwins(**kwargs)
+    model = BarlowTwins(**kwargs, online_knn_eval=False)
 
     args = argparse.Namespace(**kwargs)
 
@@ -41,6 +41,7 @@ def test_auto_umap():
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
     )
 
     trainer.fit(model, train_dl, val_dl)
