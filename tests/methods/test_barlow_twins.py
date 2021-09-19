@@ -79,24 +79,3 @@ def test_barlow():
         batch_size=BASE_KWARGS["batch_size"],
     )
     trainer.fit(model, train_dl, val_dl)
-
-    # # normal training
-    # BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
-    # kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    # model = BarlowTwins(**kwargs)
-
-    # args = argparse.Namespace(**kwargs)
-    # trainer = Trainer.from_argparse_args(
-    #     args,
-    #     checkpoint_callback=False,
-    #     limit_train_batches=2,
-    #     limit_val_batches=2,
-    # )
-    # train_dl, val_dl = prepare_dummy_dataloaders(
-    #     "imagenet100",
-    #     num_crops=BASE_KWARGS["num_crops"],
-    #     num_small_crops=0,
-    #     num_classes=BASE_KWARGS["num_classes"],
-    #     multicrop=False,
-    # )
-    # trainer.fit(model, train_dl, val_dl)
