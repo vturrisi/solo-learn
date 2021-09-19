@@ -65,7 +65,7 @@ class WeightedKNNClassifier(Metric):
             # get the features for test images
             features = test_features[idx : min((idx + chunk_size), num_test_images), :]
             targets = test_targets[idx : min((idx + chunk_size), num_test_images)]
-            batch_size = targets.shape[0]
+            batch_size = targets.size(0)
 
             # calculate the dot product and compute top-k neighbors
             if self.distance_fx == "cosine":
