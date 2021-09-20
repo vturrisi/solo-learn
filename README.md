@@ -45,21 +45,22 @@ While the library is self contained, it is possible to use the models outside of
 ## Extra flavor
 
 ### Data
-* Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI)
-* Asymmetric and symmetric augmentations
+* Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
+* Asymmetric and symmetric augmentations.
 ### Evaluation and logging
-* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well)
-* Normal offline linear evaluation
-* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
-* Easy-to-extend modular code structure
-* Custom model logging with a simpler file organization
-* Automatic feature space visualization with UMAP
+* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well).
+* Online Knn evaluation.
+* Normal offline linear evaluation.
+* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
+* Easy-to-extend modular code structure.
+* Custom model logging with a simpler file organization.
+* Automatic feature space visualization with UMAP.
 * Common metrics and more to come...
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
-    * **Note**: currently, only SimCLR supports this
-* Exclude batchnorm and biases from LARS
-* No LR scheduler for the projection head in SimSiam
+    * **Note**: currently, only SimCLR supports this.
+* Exclude batchnorm and biases from LARS.
+* No LR scheduler for the projection head in SimSiam.
 ---
 ## Requirements
 
