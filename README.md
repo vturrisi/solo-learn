@@ -15,7 +15,7 @@ While the library is self contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Sep 19 2021]**: :kangaroo: Added online k-NN evaluation
+* **[Sep 19 2021]**: :kangaroo: Added online k-NN evaluation.
 * **[Sep 17 2021]**: :robot: Added [ViT](https://arxiv.org/abs/2010.11929) and [Swin](https://arxiv.org/abs/2103.14030).
 * **[Sep 13 2021]**: :book: Improved [Docs](https://solo-learn.readthedocs.io/en/latest/?badge=latest) and added tutorials for [pretraining](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html) and [offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html).
 * **[Aug 13 2021]**: :whale: [DeepCluster V2](https://arxiv.org/abs/2006.09882) is now available.
