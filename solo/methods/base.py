@@ -293,7 +293,7 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
 
         # online knn eval
-        parser.add_argument("--disable_knn_eval", default=True, action="store_false")
+        parser.add_argument("--disable_knn_eval", default=False, action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
 
         return parent_parser
