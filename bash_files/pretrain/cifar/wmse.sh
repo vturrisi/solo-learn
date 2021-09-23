@@ -3,8 +3,8 @@ python3 ../../../main_pretrain.py \
     --encoder resnet18 \
     --data_dir ./datasets \
     --max_epochs 1000 \
-    --precision 16 \
     --gpus 0 \
+    --precision 16 \
     --num_workers 3 \
     --optimizer adam \
     --scheduler warmup_cosine \

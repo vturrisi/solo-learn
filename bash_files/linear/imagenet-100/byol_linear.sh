@@ -9,7 +9,7 @@ python3 ../../../main_linear.py \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
-    --lr 3.0 \
+    --lr 0.3 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
     --batch_size 256 \

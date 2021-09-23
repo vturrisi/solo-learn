@@ -6,7 +6,7 @@ python3 ../../../main_linear.py \
     --val_dir ILSVRC2012/val \
     --max_epochs 100 \
     --gpus 0 \
-    --distributed_backend ddp \
+    --accelerator ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
