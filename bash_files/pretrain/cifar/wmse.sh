@@ -5,7 +5,7 @@ python3 ../../../main_pretrain.py \
     --max_epochs 1000 \
     --gpus 0 \
     --precision 16 \
-    --num_workers 3 \
+    --num_workers 4 \
     --optimizer adam \
     --scheduler warmup_cosine \
     --warmup_epochs 2 \

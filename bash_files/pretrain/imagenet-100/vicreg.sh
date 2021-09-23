@@ -18,7 +18,7 @@ python3 ../../../main_pretrain.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --num_workers 6 \
+    --num_workers 4 \
     --dali \
     --min_scale 0.2 \
     --brightness 0.4 \

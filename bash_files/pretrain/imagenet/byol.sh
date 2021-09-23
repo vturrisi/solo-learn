@@ -19,7 +19,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 0.2 \
     --weight_decay 1e-6 \
     --batch_size 128 \
-    --num_workers 8 \
+    --num_workers 4 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \

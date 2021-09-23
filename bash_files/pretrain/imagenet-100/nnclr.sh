@@ -24,7 +24,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
-    --num_workers 8 \
+    --num_workers 4 \
     --dali \
     --name nnclr-400ep-imagenet100 \
     --entity unitn-mhug \

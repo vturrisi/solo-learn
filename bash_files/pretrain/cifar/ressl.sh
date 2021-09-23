@@ -11,7 +11,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-4 \
     --batch_size 256 \
-    --num_workers 5 \
+    --num_workers 4 \
     --brightness 0.4 0.0 \
     --contrast 0.4 0.0 \
     --saturation 0.2 0.0 \
