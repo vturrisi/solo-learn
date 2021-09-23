@@ -6,7 +6,7 @@ python3 ../../../main_pretrain.py \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
     --gpus 0,1 \
-    --distributed_backend ddp \
+    --accelerator ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
@@ -18,7 +18,7 @@ python3 ../../../main_pretrain.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --num_workers 6 \
+    --num_workers 4 \
     --dali \
     --min_scale 0.2 \
     --brightness 0.4 \

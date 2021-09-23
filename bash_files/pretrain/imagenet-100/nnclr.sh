@@ -6,7 +6,7 @@ python3 ../../../main_pretrain.py \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
     --gpus 0,1 \
-    --distributed_backend ddp \
+    --accelerator ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
@@ -24,7 +24,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
-    --num_workers 8 \
+    --num_workers 4 \
     --dali \
     --name nnclr-400ep-imagenet100 \
     --entity unitn-mhug \

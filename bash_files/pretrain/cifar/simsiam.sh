@@ -4,8 +4,6 @@ python3 ../../../main_pretrain.py \
     --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
-    --distributed_backend ddp \
-    --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
     --scheduler warmup_cosine \

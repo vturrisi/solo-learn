@@ -10,7 +10,7 @@ python3 ../../../main_pretrain.py \
     --no_labels \
     --max_epochs 400 \
     --gpus 0,1 \
-    --distributed_backend ddp \
+    --accelerator ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
@@ -23,7 +23,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-5 \
     --batch_size 128 \
-    --num_workers 8 \
+    --num_workers 4 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \

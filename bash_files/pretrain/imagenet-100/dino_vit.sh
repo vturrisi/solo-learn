@@ -6,7 +6,7 @@ python3 ../../../main_pretrain.py \
     --val_dir imagenet-100/test \
     --max_epochs 400 \
     --gpus 0,1 \
-    --distributed_backend ddp \
+    --accelerator ddp \
     --sync_batchnorm \
     --precision 32 \
     --optimizer adamw \
@@ -16,7 +16,7 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 3e-3 \
     --weight_decay 1e-4 \
     --batch_size 64 \
-    --num_workers 6 \
+    --num_workers 4 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \

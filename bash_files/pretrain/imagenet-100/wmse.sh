@@ -6,7 +6,8 @@ python3 ../../../main_pretrain.py \
     --val_dir imagenet-100/test \
     --max_epochs 400 \
     --precision 16 \
-    --gpus 0 \
+    --gpus 0,1 \
+    --accelerator ddp \
     --num_workers 4 \
     --optimizer adam \
     --scheduler warmup_cosine \
