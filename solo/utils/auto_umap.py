@@ -35,6 +35,15 @@ from pytorch_lightning.callbacks import Callback
 from .misc import gather
 
 
+def random_string(letter_count=4, digit_count=4):
+    tmp_random = random.Random(time.time())
+    rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
+    rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
+    rand_str = list(rand_str)
+    tmp_random.shuffle(rand_str)
+    return "".join(rand_str)
+
+
 class AutoUMAP(Callback):
     def __init__(
         self,
@@ -86,7 +95,10 @@ class AutoUMAP(Callback):
         """
 
         if trainer.logger is None:
-            version = None
+            existing_versions = set(os.listdir(self.logdir))
+            version = "offline-" + random_string()
+            while version in existing_versions:
+                version = "offline-" + random_string()
         else:
             version = str(trainer.logger.version)
         if version is not None:
