@@ -31,8 +31,7 @@ from pytorch_lightning.callbacks import Callback
 
 
 def random_string(letter_count=4, digit_count=4):
-    # tmp_random = random.Random(time.time())
-    tmp_random = random
+    tmp_random = random.Random(time.time())
     rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
     rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
     rand_str = list(rand_str)
