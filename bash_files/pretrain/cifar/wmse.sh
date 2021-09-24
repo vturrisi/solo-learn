@@ -22,6 +22,7 @@ python3 ../../../main_pretrain.py \
     --min_scale 0.2 \
     --name wmse-$1 \
     --wandb \
+    --save_checkpoint \
     --project solo-learn \
     --entity unitn-mhug \
     --method wmse \

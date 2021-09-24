@@ -25,6 +25,7 @@ python3 ../../../main_pretrain.py \
     --min_scale 0.08 \
     --dali \
     --wandb \
+    --save_checkpoint \
     --name wmse-imagenet100 \
     --project solo-learn \
     --entity unitn-mhug \

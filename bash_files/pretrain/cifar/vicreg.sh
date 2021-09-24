@@ -26,6 +26,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
+    --save_checkpoint \
     --method vicreg \
     --proj_hidden_dim 2048 \
     --proj_output_dim 2048 \

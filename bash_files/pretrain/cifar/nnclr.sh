@@ -26,6 +26,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
+    --save_checkpoint \
     --method nnclr \
     --temperature 0.2 \
     --proj_hidden_dim 2048 \
