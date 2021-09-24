@@ -111,7 +111,7 @@ def parse_args_linear() -> argparse.Namespace:
     parser.add_argument("--save_checkpoint", action="store_true")
     temp_args, _ = parser.parse_known_args()
 
-    # add checkpointer args (only if logging is enabled)
+    # optionally add checkpointer
     if temp_args.save_checkpoint:
         parser = Checkpointer.add_checkpointer_args(parser)
 
