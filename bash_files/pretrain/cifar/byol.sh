@@ -25,6 +25,7 @@ python3 ../../../main_pretrain.py \
     --name byol-$1 \
     --project solo-learn \
     --entity unitn-mhug \
+    --wandb \
     --save_checkpoint \
     --method byol \
     --proj_output_dim 256 \
