@@ -30,6 +30,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method swav \
     --proj_hidden_dim 2048 \
     --queue_size 3840 \

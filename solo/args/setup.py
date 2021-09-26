@@ -62,12 +62,13 @@ def parse_args_pretrain() -> argparse.Namespace:
     # add model specific args
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
 
-    # add auto umap args
+    # add auto checkpoint/umap args
+    parser.add_argument("--save_checkpoint", action="store_true")
     parser.add_argument("--auto_umap", action="store_true")
+    temp_args, _ = parser.parse_known_args()
 
     # optionally add checkpointer and AutoUMAP args
-    temp_args, _ = parser.parse_known_args()
-    if temp_args.wandb:
+    if temp_args.save_checkpoint:
         parser = Checkpointer.add_checkpointer_args(parser)
 
     if _umap_available and temp_args.auto_umap:
@@ -106,11 +107,12 @@ def parse_args_linear() -> argparse.Namespace:
     # linear model
     parser = METHODS["linear"].add_model_specific_args(parser)
 
-    # THIS LINE IS KEY TO PULL WANDB
+    # THIS LINE IS KEY TO PULL WANDB AND SAVE_CHECKPOINT
+    parser.add_argument("--save_checkpoint", action="store_true")
     temp_args, _ = parser.parse_known_args()
 
-    # add checkpointer args (only if logging is enabled)
-    if temp_args.wandb:
+    # optionally add checkpointer
+    if temp_args.save_checkpoint:
         parser = Checkpointer.add_checkpointer_args(parser)
 
     # parse args

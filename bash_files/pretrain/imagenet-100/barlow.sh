@@ -30,6 +30,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --scale_loss 0.1 \
     --method barlow_twins \
     --proj_hidden_dim 2048 \

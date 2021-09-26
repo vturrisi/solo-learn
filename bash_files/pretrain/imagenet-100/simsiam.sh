@@ -26,6 +26,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method simsiam \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 512 \

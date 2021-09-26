@@ -130,6 +130,7 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         callbacks.append(lr_monitor)
 
+    if args.save_checkpoint:
         # save checkpoint on last epoch only
         ckpt = Checkpointer(
             args,

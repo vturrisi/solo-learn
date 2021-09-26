@@ -204,6 +204,7 @@ And that's it, we basically replicated a small version of ``main_pretrain.py``. 
         --name barlow-cifar10 \
         --project self-superivsed \
         --wandb \
+        --save_checkpoint \
         --method barlow_twins \
         --proj_hidden_dim 2048 \
         --output_dim 2048 \

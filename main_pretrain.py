@@ -149,6 +149,7 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         callbacks.append(lr_monitor)
 
+    if args.save_checkpoint:
         # save checkpoint on last epoch only
         ckpt = Checkpointer(
             args,
@@ -157,16 +158,16 @@ def main():
         )
         callbacks.append(ckpt)
 
-        if args.auto_umap:
-            assert (
-                _umap_available
-            ), "UMAP is not currently avaiable, please install it first with [umap]."
-            auto_umap = AutoUMAP(
-                args,
-                logdir=os.path.join(args.auto_umap_dir, args.method),
-                frequency=args.auto_umap_frequency,
-            )
-            callbacks.append(auto_umap)
+    if args.auto_umap:
+        assert (
+            _umap_available
+        ), "UMAP is not currently avaiable, please install it first with [umap]."
+        auto_umap = AutoUMAP(
+            args,
+            logdir=os.path.join(args.auto_umap_dir, args.method),
+            frequency=args.auto_umap_frequency,
+        )
+        callbacks.append(auto_umap)
 
     trainer = Trainer.from_argparse_args(
         args,

@@ -26,6 +26,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
+    --save_checkpoint \
     --method ressl \
     --proj_output_dim 256 \
     --proj_hidden_dim 4096 \
