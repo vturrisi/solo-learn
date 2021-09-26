@@ -25,6 +25,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
+    --save_checkpoint \
     --method mocov2plus \
     --proj_hidden_dim 2048 \
     --queue_size 65536 \

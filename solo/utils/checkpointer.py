@@ -19,12 +19,24 @@
 
 import json
 import os
+import random
+import string
+import time
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Optional, Union
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
+
+
+def random_string(letter_count=4, digit_count=4):
+    tmp_random = random.Random(time.time())
+    rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
+    rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
+    rand_str = list(rand_str)
+    tmp_random.shuffle(rand_str)
+    return "".join(rand_str)
 
 
 class Checkpointer(Callback):
@@ -74,7 +86,13 @@ class Checkpointer(Callback):
         """
 
         if trainer.logger is None:
-            version = None
+            if self.logdir.exists():
+                existing_versions = set(os.listdir(self.logdir))
+            else:
+                existing_versions = []
+            version = "offline-" + random_string()
+            while version in existing_versions:
+                version = "offline-" + random_string()
         else:
             version = str(trainer.logger.version)
         if version is not None:

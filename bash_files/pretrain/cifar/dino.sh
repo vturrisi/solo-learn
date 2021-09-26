@@ -26,6 +26,7 @@ python3 ../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method dino \
     --proj_output_dim 256 \
     --proj_hidden_dim 2048 \

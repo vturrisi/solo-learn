@@ -28,6 +28,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method simclr \
     --temperature 0.2 \
     --proj_hidden_dim 2048
@@ -65,6 +66,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method simclr \
     --proj_hidden_dim 2048 \
     --temperature 0.1
@@ -103,6 +105,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method simclr \
     --temperature 0.1 \
     --proj_hidden_dim 2048 \

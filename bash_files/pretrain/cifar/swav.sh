@@ -23,6 +23,7 @@ python3 ../../../main_pretrain.py \
     --gaussian_prob 0.0 0.0 \
     --name swav-$1 \
     --wandb \
+    --save_checkpoint \
     --project solo-learn \
     --entity unitn-mhug \
     --method swav \
