@@ -86,7 +86,10 @@ class Checkpointer(Callback):
         """
 
         if trainer.logger is None:
-            existing_versions = set(os.listdir(self.logdir))
+            if self.logdir.exists():
+                existing_versions = set(os.listdir(self.logdir))
+            else:
+                existing_versions = []
             version = "offline-" + random_string()
             while version in existing_versions:
                 version = "offline-" + random_string()

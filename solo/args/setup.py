@@ -62,7 +62,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     # add model specific args
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
 
-    # add auto umap args
+    # add auto checkpoint/umap args
     parser.add_argument("--save_checkpoint", action="store_true")
     parser.add_argument("--auto_umap", action="store_true")
     temp_args, _ = parser.parse_known_args()
