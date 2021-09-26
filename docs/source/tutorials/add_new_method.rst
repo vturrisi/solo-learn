@@ -199,7 +199,7 @@ Now that it is all ready, we just need to make the method available for the libr
 
 And that is it, you are good to go. You can now run your implementation of NNSiam using the following command:
 
-.. code-block:: python
+.. code-block:: bash
 
     python3 ../../../main_pretrain.py \
         --dataset DATASET \
@@ -227,6 +227,7 @@ And that is it, you are good to go. You can now run your implementation of NNSia
         --project solo-learn \
         --entity YOUR_ENTITY \
         --wandb \
+        --save_checkpoint \
         --method nnsiam \
         --proj_hidden_dim 2048 \
         --pred_hidden_dim 4096 \
