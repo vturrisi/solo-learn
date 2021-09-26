@@ -31,6 +31,8 @@ While the library is self contained, it is possible to use the models outside of
 
    tutorials/overview
    tutorials/offline_linear_eval
+   tutorials/add_new_method
+   tutorials/add_new_method_momentum
 
 
 ======================================
