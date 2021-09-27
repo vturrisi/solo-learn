@@ -20,7 +20,7 @@
 import argparse
 
 import pytorch_lightning as pl
-from solo.args.dataset import augmentations_args, dataset_args
+from solo.args.dataset import augmentations_args, custom_dataset_args, dataset_args
 from solo.args.utils import additional_setup_linear, additional_setup_pretrain
 from solo.methods import METHODS
 from solo.utils.checkpointer import Checkpointer
@@ -49,6 +49,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     # add shared arguments
     dataset_args(parser)
     augmentations_args(parser)
+    custom_dataset_args(parser)
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
@@ -100,6 +101,7 @@ def parse_args_linear() -> argparse.Namespace:
 
     # add shared arguments
     dataset_args(parser)
+    custom_dataset_args(parser)
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
