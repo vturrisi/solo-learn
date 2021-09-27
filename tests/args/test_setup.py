@@ -313,7 +313,6 @@ def test_additional_setup_pretrain():
     assert "transform_kwargs" in args
 
     # check for different encoder / custom dataset
-
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
         args = {
             "encoder": "vit_small",

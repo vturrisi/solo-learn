@@ -27,7 +27,7 @@ from solo.methods import NNBYOL
 from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
-def test_byol():
+def test_nnbyol():
     method_kwargs = {
         "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
