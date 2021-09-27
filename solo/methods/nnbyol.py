@@ -26,25 +26,30 @@ import torch.nn.functional as F
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
+from solo.utils.misc import gather
 
 
-class BYOL(BaseMomentumMethod):
+class NNBYOL(BaseMomentumMethod):
     def __init__(
         self,
         proj_output_dim: int,
         proj_hidden_dim: int,
         pred_hidden_dim: int,
+        queue_size: int,
         **kwargs,
     ):
-        """Implements BYOL (https://arxiv.org/abs/2006.07733).
+        """Implements NNBYOL (https://arxiv.org/abs/2104.14548).
 
         Args:
             proj_output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+            queue_size (int): number of samples to keep in the queue.
         """
 
         super().__init__(**kwargs)
+
+        self.queue_size = queue_size
 
         # projector
         self.projector = nn.Sequential(
@@ -71,9 +76,15 @@ class BYOL(BaseMomentumMethod):
             nn.Linear(pred_hidden_dim, proj_output_dim),
         )
 
+        # queue
+        self.register_buffer("queue", torch.randn(self.queue_size, proj_output_dim))
+        self.register_buffer("queue_y", -torch.ones(self.queue_size, dtype=torch.long))
+        self.queue = F.normalize(self.queue, dim=1)
+        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(BYOL, BYOL).add_model_specific_args(parent_parser)
+        parent_parser = super(NNBYOL, NNBYOL).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("byol")
 
         # projector
@@ -82,6 +93,9 @@ class BYOL(BaseMomentumMethod):
 
         # predictor
         parser.add_argument("--pred_hidden_dim", type=int, default=512)
+
+        # queue settings
+        parser.add_argument("--queue_size", default=65536, type=int)
 
         return parent_parser
 
@@ -110,6 +124,46 @@ class BYOL(BaseMomentumMethod):
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
+    @torch.no_grad()
+    def dequeue_and_enqueue(self, z: torch.Tensor, y: torch.Tensor):
+        """Adds new samples and removes old samples from the queue in a fifo manner. Also stores
+        the labels of the samples.
+
+        Args:
+            z (torch.Tensor): batch of projected features.
+            y (torch.Tensor): labels of the samples in the batch.
+        """
+
+        z = gather(z)
+        y = gather(y)
+
+        batch_size = z.shape[0]
+
+        ptr = int(self.queue_ptr)  # type: ignore
+        assert self.queue_size % batch_size == 0
+
+        self.queue[ptr : ptr + batch_size, :] = z
+        self.queue_y[ptr : ptr + batch_size] = y  # type: ignore
+        ptr = (ptr + batch_size) % self.queue_size
+
+        self.queue_ptr[0] = ptr  # type: ignore
+
+    @torch.no_grad()
+    def find_nn(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Finds the nearest neighbor of a sample.
+
+        Args:
+            z (torch.Tensor): a batch of projected features.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                indices and projected features of the nearest neighbors.
+        """
+
+        idx = (z @ self.queue.T).max(dim=1)[1]
+        nn = self.queue[idx]
+        return idx, nn
+
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
         """Performs forward pass of the online encoder (encoder, projector and predictor).
 
@@ -137,6 +191,8 @@ class BYOL(BaseMomentumMethod):
             torch.Tensor: total loss composed of BYOL and classification loss.
         """
 
+        targets = batch[-1]
+
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]
@@ -144,6 +200,7 @@ class BYOL(BaseMomentumMethod):
 
         z1 = self.projector(feats1)
         z2 = self.projector(feats2)
+
         p1 = self.predictor(z1)
         p2 = self.predictor(z2)
 
@@ -152,8 +209,22 @@ class BYOL(BaseMomentumMethod):
             z1_momentum = self.momentum_projector(momentum_feats1)
             z2_momentum = self.momentum_projector(momentum_feats2)
 
-        # ------- negative consine similarity loss -------
-        neg_cos_sim = byol_loss_func(p1, z2_momentum) + byol_loss_func(p2, z1_momentum)
+        z1_momentum = F.normalize(z1_momentum, dim=-1)
+        z2_momentum = F.normalize(z2_momentum, dim=-1)
+
+        # find nn
+        idx1, nn1_momentum = self.find_nn(z1_momentum)
+        _, nn2_momentum = self.find_nn(z2_momentum)
+
+        # ------- negative cosine similarity loss -------
+        neg_cos_sim = byol_loss_func(p1, nn2_momentum) + byol_loss_func(p2, nn1_momentum)
+
+        # compute nn accuracy
+        b = targets.size(0)
+        nn_acc = (targets == self.queue_y[idx1]).sum() / b
+
+        # dequeue and enqueue
+        self.dequeue_and_enqueue(z1_momentum, targets)
 
         # calculate std of features
         z1_std = F.normalize(z1, dim=-1).std(dim=0).mean()
@@ -163,6 +234,7 @@ class BYOL(BaseMomentumMethod):
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,
             "train_z_std": z_std,
+            "train_nn_acc": nn_acc,
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 

@@ -24,7 +24,9 @@ from solo.methods.deepclusterv2 import DeepClusterV2
 from solo.methods.dino import DINO
 from solo.methods.linear import LinearModel
 from solo.methods.mocov2plus import MoCoV2Plus
+from solo.methods.nnbyol import NNBYOL
 from solo.methods.nnclr import NNCLR
+from solo.methods.nnsiam import NNSiam
 from solo.methods.ressl import ReSSL
 from solo.methods.simclr import SimCLR
 from solo.methods.simsiam import SimSiam
@@ -42,7 +44,9 @@ METHODS = {
     "deepclusterv2": DeepClusterV2,
     "dino": DINO,
     "mocov2plus": MoCoV2Plus,
+    "nnbyol": NNBYOL,
     "nnclr": NNCLR,
+    "nnsiam": NNSiam,
     "ressl": ReSSL,
     "simclr": SimCLR,
     "simsiam": SimSiam,
@@ -58,7 +62,9 @@ __all__ = [
     "DINO",
     "LinearModel",
     "MoCoV2Plus",
+    "NNBYOL",
     "NNCLR",
+    "NNSiam",
     "ReSSL",
     "SimCLR",
     "SimSiam",

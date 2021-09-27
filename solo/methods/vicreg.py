@@ -122,7 +122,7 @@ class VICReg(BaseMethod):
         z1 = self.projector(feats1)
         z2 = self.projector(feats2)
 
-        # ------- barlow twins loss -------
+        # ------- vicreg loss -------
         vicreg_loss = vicreg_loss_func(
             z1,
             z2,
