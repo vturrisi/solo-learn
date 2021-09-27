@@ -48,9 +48,6 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--dali_device", type=str, default="gpu")
 
-    # custom dataset only
-    parser.add_argument("--no_labels", action="store_true")
-
 
 def augmentations_args(parser: ArgumentParser):
     """Adds augmentation-related arguments to a parser.
@@ -73,12 +70,23 @@ def augmentations_args(parser: ArgumentParser):
     parser.add_argument("--solarization_prob", type=float, default=[0.0], nargs="+")
     parser.add_argument("--min_scale", type=float, default=[0.08], nargs="+")
 
+    # debug
+    parser.add_argument("--debug_augmentations", action="store_true")
+
+
+def custom_dataset_args(parser: ArgumentParser):
+    """Adds custom data-related arguments to a parser.
+
+    Args:
+        parser (ArgumentParser): parser to add augmentation args to.
+    """
+
+    # custom dataset only
+    parser.add_argument("--no_labels", action="store_true")
+
     # for imagenet or custom dataset
     parser.add_argument("--size", type=int, default=[224], nargs="+")
 
     # for custom dataset
     parser.add_argument("--mean", type=float, default=[0.485, 0.456, 0.406], nargs="+")
     parser.add_argument("--std", type=float, default=[0.228, 0.224, 0.225], nargs="+")
-
-    # debug
-    parser.add_argument("--debug_augmentations", action="store_true")

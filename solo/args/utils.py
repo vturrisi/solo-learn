@@ -19,6 +19,7 @@
 
 import os
 from argparse import Namespace
+from contextlib import suppress
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -192,8 +193,10 @@ def additional_setup_pretrain(args: Namespace):
         if "vit" in args.encoder:
             args.backbone_args["patch_size"] = args.patch_size
 
-    del args.zero_init_residual
-    del args.patch_size
+    with suppress(AttributeError):
+        del args.zero_init_residual
+    with suppress(AttributeError):
+        del args.patch_size
 
     if args.dali:
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
@@ -225,8 +228,16 @@ def additional_setup_linear(args: Namespace):
         - lr: learning rate.
     """
 
-    assert args.dataset in N_CLASSES_PER_DATASET
-    args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
+    if args.dataset in N_CLASSES_PER_DATASET:
+        args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
+    else:
+        # hack to maintain the current pipeline
+        # even if the custom dataset doesn't have any labels
+        dir_path = args.data_dir / args.train_dir
+        args.num_classes = max(
+            1,
+            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+        )
 
     # create backbone-specific arguments
     args.backbone_args = {"cifar": True if args.dataset in ["cifar10", "cifar100"] else False}
@@ -241,19 +252,16 @@ def additional_setup_linear(args: Namespace):
         elif "imagenet" in dataset:
             args.backbone_args["img_size"] = 224
         elif "custom" in dataset:
-            transform_kwargs = args.transform_kwargs
-            if isinstance(transform_kwargs, list):
-                args.backbone_args["img_size"] = transform_kwargs[0]["size"]
-            else:
-                args.backbone_args["img_size"] = transform_kwargs["size"]
+            args.backbone_args["img_size"] = args.size
 
         if "vit" in args.encoder:
             args.backbone_args["patch_size"] = args.patch_size
 
-    del args.patch_size
+    with suppress(AttributeError):
+        del args.patch_size
 
     if args.dali:
-        assert args.dataset in ["imagenet100", "imagenet"]
+        assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
