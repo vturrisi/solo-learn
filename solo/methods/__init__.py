@@ -46,7 +46,7 @@ METHODS = {
     "mocov2plus": MoCoV2Plus,
     "nnbyol": NNBYOL,
     "nnclr": NNCLR,
-    "nnsimsiam": NNSiam,
+    "nnsiam": NNSiam,
     "ressl": ReSSL,
     "simclr": SimCLR,
     "simsiam": SimSiam,
