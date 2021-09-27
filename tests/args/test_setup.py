@@ -98,6 +98,9 @@ def test_setup_pretrain():
         "--final_tau_momentum",
         "1.0",
         "--momentum_classifier",
+        "--wandb",
+        "--save_checkpoint",
+        "--auto_umap",
     ]
     # Write string to a file
     with open("dummy_script.py", "w") as f:
