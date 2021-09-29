@@ -69,7 +69,9 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/deepclusterv2
    solo/methods/dino
    solo/methods/mocov2plus
+   solo/methods/nnbyol
    solo/methods/nnclr
+   solo/methods/nnsiam
    solo/methods/ressl
    solo/methods/simclr
    solo/methods/simsiam

@@ -194,7 +194,7 @@ class NNBYOL(BaseMomentumMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of BYOL and classification loss.
+            torch.Tensor: total loss composed of NNBYOL and classification loss.
         """
 
         targets = batch[-1]

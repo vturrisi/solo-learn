@@ -1,5 +1,5 @@
 NNSiam
-=====
+======
 
 .. automethod:: solo.methods.nnsiam.NNSiam.__init__
    :noindex:
