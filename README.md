@@ -15,7 +15,7 @@ While the library is self contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Sep 27 2021]**: :pizza: Added [NNSiam](https://arxiv.org/abs/2104.14548), NNBYOL, new tutorials for implementing new methods [1](https://solo-learn.readthedocs.io/en/latest/tutorials/add_new_method.html) and [2](https://solo-learn.readthedocs.io/en/latest/tutorials/add_new_method_momentum.html), more testing and fixed issues with custom data and linear evaluation.
+* **[Sep 27 2021]**: :pizza: Added [NNSiam](https://arxiv.org/abs/2104.14548), [NNBYOL]((https://arxiv.org/abs/2104.14548), new tutorials for implementing new methods [1](https://solo-learn.readthedocs.io/en/latest/tutorials/add_new_method.html) and [2](https://solo-learn.readthedocs.io/en/latest/tutorials/add_new_method_momentum.html), more testing and fixed issues with custom data and linear evaluation.
 * **[Sep 19 2021]**: :kangaroo: Added online k-NN evaluation.
 * **[Sep 17 2021]**: :robot: Added [ViT](https://arxiv.org/abs/2010.11929) and [Swin](https://arxiv.org/abs/2103.14030).
 * **[Sep 13 2021]**: :book: Improved [Docs](https://solo-learn.readthedocs.io/en/latest/?badge=latest) and added tutorials for [pretraining](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html) and [offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html).
@@ -33,7 +33,9 @@ While the library is self contained, it is possible to use the models outside of
 * [DeepCluster V2](https://arxiv.org/abs/2006.09882)
 * [DINO](https://arxiv.org/abs/2104.14294)
 * [MoCo V2+](https://arxiv.org/abs/2003.04297)
+* [NNBYOL](https://arxiv.org/abs/2104.14548)
 * [NNCLR](https://arxiv.org/abs/2104.14548)
+* [NNSiam](https://arxiv.org/abs/2104.14548)
 * [ReSSL](https://arxiv.org/abs/2107.09282)
 * [SimCLR](https://arxiv.org/abs/2002.05709) + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
 * [SimSiam](https://arxiv.org/abs/2011.10566)

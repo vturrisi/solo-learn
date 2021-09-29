@@ -45,6 +45,12 @@ class NNBYOL(BaseMomentumMethod):
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
             pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
             queue_size (int): number of samples to keep in the queue.
+
+        .. note::
+            NNBYOL is similar to NNSiam but the queue from which the neighbors are retrieved is
+            updated using the features of the momentum encoder. See NNCLR's paper for more detals:
+            https://arxiv.org/abs/2104.14548
+
         """
 
         super().__init__(**kwargs)
@@ -180,7 +186,7 @@ class NNBYOL(BaseMomentumMethod):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for BYOL reusing BaseMethod training step.
+        """Training step for NNBYOL reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -188,7 +194,7 @@ class NNBYOL(BaseMomentumMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of BYOL and classification loss.
+            torch.Tensor: total loss composed of NNBYOL and classification loss.
         """
 
         targets = batch[-1]

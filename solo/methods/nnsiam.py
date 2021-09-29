@@ -174,7 +174,7 @@ class NNSiam(BaseMethod):
             batch_idx (int): index of the batch
 
         Returns:
-            torch.Tensor: total loss composed of SimSiam loss and classification loss
+            torch.Tensor: total loss composed of NNSiam loss and classification loss
         """
 
         targets = batch[-1]
