@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Sequence, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumMethod
 from solo.utils.metrics import weighted_mean
@@ -135,13 +136,13 @@ class BYOL(BaseMomentumMethod):
 
         # forward momentum encoder
         with torch.no_grad():
-            z_momentum = [self.momentum_projector(f) for f in momentum_feats]
+            Z_momentum = [self.momentum_projector(f) for f in momentum_feats]
 
         # ------- negative consine similarity loss -------
         neg_cos_sim = 0
-        for z in z_momentum:
-            for p in P:
-                neg_cos_sim = byol_loss_func(p, z)
+        for v1, z in enumerate(Z_momentum):
+            for v2 in np.delete(np.arange(len(P)), v1):
+                neg_cos_sim = byol_loss_func(P[v2], z)
         neg_cos_sim /= self.num_large_crops * (self.num_crops - 1)
 
         # calculate std of features
