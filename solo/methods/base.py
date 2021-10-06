@@ -77,8 +77,9 @@ class BaseMethod(pl.LightningModule):
         warmup_start_lr: float,
         warmup_epochs: float,
         multicrop: bool,
-        num_crops: int,
+        num_large_crops: int,
         num_small_crops: int,
+        val_loader_keys: List[str],
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
@@ -117,7 +118,7 @@ class BaseMethod(pl.LightningModule):
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
             multicrop (bool): flag indicating if multi-resolution crop is being used.
-            num_crops (int): number of big crops
+            num_large_crops (int): number of big crops
             num_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
@@ -169,14 +170,17 @@ class BaseMethod(pl.LightningModule):
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
         self.multicrop = multicrop
-        self.num_crops = num_crops
+        self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
+        self.val_loader_keys = val_loader_keys
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
         self.disable_knn_eval = disable_knn_eval
         self.knn_k = knn_k
 
-        # sanity checks on multicrop
+        # multicrop
+        self.num_crops = self.num_large_crops + self.num_small_crops
+
         if self.multicrop:
             assert num_small_crops > 0
         else:
@@ -423,7 +427,7 @@ class BaseMethod(pl.LightningModule):
         logits = self.classifier(feats.detach())
         return {"logits": logits, "feats": feats}
 
-    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+    def _shared_step_base(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
         features, acc@1 and acc@5.
 
@@ -451,7 +455,7 @@ class BaseMethod(pl.LightningModule):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images
+                [X] is a list of size num_crops containing batches of images
             batch_idx (int): index of the batch
 
         Returns:
@@ -463,18 +467,18 @@ class BaseMethod(pl.LightningModule):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
-        assert len(X) == self.num_crops + self.num_small_crops
+        assert len(X) == self.num_crops
 
-        outs = [self._shared_step(x, targets) for x in X[: self.num_crops]]
+        outs = [self._shared_step_base(x, targets) for x in X[: self.num_large_crops]]
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.encoder(x) for x in X[self.num_crops :]])
+            outs["feats"].extend([self.encoder(x) for x in X[self.num_large_crops :]])
 
         # loss and stats
-        outs["loss"] = sum(outs["loss"]) / self.num_crops
-        outs["acc1"] = sum(outs["acc1"]) / self.num_crops
-        outs["acc5"] = sum(outs["acc5"]) / self.num_crops
+        outs["loss"] = sum(outs["loss"]) / self.num_large_crops
+        outs["acc1"] = sum(outs["acc1"]) / self.num_large_crops
+        outs["acc5"] = sum(outs["acc5"]) / self.num_large_crops
 
         metrics = {
             "train_class_loss": outs["loss"],
@@ -486,13 +490,15 @@ class BaseMethod(pl.LightningModule):
 
         if not self.disable_knn_eval:
             self.knn(
-                train_features=torch.cat(outs["feats"][: self.num_crops]).detach(),
-                train_targets=targets.repeat(self.num_crops),
+                train_features=torch.cat(outs["feats"][: self.num_large_crops]).detach(),
+                train_targets=targets.repeat(self.num_large_crops),
             )
 
         return outs
 
-    def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def validation_step(
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int
+    ) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
@@ -506,21 +512,34 @@ class BaseMethod(pl.LightningModule):
                 the classification loss and accuracies
         """
 
-        X, targets = batch
-        batch_size = targets.size(0)
+        if dataloader_idx == self.val_loader_keys.index("augmented"):
+            _, X, targets = batch
+            batch_size = targets.size(0)
 
-        out = self._shared_step(X, targets)
+            feats = [self.encoder(x) for x in X]
 
-        if not self.disable_knn_eval and not self.trainer.sanity_checking:
-            self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
+            outs = {"batch_size": batch_size, "feats": feats}
+            return outs
 
-        metrics = {
-            "batch_size": batch_size,
-            "val_loss": out["loss"],
-            "val_acc1": out["acc1"],
-            "val_acc5": out["acc5"],
-        }
-        return metrics
+        elif dataloader_idx == self.val_loader_keys.index("online_eval"):
+            X, targets = batch
+            batch_size = targets.size(0)
+
+            out = self._shared_step_base(X, targets)
+
+            if not self.disable_knn_eval and not self.trainer.sanity_checking:
+                self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
+
+            metrics = {
+                "batch_size": batch_size,
+                "val_loss": out["loss"],
+                "val_acc1": out["acc1"],
+                "val_acc5": out["acc5"],
+            }
+            return metrics
+
+        else:
+            raise NotImplementedError
 
     def validation_epoch_end(self, outs: List[Dict[str, Any]]):
         """Averages the losses and accuracies of all the validation batches.
@@ -531,17 +550,24 @@ class BaseMethod(pl.LightningModule):
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
 
-        val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
-        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
+        # only online eval dataloader is handled here
+        outs = outs[self.val_loader_keys.index("online_eval")]
 
-        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
+        if "online_eval" in self.val_loader_keys:
 
-        if not self.disable_knn_eval and not self.trainer.sanity_checking:
-            val_knn_acc1, val_knn_acc5 = self.knn.compute()
-            log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
+            outs_online_eval = outs[self.val_loader_keys.index("online_eval")]
 
-        self.log_dict(log, sync_dist=True)
+            val_loss = weighted_mean(outs_online_eval, "val_loss", "batch_size")
+            val_acc1 = weighted_mean(outs_online_eval, "val_acc1", "batch_size")
+            val_acc5 = weighted_mean(outs_online_eval, "val_acc5", "batch_size")
+
+            log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
+
+            if not self.disable_knn_eval and not self.trainer.sanity_checking:
+                val_knn_acc1, val_knn_acc5 = self.knn.compute()
+                log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
+
+            self.log_dict(log, sync_dist=True)
 
 
 class BaseMomentumMethod(BaseMethod):
@@ -704,7 +730,7 @@ class BaseMomentumMethod(BaseMethod):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -718,7 +744,7 @@ class BaseMomentumMethod(BaseMethod):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # remove small crops
-        X = X[: self.num_crops]
+        X = X[: self.num_large_crops]
 
         momentum_outs = [self._shared_step_momentum(x, targets) for x in X]
         momentum_outs = {
@@ -727,9 +753,15 @@ class BaseMomentumMethod(BaseMethod):
 
         if self.momentum_classifier is not None:
             # momentum loss and stats
-            momentum_outs["momentum_loss"] = sum(momentum_outs["momentum_loss"]) / self.num_crops
-            momentum_outs["momentum_acc1"] = sum(momentum_outs["momentum_acc1"]) / self.num_crops
-            momentum_outs["momentum_acc5"] = sum(momentum_outs["momentum_acc5"]) / self.num_crops
+            momentum_outs["momentum_loss"] = (
+                sum(momentum_outs["momentum_loss"]) / self.num_large_crops
+            )
+            momentum_outs["momentum_acc1"] = (
+                sum(momentum_outs["momentum_acc1"]) / self.num_large_crops
+            )
+            momentum_outs["momentum_acc5"] = (
+                sum(momentum_outs["momentum_acc5"]) / self.num_large_crops
+            )
 
             metrics = {
                 "train_momentum_class_loss": momentum_outs["momentum_loss"],
@@ -752,7 +784,7 @@ class BaseMomentumMethod(BaseMethod):
         Args:
             outputs (Dict[str, Any]): the outputs of the training step.
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
             dataloader_idx (int): index of the dataloader.
         """
@@ -772,7 +804,7 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = self.trainer.global_step
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Validation step for pytorch lightning. It performs all the shared operations for the
         momentum encoder and classifier, such as forwarding a batch of images in the momentum
@@ -788,23 +820,34 @@ class BaseMomentumMethod(BaseMethod):
                 momentum classifiers.
         """
 
-        parent_metrics = super().validation_step(batch, batch_idx)
+        parent_outs = super().validation_step(batch, batch_idx, dataloader_idx)
 
-        X, targets = batch
-        batch_size = targets.size(0)
+        if dataloader_idx == self.val_loader_keys.index("augmented"):
+            _, X, targets = batch
 
-        out = self._shared_step_momentum(X, targets)
+            outs = {"momentum_feats": [self.momentum_encoder(x) for x in X]}
 
-        metrics = None
-        if self.momentum_classifier is not None:
-            metrics = {
-                "batch_size": batch_size,
-                "momentum_val_loss": out["loss"],
-                "momentum_val_acc1": out["acc1"],
-                "momentum_val_acc5": out["acc5"],
-            }
+            return {**parent_outs, **outs}
 
-        return parent_metrics, metrics
+        elif dataloader_idx == self.val_loader_keys.index("online_eval"):
+            X, targets = batch
+            batch_size = targets.size(0)
+
+            out = self._shared_step_momentum(X, targets)
+
+            metrics = {}
+            if self.momentum_classifier is not None:
+                metrics = {
+                    "batch_size": batch_size,
+                    "momentum_val_loss": out["loss"],
+                    "momentum_val_acc1": out["acc1"],
+                    "momentum_val_acc5": out["acc5"],
+                }
+
+            return {**parent_outs, **metrics}
+
+        else:
+            raise NotImplementedError
 
     def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
         """Averages the losses and accuracies of the momentum encoder / classifier for all the
@@ -816,19 +859,20 @@ class BaseMomentumMethod(BaseMethod):
                 and the parent.
         """
 
-        parent_outs = [out[0] for out in outs]
-        super().validation_epoch_end(parent_outs)
+        super().validation_epoch_end(outs)
 
-        if self.momentum_classifier is not None:
-            momentum_outs = [out[1] for out in outs]
+        if "online_eval" in self.val_loader_keys:
+            outs_online_eval = outs[self.val_loader_keys.index("online_eval")]
 
-            val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
-            val_acc1 = weighted_mean(momentum_outs, "momentum_val_acc1", "batch_size")
-            val_acc5 = weighted_mean(momentum_outs, "momentum_val_acc5", "batch_size")
+            if self.momentum_classifier is not None:
 
-            log = {
-                "momentum_val_loss": val_loss,
-                "momentum_val_acc1": val_acc1,
-                "momentum_val_acc5": val_acc5,
-            }
-            self.log_dict(log, sync_dist=True)
+                val_loss = weighted_mean(outs_online_eval, "momentum_val_loss", "batch_size")
+                val_acc1 = weighted_mean(outs_online_eval, "momentum_val_acc1", "batch_size")
+                val_acc5 = weighted_mean(outs_online_eval, "momentum_val_acc5", "batch_size")
+
+                logs = {
+                    "momentum_val_loss": val_loss,
+                    "momentum_val_acc1": val_acc1,
+                    "momentum_val_acc5": val_acc5,
+                }
+                self.log_dict(logs, sync_dist=True)

@@ -38,6 +38,7 @@ def dataset_args(parser: ArgumentParser):
     ]
 
     parser.add_argument("--dataset", choices=SUPPORTED_DATASETS, type=str, required=True)
+    parser.add_argument("--download", action="store_true")
 
     # dataset path
     parser.add_argument("--data_dir", type=Path, required=True)
@@ -58,7 +59,7 @@ def augmentations_args(parser: ArgumentParser):
 
     # cropping
     parser.add_argument("--multicrop", action="store_true")
-    parser.add_argument("--num_crops", type=int, default=2)
+    parser.add_argument("--num_large_crops", type=int, default=2)
     parser.add_argument("--num_small_crops", type=int, default=0)
 
     # augmentations

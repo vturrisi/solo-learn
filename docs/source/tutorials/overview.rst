@@ -73,7 +73,7 @@ However, for now, we won't rely on this, so let's just define all the needed par
         "warmup_start_lr": 0.0,
         "warmup_epochs": 10,
         "multicrop": False,
-        "num_crops": 2,
+        "num_large_crops": 2,
         "num_small_crops": 0,
         "eta_lars": 0.02,
         "lr_decay_steps": None,
@@ -107,7 +107,7 @@ Now, let's create all the necessary data loaders.
 
     # then, we wrap the pipepline using this utility function
     # to make it produce an arbitrary number of crops 
-    transform = prepare_n_crop_transform(transform, num_crops=2)
+    transform = prepare_n_crop_transform(transform, num_large_crops=2)
 
     # finally, we produce the Dataset/Dataloader classes
     train_dataset = prepare_datasets(

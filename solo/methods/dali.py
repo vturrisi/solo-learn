@@ -169,7 +169,7 @@ class PretrainABC(ABC):
             raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
 
         if self.multicrop:
-            num_crops = [self.num_crops, self.num_small_crops]
+            num_large_crops = [self.num_large_crops, self.num_small_crops]
             size_crops = [224, 96]
             min_scales = [0.14, 0.05]
             max_scale_crops = [1.0, 0.14]
@@ -188,7 +188,7 @@ class PretrainABC(ABC):
                 data_dir / train_dir,
                 batch_size=self.batch_size,
                 transforms=transforms,
-                num_crops=num_crops,
+                num_large_crops=num_large_crops,
                 device=dali_device,
                 device_id=device_id,
                 shard_id=shard_id,
@@ -198,8 +198,8 @@ class PretrainABC(ABC):
                 encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
             output_map = [
-                *[f"large{i}" for i in range(num_crops[0])],
-                *[f"small{i}" for i in range(num_crops[1])],
+                *[f"large{i}" for i in range(num_large_crops[0])],
+                *[f"small{i}" for i in range(num_large_crops[1])],
                 "label",
             ]
 
@@ -232,7 +232,7 @@ class PretrainABC(ABC):
                 no_labels=self.extra_args["no_labels"],
                 encode_indexes_into_labels=self.encode_indexes_into_labels,
             )
-            output_map = [f"large{i}" for i in range(self.num_crops)] + ["label"]
+            output_map = [f"large{i}" for i in range(self.num_large_crops)] + ["label"]
 
         policy = LastBatchPolicy.DROP
         conversion_map = train_pipeline.conversion_map if self.encode_indexes_into_labels else None

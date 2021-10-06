@@ -45,7 +45,7 @@ else:
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.pretrain_dataloader import (
-    prepare_dataloader,
+    prepare_dataloaders,
     prepare_datasets,
     prepare_multicrop_transform,
     prepare_n_crop_transform,
@@ -57,17 +57,6 @@ def main():
     seed_everything(5)
 
     args = parse_args_pretrain()
-
-    assert args.method in METHODS, f"Choose from {METHODS.keys()}"
-
-    MethodClass = METHODS[args.method]
-    if args.dali:
-        assert (
-            _dali_avaliable
-        ), "Dali is not currently avaiable, please install it first with [dali]."
-        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
-
-    model = MethodClass(**args.__dict__)
 
     # contrastive dataloader
     if not args.dali:
@@ -98,39 +87,59 @@ def main():
                 size_crops = [224, 96]
 
             transform = prepare_multicrop_transform(
-                transform, size_crops=size_crops, num_crops=[args.num_crops, args.num_small_crops]
+                transform,
+                size_crops=size_crops,
+                num_large_crops=[args.num_large_crops, args.num_small_crops],
             )
         else:
-            if args.num_crops != 2:
+            if args.num_large_crops != 2:
                 assert args.method == "wmse"
 
-            transform = prepare_n_crop_transform(transform, num_crops=args.num_crops)
+            transform = prepare_n_crop_transform(transform, num_large_crops=args.num_large_crops)
 
-        train_dataset = prepare_datasets(
+        train_dataset, val_dataset_aug = prepare_datasets(
             args.dataset,
             transform,
             data_dir=args.data_dir,
             train_dir=args.train_dir,
             no_labels=args.no_labels,
+            download=args.download,
         )
-        train_loader = prepare_dataloader(
-            train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
+        train_loader, val_loader_aug = prepare_dataloaders(
+            train_dataset, val_dataset_aug, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
     # normal dataloader for when it is available
+    val_loaders, val_loader_keys = [val_loader_aug], ["augmented"]
     if args.dataset == "custom" and (args.no_labels or args.val_dir is None):
-        val_loader = None
+        pass
     elif args.dataset in ["imagenet100", "imagenet"] and args.val_dir is None:
-        val_loader = None
+        pass
     else:
-        _, val_loader = prepare_data_classification(
+        _, online_eval_loader = prepare_data_classification(
             args.dataset,
             data_dir=args.data_dir,
             train_dir=args.train_dir,
             val_dir=args.val_dir,
             batch_size=args.batch_size,
             num_workers=args.num_workers,
+            download=args.download,
         )
+
+        val_loaders.append(online_eval_loader)
+        val_loader_keys.append("online_eval")
+
+    # crate the model
+    assert args.method in METHODS, f"Choose from {METHODS.keys()}"
+
+    MethodClass = METHODS[args.method]
+    if args.dali:
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with [dali]."
+        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
+
+    model = MethodClass(**args.__dict__, val_loader_keys=val_loader_keys)
 
     callbacks = []
 
@@ -179,9 +188,9 @@ def main():
     )
 
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader)
+        trainer.fit(model, val_dataloaders=val_loaders)
     else:
-        trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader, val_dataloaders=val_loaders)
 
 
 if __name__ == "__main__":

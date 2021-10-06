@@ -109,14 +109,14 @@ class Solarization:
 
 
 class NCropAugmentation:
-    def __init__(self, transform: Union[Callable, Sequence], num_crops: Optional[int] = None):
+    def __init__(self, transform: Union[Callable, Sequence], num_large_crops: Optional[int] = None):
         """Creates a pipeline that apply a transformation pipeline multiple times.
 
         Args:
             transform (Union[Callable, Sequence]): transformation pipeline or list of
                 transformation pipelines.
-            num_crops: if transformation pipeline is not a list, applies the same
-                pipeline num_crops times, if it is a list, this is ignored and each
+            num_large_crops: if transformation pipeline is not a list, applies the same
+                pipeline num_large_crops times, if it is a list, this is ignored and each
                 element of the list is applied once.
         """
 
@@ -124,10 +124,10 @@ class NCropAugmentation:
 
         if isinstance(transform, Iterable):
             self.one_transform_per_crop = True
-            assert num_crops == len(transform)
+            assert num_large_crops == len(transform)
         else:
             self.one_transform_per_crop = False
-            self.num_crops = num_crops
+            self.num_large_crops = num_large_crops
 
     def __call__(self, x: Image) -> List[torch.Tensor]:
         """Applies transforms n times to generate n crops.
@@ -142,7 +142,7 @@ class NCropAugmentation:
         if self.one_transform_per_crop:
             return [transform(x) for transform in self.transform]
         else:
-            return [self.transform(x) for _ in range(self.num_crops)]
+            return [self.transform(x) for _ in range(self.num_large_crops)]
 
 
 class BaseTransform:
@@ -354,7 +354,7 @@ class MulticropAugmentation:
         self,
         transform: Callable,
         size_crops: Sequence[int],
-        num_crops: Sequence[int],
+        num_large_crops: Sequence[int],
         min_scales: Sequence[float],
         max_scale_crops: Sequence[float],
     ):
@@ -363,7 +363,7 @@ class MulticropAugmentation:
         Args:
             transform (Callable): transformation callable without cropping.
             size_crops (Sequence[int]): a sequence of sizes of the crops.
-            num_crops (Sequence[int]): a sequence number of crops per crop size.
+            num_large_crops (Sequence[int]): a sequence number of crops per crop size.
             min_scales (Sequence[float]): sequence of minimum crop scales per crop
                 size.
             max_scale_crops (Sequence[float]): sequence of maximum crop scales per crop
@@ -371,7 +371,7 @@ class MulticropAugmentation:
         """
 
         self.size_crops = size_crops
-        self.num_crops = num_crops
+        self.num_large_crops = num_large_crops
         self.min_scales = min_scales
         self.max_scale_crops = max_scale_crops
 
@@ -396,7 +396,7 @@ class MulticropAugmentation:
         """
 
         imgs = []
-        for n, transform in zip(self.num_crops, self.transforms):
+        for n, transform in zip(self.num_large_crops, self.transforms):
             imgs.extend([transform(x) for i in range(n)])
         return imgs
 
@@ -541,25 +541,25 @@ def prepare_transform(dataset: str, multicrop: bool = False, **kwargs) -> Any:
 
 
 def prepare_n_crop_transform(
-    transform: Callable, num_crops: Optional[int] = None
+    transform: Callable, num_large_crops: Optional[int] = None
 ) -> NCropAugmentation:
     """Turns a single crop transformation to an N crops transformation.
 
     Args:
         transform (Callable): a transformation.
-        num_crops (Optional[int], optional): number of crops. Defaults to None.
+        num_large_crops (Optional[int], optional): number of crops. Defaults to None.
 
     Returns:
         NCropAugmentation: an N crop transformation.
     """
 
-    return NCropAugmentation(transform, num_crops)
+    return NCropAugmentation(transform, num_large_crops)
 
 
 def prepare_multicrop_transform(
     transform: Callable,
     size_crops: Sequence[int],
-    num_crops: Optional[Sequence[int]] = None,
+    num_large_crops: Optional[Sequence[int]] = None,
     min_scales: Optional[Sequence[float]] = None,
     max_scale_crops: Optional[Sequence[float]] = None,
 ) -> MulticropAugmentation:
@@ -568,7 +568,7 @@ def prepare_multicrop_transform(
     Args:
         transform (Callable): transformation callable without cropping.
         size_crops (Sequence[int]): a sequence of sizes of the crops.
-        num_crops (Optional[Sequence[int]]): list of number of crops per crop size.
+        num_large_crops (Optional[Sequence[int]]): list of number of crops per crop size.
         min_scales (Optional[Sequence[float]]): sequence of minimum crop scales per crop
             size.
         max_scale_crops (Optional[Sequence[float]]): sequence of maximum crop scales per crop
@@ -579,8 +579,8 @@ def prepare_multicrop_transform(
             different sizes.
     """
 
-    if num_crops is None:
-        num_crops = [2, 6]
+    if num_large_crops is None:
+        num_large_crops = [2, 6]
     if min_scales is None:
         min_scales = [0.14, 0.05]
     if max_scale_crops is None:
@@ -589,7 +589,7 @@ def prepare_multicrop_transform(
     return MulticropAugmentation(
         transform,
         size_crops=size_crops,
-        num_crops=num_crops,
+        num_large_crops=num_large_crops,
         min_scales=min_scales,
         max_scale_crops=max_scale_crops,
     )
@@ -600,7 +600,9 @@ def prepare_datasets(
     transform: Callable,
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
+    val_dir: Optional[Union[str, Path]] = None,
     no_labels: Optional[Union[str, Path]] = False,
+    download: bool = True,
 ) -> Dataset:
     """Prepares the desired dataset.
 
@@ -626,12 +628,23 @@ def prepare_datasets(
     else:
         train_dir = Path(train_dir)
 
+    if val_dir is None:
+        val_dir = Path(f"{dataset}/val")
+    else:
+        val_dir = Path(val_dir)
+
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
             data_dir / train_dir,
             train=True,
-            download=True,
+            download=download,
+            transform=transform,
+        )
+        val_dataset = dataset_with_index(DatasetClass)(
+            data_dir / val_dir,
+            train=False,
+            download=download,
             transform=transform,
         )
 
@@ -639,12 +652,19 @@ def prepare_datasets(
         train_dataset = dataset_with_index(STL10)(
             data_dir / train_dir,
             split="train+unlabeled",
-            download=True,
+            download=download,
+            transform=transform,
+        )
+        val_dataset = dataset_with_index(STL10)(
+            data_dir / val_dir,
+            train=False,
+            download=download,
             transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
         train_dir = data_dir / train_dir
+        val_dir = data_dir / val_dir
         train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
 
     elif dataset == "custom":
@@ -657,11 +677,11 @@ def prepare_datasets(
 
         train_dataset = dataset_with_index(dataset_class)(train_dir, transform)
 
-    return train_dataset
+    return train_dataset, val_dataset
 
 
-def prepare_dataloader(
-    train_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
+def prepare_dataloaders(
+    train_dataset: Dataset, val_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
 ) -> DataLoader:
     """Prepares the training dataloader for pretraining.
 
@@ -682,4 +702,12 @@ def prepare_dataloader(
         pin_memory=True,
         drop_last=True,
     )
-    return train_loader
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=True,
+        drop_last=False,
+    )
+    return train_loader, val_loader

@@ -31,7 +31,7 @@ class KMeans:
         self,
         world_size: int,
         rank: int,
-        num_crops: int,
+        num_large_crops: int,
         dataset_size: int,
         proj_features_dim: int,
         num_prototypes: int,
@@ -42,7 +42,7 @@ class KMeans:
         Args:
             world_size (int): world size.
             rank (int): rank of the current process.
-            num_crops (int): number of crops.
+            num_large_crops (int): number of crops.
             dataset_size (int): total size of the dataset (number of samples).
             proj_features_dim (int): number of dimensions of the projected features.
             num_prototypes (int): number of prototypes.
@@ -51,7 +51,7 @@ class KMeans:
         """
         self.world_size = world_size
         self.rank = rank
-        self.num_crops = num_crops
+        self.num_large_crops = num_large_crops
         self.dataset_size = dataset_size
         self.proj_features_dim = proj_features_dim
         self.num_prototypes = num_prototypes
@@ -165,6 +165,6 @@ class KMeans:
                 assignments[i_K][indexes_all] = assignments_all
 
                 # next memory bank to use
-                j = (j + 1) % self.num_crops
+                j = (j + 1) % self.num_large_crops
 
         return assignments, centroids_list

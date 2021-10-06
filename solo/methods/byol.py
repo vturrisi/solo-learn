@@ -25,6 +25,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumMethod
+from solo.utils.metrics import weighted_mean
 from solo.utils.momentum import initialize_momentum_params
 
 
@@ -125,12 +126,36 @@ class BYOL(BaseMomentumMethod):
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
+    def _shared_step(
+        self, feats: List[torch.Tensor], momentum_feats: List[torch.Tensor]
+    ) -> torch.Tensor:
+
+        Z = [self.projector(f) for f in feats]
+        P = [self.predictor(z) for z in Z]
+
+        # forward momentum encoder
+        with torch.no_grad():
+            z_momentum = [self.momentum_projector(f) for f in momentum_feats]
+
+        # ------- negative consine similarity loss -------
+        neg_cos_sim = 0
+        for z in z_momentum:
+            for p in P:
+                neg_cos_sim = byol_loss_func(p, z)
+        neg_cos_sim /= self.num_large_crops * (self.num_crops - 1)
+
+        # calculate std of features
+        with torch.no_grad():
+            z_std = F.normalize(torch.stack(Z[: self.num_large_crops]), dim=-1).std(dim=0).mean()
+
+        return neg_cos_sim, z_std
+
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for BYOL reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -139,26 +164,8 @@ class BYOL(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-        momentum_feats1, momentum_feats2 = out["momentum_feats"]
 
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
-        p1 = self.predictor(z1)
-        p2 = self.predictor(z2)
-
-        # forward momentum encoder
-        with torch.no_grad():
-            z1_momentum = self.momentum_projector(momentum_feats1)
-            z2_momentum = self.momentum_projector(momentum_feats2)
-
-        # ------- negative consine similarity loss -------
-        neg_cos_sim = byol_loss_func(p1, z2_momentum) + byol_loss_func(p2, z1_momentum)
-
-        # calculate std of features
-        z1_std = F.normalize(z1, dim=-1).std(dim=0).mean()
-        z2_std = F.normalize(z2, dim=-1).std(dim=0).mean()
-        z_std = (z1_std + z2_std) / 2
+        neg_cos_sim, z_std = self._shared_step(out["feats"], out["momentum_feats"])
 
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,
@@ -167,3 +174,40 @@ class BYOL(BaseMomentumMethod):
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
         return neg_cos_sim + class_loss
+
+    def validation_step(
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """Validation step for BYOL reusing BaseMethod validation step.
+
+        Args:
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size num_crops containing batches of images.
+            batch_idx (int): index of the batch.
+
+        Returns:
+            torch.Tensor: total loss composed of BYOL and classification loss.
+        """
+
+        out = super().validation_step(batch, batch_idx, dataloader_idx)
+
+        if dataloader_idx == self.val_loader_keys.index("augmented"):
+            neg_cos_sim, z_std = self._shared_step(out["feats"], out["momentum_feats"])
+
+            metrics = {
+                "val_neg_cos_sim": neg_cos_sim,
+                "val_z_std": z_std,
+            }
+            out.update(metrics)
+
+        return out
+
+    def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
+
+        outs_augmented = outs[self.val_loader_keys.index("augmented")]
+
+        val_neg_cos_sim = weighted_mean(outs_augmented, "val_neg_cos_sim", "batch_size")
+        val_z_std = weighted_mean(outs_augmented, "val_z_std", "batch_size")
+
+        logs = {"val_neg_cos_sim": val_neg_cos_sim, "val_z_std": val_z_std}
+        self.log_dict(logs, sync_dist=True)

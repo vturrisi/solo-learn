@@ -68,10 +68,10 @@ def test_wmse():
         and out["v"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
-    for num_crops in [2, 4]:
+    for num_large_crops in [2, 4]:
         # imagenet
         BASE_KWARGS = gen_base_kwargs(
-            cifar=False, multicrop=False, num_crops=num_crops, batch_size=8
+            cifar=False, multicrop=False, num_large_crops=num_large_crops, batch_size=8
         )
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
@@ -82,7 +82,7 @@ def test_wmse():
         trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
         train_dl, val_dl = prepare_dummy_dataloaders(
             "imagenet100",
-            num_crops=BASE_KWARGS["num_crops"],
+            num_large_crops=BASE_KWARGS["num_large_crops"],
             num_small_crops=0,
             num_classes=BASE_KWARGS["num_classes"],
             multicrop=False,
@@ -92,7 +92,7 @@ def test_wmse():
 
         # cifar
         BASE_KWARGS = gen_base_kwargs(
-            cifar=False, multicrop=False, num_crops=num_crops, batch_size=8
+            cifar=False, multicrop=False, num_large_crops=num_large_crops, batch_size=8
         )
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
@@ -103,7 +103,7 @@ def test_wmse():
         trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
         train_dl, val_dl = prepare_dummy_dataloaders(
             "cifar10",
-            num_crops=BASE_KWARGS["num_crops"],
+            num_large_crops=BASE_KWARGS["num_large_crops"],
             num_small_crops=0,
             num_classes=BASE_KWARGS["num_classes"],
             multicrop=False,

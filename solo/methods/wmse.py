@@ -109,7 +109,7 @@ class WMSE(BaseMethod):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images
+                [X] is a list of size num_crops containing batches of images
             batch_idx (int): index of the batch
 
         Returns:
@@ -129,10 +129,10 @@ class WMSE(BaseMethod):
             z = torch.empty_like(v)
             perm = torch.randperm(bs).view(-1, self.whitening_size)
             for idx in perm:
-                for i in range(self.num_crops):
+                for i in range(self.num_large_crops):
                     z[idx + i * bs] = self.whitening(v[idx + i * bs]).type_as(z)
-            for i in range(self.num_crops - 1):
-                for j in range(i + 1, self.num_crops):
+            for i in range(self.num_large_crops - 1):
+                for j in range(i + 1, self.num_large_crops):
                     x0 = z[i * bs : (i + 1) * bs]
                     x1 = z[j * bs : (j + 1) * bs]
                     wmse_loss += wmse_loss_func(x0, x1)

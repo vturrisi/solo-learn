@@ -76,7 +76,7 @@ def additional_setup_pretrain(args: Namespace):
             args.size,
         ]
     )
-    assert unique_augs == args.num_crops or unique_augs == 1
+    assert unique_augs == args.num_large_crops or unique_augs == 1
 
     # assert that either all unique augmentation pipelines have a unique
     # parameter or that a single parameter is replicated to all pipelines

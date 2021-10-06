@@ -42,7 +42,12 @@ DATA_KWARGS = {
 
 
 def gen_base_kwargs(
-    cifar=False, momentum=False, multicrop=False, num_crops=2, num_small_crops=0, batch_size=32
+    cifar=False,
+    momentum=False,
+    multicrop=False,
+    num_large_crops=2,
+    num_small_crops=0,
+    batch_size=32,
 ):
     BASE_KWARGS = {
         "encoder": "resnet18",
@@ -67,7 +72,7 @@ def gen_base_kwargs(
         "warmup_start_lr": 0.0,
         "warmup_epochs": 10,
         "multicrop": multicrop,
-        "num_crops": num_crops,
+        "num_large_crops": num_large_crops,
         "num_small_crops": num_small_crops,
         "eta_lars": 0.02,
         "lr_decay_steps": None,
@@ -95,7 +100,7 @@ def gen_batch(b, num_classes, dataset):
     im = np.random.rand(size, size, 3) * 255
     im = Image.fromarray(im.astype("uint8")).convert("RGB")
     T = prepare_transform(dataset, multicrop=False, **DATA_KWARGS)
-    T = prepare_n_crop_transform(T, num_crops=2)
+    T = prepare_n_crop_transform(T, num_large_crops=2)
     x1, x2 = T(im)
     x1 = x1.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
     x2 = x2.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
@@ -135,16 +140,16 @@ def gen_classification_batch(b, num_classes, dataset):
 
 
 def prepare_dummy_dataloaders(
-    dataset, num_crops, num_classes, multicrop=False, num_small_crops=0, batch_size=2
+    dataset, num_large_crops, num_classes, multicrop=False, num_small_crops=0, batch_size=2
 ):
     T = prepare_transform(dataset, multicrop=multicrop, **DATA_KWARGS)
     if multicrop:
         size_crops = [224, 96] if dataset == "imagenet100" else [32, 24]
         T = prepare_multicrop_transform(
-            T, size_crops=size_crops, num_crops=[num_crops, num_small_crops]
+            T, size_crops=size_crops, num_large_crops=[num_large_crops, num_small_crops]
         )
     else:
-        T = prepare_n_crop_transform(T, num_crops)
+        T = prepare_n_crop_transform(T, num_large_crops)
     dataset = dataset_with_index(FakeData)(
         image_size=(3, 224, 224),
         num_classes=num_classes,
