@@ -575,7 +575,7 @@ def prepare_n_crop_transform(
 
 
 def prepare_multicrop_transform(
-    transform: Callable,
+    transform: Union[Callable, Iterable],
     dataset: str,
     size_crops: Sequence[int],
     num_crops_per_size: Optional[Sequence[int]] = None,
@@ -605,7 +605,9 @@ def prepare_multicrop_transform(
     if max_scale_crops is None:
         max_scale_crops = [1.0, 0.14]
 
-    small_crop_transform = prepare_transform(dataset=dataset, multicrop=True)
+    small_crop_transform = None
+    if isinstance(transform, Iterable):
+        small_crop_transform = prepare_transform(dataset=dataset, multicrop=True)
 
     return MulticropAugmentation(
         transform,
