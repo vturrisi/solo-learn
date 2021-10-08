@@ -79,7 +79,6 @@ class BaseMethod(pl.LightningModule):
         multicrop: bool,
         num_large_crops: int,
         num_small_crops: int,
-        val_loader_keys: List[str],
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
@@ -118,7 +117,7 @@ class BaseMethod(pl.LightningModule):
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
             multicrop (bool): flag indicating if multi-resolution crop is being used.
-            num_large_crops (int): number of big crops
+            num_large_crops (int): number of big crops.
             num_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
@@ -144,7 +143,6 @@ class BaseMethod(pl.LightningModule):
         .. note::
             If multicrop is activated, the number of small crops must be greater than zero. When
             multicrop is deactivated (default) the number of small crops is ignored.
-
         """
 
         super().__init__()
@@ -172,7 +170,6 @@ class BaseMethod(pl.LightningModule):
         self.multicrop = multicrop
         self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
-        self.val_loader_keys = val_loader_keys
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
         self.disable_knn_eval = disable_knn_eval
@@ -427,16 +424,16 @@ class BaseMethod(pl.LightningModule):
         logits = self.classifier(feats.detach())
         return {"logits": logits, "feats": feats}
 
-    def _shared_step_base(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+    def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
         features, acc@1 and acc@5.
 
         Args:
-            X (torch.Tensor): batch of images in tensor format
-            targets (torch.Tensor): batch of labels for X
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
 
         Returns:
-            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
         """
 
         out = self.base_forward(X)
@@ -455,11 +452,11 @@ class BaseMethod(pl.LightningModule):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size self.num_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: dict with the classification loss, features and logits
+            Dict[str, Any]: dict with the classification loss, features and logits.
         """
 
         _, X, targets = batch
@@ -469,7 +466,7 @@ class BaseMethod(pl.LightningModule):
         # check that we received the desired number of crops
         assert len(X) == self.num_crops
 
-        outs = [self._shared_step_base(x, targets) for x in X[: self.num_large_crops]]
+        outs = [self._base_shared_step(x, targets) for x in X[: self.num_large_crops]]
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
@@ -497,49 +494,35 @@ class BaseMethod(pl.LightningModule):
         return outs
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
     ) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y]
-            batch_idx (int): index of the batch
+            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y].
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]:
-                dict with the batch_size (used for averaging),
-                the classification loss and accuracies
+            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
+                and accuracies.
         """
 
-        if dataloader_idx == self.val_loader_keys.index("augmented"):
-            _, X, targets = batch
-            batch_size = targets.size(0)
+        X, targets = batch
+        batch_size = targets.size(0)
 
-            feats = [self.encoder(x) for x in X]
+        out = self._base_shared_step(X, targets)
 
-            outs = {"batch_size": batch_size, "feats": feats}
-            return outs
+        if not self.disable_knn_eval and not self.trainer.sanity_checking:
+            self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
 
-        elif dataloader_idx == self.val_loader_keys.index("online_eval"):
-            X, targets = batch
-            batch_size = targets.size(0)
-
-            out = self._shared_step_base(X, targets)
-
-            if not self.disable_knn_eval and not self.trainer.sanity_checking:
-                self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
-
-            metrics = {
-                "batch_size": batch_size,
-                "val_loss": out["loss"],
-                "val_acc1": out["acc1"],
-                "val_acc5": out["acc5"],
-            }
-            return metrics
-
-        else:
-            raise NotImplementedError
+        metrics = {
+            "batch_size": batch_size,
+            "val_loss": out["loss"],
+            "val_acc1": out["acc1"],
+            "val_acc5": out["acc5"],
+        }
+        return metrics
 
     def validation_epoch_end(self, outs: List[Dict[str, Any]]):
         """Averages the losses and accuracies of all the validation batches.
@@ -550,24 +533,17 @@ class BaseMethod(pl.LightningModule):
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
 
-        # only online eval dataloader is handled here
-        outs = outs[self.val_loader_keys.index("online_eval")]
+        val_loss = weighted_mean(outs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
-        if "online_eval" in self.val_loader_keys:
+        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
 
-            outs_online_eval = outs[self.val_loader_keys.index("online_eval")]
+        if not self.disable_knn_eval and not self.trainer.sanity_checking:
+            val_knn_acc1, val_knn_acc5 = self.knn.compute()
+            log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
 
-            val_loss = weighted_mean(outs_online_eval, "val_loss", "batch_size")
-            val_acc1 = weighted_mean(outs_online_eval, "val_acc1", "batch_size")
-            val_acc5 = weighted_mean(outs_online_eval, "val_acc5", "batch_size")
-
-            log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
-
-            if not self.disable_knn_eval and not self.trainer.sanity_checking:
-                val_knn_acc1, val_knn_acc5 = self.knn.compute()
-                log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
-
-            self.log_dict(log, sync_dist=True)
+        self.log_dict(log, sync_dist=True)
 
 
 class BaseMomentumMethod(BaseMethod):
@@ -727,10 +703,9 @@ class BaseMomentumMethod(BaseMethod):
         """Training step for pytorch lightning. It performs all the shared operations for the
         momentum encoder and classifier, such as forwarding the crops in the momentum encoder
         and classifier, and computing statistics.
-
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -784,7 +759,7 @@ class BaseMomentumMethod(BaseMethod):
         Args:
             outputs (Dict[str, Any]): the outputs of the training step.
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images.
+                [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
             dataloader_idx (int): index of the dataloader.
         """
@@ -804,75 +779,60 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = self.trainer.global_step
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Validation step for pytorch lightning. It performs all the shared operations for the
         momentum encoder and classifier, such as forwarding a batch of images in the momentum
         encoder and classifier and computing statistics.
-
         Args:
             batch (List[torch.Tensor]): a batch of data in the format of [X, Y].
             batch_idx (int): index of the batch.
-
         Returns:
             Tuple(Dict[str, Any], Dict[str, Any]): tuple of dicts containing the batch_size (used
                 for averaging), the classification loss and accuracies for both the online and the
                 momentum classifiers.
         """
 
-        parent_outs = super().validation_step(batch, batch_idx, dataloader_idx)
+        parent_metrics = super().validation_step(batch, batch_idx)
 
-        if dataloader_idx == self.val_loader_keys.index("augmented"):
-            _, X, targets = batch
+        X, targets = batch
+        batch_size = targets.size(0)
 
-            outs = {"momentum_feats": [self.momentum_encoder(x) for x in X]}
+        out = self._shared_step_momentum(X, targets)
 
-            return {**parent_outs, **outs}
+        metrics = None
+        if self.momentum_classifier is not None:
+            metrics = {
+                "batch_size": batch_size,
+                "momentum_val_loss": out["loss"],
+                "momentum_val_acc1": out["acc1"],
+                "momentum_val_acc5": out["acc5"],
+            }
 
-        elif dataloader_idx == self.val_loader_keys.index("online_eval"):
-            X, targets = batch
-            batch_size = targets.size(0)
-
-            out = self._shared_step_momentum(X, targets)
-
-            metrics = {}
-            if self.momentum_classifier is not None:
-                metrics = {
-                    "batch_size": batch_size,
-                    "momentum_val_loss": out["loss"],
-                    "momentum_val_acc1": out["acc1"],
-                    "momentum_val_acc5": out["acc5"],
-                }
-
-            return {**parent_outs, **metrics}
-
-        else:
-            raise NotImplementedError
+        return parent_metrics, metrics
 
     def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
         """Averages the losses and accuracies of the momentum encoder / classifier for all the
         validation batches. This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
-
         Args:
             outs (Tuple[List[Dict[str, Any]]]):): list of outputs of the validation step for self
                 and the parent.
         """
 
-        super().validation_epoch_end(outs)
+        parent_outs = [out[0] for out in outs]
+        super().validation_epoch_end(parent_outs)
 
-        if "online_eval" in self.val_loader_keys:
-            outs_online_eval = outs[self.val_loader_keys.index("online_eval")]
+        if self.momentum_classifier is not None:
+            momentum_outs = [out[1] for out in outs]
 
-            if self.momentum_classifier is not None:
+            val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
+            val_acc1 = weighted_mean(momentum_outs, "momentum_val_acc1", "batch_size")
+            val_acc5 = weighted_mean(momentum_outs, "momentum_val_acc5", "batch_size")
 
-                val_loss = weighted_mean(outs_online_eval, "momentum_val_loss", "batch_size")
-                val_acc1 = weighted_mean(outs_online_eval, "momentum_val_acc1", "batch_size")
-                val_acc5 = weighted_mean(outs_online_eval, "momentum_val_acc5", "batch_size")
-
-                logs = {
-                    "momentum_val_loss": val_loss,
-                    "momentum_val_acc1": val_acc1,
-                    "momentum_val_acc5": val_acc5,
-                }
-                self.log_dict(logs, sync_dist=True)
+            log = {
+                "momentum_val_loss": val_loss,
+                "momentum_val_acc1": val_acc1,
+                "momentum_val_acc5": val_acc5,
+            }
+            self.log_dict(log, sync_dist=True)

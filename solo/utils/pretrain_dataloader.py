@@ -115,8 +115,8 @@ class NCropAugmentation:
         Args:
             transform (Union[Callable, Sequence]): transformation pipeline or list of
                 transformation pipelines.
-            num_large_crops: if transformation pipeline is not a list, applies the same
-                pipeline num_large_crops times, if it is a list, this is ignored and each
+            num_crops: if transformation pipeline is not a list, applies the same
+                pipeline num_crops times, if it is a list, this is ignored and each
                 element of the list is applied once.
         """
 
@@ -127,7 +127,7 @@ class NCropAugmentation:
             assert num_large_crops == len(transform)
         else:
             self.one_transform_per_crop = False
-            self.num_large_crops = num_large_crops
+            self.num_crops = num_large_crops
 
     def __call__(self, x: Image) -> List[torch.Tensor]:
         """Applies transforms n times to generate n crops.
@@ -353,8 +353,9 @@ class MulticropAugmentation:
     def __init__(
         self,
         transform: Callable,
+        small_crop_transform: Callable,
         size_crops: Sequence[int],
-        num_large_crops: Sequence[int],
+        num_crops_per_size: Sequence[int],
         min_scales: Sequence[float],
         max_scale_crops: Sequence[float],
     ):
@@ -363,7 +364,7 @@ class MulticropAugmentation:
         Args:
             transform (Callable): transformation callable without cropping.
             size_crops (Sequence[int]): a sequence of sizes of the crops.
-            num_large_crops (Sequence[int]): a sequence number of crops per crop size.
+            num_crops_per_size (Sequence[int]): a sequence number of crops per crop size.
             min_scales (Sequence[float]): sequence of minimum crop scales per crop
                 size.
             max_scale_crops (Sequence[float]): sequence of maximum crop scales per crop
@@ -371,19 +372,39 @@ class MulticropAugmentation:
         """
 
         self.size_crops = size_crops
-        self.num_large_crops = num_large_crops
+        self.num_crops_per_size = num_crops_per_size
         self.min_scales = min_scales
         self.max_scale_crops = max_scale_crops
 
-        self.transforms = []
-        for i in range(len(size_crops)):
-            rrc = transforms.RandomResizedCrop(
-                size_crops[i],
-                scale=(min_scales[i], max_scale_crops[i]),
-                interpolation=transforms.InterpolationMode.BICUBIC,
-            )
-            full_transform = transforms.Compose([rrc, transform])
-            self.transforms.append(full_transform)
+        if isinstance(transform, list):
+            self.transforms = transform
+            for i in range(1, len(self.size_crops)):
+                rrc = transforms.RandomResizedCrop(
+                    self.size_crops[i],
+                    scale=(min_scales[i], max_scale_crops[i]),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
+                )
+                self.transforms.extend(
+                    [
+                        transforms.Compose([rrc, small_crop_transform])
+                        for _ in range(self.num_crops_per_size[i])
+                    ]
+                )
+
+        else:
+            self.transforms = []
+            for i in range(len(self.size_crops)):
+                rrc = transforms.RandomResizedCrop(
+                    self.size_crops[i],
+                    scale=(min_scales[i], max_scale_crops[i]),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
+                )
+                self.transforms.extend(
+                    [
+                        transforms.Compose([rrc, transform])
+                        for _ in range(self.num_crops_per_size[i])
+                    ]
+                )
 
     def __call__(self, x: Image) -> List[torch.Tensor]:
         """Applies multi crop augmentations.
@@ -395,10 +416,7 @@ class MulticropAugmentation:
             List[torch.Tensor]: a list of crops in the tensor format.
         """
 
-        imgs = []
-        for n, transform in zip(self.num_large_crops, self.transforms):
-            imgs.extend([transform(x) for i in range(n)])
-        return imgs
+        return [t(x) for t in self.transforms]
 
 
 class MulticropCifarTransform(BaseTransform):
@@ -547,7 +565,7 @@ def prepare_n_crop_transform(
 
     Args:
         transform (Callable): a transformation.
-        num_large_crops (Optional[int], optional): number of crops. Defaults to None.
+        num_large_crops (Optional[int], optional): number of large crops. Defaults to None.
 
     Returns:
         NCropAugmentation: an N crop transformation.
@@ -558,8 +576,9 @@ def prepare_n_crop_transform(
 
 def prepare_multicrop_transform(
     transform: Callable,
+    dataset: str,
     size_crops: Sequence[int],
-    num_large_crops: Optional[Sequence[int]] = None,
+    num_crops_per_size: Optional[Sequence[int]] = None,
     min_scales: Optional[Sequence[float]] = None,
     max_scale_crops: Optional[Sequence[float]] = None,
 ) -> MulticropAugmentation:
@@ -568,7 +587,7 @@ def prepare_multicrop_transform(
     Args:
         transform (Callable): transformation callable without cropping.
         size_crops (Sequence[int]): a sequence of sizes of the crops.
-        num_large_crops (Optional[Sequence[int]]): list of number of crops per crop size.
+        num_crops_per_size (Optional[Sequence[int]]): list of number of crops per crop size.
         min_scales (Optional[Sequence[float]]): sequence of minimum crop scales per crop
             size.
         max_scale_crops (Optional[Sequence[float]]): sequence of maximum crop scales per crop
@@ -579,17 +598,20 @@ def prepare_multicrop_transform(
             different sizes.
     """
 
-    if num_large_crops is None:
-        num_large_crops = [2, 6]
+    if num_crops_per_size is None:
+        num_crops_per_size = [2, 6]
     if min_scales is None:
         min_scales = [0.14, 0.05]
     if max_scale_crops is None:
         max_scale_crops = [1.0, 0.14]
 
+    small_crop_transform = prepare_transform(dataset=dataset, multicrop=True)
+
     return MulticropAugmentation(
         transform,
+        small_crop_transform=small_crop_transform,
         size_crops=size_crops,
-        num_large_crops=num_large_crops,
+        num_crops_per_size=num_crops_per_size,
         min_scales=min_scales,
         max_scale_crops=max_scale_crops,
     )
@@ -600,7 +622,6 @@ def prepare_datasets(
     transform: Callable,
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
-    val_dir: Optional[Union[str, Path]] = None,
     no_labels: Optional[Union[str, Path]] = False,
     download: bool = True,
 ) -> Dataset:
@@ -628,11 +649,6 @@ def prepare_datasets(
     else:
         train_dir = Path(train_dir)
 
-    if val_dir is None:
-        val_dir = Path(f"{dataset}/val")
-    else:
-        val_dir = Path(val_dir)
-
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
@@ -641,30 +657,17 @@ def prepare_datasets(
             download=download,
             transform=transform,
         )
-        val_dataset = dataset_with_index(DatasetClass)(
-            data_dir / val_dir,
-            train=False,
-            download=download,
-            transform=transform,
-        )
 
     elif dataset == "stl10":
         train_dataset = dataset_with_index(STL10)(
             data_dir / train_dir,
             split="train+unlabeled",
-            download=download,
-            transform=transform,
-        )
-        val_dataset = dataset_with_index(STL10)(
-            data_dir / val_dir,
-            train=False,
-            download=download,
+            download=True,
             transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
         train_dir = data_dir / train_dir
-        val_dir = data_dir / val_dir
         train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
 
     elif dataset == "custom":
@@ -677,19 +680,17 @@ def prepare_datasets(
 
         train_dataset = dataset_with_index(dataset_class)(train_dir, transform)
 
-    return train_dataset, val_dataset
+    return train_dataset
 
 
-def prepare_dataloaders(
-    train_dataset: Dataset, val_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
+def prepare_dataloader(
+    train_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
 ) -> DataLoader:
     """Prepares the training dataloader for pretraining.
-
     Args:
         train_dataset (Dataset): the name of the dataset.
         batch_size (int, optional): batch size. Defaults to 64.
         num_workers (int, optional): number of workers. Defaults to 4.
-
     Returns:
         DataLoader: the training dataloader with the desired dataset.
     """
@@ -702,12 +703,4 @@ def prepare_dataloaders(
         pin_memory=True,
         drop_last=True,
     )
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=False,
-    )
-    return train_loader, val_loader
+    return train_loader

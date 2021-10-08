@@ -72,7 +72,7 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
-            conversion_map  (List[int], optional): list of integeres that map each index
+            conversion_map  (List[int], optional): list of integers that map each index
                 to a class label. If nothing is passed, no label mapping needs to be done.
                 Defaults to None.
         """

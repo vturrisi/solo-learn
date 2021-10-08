@@ -26,7 +26,6 @@ import torch.nn.functional as F
 import numpy as np
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumMethod
-from solo.utils.metrics import weighted_mean
 from solo.utils.momentum import initialize_momentum_params
 
 
@@ -140,9 +139,9 @@ class BYOL(BaseMomentumMethod):
 
         # ------- negative consine similarity loss -------
         neg_cos_sim = 0
-        for v1, z in enumerate(Z_momentum):
-            for v2 in np.delete(np.arange(len(P)), v1):
-                neg_cos_sim = byol_loss_func(P[v2], z)
+        for v1 in range(self.num_large_crops):
+            for v2 in np.delete(range(self.num_crops), v1):
+                neg_cos_sim += byol_loss_func(P[v2], Z_momentum[v1])
         neg_cos_sim /= self.num_large_crops * (self.num_crops - 1)
 
         # calculate std of features
@@ -175,40 +174,3 @@ class BYOL(BaseMomentumMethod):
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
         return neg_cos_sim + class_loss
-
-    def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        """Validation step for BYOL reusing BaseMethod validation step.
-
-        Args:
-            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images.
-            batch_idx (int): index of the batch.
-
-        Returns:
-            torch.Tensor: total loss composed of BYOL and classification loss.
-        """
-
-        out = super().validation_step(batch, batch_idx, dataloader_idx)
-
-        if dataloader_idx == self.val_loader_keys.index("augmented"):
-            neg_cos_sim, z_std = self._shared_step(out["feats"], out["momentum_feats"])
-
-            metrics = {
-                "val_neg_cos_sim": neg_cos_sim,
-                "val_z_std": z_std,
-            }
-            out.update(metrics)
-
-        return out
-
-    def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
-
-        outs_augmented = outs[self.val_loader_keys.index("augmented")]
-
-        val_neg_cos_sim = weighted_mean(outs_augmented, "val_neg_cos_sim", "batch_size")
-        val_z_std = weighted_mean(outs_augmented, "val_z_std", "batch_size")
-
-        logs = {"val_neg_cos_sim": val_neg_cos_sim, "val_z_std": val_z_std}
-        self.log_dict(logs, sync_dist=True)
