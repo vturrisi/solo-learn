@@ -231,9 +231,7 @@ class NormalPipeline(Pipeline):
         # crop operations
         if self.validation:
             self.resize = ops.Resize(
-                device=self.device,
-                resize_shorter=256,
-                interp_type=types.INTERP_CUBIC,
+                device=self.device, resize_shorter=256, interp_type=types.INTERP_CUBIC,
             )
             # center crop and normalize
             self.cmn = ops.CropMirrorNormalize(
@@ -335,10 +333,6 @@ class ImagenetTransform:
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
             crop_size (int, optional): size of the crop. Defaults to 224.
-            mean (Sequence[float], optional): mean values for normalization.
-                Defaults to (0.485, 0.456, 0.406).
-            std (Sequence[float], optional): std values for normalization.
-                Defaults to (0.228, 0.224, 0.225).
         """
 
         # random crop
@@ -409,11 +403,14 @@ class CustomTransform:
         contrast: float,
         saturation: float,
         hue: float,
+        color_jitter_prob: float = 0.8,
+        gray_scale_prob: float = 0.8,
+        horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
-        size: int = 224,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
+        crop_size: int = 224,
         mean: Sequence[float] = (0.485, 0.456, 0.406),
         std: Sequence[float] = (0.228, 0.224, 0.225),
     ):
@@ -442,7 +439,7 @@ class CustomTransform:
         # random crop
         self.random_crop = ops.RandomResizedCrop(
             device=device,
-            size=size,
+            size=crop_size,
             random_area=(min_scale, max_scale),
             interp_type=types.INTERP_CUBIC,
         )
@@ -453,12 +450,12 @@ class CustomTransform:
             contrast=contrast,
             saturation=saturation,
             hue=hue,
-            prob=0.8,
+            prob=color_jitter_prob,
             device=device,
         )
 
         # grayscale conversion
-        self.random_grayscale = RandomGrayScaleConversion(prob=0.2, device=device)
+        self.random_grayscale = RandomGrayScaleConversion(prob=gray_scale_prob, device=device)
 
         # gaussian blur
         self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
@@ -474,7 +471,7 @@ class CustomTransform:
             mean=[v * 255 for v in mean],
             std=[v * 255 for v in std],
         )
-        self.coin05 = ops.random.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=horizontal_flip_prob)
 
         self.str = (
             "CustomTransform("
@@ -540,10 +537,7 @@ class PretrainPipeline(Pipeline):
 
         seed += device_id
         super().__init__(
-            batch_size=batch_size,
-            num_threads=num_threads,
-            device_id=device_id,
-            seed=seed,
+            batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=seed,
         )
 
         self.device = device
@@ -630,3 +624,6 @@ class PretrainPipeline(Pipeline):
         labels = self.to_int64(labels)
 
         return (*crops, labels)
+
+    def __repr__(self) -> str:
+        return str(self.transforms)

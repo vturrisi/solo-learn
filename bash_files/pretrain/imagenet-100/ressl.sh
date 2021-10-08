@@ -22,6 +22,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.1 0.0 \
     --gaussian_prob 0.5 0.0 \
     --solarization_prob 0.0 0.0 \
+    --num_crops_per_pipeline 1 1 \
     --name ressl-400ep-imagenet100 \
     --project solo-learn \
     --entity unitn-mhug \

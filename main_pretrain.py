@@ -30,7 +30,8 @@ from solo.methods import METHODS
 
 try:
     from solo.methods.dali import PretrainABC
-except ImportError:
+except ImportError as e:
+    print(e)
     _dali_avaliable = False
 else:
     _dali_avaliable = True
@@ -116,10 +117,7 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name,
-            project=args.project,
-            entity=args.entity,
-            offline=args.offline,
+            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)

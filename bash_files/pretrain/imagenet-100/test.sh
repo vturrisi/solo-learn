@@ -1,36 +1,37 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /data/datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
-    --gpus 0,1 \
+    --gpus 0 \
     --accelerator ddp \
     --sync_batchnorm \
+    --num_workers 4 \
     --precision 16 \
     --optimizer sgd \
-    --scheduler cosine \
+    --lars \
+    --grad_clip_lars \
+    --eta_lars 0.02 \
+    --exclude_bias_n_norm \
+    --scheduler warmup_cosine \
     --lr 0.3 \
-    --classifier_lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
-    --num_workers 4 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \
-    --saturation 0.4 \
+    --saturation 0.2 \
     --hue 0.1 \
-    --num_crops_per_pipeline 2 \
-    --name mocov2plus-400ep \
-    --project solo-learn \
-    --entity unitn-mhug \
+    --gaussian_prob 1.0 0.1 \
+    --solarization_prob 0.0 0.2 \
+    --num_crops_per_pipeline 1 1 \
+    --name barlow-400ep-imagenet100 \
+    --project test \
     --wandb \
     --save_checkpoint \
-    --method mocov2plus \
+    --scale_loss 0.1 \
+    --method barlow_twins \
     --proj_hidden_dim 2048 \
-    --queue_size 65536 \
-    --temperature 0.2 \
-    --base_tau_momentum 0.99 \
-    --final_tau_momentum 0.999 \
-    --momentum_classifier
+    --proj_output_dim 2048

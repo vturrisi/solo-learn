@@ -99,6 +99,8 @@ class BarlowTwins(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
+        print(out)
+        exit()
 
         feats1, feats2 = out["feats"]
 

@@ -19,8 +19,8 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
-    --crop_size 32 \
     --gaussian_prob 0.0 \
+    --crop_size 32 \
     --solarization_prob 0.0 \
     --num_crops_per_pipeline 2 \
     --name barlow-cifar10 \

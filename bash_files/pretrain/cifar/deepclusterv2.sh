@@ -23,6 +23,8 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --gaussian_prob 0.0 0.0 \
+    --crop_size 32 \
+    --num_crops_per_pipeline 1 1 \
     --name deepclusterv2-$1 \
     --project solo-learn \
     --entity unitn-mhug \

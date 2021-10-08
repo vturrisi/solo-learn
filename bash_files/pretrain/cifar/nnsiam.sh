@@ -17,6 +17,8 @@ python3 ../../../main_pretrain.py \
     --saturation 0.4 \
     --hue 0.1 \
     --gaussian_prob 0.0 0.0 \
+    --crop_size 32 \
+    --num_crops_per_pipeline 1 1 \
     --zero_init_residual \
     --name nnsiam-$1 \
     --project solo-learn \
