@@ -65,8 +65,8 @@ class BarlowTwins(BaseMethod):
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters
-        parser.add_argument("--lamb", type=float, default=5e-3)
-        parser.add_argument("--scale_loss", type=float, default=0.025)
+        parser.add_argument("--lamb", type=float, default=0.0051)
+        parser.add_argument("--scale_loss", type=float, default=0.024)
         return parent_parser
 
     @property
