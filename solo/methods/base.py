@@ -76,7 +76,6 @@ class BaseMethod(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
-        multicrop: bool,
         num_crops: int,
         num_small_crops: int,
         eta_lars: float = 1e-3,
@@ -116,9 +115,8 @@ class BaseMethod(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
-            multicrop (bool): flag indicating if multi-resolution crop is being used.
-            num_crops (int): number of big crops
-            num_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
+            num_crops (int): number of big crops.
+            num_small_crops (int): number of small crops .
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
@@ -140,9 +138,6 @@ class BaseMethod(pl.LightningModule):
             For CIFAR10/100, the first convolutional and maxpooling layers of the ResNet encoder
             are slightly adjusted to handle lower resolution images (32x32 instead of 224x224).
 
-        .. note::
-            If multicrop is activated, the number of small crops must be greater than zero. When
-            multicrop is deactivated (default) the number of small crops is ignored.
 
         """
 
@@ -168,7 +163,6 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
-        self.multicrop = multicrop
         self.num_crops = num_crops
         self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
@@ -176,14 +170,11 @@ class BaseMethod(pl.LightningModule):
         self.disable_knn_eval = disable_knn_eval
         self.knn_k = knn_k
 
-        # sanity checks on multicrop
-        if self.multicrop:
-            assert num_small_crops > 0
-        else:
-            self.num_small_crops = 0
-
         # all the other parameters
         self.extra_args = kwargs
+
+        # turn on multicrop if there are small crops
+        self.multicrop = self.num_small_crops != 0
 
         # if accumulating gradient then scale lr
         self.lr = self.lr * self.accumulate_grad_batches

@@ -47,7 +47,6 @@ from solo.utils.classification_dataloader import prepare_data as prepare_data_cl
 from solo.utils.pretrain_dataloader import (
     prepare_dataloader,
     prepare_datasets,
-    prepare_multicrop_transform,
     prepare_n_crop_transform,
     prepare_transform,
 )
@@ -74,37 +73,17 @@ def main():
         # asymmetric augmentations
         if args.unique_augs > 1:
             transform = [
-                prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
-                for kwargs in args.transform_kwargs
+                prepare_transform(args.dataset, **kwargs) for kwargs in args.transform_kwargs
             ]
         else:
-            transform = prepare_transform(
-                args.dataset, multicrop=args.multicrop, **args.transform_kwargs
-            )
+            transform = [prepare_transform(args.dataset, **args.transform_kwargs)]
 
+        transform = prepare_n_crop_transform(
+            transform, num_crops_per_pipeline=args.num_crops_per_pipeline
+        )
         if args.debug_augmentations:
             print("Transforms:")
             pprint(transform)
-
-        if args.multicrop:
-            assert not args.unique_augs == 1
-
-            if args.dataset in ["cifar10", "cifar100"]:
-                size_crops = [32, 24]
-            elif args.dataset == "stl10":
-                size_crops = [96, 58]
-            # imagenet or custom dataset
-            else:
-                size_crops = [224, 96]
-
-            transform = prepare_multicrop_transform(
-                transform, size_crops=size_crops, num_crops=[args.num_crops, args.num_small_crops]
-            )
-        else:
-            if args.num_crops != 2:
-                assert args.method == "wmse"
-
-            transform = prepare_n_crop_transform(transform, num_crops=args.num_crops)
 
         train_dataset = prepare_datasets(
             args.dataset,
