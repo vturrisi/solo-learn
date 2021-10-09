@@ -70,9 +70,7 @@ def test_wmse():
 
     for num_large_crops in [2, 4]:
         # imagenet
-        BASE_KWARGS = gen_base_kwargs(
-            cifar=False, multicrop=False, num_large_crops=num_large_crops, batch_size=8
-        )
+        BASE_KWARGS = gen_base_kwargs(cifar=False, num_large_crops=num_large_crops, batch_size=8)
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
         kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
@@ -91,9 +89,7 @@ def test_wmse():
         trainer.fit(model, train_dl, val_dl)
 
         # cifar
-        BASE_KWARGS = gen_base_kwargs(
-            cifar=False, multicrop=False, num_large_crops=num_large_crops, batch_size=8
-        )
+        BASE_KWARGS = gen_base_kwargs(cifar=False, num_large_crops=num_large_crops, batch_size=8)
         method_kwargs["output_dim"] = BASE_KWARGS["batch_size"] // 4
         method_kwargs["whitening_size"] = BASE_KWARGS["batch_size"] // 2
         kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}

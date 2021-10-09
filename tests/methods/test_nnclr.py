@@ -89,7 +89,7 @@ def test_nnclr():
     trainer.fit(model, train_dl, val_dl)
 
     # cifar
-    BASE_KWARGS = gen_base_kwargs(cifar=True, multicrop=False, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = NNCLR(**kwargs, disable_knn_eval=True)
 

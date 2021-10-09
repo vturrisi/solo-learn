@@ -43,7 +43,7 @@ def test_dali_pretrain():
                 "encode_indexes_into_labels": encode_indexes_into_labels,
                 "disable_knn_eval": True,
             }
-            BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+            BASE_KWARGS = gen_base_kwargs(cifar=False)
             DATA_KWARGS_WRAPPED = {k: [v] for k, v in DATA_KWARGS.items()}
             kwargs = {**BASE_KWARGS, **DATA_KWARGS_WRAPPED, **method_kwargs}
 
@@ -60,6 +60,7 @@ def test_dali_pretrain():
                 gaussian_prob=0.5,
                 solarization_prob=0.2,
                 min_scale=0.08,
+                max_scale=1.0,
             )
             kwargs["unique_augs"] = 1
 
@@ -97,7 +98,7 @@ def test_dali_pretrain():
 def test_dali_linear():
     # creates a dummy dataset that autodeletes after usage
     with DummyDataset("dummy_train", "dummy_val", 128, 4):
-        BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, multicrop=False)
+        BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)
         kwargs = {**BASE_KWARGS, **DATA_KWARGS}
         backbone = resnet18()
         backbone.fc = nn.Identity()

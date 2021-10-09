@@ -35,7 +35,7 @@ from .utils import (
 
 
 def test_linear():
-    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, multicrop=False)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS}
     backbone = resnet18()
     backbone.fc = nn.Identity()

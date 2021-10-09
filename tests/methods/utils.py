@@ -41,7 +41,11 @@ DATA_KWARGS = {
 
 
 def gen_base_kwargs(
-    cifar=False, momentum=False, num_large_crops=2, num_small_crops=0, batch_size=32,
+    cifar=False,
+    momentum=False,
+    num_large_crops=2,
+    num_small_crops=0,
+    batch_size=32,
 ):
     BASE_KWARGS = {
         "encoder": "resnet18",
@@ -62,6 +66,7 @@ def gen_base_kwargs(
         "min_lr": 0.0,
         "warmup_start_lr": 0.0,
         "warmup_epochs": 10,
+        "num_crops_per_pipeline": [num_large_crops, num_small_crops],
         "num_large_crops": num_large_crops,
         "num_small_crops": num_small_crops,
         "eta_lars": 0.02,
@@ -89,8 +94,8 @@ def gen_batch(b, num_classes, dataset):
 
     im = np.random.rand(size, size, 3) * 255
     im = Image.fromarray(im.astype("uint8")).convert("RGB")
-    T = prepare_transform(dataset, multicrop=False, **DATA_KWARGS)
-    T = prepare_n_crop_transform(T, num_large_crops=2)
+    T = [prepare_transform(dataset, crop_size=size, **DATA_KWARGS)]
+    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[2])
     x1, x2 = T(im)
     x1 = x1.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
     x2 = x2.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
@@ -163,6 +168,7 @@ def prepare_dummy_dataloaders(
                 [1.0, 0.1],
                 [0.0, 0.2],
                 [224, 96] if dataset == "imagenet100" else [32, 24][0.14, 0.08],
+                [0.14, 0.08],
                 [1.0, 0.14],
             )
         ]
@@ -189,7 +195,10 @@ def prepare_dummy_dataloaders(
 
     transform = prepare_n_crop_transform(transform, num_crops_per_pipeline=num_crops_per_pipeline)
     dataset = dataset_with_index(FakeData)(
-        image_size=(3, 224, 224), num_classes=num_classes, transform=transform, size=1024,
+        image_size=(3, 224, 224),
+        num_classes=num_classes,
+        transform=transform,
+        size=1024,
     )
     train_dl = prepare_dataloader(dataset, batch_size=batch_size, num_workers=0)
 

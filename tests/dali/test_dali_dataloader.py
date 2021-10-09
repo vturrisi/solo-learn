@@ -20,7 +20,6 @@
 from solo.utils.dali_dataloader import (
     PretrainPipeline,
     ImagenetTransform,
-    MulticropPretrainPipeline,
     NormalPipeline,
 )
 from .utils import DummyDataset
@@ -29,7 +28,6 @@ from .utils import DummyDataset
 def test_dali_dataloader():
     # creates a dummy dataset that autodeletes after usage
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
-        num_large_crops = [2, 4]
         size_crops = [224, 96]
         min_scales = [0.14, 0.05]
         max_scale_crops = [1.0, 0.14]
@@ -44,31 +42,18 @@ def test_dali_dataloader():
                 hue=0.1,
                 gaussian_prob=0.5,
                 solarization_prob=0.1,
-                size=size,
+                crop_size=size,
                 min_scale=min_scale,
                 max_scale=max_scale,
             )
             transforms.append(transform)
 
         # multicrop pipeline
-        train_pipeline = MulticropPretrainPipeline(
-            "dummy_train",
-            batch_size=4,
-            transforms=transforms,
-            num_large_crops=num_large_crops,
-            device="cpu",
-            device_id=0,
-            shard_id=0,
-            num_shards=1,
-            num_threads=1,
-        )
-        train_pipeline.build()
-
-        # simple pretrain pipeline
         train_pipeline = PretrainPipeline(
             "dummy_train",
             batch_size=4,
-            transform=transforms[0],
+            transforms=transforms,
+            num_crops_per_pipeline=[2, 4],
             device="cpu",
             device_id=0,
             shard_id=0,

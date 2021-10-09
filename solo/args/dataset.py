@@ -74,6 +74,10 @@ def augmentations_args(parser: ArgumentParser):
     parser.add_argument("--debug_augmentations", action="store_true")
 
 
+def linear_augmentations_args(parser: ArgumentParser):
+    parser.add_argument("--crop_size", type=int, default=[224], nargs="+")
+
+
 def custom_dataset_args(parser: ArgumentParser):
     """Adds custom data-related arguments to a parser.
 

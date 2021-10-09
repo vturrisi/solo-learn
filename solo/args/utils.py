@@ -59,7 +59,8 @@ def additional_setup_pretrain(args: Namespace):
         # even if the custom dataset doesn't have any labels
         dir_path = args.data_dir / args.train_dir
         args.num_classes = max(
-            1, len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+            1,
+            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
         )
 
     unique_augs = max(
@@ -226,7 +227,8 @@ def additional_setup_linear(args: Namespace):
         # even if the custom dataset doesn't have any labels
         dir_path = args.data_dir / args.train_dir
         args.num_classes = max(
-            1, len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+            1,
+            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
         )
 
     # create backbone-specific arguments
@@ -234,15 +236,8 @@ def additional_setup_linear(args: Namespace):
 
     if "resnet" not in args.encoder:
         # dataset related for all transformers
-        dataset = args.dataset
-        if "cifar" in dataset:
-            args.backbone_args["img_size"] = 32
-        elif "stl" in dataset:
-            args.backbone_args["img_size"] = 96
-        elif "imagenet" in dataset:
-            args.backbone_args["img_size"] = 224
-        elif "custom" in dataset:
-            args.backbone_args["img_size"] = args.size
+        crop_size = args.crop_size[0]
+        args.backbone_args["img_size"] = crop_size
 
         if "vit" in args.encoder:
             args.backbone_args["patch_size"] = args.patch_size

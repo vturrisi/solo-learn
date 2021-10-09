@@ -39,7 +39,7 @@ def test_checkpointer():
     }
 
     # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = BarlowTwins(**kwargs, disable_knn_eval=True)
 

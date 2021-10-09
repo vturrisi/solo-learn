@@ -37,7 +37,7 @@ def test_auto_umap():
     }
 
     # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+    BASE_KWARGS = gen_base_kwargs(cifar=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = BarlowTwins(**kwargs, disable_knn_eval=True)
 

@@ -37,7 +37,6 @@ def test_transforms():
         hue=0.2,
         gaussian_prob=0.5,
         solarization_prob=0.4,
-        crop_size=224,
         min_scale=0.08,
         max_scale=1.0,
     )
@@ -45,10 +44,10 @@ def test_transforms():
     im = np.random.rand(100, 100, 3) * 255
     im = Image.fromarray(im.astype("uint8")).convert("RGB")
 
-    T = prepare_transform("cifar10", **kwargs)
+    T = prepare_transform("cifar10", crop_size=32, **kwargs)
     assert T(im).size(1) == 32
 
-    T = prepare_transform("stl10", **kwargs)
+    T = prepare_transform("stl10", crop_size=96, **kwargs)
     assert T(im).size(1) == 96
 
     T = prepare_transform("imagenet100", **kwargs)
@@ -56,7 +55,7 @@ def test_transforms():
 
     num_large_crops = 10
     assert (
-        len(prepare_n_crop_transform(T, num_crops_per_pipeline=[num_large_crops])(im))
+        len(prepare_n_crop_transform([T], num_crops_per_pipeline=[num_large_crops])(im))
         == num_large_crops
     )
 
@@ -73,7 +72,7 @@ def test_transforms():
     )
 
     T = [prepare_transform("imagenet100", **kw) for kw in [kwargs, kwargs_small]]
-    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[num_large_crops, 6])
+    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[2, 6])
     crops = T(im)
     sizes = [224] * 2 + [96] * 6
     for crop, size in zip(crops, sizes):
@@ -90,8 +89,8 @@ def test_data():
         solarization_prob=0.4,
     )
 
-    T = prepare_transform("cifar10", **kwargs)
-    T = prepare_n_crop_transform(T, num_large_crops=2)
+    T = [prepare_transform("cifar10", **kwargs)]
+    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[2])
     train_dataset = prepare_datasets("cifar10", T, data_dir=None)
 
     assert isinstance(train_dataset, CIFAR10)

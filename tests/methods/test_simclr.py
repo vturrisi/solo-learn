@@ -100,7 +100,7 @@ def test_simclr():
     trainer.fit(model, train_dl, val_dl)
 
     # multicrop
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=True, num_small_crops=6, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, num_small_crops=6, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = SimCLR(**kwargs, disable_knn_eval=True)
 
