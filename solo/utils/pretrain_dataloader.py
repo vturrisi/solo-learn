@@ -492,12 +492,18 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
-            data_dir / train_dir, train=True, download=True, transform=transform,
+            data_dir / train_dir,
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "stl10":
         train_dataset = dataset_with_index(STL10)(
-            data_dir / train_dir, split="train+unlabeled", download=True, transform=transform,
+            data_dir / train_dir,
+            split="train+unlabeled",
+            download=True,
+            transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:

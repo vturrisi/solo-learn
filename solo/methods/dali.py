@@ -170,7 +170,11 @@ class PretrainABC(ABC):
 
         if unique_augs > 1:
             transforms = [
-                transform_pipeline(device=dali_device, **kwargs,) for kwargs in transform_kwargs
+                transform_pipeline(
+                    device=dali_device,
+                    **kwargs,
+                )
+                for kwargs in transform_kwargs
             ]
         else:
             transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]
