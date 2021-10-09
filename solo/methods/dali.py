@@ -189,7 +189,7 @@ class PretrainABC(ABC):
             encode_indexes_into_labels=self.encode_indexes_into_labels,
         )
         output_map = (
-            [f"large{i}" for i in range(self.num_crops)]
+            [f"large{i}" for i in range(self.num_large_crops)]
             + [f"small{i}" for i in range(self.num_small_crops)]
             + ["label"]
         )

@@ -463,6 +463,7 @@ def prepare_datasets(
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
     no_labels: Optional[Union[str, Path]] = False,
+    download: bool = True,
 ) -> Dataset:
     """Prepares the desired dataset.
 
@@ -520,12 +521,10 @@ def prepare_dataloader(
     train_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
 ) -> DataLoader:
     """Prepares the training dataloader for pretraining.
-
     Args:
         train_dataset (Dataset): the name of the dataset.
         batch_size (int, optional): batch size. Defaults to 64.
         num_workers (int, optional): number of workers. Defaults to 4.
-
     Returns:
         DataLoader: the training dataloader with the desired dataset.
     """

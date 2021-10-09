@@ -59,8 +59,7 @@ def additional_setup_pretrain(args: Namespace):
         # even if the custom dataset doesn't have any labels
         dir_path = args.data_dir / args.train_dir
         args.num_classes = max(
-            1,
-            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+            1, len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
         )
 
     unique_augs = max(
@@ -139,13 +138,13 @@ def additional_setup_pretrain(args: Namespace):
 
         # find number of big/small crops
         big_size = args.crop_size[0]
-        num_crops = num_small_crops = 0
+        num_large_crops = num_small_crops = 0
         for size, n_crops in zip(args.crop_size, args.num_crops_per_pipeline):
             if big_size == size:
-                num_crops += n_crops
+                num_large_crops += n_crops
             else:
                 num_small_crops += n_crops
-        args.num_crops = num_crops
+        args.num_large_crops = num_large_crops
         args.num_small_crops = num_small_crops
     else:
         args.transform_kwargs = dict(
@@ -161,7 +160,7 @@ def additional_setup_pretrain(args: Namespace):
         )
 
         # find number of big/small crops
-        args.num_crops = args.num_crops_per_pipeline[0]
+        args.num_large_crops = args.num_crops_per_pipeline[0]
         args.num_small_crops = 0
 
     # add support for custom mean and std
@@ -227,8 +226,7 @@ def additional_setup_linear(args: Namespace):
         # even if the custom dataset doesn't have any labels
         dir_path = args.data_dir / args.train_dir
         args.num_classes = max(
-            1,
-            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+            1, len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
         )
 
     # create backbone-specific arguments

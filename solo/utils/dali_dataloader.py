@@ -492,7 +492,7 @@ class CustomTransform:
         out = self.cmn(out, mirror=self.coin05())
         return out
 
-    def __str__(self):
+    def __repr__(self):
         return self.str
 
 

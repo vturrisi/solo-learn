@@ -112,7 +112,7 @@ class SimCLR(BaseMethod):
         """
 
         if self.multicrop:
-            n_augs = self.num_crops + self.num_small_crops
+            n_augs = self.num_large_crops + self.num_small_crops
         else:
             n_augs = 2
         labels_matrix = repeat(Y, "b -> c (d b)", c=n_augs * Y.size(0), d=n_augs)
@@ -124,7 +124,7 @@ class SimCLR(BaseMethod):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -137,7 +137,7 @@ class SimCLR(BaseMethod):
         class_loss = out["loss"]
 
         if self.multicrop:
-            n_augs = self.num_crops + self.num_small_crops
+            n_augs = self.num_large_crops + self.num_small_crops
 
             feats = out["feats"]
 

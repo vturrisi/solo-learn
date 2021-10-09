@@ -60,6 +60,9 @@ def main():
 
     assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
+    if args.num_large_crops != 2:
+        assert args.method == "wmse"
+
     MethodClass = METHODS[args.method]
     if args.dali:
         assert (
@@ -68,7 +71,6 @@ def main():
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
 
     model = MethodClass(**args.__dict__)
-
     # contrastive dataloader
     if not args.dali:
         # asymmetric augmentations

@@ -146,6 +146,7 @@ def prepare_datasets(
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
     val_dir: Optional[Union[str, Path]] = None,
+    download: bool = True,
 ) -> Tuple[Dataset, Dataset]:
     """Prepares train and val datasets.
 
@@ -184,14 +185,14 @@ def prepare_datasets(
         train_dataset = DatasetClass(
             data_dir / train_dir,
             train=True,
-            download=True,
+            download=download,
             transform=T_train,
         )
 
         val_dataset = DatasetClass(
             data_dir / val_dir,
             train=False,
-            download=True,
+            download=download,
             transform=T_val,
         )
 
@@ -205,7 +206,7 @@ def prepare_datasets(
         val_dataset = STL10(
             data_dir / val_dir,
             split="test",
-            download=True,
+            download=download,
             transform=T_val,
         )
 
@@ -258,6 +259,7 @@ def prepare_data(
     val_dir: Optional[Union[str, Path]] = None,
     batch_size: int = 64,
     num_workers: int = 4,
+    download: bool = True,
 ) -> Tuple[DataLoader, DataLoader]:
     """Prepares transformations, creates dataset objects and wraps them in dataloaders.
 
@@ -284,6 +286,7 @@ def prepare_data(
         data_dir=data_dir,
         train_dir=train_dir,
         val_dir=val_dir,
+        download=download,
     )
     train_loader, val_loader = prepare_dataloaders(
         train_dataset,

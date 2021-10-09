@@ -22,7 +22,6 @@ from PIL import Image
 from solo.utils.pretrain_dataloader import (
     prepare_dataloader,
     prepare_datasets,
-    prepare_multicrop_transform,
     prepare_n_crop_transform,
     prepare_transform,
 )
@@ -31,7 +30,6 @@ from torchvision.datasets.cifar import CIFAR10
 
 
 def test_transforms():
-
     kwargs = dict(
         brightness=0.5,
         contrast=0.5,
@@ -39,37 +37,50 @@ def test_transforms():
         hue=0.2,
         gaussian_prob=0.5,
         solarization_prob=0.4,
+        crop_size=224,
+        min_scale=0.08,
+        max_scale=1.0,
     )
 
     im = np.random.rand(100, 100, 3) * 255
     im = Image.fromarray(im.astype("uint8")).convert("RGB")
 
-    T = prepare_transform("cifar10", multicrop=False, **kwargs)
+    T = prepare_transform("cifar10", **kwargs)
     assert T(im).size(1) == 32
 
-    T = prepare_transform("stl10", multicrop=False, **kwargs)
+    T = prepare_transform("stl10", **kwargs)
     assert T(im).size(1) == 96
 
-    T = prepare_transform("imagenet100", multicrop=False, **kwargs)
+    T = prepare_transform("imagenet100", **kwargs)
     assert T(im).size(1) == 224
 
-    num_crops = 10
-    assert len(prepare_n_crop_transform(T, num_crops=num_crops)(im)) == num_crops
+    num_large_crops = 10
+    assert (
+        len(prepare_n_crop_transform(T, num_crops_per_pipeline=[num_large_crops])(im))
+        == num_large_crops
+    )
 
-    T = prepare_transform("imagenet100", multicrop=True, **kwargs)
-    num_crops = [3, 9]
-    sizes = [224, 96]
-    T = prepare_multicrop_transform(T, sizes, num_crops=num_crops)
+    kwargs_small = dict(
+        brightness=0.5,
+        contrast=0.5,
+        saturation=0.4,
+        hue=0.2,
+        gaussian_prob=0.5,
+        solarization_prob=0.4,
+        crop_size=96,
+        min_scale=0.08,
+        max_scale=1.0,
+    )
+
+    T = [prepare_transform("imagenet100", **kw) for kw in [kwargs, kwargs_small]]
+    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[num_large_crops, 6])
     crops = T(im)
-    cur = 0
-    for i, crop in enumerate(crops):
-        assert crop.size(1) == sizes[cur]
-        if i + 1 >= num_crops[cur] and len(num_crops) > cur + 1:
-            cur += 1
+    sizes = [224] * 2 + [96] * 6
+    for crop, size in zip(crops, sizes):
+        assert crop.size(1) == size
 
 
 def test_data():
-
     kwargs = dict(
         brightness=0.5,
         contrast=0.5,
@@ -79,8 +90,8 @@ def test_data():
         solarization_prob=0.4,
     )
 
-    T = prepare_transform("cifar10", multicrop=False, **kwargs)
-    T = prepare_n_crop_transform(T, num_crops=2)
+    T = prepare_transform("cifar10", **kwargs)
+    T = prepare_n_crop_transform(T, num_large_crops=2)
     train_dataset = prepare_datasets("cifar10", T, data_dir=None)
 
     assert isinstance(train_dataset, CIFAR10)
