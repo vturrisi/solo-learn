@@ -26,6 +26,8 @@ python3 ../../../main_pretrain.py \
     --name barlow-$1 \
     --project solo-learn \
     --entity unitn-mhug \
+    --wandb \
+    --save_checkpoint \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
     --proj_output_dim 2048 \
