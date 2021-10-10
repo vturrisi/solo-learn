@@ -22,12 +22,10 @@ python3 ../../../main_pretrain.py \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.2 \
     --crop_size 32 \
-    --num_crops_per_pipeline 1 1 \
+    --num_crops_per_aug 1 1 \
     --name barlow-$1 \
     --project solo-learn \
     --entity unitn-mhug \
-    --wandb \
-    --save_checkpoint \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
     --proj_output_dim 2048 \

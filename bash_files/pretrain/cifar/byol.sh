@@ -23,11 +23,9 @@ python3 ../../../main_pretrain.py \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.2 \
     --crop_size 32 \
-    --num_crops_per_pipeline 1 1 \
+    --num_crops_per_aug 1 1 \
     --name byol-$1 \
     --project debug \
-    --wandb \
-    --save_checkpoint \
     --method byol \
     --proj_output_dim 256 \
     --proj_hidden_dim 4096 \

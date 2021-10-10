@@ -27,6 +27,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
+    --num_crops_per_aug 1 1 \
     --name byol-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \

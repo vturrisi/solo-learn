@@ -23,7 +23,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.2 \
     --gaussian_prob 0.0 0.0 \
     --crop_size 32 \
-    --num_crops_per_pipeline 1 1 \
+    --num_crops_per_aug 1 1 \
     --name swav-$1 \
     --wandb \
     --save_checkpoint \

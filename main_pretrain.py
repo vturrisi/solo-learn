@@ -71,6 +71,7 @@ def main():
         MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
 
     model = MethodClass(**args.__dict__)
+
     # contrastive dataloader
     if not args.dali:
         # asymmetric augmentations
@@ -81,9 +82,7 @@ def main():
         else:
             transform = [prepare_transform(args.dataset, **args.transform_kwargs)]
 
-        transform = prepare_n_crop_transform(
-            transform, num_crops_per_pipeline=args.num_crops_per_pipeline
-        )
+        transform = prepare_n_crop_transform(transform, num_crops_per_aug=args.num_crops_per_aug)
         if args.debug_augmentations:
             print("Transforms:")
             pprint(transform)
@@ -119,7 +118,10 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline,
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)

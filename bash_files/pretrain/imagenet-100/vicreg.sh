@@ -26,7 +26,7 @@ python3 ../../../main_pretrain.py \
     --saturation 0.2 \
     --hue 0.1 \
     --solarization_prob 0.1 \
-    --num_crops_per_pipeline 2 \
+    --num_crops_per_aug 2 \
     --name vicreg-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \

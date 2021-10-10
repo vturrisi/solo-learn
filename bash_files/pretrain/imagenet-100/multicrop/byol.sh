@@ -29,7 +29,7 @@ python3 ../../../main_pretrain.py \
     --gaussian_prob 1.0 0.1 0.0 \
     --solarization_prob 0.0 0.2 0.0 \
     --crop_size 224 224 96 \
-    --num_crops_per_pipeline 1 1 6 \
+    --num_crops_per_aug 1 1 6 \
     --name byol-multicro-400ep-imagenet100 \
     --project debug \
     --wandb \

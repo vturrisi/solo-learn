@@ -23,7 +23,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
-    --num_crops_per_pipeline 2 \
+    --num_crops_per_aug 2 \
     --name simclr-400ep-imagenet100 \
     --dali \
     --entity unitn-mhug \
@@ -60,7 +60,7 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --crop_size 224 96 \
-    --num_crops_per_pipeline 2 6 \
+    --num_crops_per_aug 2 6 \
     --name multicrop-simclr-400ep-imagenet100 \
     --dali \
     --entity unitn-mhug \
@@ -98,7 +98,7 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --crop_size 224 96 \
-    --num_crops_per_pipeline 2 6 \
+    --num_crops_per_aug 2 6 \
     --name multicrop-supervised-simclr-400ep-imagenet100 \
     --dali \
     --entity unitn-mhug \

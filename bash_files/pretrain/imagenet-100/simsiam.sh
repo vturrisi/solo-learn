@@ -20,7 +20,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
-    --num_crops_per_pipeline 2 \
+    --num_crops_per_aug 2 \
     --zero_init_residual \
     --name simsiam-400ep-imagenet100 \
     --dali \
