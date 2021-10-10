@@ -14,11 +14,14 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 3e-3 \
     --weight_decay 1e-6 \
     --batch_size 256 \
+    --crop_size 32 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
     --gaussian_prob 0.0 0.0 \
+    --crop_size 32 \
+    --num_crops_per_aug 1 1 \
     --min_scale 0.2 \
     --name wmse-$1 \
     --wandb \

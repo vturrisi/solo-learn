@@ -76,8 +76,7 @@ class BaseMethod(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
-        multicrop: bool,
-        num_crops: int,
+        num_large_crops: int,
         num_small_crops: int,
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
@@ -116,9 +115,8 @@ class BaseMethod(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
-            multicrop (bool): flag indicating if multi-resolution crop is being used.
-            num_crops (int): number of big crops
-            num_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
+            num_large_crops (int): number of big crops.
+            num_small_crops (int): number of small crops .
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
@@ -139,10 +137,6 @@ class BaseMethod(pl.LightningModule):
         .. note::
             For CIFAR10/100, the first convolutional and maxpooling layers of the ResNet encoder
             are slightly adjusted to handle lower resolution images (32x32 instead of 224x224).
-
-        .. note::
-            If multicrop is activated, the number of small crops must be greater than zero. When
-            multicrop is deactivated (default) the number of small crops is ignored.
 
         """
 
@@ -168,22 +162,21 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
-        self.multicrop = multicrop
-        self.num_crops = num_crops
+        self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
         self.disable_knn_eval = disable_knn_eval
         self.knn_k = knn_k
 
-        # sanity checks on multicrop
-        if self.multicrop:
-            assert num_small_crops > 0
-        else:
-            self.num_small_crops = 0
+        # multicrop
+        self.num_crops = self.num_large_crops + self.num_small_crops
 
         # all the other parameters
         self.extra_args = kwargs
+
+        # turn on multicrop if there are small crops
+        self.multicrop = self.num_small_crops != 0
 
         # if accumulating gradient then scale lr
         self.lr = self.lr * self.accumulate_grad_batches
@@ -423,16 +416,16 @@ class BaseMethod(pl.LightningModule):
         logits = self.classifier(feats.detach())
         return {"logits": logits, "feats": feats}
 
-    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+    def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
         features, acc@1 and acc@5.
 
         Args:
-            X (torch.Tensor): batch of images in tensor format
-            targets (torch.Tensor): batch of labels for X
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
 
         Returns:
-            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
         """
 
         out = self.base_forward(X)
@@ -451,11 +444,11 @@ class BaseMethod(pl.LightningModule):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size self.num_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: dict with the classification loss, features and logits
+            Dict[str, Any]: dict with the classification loss, features and logits.
         """
 
         _, X, targets = batch
@@ -463,18 +456,18 @@ class BaseMethod(pl.LightningModule):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
-        assert len(X) == self.num_crops + self.num_small_crops
+        assert len(X) == self.num_crops
 
-        outs = [self._shared_step(x, targets) for x in X[: self.num_crops]]
+        outs = [self._base_shared_step(x, targets) for x in X[: self.num_large_crops]]
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.encoder(x) for x in X[self.num_crops :]])
+            outs["feats"].extend([self.encoder(x) for x in X[self.num_large_crops :]])
 
         # loss and stats
-        outs["loss"] = sum(outs["loss"]) / self.num_crops
-        outs["acc1"] = sum(outs["acc1"]) / self.num_crops
-        outs["acc5"] = sum(outs["acc5"]) / self.num_crops
+        outs["loss"] = sum(outs["loss"]) / self.num_large_crops
+        outs["acc1"] = sum(outs["acc1"]) / self.num_large_crops
+        outs["acc5"] = sum(outs["acc5"]) / self.num_large_crops
 
         metrics = {
             "train_class_loss": outs["loss"],
@@ -486,30 +479,31 @@ class BaseMethod(pl.LightningModule):
 
         if not self.disable_knn_eval:
             self.knn(
-                train_features=torch.cat(outs["feats"][: self.num_crops]).detach(),
-                train_targets=targets.repeat(self.num_crops),
+                train_features=torch.cat(outs["feats"][: self.num_large_crops]).detach(),
+                train_targets=targets.repeat(self.num_large_crops),
             )
 
         return outs
 
-    def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def validation_step(
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
+    ) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y]
-            batch_idx (int): index of the batch
+            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y].
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]:
-                dict with the batch_size (used for averaging),
-                the classification loss and accuracies
+            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
+                and accuracies.
         """
 
         X, targets = batch
         batch_size = targets.size(0)
 
-        out = self._shared_step(X, targets)
+        out = self._base_shared_step(X, targets)
 
         if not self.disable_knn_eval and not self.trainer.sanity_checking:
             self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
@@ -701,7 +695,6 @@ class BaseMomentumMethod(BaseMethod):
         """Training step for pytorch lightning. It performs all the shared operations for the
         momentum encoder and classifier, such as forwarding the crops in the momentum encoder
         and classifier, and computing statistics.
-
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.num_crops containing batches of images.
@@ -718,7 +711,7 @@ class BaseMomentumMethod(BaseMethod):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # remove small crops
-        X = X[: self.num_crops]
+        X = X[: self.num_large_crops]
 
         momentum_outs = [self._shared_step_momentum(x, targets) for x in X]
         momentum_outs = {
@@ -727,9 +720,15 @@ class BaseMomentumMethod(BaseMethod):
 
         if self.momentum_classifier is not None:
             # momentum loss and stats
-            momentum_outs["momentum_loss"] = sum(momentum_outs["momentum_loss"]) / self.num_crops
-            momentum_outs["momentum_acc1"] = sum(momentum_outs["momentum_acc1"]) / self.num_crops
-            momentum_outs["momentum_acc5"] = sum(momentum_outs["momentum_acc5"]) / self.num_crops
+            momentum_outs["momentum_loss"] = (
+                sum(momentum_outs["momentum_loss"]) / self.num_large_crops
+            )
+            momentum_outs["momentum_acc1"] = (
+                sum(momentum_outs["momentum_acc1"]) / self.num_large_crops
+            )
+            momentum_outs["momentum_acc5"] = (
+                sum(momentum_outs["momentum_acc5"]) / self.num_large_crops
+            )
 
             metrics = {
                 "train_momentum_class_loss": momentum_outs["momentum_loss"],
@@ -772,16 +771,14 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = self.trainer.global_step
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Validation step for pytorch lightning. It performs all the shared operations for the
         momentum encoder and classifier, such as forwarding a batch of images in the momentum
         encoder and classifier and computing statistics.
-
         Args:
             batch (List[torch.Tensor]): a batch of data in the format of [X, Y].
             batch_idx (int): index of the batch.
-
         Returns:
             Tuple(Dict[str, Any], Dict[str, Any]): tuple of dicts containing the batch_size (used
                 for averaging), the classification loss and accuracies for both the online and the
@@ -810,7 +807,6 @@ class BaseMomentumMethod(BaseMethod):
         """Averages the losses and accuracies of the momentum encoder / classifier for all the
         validation batches. This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
-
         Args:
             outs (Tuple[List[Dict[str, Any]]]):): list of outputs of the validation step for self
                 and the parent.

@@ -70,31 +70,6 @@ CustomTransform
 .. automethod:: solo.utils.pretrain_dataloader.CustomTransform.__init__
    :noindex:
 
-MulticropAugmentation
-~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.pretrain_dataloader.MulticropAugmentation.__init__
-   :noindex:
-
-MulticropCifarTransform
-~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.pretrain_dataloader.MulticropCifarTransform.__init__
-   :noindex:
-
-MulticropSTLTransform
-~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.pretrain_dataloader.MulticropSTLTransform.__init__
-   :noindex:
-
-MulticropImagenetTransform
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.pretrain_dataloader.MulticropImagenetTransform.__init__
-   :noindex:
-
-MulticropCustomTransform
-~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.utils.pretrain_dataloader.MulticropCustomTransform.__init__
-   :noindex:
-
 
 
 Pretrain dataloader
@@ -113,11 +88,6 @@ prepare_transform
 prepare_n_crop_transform
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: solo.utils.pretrain_dataloader.prepare_n_crop_transform
-   :noindex:
-
-prepare_multicrop_transform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autofunction:: solo.utils.pretrain_dataloader.prepare_multicrop_transform
    :noindex:
 
 prepare_datasets

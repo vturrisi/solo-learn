@@ -18,6 +18,8 @@ python3 ../../../main_pretrain.py \
     --hue 0.1 0.0 \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.0 \
+    --crop_size 32 \
+    --num_crops_per_aug 1 1 \
     --name ressl-$1 \
     --project solo-learn \
     --entity unitn-mhug \

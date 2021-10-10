@@ -37,7 +37,7 @@ def test_auto_umap():
     }
 
     # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False)
+    BASE_KWARGS = gen_base_kwargs(cifar=False)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = BarlowTwins(**kwargs, disable_knn_eval=True)
 
@@ -56,7 +56,7 @@ def test_auto_umap():
 
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        num_crops=BASE_KWARGS["num_crops"],
+        num_large_crops=BASE_KWARGS["num_large_crops"],
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,

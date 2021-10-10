@@ -19,12 +19,13 @@
 
 import os
 from pathlib import Path
-from typing import Callable, Iterable, List, Sequence, Union
+from typing import Callable, List, Sequence, Union
 
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
 from nvidia.dali.pipeline import Pipeline
+from solo.utils.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
 
 
 class Mux:
@@ -304,11 +305,14 @@ class ImagenetTransform:
         contrast: float,
         saturation: float,
         hue: float,
+        color_jitter_prob: float = 0.8,
+        gray_scale_prob: float = 0.8,
+        horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
-        size: int = 224,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
+        crop_size: int = 224,
     ):
         """Applies Imagenet transformations to a batch of images.
 
@@ -318,19 +322,25 @@ class ImagenetTransform:
             contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
             saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
             hue (float): sampled uniformly in [-hue, hue].
-            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
-            solarization_prob (float, optional): probability of applying solarization. Defaults
-                to 0.0.
-            size (int, optional): size of the side of the image after transformation. Defaults
-                to 224.
+            color_jitter_prob (float, optional): probability of applying color jitter.
+                Defaults to 0.8.
+            gray_scale_prob (float, optional): probability of converting to gray scale.
+                Defaults to 0.2.
+            horizontal_flip_prob (float, optional): probability of flipping horizontally.
+                Defaults to 0.5.
+            gaussian_prob (float, optional): probability of applying gaussian blur.
+                Defaults to 0.0.
+            solarization_prob (float, optional): probability of applying solarization.
+                Defaults to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
+            crop_size (int, optional): size of the crop. Defaults to 224.
         """
 
         # random crop
         self.random_crop = ops.RandomResizedCrop(
             device=device,
-            size=size,
+            size=crop_size,
             random_area=(min_scale, max_scale),
             interp_type=types.INTERP_CUBIC,
         )
@@ -341,12 +351,12 @@ class ImagenetTransform:
             contrast=contrast,
             saturation=saturation,
             hue=hue,
-            prob=0.8,
+            prob=color_jitter_prob,
             device=device,
         )
 
         # grayscale conversion
-        self.random_grayscale = RandomGrayScaleConversion(prob=0.2, device=device)
+        self.random_grayscale = RandomGrayScaleConversion(prob=gray_scale_prob, device=device)
 
         # gaussian blur
         self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
@@ -362,7 +372,7 @@ class ImagenetTransform:
             mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
             std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
         )
-        self.coin05 = ops.random.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=horizontal_flip_prob)
 
         self.str = (
             "ImagenetTransform("
@@ -395,11 +405,14 @@ class CustomTransform:
         contrast: float,
         saturation: float,
         hue: float,
+        color_jitter_prob: float = 0.8,
+        gray_scale_prob: float = 0.8,
+        horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
-        size: int = 224,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
+        crop_size: int = 224,
         mean: Sequence[float] = (0.485, 0.456, 0.406),
         std: Sequence[float] = (0.228, 0.224, 0.225),
     ):
@@ -415,10 +428,10 @@ class CustomTransform:
             gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
-            size (int, optional): size of the side of the image after transformation. Defaults
-                to 224.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
+            crop_size (int, optional): size of the side of the image after transformation. Defaults
+                to 224.
             mean (Sequence[float], optional): mean values for normalization.
                 Defaults to (0.485, 0.456, 0.406).
             std (Sequence[float], optional): std values for normalization.
@@ -428,7 +441,7 @@ class CustomTransform:
         # random crop
         self.random_crop = ops.RandomResizedCrop(
             device=device,
-            size=size,
+            size=crop_size,
             random_area=(min_scale, max_scale),
             interp_type=types.INTERP_CUBIC,
         )
@@ -439,12 +452,12 @@ class CustomTransform:
             contrast=contrast,
             saturation=saturation,
             hue=hue,
-            prob=0.8,
+            prob=color_jitter_prob,
             device=device,
         )
 
         # grayscale conversion
-        self.random_grayscale = RandomGrayScaleConversion(prob=0.2, device=device)
+        self.random_grayscale = RandomGrayScaleConversion(prob=gray_scale_prob, device=device)
 
         # gaussian blur
         self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
@@ -460,7 +473,7 @@ class CustomTransform:
             mean=[v * 255 for v in mean],
             std=[v * 255 for v in std],
         )
-        self.coin05 = ops.random.CoinFlip(probability=0.5)
+        self.coin05 = ops.random.CoinFlip(probability=horizontal_flip_prob)
 
         self.str = (
             "CustomTransform("
@@ -481,7 +494,7 @@ class CustomTransform:
         out = self.cmn(out, mirror=self.coin05())
         return out
 
-    def __str__(self):
+    def __repr__(self):
         return self.str
 
 
@@ -491,8 +504,8 @@ class PretrainPipeline(Pipeline):
         data_path: Union[str, Path],
         batch_size: int,
         device: str,
-        transform: Union[Callable, Iterable],
-        num_crops: int = 2,
+        transforms: List[Callable],
+        num_crops_per_aug: List[int],
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -508,9 +521,8 @@ class PretrainPipeline(Pipeline):
             data_path (str): directory that contains the data.
             batch_size (int): batch size.
             device (str): device on which the operation will be performed.
-            transform (Union[Callable, Iterable]): a transformation or a sequence
-                of transformations to be applied.
-            num_crops (int, optional): number of crops. Defaults to 2.
+            transforms (List[Callable]): list of transformations.
+            num_crops_per_aug (List[int]): number of crops per pipeline.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -596,16 +608,10 @@ class PretrainPipeline(Pipeline):
         )
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        self.num_crops = num_crops
-
-        # transformations
-        self.transform = transform
-
-        if isinstance(transform, Iterable):
-            self.one_transform_per_crop = True
-        else:
-            self.one_transform_per_crop = False
-            self.num_crops = num_crops
+        T = []
+        for transform, num_crops in zip(transforms, num_crops_per_aug):
+            T.append(NCropAugmentation(transform, num_crops))
+        self.transforms = FullTransformPipeline(T)
 
     def define_graph(self):
         """Defines the computational graph for dali operations."""
@@ -615,10 +621,7 @@ class PretrainPipeline(Pipeline):
 
         images = self.decode(inputs)
 
-        if self.one_transform_per_crop:
-            crops = [transform(images) for transform in self.transform]
-        else:
-            crops = [self.transform(images) for i in range(self.num_crops)]
+        crops = self.transforms(images)
 
         if self.device == "gpu":
             labels = labels.gpu()
@@ -627,139 +630,5 @@ class PretrainPipeline(Pipeline):
 
         return (*crops, labels)
 
-
-class MulticropPretrainPipeline(Pipeline):
-    def __init__(
-        self,
-        data_path: Union[str, Path],
-        batch_size: int,
-        device: str,
-        transforms: List,
-        num_crops: List[int],
-        random_shuffle: bool = True,
-        device_id: int = 0,
-        shard_id: int = 0,
-        num_shards: int = 1,
-        num_threads: int = 4,
-        seed: int = 12,
-        no_labels: bool = False,
-        encode_indexes_into_labels: bool = False,
-    ):
-        """Initializes the pipeline for pretraining with multicrop.
-
-        Args:
-            data_path (str): directory that contains the data.
-            batch_size (int): batch size.
-            device (str): device on which the operation will be performed.
-            transforms (List): list of transformations to be applied.
-            num_crops (List[int]): number of crops.
-            random_shuffle (bool, optional): whether to randomly shuffle the samples.
-                Defaults to True.
-            device_id (int, optional): id of the device used to initialize the seed and
-                for parent class. Defaults to 0.
-            shard_id (int, optional): id of the shard (chuck of samples). Defaults to 0.
-            num_shards (int, optional): total number of shards. Defaults to 1.
-            num_threads (int, optional): number of threads to run in parallel. Defaults to 4.
-            seed (int, optional): seed for random number generation. Defaults to 12.
-            no_labels (bool, optional): if the data has no labels. Defaults to False.
-            encode_indexes_into_labels (bool, optional): uses sample indexes as labels
-                and then gets the labels from a lookup table. This may use more CPU memory,
-                so just use when needed. Defaults to False.
-        """
-
-        seed += device_id
-        super().__init__(
-            batch_size=batch_size,
-            num_threads=num_threads,
-            device_id=device_id,
-            seed=seed,
-        )
-
-        self.device = device
-
-        data_path = Path(data_path)
-        if no_labels:
-            files = [data_path / f for f in sorted(os.listdir(data_path))]
-            labels = [-1] * len(files)
-            self.reader = ops.readers.File(
-                files=files,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                shuffle_after_epoch=random_shuffle,
-                labels=labels,
-            )
-        elif encode_indexes_into_labels:
-            labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
-
-            data = [
-                (data_path / label / file, label_idx)
-                for label_idx, label in enumerate(labels)
-                for file in sorted(os.listdir(data_path / label))
-            ]
-
-            files = []
-            labels = []
-            # for debugging
-            true_labels = []
-
-            self.conversion_map = []
-            for file_idx, (file, label_idx) in enumerate(data):
-                files.append(file)
-                labels.append(file_idx)
-                true_labels.append(label_idx)
-                self.conversion_map.append(label_idx)
-
-            # debugging
-            for file, file_idx, label_idx in zip(files, labels, true_labels):
-                assert self.conversion_map[file_idx] == label_idx
-
-            self.reader = ops.readers.File(
-                files=files,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                shuffle_after_epoch=random_shuffle,
-            )
-        else:
-            self.reader = ops.readers.File(
-                file_root=data_path,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                shuffle_after_epoch=random_shuffle,
-            )
-
-        decoder_device = "mixed" if self.device == "gpu" else "cpu"
-        device_memory_padding = 211025920 if decoder_device == "mixed" else 0
-        host_memory_padding = 140544512 if decoder_device == "mixed" else 0
-        self.decode = ops.decoders.Image(
-            device=decoder_device,
-            output_type=types.RGB,
-            device_memory_padding=device_memory_padding,
-            host_memory_padding=host_memory_padding,
-        )
-        self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
-
-        self.num_crops = num_crops
-        self.transforms = transforms
-
-        assert len(transforms) == len(num_crops)
-
-    def define_graph(self):
-        """Defines the computational graph for dali operations."""
-
-        # read images from memory
-        inputs, labels = self.reader(name="Reader")
-        images = self.decode(inputs)
-
-        # crop into large and small images
-        crops = []
-        for i, transform in enumerate(self.transforms):
-            for _ in range(self.num_crops[i]):
-                crop = transform(images)
-                crops.append(crop)
-
-        if self.device == "gpu":
-            labels = labels.gpu()
-        # PyTorch expects labels as INT64
-        labels = self.to_int64(labels)
-
-        return (*crops, labels)
+    def __repr__(self) -> str:
+        return str(self.transforms)

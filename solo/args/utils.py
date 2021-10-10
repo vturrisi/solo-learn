@@ -21,6 +21,7 @@ import os
 from argparse import Namespace
 from contextlib import suppress
 
+
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
     "cifar100": 100,
@@ -42,7 +43,6 @@ def additional_setup_pretrain(args: Namespace):
         - dataset: dataset name.
         - brightness, contrast, saturation, hue, min_scale: required augmentations
             settings.
-        - multicrop: flag to use multicrop.
         - dali: flag to use dali.
         - optimizer: optimizer name being used.
         - gpus: list of gpus to use.
@@ -72,11 +72,12 @@ def additional_setup_pretrain(args: Namespace):
             args.hue,
             args.gaussian_prob,
             args.solarization_prob,
+            args.crop_size,
             args.min_scale,
-            args.size,
+            args.max_scale,
         ]
     )
-    assert unique_augs == args.num_crops or unique_augs == 1
+    assert len(args.num_crops_per_aug) == unique_augs
 
     # assert that either all unique augmentation pipelines have a unique
     # parameter or that a single parameter is replicated to all pipelines
@@ -87,8 +88,9 @@ def additional_setup_pretrain(args: Namespace):
         "hue",
         "gaussian_prob",
         "solarization_prob",
+        "crop_size",
         "min_scale",
-        "size",
+        "max_scale",
     ]:
         values = getattr(args, p)
         n = len(values)
@@ -108,8 +110,9 @@ def additional_setup_pretrain(args: Namespace):
                 hue=hue,
                 gaussian_prob=gaussian_prob,
                 solarization_prob=solarization_prob,
+                crop_size=crop_size,
                 min_scale=min_scale,
-                size=size,
+                max_scale=max_scale,
             )
             for (
                 brightness,
@@ -118,8 +121,9 @@ def additional_setup_pretrain(args: Namespace):
                 hue,
                 gaussian_prob,
                 solarization_prob,
+                crop_size,
                 min_scale,
-                size,
+                max_scale,
             ) in zip(
                 args.brightness,
                 args.contrast,
@@ -127,22 +131,22 @@ def additional_setup_pretrain(args: Namespace):
                 args.hue,
                 args.gaussian_prob,
                 args.solarization_prob,
+                args.crop_size,
                 args.min_scale,
-                args.size,
+                args.max_scale,
             )
         ]
 
-    elif not args.multicrop:
-        args.transform_kwargs = dict(
-            brightness=args.brightness[0],
-            contrast=args.contrast[0],
-            saturation=args.saturation[0],
-            hue=args.hue[0],
-            gaussian_prob=args.gaussian_prob[0],
-            solarization_prob=args.solarization_prob[0],
-            min_scale=args.min_scale[0],
-            size=args.size[0],
-        )
+        # find number of big/small crops
+        big_size = args.crop_size[0]
+        num_large_crops = num_small_crops = 0
+        for size, n_crops in zip(args.crop_size, args.num_crops_per_aug):
+            if big_size == size:
+                num_large_crops += n_crops
+            else:
+                num_small_crops += n_crops
+        args.num_large_crops = num_large_crops
+        args.num_small_crops = num_small_crops
     else:
         args.transform_kwargs = dict(
             brightness=args.brightness[0],
@@ -151,7 +155,14 @@ def additional_setup_pretrain(args: Namespace):
             hue=args.hue[0],
             gaussian_prob=args.gaussian_prob[0],
             solarization_prob=args.solarization_prob[0],
+            crop_size=args.crop_size[0],
+            min_scale=args.min_scale[0],
+            max_scale=args.max_scale[0],
         )
+
+        # find number of big/small crops
+        args.num_large_crops = args.num_crops_per_aug[0]
+        args.num_small_crops = 0
 
     # add support for custom mean and std
     if args.dataset == "custom":
@@ -163,33 +174,14 @@ def additional_setup_pretrain(args: Namespace):
                 kwargs["mean"] = args.mean
                 kwargs["std"] = args.std
 
-    if args.dataset in ["cifar10", "cifar100", "stl10"]:
-        if isinstance(args.transform_kwargs, dict):
-            del args.transform_kwargs["size"]
-        else:
-            for kwargs in args.transform_kwargs:
-                del kwargs["size"]
-
     # create backbone-specific arguments
     args.backbone_args = {"cifar": True if args.dataset in ["cifar10", "cifar100"] else False}
     if "resnet" in args.encoder:
         args.backbone_args["zero_init_residual"] = args.zero_init_residual
     else:
         # dataset related for all transformers
-        dataset = args.dataset
-        if "cifar" in dataset:
-            args.backbone_args["img_size"] = 32
-        elif "stl" in dataset:
-            args.backbone_args["img_size"] = 96
-        elif "imagenet" in dataset:
-            args.backbone_args["img_size"] = 224
-        elif "custom" in dataset:
-            transform_kwargs = args.transform_kwargs
-            if isinstance(transform_kwargs, list):
-                args.backbone_args["img_size"] = transform_kwargs[0]["size"]
-            else:
-                args.backbone_args["img_size"] = transform_kwargs["size"]
-
+        crop_size = args.crop_size[0]
+        args.backbone_args["img_size"] = crop_size
         if "vit" in args.encoder:
             args.backbone_args["patch_size"] = args.patch_size
 
@@ -244,15 +236,8 @@ def additional_setup_linear(args: Namespace):
 
     if "resnet" not in args.encoder:
         # dataset related for all transformers
-        dataset = args.dataset
-        if "cifar" in dataset:
-            args.backbone_args["img_size"] = 32
-        elif "stl" in dataset:
-            args.backbone_args["img_size"] = 96
-        elif "imagenet" in dataset:
-            args.backbone_args["img_size"] = 224
-        elif "custom" in dataset:
-            args.backbone_args["img_size"] = args.size
+        crop_size = args.crop_size[0]
+        args.backbone_args["img_size"] = crop_size
 
         if "vit" in args.encoder:
             args.backbone_args["patch_size"] = args.patch_size

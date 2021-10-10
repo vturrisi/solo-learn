@@ -23,6 +23,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.2 \
     --gaussian_prob 0.2 \
     --min_scale 0.08 \
+    --num_crops_per_aug 2 \
     --dali \
     --wandb \
     --save_checkpoint \

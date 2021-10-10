@@ -112,7 +112,7 @@ class DeepClusterV2(BaseMethod):
         self.kmeans = KMeans(
             world_size=self.world_size,
             rank=self.global_rank,
-            num_crops=self.num_crops,
+            num_large_crops=self.num_large_crops,
             dataset_size=self.dataset_size,
             proj_features_dim=self.proj_output_dim,
             num_prototypes=self.num_prototypes,
@@ -128,7 +128,8 @@ class DeepClusterV2(BaseMethod):
         self.register_buffer(
             "local_memory_embeddings",
             F.normalize(
-                torch.randn(self.num_crops, size_memory_per_process, self.proj_output_dim), dim=-1
+                torch.randn(self.num_large_crops, size_memory_per_process, self.proj_output_dim),
+                dim=-1,
             ).to(self.device, non_blocking=True),
         )
 
@@ -182,7 +183,7 @@ class DeepClusterV2(BaseMethod):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:

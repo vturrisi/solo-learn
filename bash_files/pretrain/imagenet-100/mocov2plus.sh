@@ -21,6 +21,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
+    --num_crops_per_aug 2 \
     --name mocov2plus-400ep \
     --project solo-learn \
     --entity unitn-mhug \

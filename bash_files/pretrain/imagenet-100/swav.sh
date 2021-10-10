@@ -26,6 +26,7 @@ python3 ../../../main_pretrain.py \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
+    --num_crops_per_aug 2 \
     --name swav-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \

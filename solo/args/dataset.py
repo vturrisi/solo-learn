@@ -57,9 +57,7 @@ def augmentations_args(parser: ArgumentParser):
     """
 
     # cropping
-    parser.add_argument("--multicrop", action="store_true")
-    parser.add_argument("--num_crops", type=int, default=2)
-    parser.add_argument("--num_small_crops", type=int, default=0)
+    parser.add_argument("--num_crops_per_aug", type=int, default=[2], nargs="+")
 
     # augmentations
     parser.add_argument("--brightness", type=float, required=True, nargs="+")
@@ -68,10 +66,16 @@ def augmentations_args(parser: ArgumentParser):
     parser.add_argument("--hue", type=float, required=True, nargs="+")
     parser.add_argument("--gaussian_prob", type=float, default=[0.5], nargs="+")
     parser.add_argument("--solarization_prob", type=float, default=[0.0], nargs="+")
+    parser.add_argument("--crop_size", type=int, default=[224], nargs="+")
     parser.add_argument("--min_scale", type=float, default=[0.08], nargs="+")
+    parser.add_argument("--max_scale", type=float, default=[1.0], nargs="+")
 
     # debug
     parser.add_argument("--debug_augmentations", action="store_true")
+
+
+def linear_augmentations_args(parser: ArgumentParser):
+    parser.add_argument("--crop_size", type=int, default=[224], nargs="+")
 
 
 def custom_dataset_args(parser: ArgumentParser):
@@ -83,9 +87,6 @@ def custom_dataset_args(parser: ArgumentParser):
 
     # custom dataset only
     parser.add_argument("--no_labels", action="store_true")
-
-    # for imagenet or custom dataset
-    parser.add_argument("--size", type=int, default=[224], nargs="+")
 
     # for custom dataset
     parser.add_argument("--mean", type=float, default=[0.485, 0.456, 0.406], nargs="+")

@@ -39,7 +39,7 @@ def test_checkpointer():
     }
 
     # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False, multicrop=False, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = BarlowTwins(**kwargs, disable_knn_eval=True)
 
@@ -58,7 +58,7 @@ def test_checkpointer():
 
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        num_crops=BASE_KWARGS["num_crops"],
+        num_large_crops=BASE_KWARGS["num_large_crops"],
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,

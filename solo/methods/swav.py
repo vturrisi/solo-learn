@@ -176,7 +176,7 @@ class SwAV(BaseMethod):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:

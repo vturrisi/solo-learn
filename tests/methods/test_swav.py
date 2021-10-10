@@ -84,7 +84,7 @@ def test_swav():
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        num_crops=BASE_KWARGS["num_crops"],
+        num_large_crops=BASE_KWARGS["num_large_crops"],
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,
@@ -101,7 +101,7 @@ def test_swav():
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
     train_dl, val_dl = prepare_dummy_dataloaders(
         "cifar10",
-        num_crops=BASE_KWARGS["num_crops"],
+        num_large_crops=BASE_KWARGS["num_large_crops"],
         num_small_crops=0,
         num_classes=BASE_KWARGS["num_classes"],
         multicrop=False,

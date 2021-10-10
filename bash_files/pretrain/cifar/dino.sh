@@ -22,6 +22,8 @@ python3 ../../main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.2 \
+    --crop_size 32 \
+    --num_crops_per_aug 1 1 \
     --name dino-$1 \
     --entity unitn-mhug \
     --project solo-learn \
