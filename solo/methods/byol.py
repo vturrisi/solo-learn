@@ -31,7 +31,11 @@ from solo.utils.momentum import initialize_momentum_params
 
 class BYOL(BaseMomentumMethod):
     def __init__(
-        self, proj_output_dim: int, proj_hidden_dim: int, pred_hidden_dim: int, **kwargs,
+        self,
+        proj_output_dim: int,
+        proj_hidden_dim: int,
+        pred_hidden_dim: int,
+        **kwargs,
     ):
         """Implements BYOL (https://arxiv.org/abs/2006.07733).
 
