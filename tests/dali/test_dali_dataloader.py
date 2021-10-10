@@ -53,7 +53,7 @@ def test_dali_dataloader():
             "dummy_train",
             batch_size=4,
             transforms=transforms,
-            num_crops_per_pipeline=[2, 4],
+            num_crops_per_aug=[2, 4],
             device="cpu",
             device_id=0,
             shard_id=0,

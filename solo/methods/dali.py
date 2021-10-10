@@ -150,7 +150,7 @@ class PretrainABC(ABC):
         # data augmentations
         unique_augs = self.extra_args["unique_augs"]
         transform_kwargs = self.extra_args["transform_kwargs"]
-        num_crops_per_pipeline = self.extra_args["num_crops_per_pipeline"]
+        num_crops_per_aug = self.extra_args["num_crops_per_aug"]
 
         num_workers = self.extra_args["num_workers"]
         data_dir = Path(self.extra_args["data_dir"])
@@ -170,7 +170,11 @@ class PretrainABC(ABC):
 
         if unique_augs > 1:
             transforms = [
-                transform_pipeline(device=dali_device, **kwargs,) for kwargs in transform_kwargs
+                transform_pipeline(
+                    device=dali_device,
+                    **kwargs,
+                )
+                for kwargs in transform_kwargs
             ]
         else:
             transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]
@@ -179,7 +183,7 @@ class PretrainABC(ABC):
             data_dir / train_dir,
             batch_size=self.batch_size,
             transforms=transforms,
-            num_crops_per_pipeline=num_crops_per_pipeline,
+            num_crops_per_aug=num_crops_per_aug,
             device=dali_device,
             device_id=device_id,
             shard_id=shard_id,

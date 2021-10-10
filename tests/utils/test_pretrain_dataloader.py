@@ -55,7 +55,7 @@ def test_transforms():
 
     num_large_crops = 10
     assert (
-        len(prepare_n_crop_transform([T], num_crops_per_pipeline=[num_large_crops])(im))
+        len(prepare_n_crop_transform([T], num_crops_per_aug=[num_large_crops])(im))
         == num_large_crops
     )
 
@@ -72,7 +72,7 @@ def test_transforms():
     )
 
     T = [prepare_transform("imagenet100", **kw) for kw in [kwargs, kwargs_small]]
-    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[2, 6])
+    T = prepare_n_crop_transform(T, num_crops_per_aug=[2, 6])
     crops = T(im)
     sizes = [224] * 2 + [96] * 6
     for crop, size in zip(crops, sizes):
@@ -90,7 +90,7 @@ def test_data():
     )
 
     T = [prepare_transform("cifar10", **kwargs)]
-    T = prepare_n_crop_transform(T, num_crops_per_pipeline=[2])
+    T = prepare_n_crop_transform(T, num_crops_per_aug=[2])
     train_dataset = prepare_datasets("cifar10", T, data_dir=None)
 
     assert isinstance(train_dataset, CIFAR10)

@@ -1,7 +1,8 @@
+# multicrop byol
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder resnet18 \
-    --data_dir /data/datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
@@ -25,11 +26,12 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
-    --gaussian_prob 1.0 0.1 \
-    --solarization_prob 0.0 0.2 \
-    --name byol-400ep-imagenet100 \
-    --entity unitn-mhug \
-    --project solo-learn \
+    --gaussian_prob 1.0 0.1 0.0 \
+    --solarization_prob 0.0 0.2 0.0 \
+    --crop_size 224 224 96 \
+    --num_crops_per_pipeline 1 1 6 \
+    --name byol-multicro-400ep-imagenet100 \
+    --project debug \
     --wandb \
     --save_checkpoint \
     --method byol \

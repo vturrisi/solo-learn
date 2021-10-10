@@ -39,7 +39,7 @@ def test_argparse_augmentations():
     augmentations_args(parser)
     actions = [vars(action)["dest"] for action in vars(parser)["_actions"]]
 
-    assert "num_crops_per_pipeline" in actions
+    assert "num_crops_per_aug" in actions
 
     assert "brightness" in actions
     assert "contrast" in actions

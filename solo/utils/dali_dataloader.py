@@ -231,7 +231,9 @@ class NormalPipeline(Pipeline):
         # crop operations
         if self.validation:
             self.resize = ops.Resize(
-                device=self.device, resize_shorter=256, interp_type=types.INTERP_CUBIC,
+                device=self.device,
+                resize_shorter=256,
+                interp_type=types.INTERP_CUBIC,
             )
             # center crop and normalize
             self.cmn = ops.CropMirrorNormalize(
@@ -426,10 +428,10 @@ class CustomTransform:
             gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
             solarization_prob (float, optional): probability of applying solarization. Defaults
                 to 0.0.
-            size (int, optional): size of the side of the image after transformation. Defaults
-                to 224.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
+            crop_size (int, optional): size of the side of the image after transformation. Defaults
+                to 224.
             mean (Sequence[float], optional): mean values for normalization.
                 Defaults to (0.485, 0.456, 0.406).
             std (Sequence[float], optional): std values for normalization.
@@ -503,7 +505,7 @@ class PretrainPipeline(Pipeline):
         batch_size: int,
         device: str,
         transforms: List[Callable],
-        num_crops_per_pipeline: List[int],
+        num_crops_per_aug: List[int],
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -520,7 +522,7 @@ class PretrainPipeline(Pipeline):
             batch_size (int): batch size.
             device (str): device on which the operation will be performed.
             transforms (List[Callable]): list of transformations.
-            num_crops_per_pipeline (List[int]): number of crops per pipeline.
+            num_crops_per_aug (List[int]): number of crops per pipeline.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
             device_id (int, optional): id of the device used to initialize the seed and
@@ -537,7 +539,10 @@ class PretrainPipeline(Pipeline):
 
         seed += device_id
         super().__init__(
-            batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=seed,
+            batch_size=batch_size,
+            num_threads=num_threads,
+            device_id=device_id,
+            seed=seed,
         )
 
         self.device = device
@@ -604,7 +609,7 @@ class PretrainPipeline(Pipeline):
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
         T = []
-        for transform, num_crops in zip(transforms, num_crops_per_pipeline):
+        for transform, num_crops in zip(transforms, num_crops_per_aug):
             T.append(NCropAugmentation(transform, num_crops))
         self.transforms = FullTransformPipeline(T)
 

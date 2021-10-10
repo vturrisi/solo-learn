@@ -437,22 +437,22 @@ def prepare_transform(dataset: str, **kwargs) -> Any:
 
 
 def prepare_n_crop_transform(
-    transforms: List[Callable], num_crops_per_pipeline: List[int]
+    transforms: List[Callable], num_crops_per_aug: List[int]
 ) -> NCropAugmentation:
     """Turns a single crop transformation to an N crops transformation.
 
     Args:
         transforms (List[Callable]): list of transformations.
-        num_crops_per_pipeline (List[int]): number of crops per pipeline.
+        num_crops_per_aug (List[int]): number of crops per pipeline.
 
     Returns:
         NCropAugmentation: an N crop transformation.
     """
 
-    assert len(transforms) == len(num_crops_per_pipeline)
+    assert len(transforms) == len(num_crops_per_aug)
 
     T = []
-    for transform, num_crops in zip(transforms, num_crops_per_pipeline):
+    for transform, num_crops in zip(transforms, num_crops_per_aug):
         T.append(NCropAugmentation(transform, num_crops))
     return FullTransformPipeline(T)
 
@@ -492,12 +492,18 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
-            data_dir / train_dir, train=True, download=True, transform=transform,
+            data_dir / train_dir,
+            train=True,
+            download=True,
+            transform=transform,
         )
 
     elif dataset == "stl10":
         train_dataset = dataset_with_index(STL10)(
-            data_dir / train_dir, split="train+unlabeled", download=True, transform=transform,
+            data_dir / train_dir,
+            split="train+unlabeled",
+            download=True,
+            transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:

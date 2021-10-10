@@ -77,7 +77,7 @@ def additional_setup_pretrain(args: Namespace):
             args.max_scale,
         ]
     )
-    assert len(args.num_crops_per_pipeline) == unique_augs
+    assert len(args.num_crops_per_aug) == unique_augs
 
     # assert that either all unique augmentation pipelines have a unique
     # parameter or that a single parameter is replicated to all pipelines
@@ -140,7 +140,7 @@ def additional_setup_pretrain(args: Namespace):
         # find number of big/small crops
         big_size = args.crop_size[0]
         num_large_crops = num_small_crops = 0
-        for size, n_crops in zip(args.crop_size, args.num_crops_per_pipeline):
+        for size, n_crops in zip(args.crop_size, args.num_crops_per_aug):
             if big_size == size:
                 num_large_crops += n_crops
             else:
@@ -161,7 +161,7 @@ def additional_setup_pretrain(args: Namespace):
         )
 
         # find number of big/small crops
-        args.num_large_crops = args.num_crops_per_pipeline[0]
+        args.num_large_crops = args.num_crops_per_aug[0]
         args.num_small_crops = 0
 
     # add support for custom mean and std

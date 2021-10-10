@@ -57,7 +57,7 @@ def augmentations_args(parser: ArgumentParser):
     """
 
     # cropping
-    parser.add_argument("--num_crops_per_pipeline", type=int, default=[2], nargs="+")
+    parser.add_argument("--num_crops_per_aug", type=int, default=[2], nargs="+")
 
     # augmentations
     parser.add_argument("--brightness", type=float, required=True, nargs="+")
