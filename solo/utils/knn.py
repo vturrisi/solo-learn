@@ -28,7 +28,7 @@ class WeightedKNNClassifier(Metric):
         self,
         k: int = 20,
         T: float = 0.07,
-        num_chunks: int = 100,
+        max_distance_matrix_size: int = int(5e6),
         distance_fx: str = "cosine",
         epsilon: float = 0.00001,
         dist_sync_on_step: bool = False,
@@ -39,7 +39,8 @@ class WeightedKNNClassifier(Metric):
             k (int, optional): number of neighbors. Defaults to 20.
             T (float, optional): temperature for the exponential. Only used with cosine
                 distance. Defaults to 0.07.
-            num_chunks (int, optional): number of chunks of test features. Defaults to 100.
+            max_distance_matrix_size (int, optional): maximum number of elements in the
+                distance matrix. Defaults to 5e6.
             distance_fx (str, optional): Distance function. Accepted arguments: "cosine" or
                 "euclidean". Defaults to "cosine".
             epsilon (float, optional): Small value for numerical stability. Only used with
@@ -52,7 +53,7 @@ class WeightedKNNClassifier(Metric):
 
         self.k = k
         self.T = T
-        self.num_chunks = num_chunks
+        self.max_distance_matrix_size = max_distance_matrix_size
         self.distance_fx = distance_fx
         self.epsilon = epsilon
 
@@ -82,13 +83,13 @@ class WeightedKNNClassifier(Metric):
 
         if train_features is not None:
             assert train_features.size(0) == train_targets.size(0)
-            self.train_features.append(train_features)
-            self.train_targets.append(train_targets)
+            self.train_features.append(train_features.detach())
+            self.train_targets.append(train_targets.detach())
 
         if test_features is not None:
             assert test_features.size(0) == test_targets.size(0)
-            self.test_features.append(test_features)
-            self.test_targets.append(test_targets)
+            self.test_features.append(test_features.detach())
+            self.test_targets.append(test_targets.detach())
 
     @torch.no_grad()
     def compute(self) -> Sequence[float]:
@@ -100,16 +101,20 @@ class WeightedKNNClassifier(Metric):
         Returns:
             Sequence[float]: k-NN accuracy @1 and @5.
         """
+
         train_features = torch.cat(self.train_features)
         train_targets = torch.cat(self.train_targets)
         test_features = torch.cat(self.test_features)
         test_targets = torch.cat(self.test_targets)
 
-        top1, top5, total = 0.0, 0.0, 0
         num_classes = torch.unique(test_targets).numel()
+        num_train_images = train_targets.size(0)
         num_test_images = test_targets.size(0)
-        chunk_size = max(1, num_test_images // self.num_chunks)
-        k = min(self.k, train_targets.size(0))
+        num_train_images = train_targets.size(0)
+        chunk_size = max(1, self.max_distance_matrix_size // num_train_images)
+        k = min(self.k, num_train_images)
+
+        top1, top5, total = 0.0, 0.0, 0
         retrieval_one_hot = torch.zeros(k, num_classes).to(train_features.device)
         for idx in range(0, num_test_images, chunk_size):
             # get the features for test images
