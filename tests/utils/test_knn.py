@@ -26,12 +26,15 @@ from solo.utils.knn import WeightedKNNClassifier
 def test_knn():
     num_samples_train = 100
     num_samples_test = 20
+    max_distance_matrix_size = num_samples_train * num_samples_test // 10
     num_classes = 10
     neighbors = 5
     features_dim = 16
 
     # test distances
-    knn = WeightedKNNClassifier(k=neighbors, distance_fx="cosine", num_chunks=2)
+    knn = WeightedKNNClassifier(
+        k=neighbors, distance_fx="cosine", max_distance_matrix_size=max_distance_matrix_size
+    )
     knn.update(
         train_features=F.normalize(torch.randn(num_samples_train, features_dim)),
         train_targets=torch.arange(end=num_classes).repeat(num_samples_train // num_classes),
@@ -44,7 +47,9 @@ def test_knn():
     assert acc5 >= acc1
 
     # test distances
-    knn = WeightedKNNClassifier(k=neighbors, distance_fx="euclidean", num_chunks=2)
+    knn = WeightedKNNClassifier(
+        k=neighbors, distance_fx="euclidean", max_distance_matrix_size=max_distance_matrix_size
+    )
     knn.update(
         train_features=torch.randn(num_samples_train, features_dim),
         train_targets=torch.arange(end=num_classes).repeat(num_samples_train // num_classes),
