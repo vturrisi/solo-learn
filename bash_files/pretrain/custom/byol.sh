@@ -28,8 +28,12 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.2 \
     --hue 0.1 \
+    --color_jitter_prob 0.8 \
+    --gray_scale_prob 0.2 \
+    --horizontal_flip_prob 0.5 \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
+    --num_crops_per_aug 1 1 \
     --name byol-400ep-custom \
     --entity unitn-mhug \
     --project solo-learn \

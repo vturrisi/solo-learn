@@ -45,6 +45,9 @@ def test_argparse_augmentations():
     assert "contrast" in actions
     assert "saturation" in actions
     assert "hue" in actions
+    assert "color_jitter_prob" in actions
+    assert "gray_scale_prob" in actions
+    assert "horizontal_flip_prob" in actions
     assert "gaussian_prob" in actions
     assert "solarization_prob" in actions
     assert "min_scale" in actions
