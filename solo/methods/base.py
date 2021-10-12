@@ -235,7 +235,13 @@ class BaseMethod(pl.LightningModule):
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
         if not self.disable_knn_eval:
-            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
+            dataset_is_small = self.extra_args["dataset"] in ["cifar10", "cifar100", "imagenet100"]
+            self.knn = WeightedKNNClassifier(
+                k=self.knn_k,
+                distance_fx="euclidean",
+                index_to_gpu=dataset_is_small,
+                approx=not dataset_is_small,
+            )
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -530,12 +536,17 @@ class BaseMethod(pl.LightningModule):
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
-
-        if not self.disable_knn_eval and not self.trainer.sanity_checking:
-            val_knn_acc1, val_knn_acc5 = self.knn.compute()
-            log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
-
         self.log_dict(log, sync_dist=True)
+
+        if (
+            not self.disable_knn_eval
+            and not self.trainer.sanity_checking
+            and self.trainer.is_global_zero
+        ):
+            val_knn_acc1, val_knn_acc5 = self.knn.compute()
+            self.log_dict(
+                {"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5}, sync_dist=False
+            )
 
 
 class BaseMomentumMethod(BaseMethod):

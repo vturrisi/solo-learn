@@ -20,6 +20,9 @@
 from typing import Sequence
 
 import torch
+import torch.nn.functional as F
+import faiss
+from faiss.contrib import torch_utils
 from torchmetrics.metric import Metric
 
 
@@ -28,9 +31,12 @@ class WeightedKNNClassifier(Metric):
         self,
         k: int = 20,
         T: float = 0.07,
-        max_distance_matrix_size: int = int(5e6),
         distance_fx: str = "cosine",
         epsilon: float = 0.00001,
+        index_to_gpu: bool = False,
+        approx: bool = True,
+        nlist: int = 100,
+        m: int = 32,
         dist_sync_on_step: bool = False,
     ):
         """Implements the weighted k-NN classifier used for evaluation.
@@ -39,8 +45,6 @@ class WeightedKNNClassifier(Metric):
             k (int, optional): number of neighbors. Defaults to 20.
             T (float, optional): temperature for the exponential. Only used with cosine
                 distance. Defaults to 0.07.
-            max_distance_matrix_size (int, optional): maximum number of elements in the
-                distance matrix. Defaults to 5e6.
             distance_fx (str, optional): Distance function. Accepted arguments: "cosine" or
                 "euclidean". Defaults to "cosine".
             epsilon (float, optional): Small value for numerical stability. Only used with
@@ -53,9 +57,17 @@ class WeightedKNNClassifier(Metric):
 
         self.k = k
         self.T = T
-        self.max_distance_matrix_size = max_distance_matrix_size
         self.distance_fx = distance_fx
         self.epsilon = epsilon
+        self.index_to_gpu = index_to_gpu
+        self.approx = approx
+        self.nlist = nlist
+        self.m = m
+
+        assert self.distance_fx in [
+            "cosine",
+            "euclidean",
+        ], "Only cosine and euclidean distances are supported."
 
         self.add_state("train_features", default=[], persistent=False)
         self.add_state("train_targets", default=[], persistent=False)
@@ -92,6 +104,102 @@ class WeightedKNNClassifier(Metric):
             self.test_targets.append(test_targets.detach())
 
     @torch.no_grad()
+    def fit(self, X_train: torch.Tensor):
+
+        # make sure that X_train is float32
+        X_train = X_train.float()
+
+        # select index according to distance function
+        if self.distance_fx == "cosine":
+            X_train = F.normalize(X_train, dim=1)
+            self.index = faiss.IndexFlatIP(X_train.size(1))
+        elif self.distance_fx == "euclidean":
+            self.index = faiss.IndexFlatL2(X_train.size(1))
+
+        # optionally use approximate distances
+        if self.approx:
+            self.index = faiss.IndexIVFPQ(self.index, X_train.size(1), self.nlist, self.m, 8)
+
+        # make sure the index and the data are on the right device
+        if self.index_to_gpu:
+            assert X_train.is_cuda
+            res = faiss.StandardGpuResources()
+            self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
+        else:
+            X_train = X_train.cpu()
+
+        if self.approx:
+            self.index.train(X_train)
+
+        # add training samples to the index
+        self.index.add(X_train)
+
+    @torch.no_grad()
+    def predict(self, X_test: torch.Tensor, y_train: torch.Tensor):
+        num_classes = torch.unique(y_train).numel()
+
+        # make sure that X_test is float32
+        X_test = X_test.float()
+
+        # make sure X_test is on the right device
+        device = X_test.device
+        if not self.index_to_gpu:
+            X_test = X_test.cpu()
+
+        # lookup neighbors in the index
+        distances, indices = self.index.search(X_test, k=self.k)
+
+        # replace -1s with random indices
+        mask = indices == -1
+        indices[mask] = torch.randint(
+            low=0,
+            high=y_train.size(0),
+            size=indices.size(),
+            dtype=indices.dtype,
+            device=indices.device,
+        )[mask]
+
+        # move results to gpu
+        if not self.index_to_gpu:
+            distances = distances.to(device)
+            indices = indices.to(device)
+            X_test = X_test.to(device)
+
+        # similarities from distances
+        if self.distance_fx == "cosine":
+            similarities = distances
+        elif self.distance_fx == "euclidean":
+            similarities = 1 / (distances + self.epsilon)
+
+        # compute predictions using similarity as weight
+        candidates = y_train.view(1, -1).expand(X_test.size(0), -1)
+        retrieved_neighbors = torch.gather(candidates, 1, indices)
+        retrieval_one_hot = torch.zeros(X_test.size(0) * self.k, num_classes, device=device)
+        retrieval_one_hot.scatter_(1, retrieved_neighbors.view(-1, 1), 1)
+
+        # temperature scaled softmax for cosine similarity
+        if self.distance_fx == "cosine":
+            similarities = similarities.clone().div_(self.T).exp_()
+
+        # vote and predict
+        probs = torch.sum(
+            torch.mul(
+                retrieval_one_hot.view(X_test.size(0), -1, num_classes),
+                similarities.view(X_test.size(0), -1, 1),
+            ),
+            1,
+        )
+        _, preds = probs.sort(1, True)
+        return preds
+
+    @torch.no_grad()
+    def compute_accuracy(self, preds, y_test):
+        correct = preds.eq(y_test.data.view(-1, 1))
+        top1 = correct.narrow(1, 0, 1).sum().item() / y_test.size(0)
+        top5 = correct.narrow(1, 0, min(5, self.k, correct.size(-1))).sum().item() / y_test.size(0)
+        return top1, top5
+
+    @torch.no_grad()
     def compute(self) -> Sequence[float]:
         """Computes weighted k-NN accuracy @1 and @5. If cosine distance is selected,
         the weight is computed using the exponential of the temperature scaled cosine
@@ -102,67 +210,22 @@ class WeightedKNNClassifier(Metric):
             Sequence[float]: k-NN accuracy @1 and @5.
         """
 
+        # collect features and targets
         train_features = torch.cat(self.train_features)
         train_targets = torch.cat(self.train_targets)
         test_features = torch.cat(self.test_features)
         test_targets = torch.cat(self.test_targets)
 
-        num_classes = torch.unique(test_targets).numel()
-        num_train_images = train_targets.size(0)
-        num_test_images = test_targets.size(0)
-        num_train_images = train_targets.size(0)
-        chunk_size = min(
-            max(1, self.max_distance_matrix_size // num_train_images),
-            num_test_images,
-        )
-        k = min(self.k, num_train_images)
+        # build the index
+        self.fit(train_features)
 
-        top1, top5, total = 0.0, 0.0, 0
-        retrieval_one_hot = torch.zeros(k, num_classes).to(train_features.device)
-        for idx in range(0, num_test_images, chunk_size):
-            # get the features for test images
-            features = test_features[idx : min((idx + chunk_size), num_test_images), :]
-            targets = test_targets[idx : min((idx + chunk_size), num_test_images)]
-            batch_size = targets.size(0)
+        # use the index to predict
+        preds = self.predict(test_features, train_targets)
 
-            # calculate the dot product and compute top-k neighbors
-            if self.distance_fx == "cosine":
-                similarity = torch.mm(features, train_features.t())
-            elif self.distance_fx == "euclidean":
-                similarity = 1 / (torch.cdist(features, train_features) + self.epsilon)
-            else:
-                raise NotImplementedError
+        # compute accuracy
+        acc = self.compute_accuracy(preds, test_targets)
 
-            distances, indices = similarity.topk(k, largest=True, sorted=True)
-            candidates = train_targets.view(1, -1).expand(batch_size, -1)
-            retrieved_neighbors = torch.gather(candidates, 1, indices)
-
-            retrieval_one_hot.resize_(batch_size * k, num_classes).zero_()
-            retrieval_one_hot.scatter_(1, retrieved_neighbors.view(-1, 1), 1)
-
-            if self.distance_fx == "cosine":
-                distances = distances.clone().div_(self.T).exp_()
-
-            probs = torch.sum(
-                torch.mul(
-                    retrieval_one_hot.view(batch_size, -1, num_classes),
-                    distances.view(batch_size, -1, 1),
-                ),
-                1,
-            )
-            _, predictions = probs.sort(1, True)
-
-            # find the predictions that match the target
-            correct = predictions.eq(targets.data.view(-1, 1))
-            top1 = top1 + correct.narrow(1, 0, 1).sum().item()
-            top5 = (
-                top5 + correct.narrow(1, 0, min(5, k, correct.size(-1))).sum().item()
-            )  # top5 does not make sense if k < 5
-            total += targets.size(0)
-
-        top1 = top1 * 100.0 / total
-        top5 = top5 * 100.0 / total
-
+        # reset the states
         self.reset()
 
-        return top1, top5
+        return acc
