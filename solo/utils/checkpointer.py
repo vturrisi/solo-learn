@@ -145,8 +145,8 @@ class Checkpointer(Callback):
         self.initial_setup(trainer)
         self.save_args(trainer)
 
-    def on_validation_end(self, trainer: pl.Trainer, _):
-        """Tries to save current checkpoint at the end of each validation epoch.
+    def on_train_epoch_end(self, trainer: pl.Trainer, _):
+        """Tries to save current checkpoint at the end of each train epoch.
 
         Args:
             trainer (pl.Trainer): pytorch lightning trainer object.
