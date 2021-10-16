@@ -142,7 +142,6 @@ class BYOL(BaseMomentumMethod):
         for v1 in range(self.num_large_crops):
             for v2 in np.delete(range(self.num_crops), v1):
                 neg_cos_sim += byol_loss_func(P[v2], Z_momentum[v1])
-        neg_cos_sim /= self.num_large_crops * (self.num_crops - 1)
 
         # calculate std of features
         with torch.no_grad():
