@@ -29,16 +29,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     checkpoint = torch.load(args.pretrained_feature_extractor, map_location="cpu")
-    print(checkpoint.keys())
-    exit()
-    obj = obj["state_dict"]
+    checkpoint = checkpoint["state_dict"]
 
     newmodel = {}
-    for k, v in obj.items():
-        if not k.startswith("module.encoder_q."):
+    for k, v in checkpoint.items():
+        if not k.startswith("encoder"):
             continue
+
         old_k = k
-        k = k.replace("module.encoder_q.", "")
+        k = k.replace("encoder", "")
         if "layer" not in k:
             k = "stem." + k
         for t in [1, 2, 3, 4]:
@@ -50,7 +49,7 @@ if __name__ == "__main__":
         print(old_k, "->", k)
         newmodel[k] = v.numpy()
 
-    res = {"model": newmodel, "__author__": "MOCO", "matching_heuristics": True}
+    res = {"model": newmodel, "__author__": "simclr", "matching_heuristics": True}
 
     with open(args.output_detectron_model, "wb") as f:
         pkl.dump(res, f)
