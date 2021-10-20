@@ -22,9 +22,7 @@ class AutoResumer:
     ]
 
     def __init__(
-        self,
-        checkpoint_dir: Union[str, Path] = Path("trained_models"),
-        max_hours: int = 24,
+        self, checkpoint_dir: Union[str, Path] = Path("trained_models"), max_hours: int = 24,
     ):
         """Autoresumer object that automatically tries to find a checkpoint
         that is as old as max_time.
@@ -47,7 +45,7 @@ class AutoResumer:
         """
 
         parser = parent_parser.add_argument_group("autoresumer")
-        parser.add_argument("--resumer_max_hours", default=24, type=int)
+        parser.add_argument("--auto_resumer_max_hours", default=24, type=int)
         return parent_parser
 
     def find_checkpoint(self, args: Namespace):
@@ -56,13 +54,19 @@ class AutoResumer:
         Args:
             args (Namespace): namespace object containing all settings of the model.
         """
+
         current_time = datetime.now()
 
         possible_checkpoints = []
         for rootdir, _, files in os.walk(self.checkpoint_dir):
             rootdir = Path(rootdir)
             if files:
-                checkpoint_file = [rootdir / f for f in files if f.endswith(".ckpt")][0]
+                # skip checkpoints that are empty
+                try:
+                    checkpoint_file = [rootdir / f for f in files if f.endswith(".ckpt")][0]
+                except:
+                    continue
+
                 creation_time = datetime.fromtimestamp(os.path.getctime(checkpoint_file))
                 if current_time - creation_time < self.max_hours:
                     ck = Checkpoint(

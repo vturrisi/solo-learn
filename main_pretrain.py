@@ -151,10 +151,10 @@ def main():
         )
         callbacks.append(auto_umap)
 
-    if args.auto_resumer and args.resume_from_checkpoint is None:
+    if args.auto_resume and args.resume_from_checkpoint is None:
         auto_resumer = AutoResumer(
             checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
-            max_hours=args.resumer_max_hours,
+            max_hours=args.auto_resumer_max_hours,
         )
         resume_from_checkpoint = auto_resumer.find_checkpoint(args)
         if resume_from_checkpoint is not None:
