@@ -22,7 +22,9 @@ class AutoResumer:
     ]
 
     def __init__(
-        self, checkpoint_dir: Union[str, Path] = Path("trained_models"), max_hours: int = 24,
+        self,
+        checkpoint_dir: Union[str, Path] = Path("trained_models"),
+        max_hours: int = 24,
     ):
         """Autoresumer object that automatically tries to find a checkpoint
         that is as old as max_time.
