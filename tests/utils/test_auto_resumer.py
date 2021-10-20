@@ -83,7 +83,7 @@ def test_checkpointer():
     parser = argparse.ArgumentParser()
     auto_resumer.add_autoresumer_args(parser)
     args = [vars(action)["dest"] for action in vars(parser)["_actions"]]
-    assert "resumer_max_hours" in args
+    assert "auto_resumer_max_hours" in args
 
     # clean stuff
     shutil.rmtree(ckpt_callback.logdir)
