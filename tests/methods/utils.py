@@ -77,6 +77,7 @@ def gen_base_kwargs(
         "data_dir": "/data/datasets",
         "train_dir": "cifar10/train",
         "val_dir": "cifar10/val",
+        "dataset": "cifar10",
     }
     if momentum:
         BASE_KWARGS["base_tau_momentum"] = 0.99
