@@ -31,4 +31,5 @@ python3 ../../../main_pretrain.py \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
     --proj_output_dim 2048 \
-    --scale_loss 0.1
+    --scale_loss 0.1 \
+    --auto_resume

@@ -27,6 +27,7 @@ from pytorch_lightning.plugins import DDPPlugin
 
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
+from solo.utils.auto_resumer import AutoResumer
 
 try:
     from solo.methods.dali import PretrainABC
@@ -149,6 +150,19 @@ def main():
             frequency=args.auto_umap_frequency,
         )
         callbacks.append(auto_umap)
+
+    if args.auto_resume and args.resume_from_checkpoint is None:
+        auto_resumer = AutoResumer(
+            checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
+            max_hours=args.auto_resumer_max_hours,
+        )
+        resume_from_checkpoint = auto_resumer.find_checkpoint(args)
+        if resume_from_checkpoint is not None:
+            print(
+                "Resuming from previous checkpoint that matches specifications:",
+                f"'{resume_from_checkpoint}'",
+            )
+            args.resume_from_checkpoint = resume_from_checkpoint
 
     trainer = Trainer.from_argparse_args(
         args,
