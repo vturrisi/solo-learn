@@ -15,6 +15,7 @@ datasets/
 *.pth
 *.ckpt
 *.tar
+*.pkl
 
 *.png
 *.jpg
@@ -28,6 +29,7 @@ lightning_logs/
 *.json
 
 *logs*/
+*output*/
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode
