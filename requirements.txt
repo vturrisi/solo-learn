@@ -1,9 +1,9 @@
-torch>=1.8.1
-torchvision>=0.9.1
+torch==1.9.1
+torchvision==0.10.1
 einops
 pytorch-lightning==1.4.7
-torchmetrics==0.5.1
-lightning-bolts==0.3.4
+torchmetrics>=0.5.1
+lightning-bolts>=0.4.0
 tqdm
 wandb
 scipy
