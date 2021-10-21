@@ -111,7 +111,10 @@ class WeightedKNNClassifier(Metric):
         num_train_images = train_targets.size(0)
         num_test_images = test_targets.size(0)
         num_train_images = train_targets.size(0)
-        chunk_size = max(1, self.max_distance_matrix_size // num_train_images)
+        chunk_size = min(
+            max(1, self.max_distance_matrix_size // num_train_images),
+            num_test_images,
+        )
         k = min(self.k, num_train_images)
 
         top1, top5, total = 0.0, 0.0, 0
@@ -153,7 +156,7 @@ class WeightedKNNClassifier(Metric):
             correct = predictions.eq(targets.data.view(-1, 1))
             top1 = top1 + correct.narrow(1, 0, 1).sum().item()
             top5 = (
-                top5 + correct.narrow(1, 0, min(5, k)).sum().item()
+                top5 + correct.narrow(1, 0, min(5, k, correct.size(-1))).sum().item()
             )  # top5 does not make sense if k < 5
             total += targets.size(0)
 

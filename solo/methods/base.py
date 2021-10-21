@@ -480,7 +480,7 @@ class BaseMethod(pl.LightningModule):
         if not self.disable_knn_eval:
             self.knn(
                 train_features=torch.cat(outs["feats"][: self.num_large_crops]).detach(),
-                train_targets=targets.repeat(self.num_large_crops),
+                train_targets=targets.repeat(self.num_large_crops).detach(),
             )
 
         return outs
@@ -506,7 +506,7 @@ class BaseMethod(pl.LightningModule):
         out = self._base_shared_step(X, targets)
 
         if not self.disable_knn_eval and not self.trainer.sanity_checking:
-            self.knn(test_features=out.pop("feats").detach(), test_targets=targets)
+            self.knn(test_features=out.pop("feats").detach(), test_targets=targets.detach())
 
         metrics = {
             "batch_size": batch_size,
