@@ -37,7 +37,7 @@ if __name__ == "__main__":
             continue
 
         old_k = k
-        k = k.replace("encoder", "")
+        k = k.replace("encoder.", "")
         if "layer" not in k:
             k = "stem." + k
         for t in [1, 2, 3, 4]:
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         print(old_k, "->", k)
         newmodel[k] = v.numpy()
 
-    res = {"model": newmodel, "__author__": "simclr", "matching_heuristics": True}
+    res = {"model": newmodel, "__author__": "solo-learn", "matching_heuristics": True}
 
     with open(args.output_detectron_model, "wb") as f:
         pkl.dump(res, f)
