@@ -32,6 +32,7 @@ from solo.methods.simclr import SimCLR
 from solo.methods.simsiam import SimSiam
 from solo.methods.swav import SwAV
 from solo.methods.vicreg import VICReg
+from solo.methods.vibcreg import VIbCReg
 from solo.methods.wmse import WMSE
 
 METHODS = {
@@ -53,6 +54,7 @@ METHODS = {
     "swav": SwAV,
     "vicreg": VICReg,
     "wmse": WMSE,
+    "vibcreg": VIbCReg,
 }
 __all__ = [
     "BarlowTwins",
@@ -71,6 +73,7 @@ __all__ = [
     "SwAV",
     "VICReg",
     "WMSE",
+    "VIbCReg",
 ]
 
 try:
