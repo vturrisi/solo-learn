@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Sequence
 
 import torch
 import torch.nn as nn
-from solo.losses.vicreg import vicreg_loss_func
+from solo.losses.vibcreg import vibcreg_loss_func
 from solo.methods.base import BaseMethod
 from solo.utils.whitening import IterNorm
 
@@ -38,7 +38,7 @@ class VIbCReg(BaseMethod):
         iternorm: bool,
         **kwargs
     ):
-        """Implements VICReg (https://arxiv.org/abs/2105.04906)
+        """Implements VIbCReg (https://arxiv.org/abs/2109.00783)
 
         Args:
             proj_output_dim (int): number of dimensions of the projected features.
@@ -127,8 +127,8 @@ class VIbCReg(BaseMethod):
         z1 = self.projector(feats1)
         z2 = self.projector(feats2)
 
-        # ------- vicreg loss -------
-        vicreg_loss = vicreg_loss_func(
+        # ------- vibcreg loss -------
+        vibcreg_loss = vibcreg_loss_func(
             z1,
             z2,
             sim_loss_weight=self.sim_loss_weight,
@@ -136,6 +136,6 @@ class VIbCReg(BaseMethod):
             cov_loss_weight=self.cov_loss_weight,
         )
 
-        self.log("train_vicreg_loss", vicreg_loss, on_epoch=True, sync_dist=True)
+        self.log("train_vibcreg_loss", vibcreg_loss, on_epoch=True, sync_dist=True)
 
-        return vicreg_loss + class_loss
+        return vibcreg_loss + class_loss
