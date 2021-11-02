@@ -26,7 +26,7 @@ python3 ../../../main_pretrain.py \
     --crop_size 32 \
     --num_crops_per_aug 1 1 \
     --name vicreg-$1 \
-    --project sololearnvibcreg \
+    --project solo-learn \
     --entity unitn-mhug \
     --wandb \
     --save_checkpoint \

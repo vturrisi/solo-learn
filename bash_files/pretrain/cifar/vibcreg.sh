@@ -11,7 +11,7 @@ python3 ../../../main_pretrain.py \
     --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 0.5 \
+    --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 256 \
     --num_workers 4 \
@@ -25,8 +25,8 @@ python3 ../../../main_pretrain.py \
     --gaussian_prob 0.0 0.0 \
     --crop_size 32 \
     --num_crops_per_aug 1 1 \
-    --name vibcreg-$1-iternorm \
-    --project sololearnvibcreg \
+    --name vibcreg-$1 \
+    --project solo-learn \
     --entity unitn-mhug \
     --save_checkpoint \
     --method vibcreg \

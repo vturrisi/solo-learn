@@ -5,7 +5,7 @@ python3 ../../../main_pretrain.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
-    --gpus 0,1 \
+    --gpus 0 \
     --accelerator ddp \
     --sync_batchnorm \
     --precision 16 \
@@ -37,5 +37,5 @@ python3 ../../../main_pretrain.py \
     --proj_output_dim 2048 \
     --sim_loss_weight 25.0 \
     --var_loss_weight 25.0 \
-    --cov_loss_weight 1.0 \
+    --cov_loss_weight 200.0 \
     --iternorm

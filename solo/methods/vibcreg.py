@@ -63,7 +63,7 @@ class VIbCReg(BaseMethod):
             nn.BatchNorm1d(proj_hidden_dim),
             nn.GELU(),
             nn.Linear(proj_hidden_dim, proj_output_dim),
-            IterNorm(proj_output_dim, num_groups=64, T=5, dim=2)
+            IterNorm(proj_output_dim, num_groups=64, T=5, dim=2) if iternorm else nn.Identity()
         )
 
     @staticmethod
