@@ -71,7 +71,7 @@ class Whitening2d(nn.Module):
 
 class iterative_normalization_py(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, *args, **kwargs):
+    def forward(ctx, *args) -> torch.Tensor:
         X, running_mean, running_wmat, nc, ctx.T, eps, momentum, training = args
 
         # change NxCxHxW to (G x D) x(NxHxW), i.e., g*d*m
@@ -143,10 +143,8 @@ class iterative_normalization_py(torch.autograd.Function):
             g_P.baddbmm_(beta=1, alpha=-0.5, batch1=P2, batch2=g_tmp)
             g_P.baddbmm_(beta=1, alpha=-0.5, batch1=P[k - 1].matmul(g_tmp), batch2=P[k - 1])
         g_sn += g_P
-        # g_sn = g_sn * rTr.sqrt()
         g_tr = ((-sn.matmul(g_sn) + g_wm.transpose(-2, -1).matmul(wm)) * P[0]).sum((1, 2), keepdim=True) * P[0]
         g_sigma = (g_sn + g_sn.transpose(-2, -1) + 2. * g_tr) * (-0.5 / m * rTr)
-        # g_sigma = g_sigma + g_sigma.transpose(-2, -1)
         g_x = torch.baddbmm(wm.matmul(g_ - g_.mean(-1, keepdim=True)), g_sigma, xc)
         grad_input = g_x.view(grad.size(1), grad.size(0), *grad.size()[2:]).transpose(0, 1).contiguous()
         return grad_input, None, None, None, None, None, None, None
@@ -157,7 +155,7 @@ class IterNorm(torch.nn.Module):
                  T: int = 5, dim: int = 2, eps: float = 1.e-5, momentum: float = 0.1,
                  affine: bool = True):
         super(IterNorm, self).__init__()
-        # assert dim == 4, 'IterNorm is not support 2D'
+        # assert dim == 4, 'IterNorm does not support 2D'
         self.T = T
         self.eps = eps
         self.momentum = momentum
@@ -170,8 +168,8 @@ class IterNorm(torch.nn.Module):
         while num_features % num_channels != 0:
             num_channels //= 2
             num_groups = num_features // num_channels
-        assert num_groups > 0 and num_features % num_groups == 0, "num features={}, num groups={}".format(num_features,
-                                                                                                          num_groups)
+        assert num_groups > 0 and num_features % num_groups == 0, \
+            f"num features={num_features}, num groups={num_groups}"
         self.num_groups = num_groups
         self.num_channels = num_channels
         shape = [1] * dim
@@ -186,17 +184,16 @@ class IterNorm(torch.nn.Module):
         self.register_buffer('running_mean', torch.zeros(num_groups, num_channels, 1))
         # running whiten matrix
         self.register_buffer('running_wm',
-                             torch.eye(num_channels).expand(num_groups, num_channels, num_channels).clone())
+                             torch.eye(num_channels).expand(num_groups, num_channels, num_channels))
         self.reset_parameters()
 
     def reset_parameters(self):
-        # self.reset_running_stats()
         if self.affine:
             torch.nn.init.ones_(self.weight)
             torch.nn.init.zeros_(self.bias)
 
     @custom_fwd(cast_inputs=torch.float32)
-    def forward(self, X: torch.Tensor):
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
         X_hat = iterative_normalization_py.apply(X, self.running_mean, self.running_wm, self.num_channels, self.T,
                                                  self.eps, self.momentum, self.training)
         # affine
@@ -206,5 +203,5 @@ class IterNorm(torch.nn.Module):
             return X_hat
 
     def extra_repr(self):
-        return '{num_features}, num_channels={num_channels}, T={T}, eps={eps}, ' \
-               'momentum={momentum}, affine={affine}'.format(**self.__dict__)
+        return f'{self.num_features}, num_channels={self.num_channels}, T={self.T}, eps={self.eps}, ' \
+               'momentum={momentum}, affine={affine}'

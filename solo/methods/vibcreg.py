@@ -46,6 +46,7 @@ class VIbCReg(BaseMethod):
             sim_loss_weight (float): weight of the invariance term.
             var_loss_weight (float): weight of the variance term.
             cov_loss_weight (float): weight of the covariance term.
+            iternorm: If true, an IterNorm layer will be appended to the projector.
         """
 
         super().__init__(**kwargs)
@@ -69,7 +70,7 @@ class VIbCReg(BaseMethod):
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(VIbCReg, VIbCReg).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("vicreg")
+        parser = parent_parser.add_argument_group("vibcreg")
 
         # projector
         parser.add_argument("--proj_output_dim", type=int, default=2048)
@@ -80,7 +81,6 @@ class VIbCReg(BaseMethod):
         parser.add_argument("--var_loss_weight", default=25., type=float)
         parser.add_argument("--cov_loss_weight", default=200., type=float)
         parser.add_argument("--iternorm", action='store_true')
-        parser.set_defaults(iternorm=False)
         return parent_parser
 
     @property
@@ -109,7 +109,7 @@ class VIbCReg(BaseMethod):
         return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for VICReg reusing BaseMethod training step.
+        """Training step for VIbCReg reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -117,7 +117,7 @@ class VIbCReg(BaseMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of VICReg loss and classification loss.
+            torch.Tensor: total loss composed of VIbCReg loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
