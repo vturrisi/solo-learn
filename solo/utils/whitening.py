@@ -19,8 +19,9 @@
 
 
 from typing import Optional
+
 import torch
-from torch import nn
+import torch.nn as nn
 from torch.cuda.amp import custom_fwd
 from torch.nn.functional import conv2d
 
@@ -87,27 +88,29 @@ class iterative_normalization_py(torch.autograd.Function):
             # calculate covariance matrix
             P = [None] * (ctx.T + 1)
             P[0] = torch.eye(d).to(X).expand(ctx.g, d, d)
-            Sigma = torch.baddbmm(beta=eps,
-                                  input=P[0],
-                                  alpha=1. / m,
-                                  batch1=xc,
-                                  batch2=xc.transpose(1, 2))
+            Sigma = torch.baddbmm(
+                beta=eps, input=P[0], alpha=1.0 / m, batch1=xc, batch2=xc.transpose(1, 2)
+            )
             # reciprocal of trace of Sigma: shape [g, 1, 1]
             rTr = (Sigma * P[0]).sum((1, 2), keepdim=True).reciprocal_()
             saved.append(rTr)
             Sigma_N = Sigma * rTr
             saved.append(Sigma_N)
             for k in range(ctx.T):
-                P[k + 1] = torch.baddbmm(beta=1.5,
-                                         input=P[k],
-                                         alpha=-0.5,
-                                         batch1=torch.matrix_power(P[k], 3),
-                                         batch2=Sigma_N)
+                P[k + 1] = torch.baddbmm(
+                    beta=1.5,
+                    input=P[k],
+                    alpha=-0.5,
+                    batch1=torch.matrix_power(P[k], 3),
+                    batch2=Sigma_N,
+                )
             saved.extend(P)
-            wm = P[ctx.T].mul_(rTr.sqrt())  # whiten matrix: the matrix inverse of Sigma, i.e., Sigma^{-1/2}
+            wm = P[ctx.T].mul_(
+                rTr.sqrt()
+            )  # whiten matrix: the matrix inverse of Sigma, i.e., Sigma^{-1/2}
 
-            running_mean.copy_(momentum * mean + (1. - momentum) * running_mean)
-            running_wmat.copy_(momentum * wm + (1. - momentum) * running_wmat)
+            running_mean.copy_(momentum * mean + (1.0 - momentum) * running_mean)
+            running_wmat.copy_(momentum * wm + (1.0 - momentum) * running_wmat)
         else:
             xc = x - running_mean
             wm = running_wmat
@@ -118,7 +121,7 @@ class iterative_normalization_py(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, *grad_outputs):
-        grad, = grad_outputs
+        (grad,) = grad_outputs
         saved = ctx.saved_tensors
         if len(saved) == 0:
             return None, None, None, None, None, None, None, None
@@ -143,17 +146,29 @@ class iterative_normalization_py(torch.autograd.Function):
             g_P.baddbmm_(beta=1, alpha=-0.5, batch1=P2, batch2=g_tmp)
             g_P.baddbmm_(beta=1, alpha=-0.5, batch1=P[k - 1].matmul(g_tmp), batch2=P[k - 1])
         g_sn += g_P
-        g_tr = ((-sn.matmul(g_sn) + g_wm.transpose(-2, -1).matmul(wm)) * P[0]).sum((1, 2), keepdim=True) * P[0]
-        g_sigma = (g_sn + g_sn.transpose(-2, -1) + 2. * g_tr) * (-0.5 / m * rTr)
+        g_tr = ((-sn.matmul(g_sn) + g_wm.transpose(-2, -1).matmul(wm)) * P[0]).sum(
+            (1, 2), keepdim=True
+        ) * P[0]
+        g_sigma = (g_sn + g_sn.transpose(-2, -1) + 2.0 * g_tr) * (-0.5 / m * rTr)
         g_x = torch.baddbmm(wm.matmul(g_ - g_.mean(-1, keepdim=True)), g_sigma, xc)
-        grad_input = g_x.view(grad.size(1), grad.size(0), *grad.size()[2:]).transpose(0, 1).contiguous()
+        grad_input = (
+            g_x.view(grad.size(1), grad.size(0), *grad.size()[2:]).transpose(0, 1).contiguous()
+        )
         return grad_input, None, None, None, None, None, None, None
 
 
 class IterNorm(torch.nn.Module):
-    def __init__(self, num_features: int, num_groups: int = 64, num_channels: Optional[int] = None,
-                 T: int = 5, dim: int = 2, eps: float = 1.e-5, momentum: float = 0.1,
-                 affine: bool = True):
+    def __init__(
+        self,
+        num_features: int,
+        num_groups: int = 64,
+        num_channels: Optional[int] = None,
+        T: int = 5,
+        dim: int = 2,
+        eps: float = 1.0e-5,
+        momentum: float = 0.1,
+        affine: bool = True,
+    ):
         super(IterNorm, self).__init__()
         # assert dim == 4, 'IterNorm does not support 2D'
         self.T = T
@@ -168,8 +183,9 @@ class IterNorm(torch.nn.Module):
         while num_features % num_channels != 0:
             num_channels //= 2
             num_groups = num_features // num_channels
-        assert num_groups > 0 and num_features % num_groups == 0, \
-            f"num features={num_features}, num groups={num_groups}"
+        assert (
+            num_groups > 0 and num_features % num_groups == 0
+        ), f"num features={num_features}, num groups={num_groups}"
         self.num_groups = num_groups
         self.num_channels = num_channels
         shape = [1] * dim
@@ -178,13 +194,14 @@ class IterNorm(torch.nn.Module):
             self.weight = nn.Parameter(torch.Tensor(*shape))
             self.bias = nn.Parameter(torch.Tensor(*shape))
         else:
-            self.register_parameter('weight', None)
-            self.register_parameter('bias', None)
+            self.register_parameter("weight", None)
+            self.register_parameter("bias", None)
 
-        self.register_buffer('running_mean', torch.zeros(num_groups, num_channels, 1))
+        self.register_buffer("running_mean", torch.zeros(num_groups, num_channels, 1))
         # running whiten matrix
-        self.register_buffer('running_wm',
-                             torch.eye(num_channels).expand(num_groups, num_channels, num_channels))
+        self.register_buffer(
+            "running_wm", torch.eye(num_channels).expand(num_groups, num_channels, num_channels)
+        )
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -194,8 +211,16 @@ class IterNorm(torch.nn.Module):
 
     @custom_fwd(cast_inputs=torch.float32)
     def forward(self, X: torch.Tensor) -> torch.Tensor:
-        X_hat = iterative_normalization_py.apply(X, self.running_mean, self.running_wm, self.num_channels, self.T,
-                                                 self.eps, self.momentum, self.training)
+        X_hat = iterative_normalization_py.apply(
+            X,
+            self.running_mean,
+            self.running_wm,
+            self.num_channels,
+            self.T,
+            self.eps,
+            self.momentum,
+            self.training,
+        )
         # affine
         if self.affine:
             return X_hat * self.weight + self.bias
@@ -203,5 +228,7 @@ class IterNorm(torch.nn.Module):
             return X_hat
 
     def extra_repr(self):
-        return f'{self.num_features}, num_channels={self.num_channels}, T={self.T}, eps={self.eps}, ' \
-               'momentum={momentum}, affine={affine}'
+        return (
+            f"{self.num_features}, num_channels={self.num_channels}, T={self.T}, eps={self.eps}, "
+            "momentum={momentum}, affine={affine}"
+        )

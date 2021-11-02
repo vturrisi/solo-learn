@@ -17,8 +17,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from solo.losses.vicreg import invariance_loss, variance_loss
 import torch
+from solo.losses.vicreg import invariance_loss, variance_loss
 from torch import Tensor
 from torch.nn import functional as F
 
@@ -35,14 +35,14 @@ def covariance_loss(z1: Tensor, z2: Tensor) -> Tensor:
         torch.Tensor: covariance regularization loss.
     """
 
-    norm_z1 = (z1 - z1.mean(dim=0))
-    norm_z2 = (z2 - z2.mean(dim=0))
+    norm_z1 = z1 - z1.mean(dim=0)
+    norm_z2 = z2 - z2.mean(dim=0)
     norm_z1 = F.normalize(norm_z1, p=2, dim=0)  # (batch * feature); l2-norm
     norm_z2 = F.normalize(norm_z2, p=2, dim=0)
     fxf_cov_z1 = torch.mm(norm_z1.T, norm_z1)  # (feature * feature)
     fxf_cov_z2 = torch.mm(norm_z2.T, norm_z2)
-    fxf_cov_z1.fill_diagonal_(0.)
-    fxf_cov_z2.fill_diagonal_(0.)
+    fxf_cov_z1.fill_diagonal_(0.0)
+    fxf_cov_z2.fill_diagonal_(0.0)
     cov_loss = (fxf_cov_z1 ** 2).mean() + (fxf_cov_z2 ** 2).mean()
     return cov_loss
 

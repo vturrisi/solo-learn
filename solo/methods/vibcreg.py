@@ -64,7 +64,7 @@ class VIbCReg(BaseMethod):
             nn.BatchNorm1d(proj_hidden_dim),
             nn.GELU(),
             nn.Linear(proj_hidden_dim, proj_output_dim),
-            IterNorm(proj_output_dim, num_groups=64, T=5, dim=2) if iternorm else nn.Identity()
+            IterNorm(proj_output_dim, num_groups=64, T=5, dim=2) if iternorm else nn.Identity(),
         )
 
     @staticmethod
@@ -77,10 +77,10 @@ class VIbCReg(BaseMethod):
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters
-        parser.add_argument("--sim_loss_weight", default=25., type=float)
-        parser.add_argument("--var_loss_weight", default=25., type=float)
-        parser.add_argument("--cov_loss_weight", default=200., type=float)
-        parser.add_argument("--iternorm", action='store_true')
+        parser.add_argument("--sim_loss_weight", default=25.0, type=float)
+        parser.add_argument("--var_loss_weight", default=25.0, type=float)
+        parser.add_argument("--cov_loss_weight", default=200.0, type=float)
+        parser.add_argument("--iternorm", action="store_true")
         return parent_parser
 
     @property

@@ -34,6 +34,7 @@ def test_vicreg():
         "sim_loss_weight": 25.0,
         "var_loss_weight": 25.0,
         "cov_loss_weight": 200.0,
+        "iternorm": True,
     }
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
