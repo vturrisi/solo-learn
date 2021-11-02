@@ -46,7 +46,7 @@ class VIbCReg(BaseMethod):
             sim_loss_weight (float): weight of the invariance term.
             var_loss_weight (float): weight of the variance term.
             cov_loss_weight (float): weight of the covariance term.
-            iternorm: If true, an IterNorm layer will be appended to the projector.
+            iternorm (bool): If true, an IterNorm layer will be appended to the projector.
         """
 
         super().__init__(**kwargs)
