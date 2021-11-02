@@ -27,7 +27,7 @@ from solo.methods import VIbCReg
 from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
-def test_vicreg():
+def test_vibcreg():
     method_kwargs = {
         "proj_hidden_dim": 2048,
         "proj_output_dim": 2048,
