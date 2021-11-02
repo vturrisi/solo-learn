@@ -58,12 +58,12 @@ class VIbCReg(BaseMethod):
         self.projector = nn.Sequential(
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(proj_hidden_dim, proj_output_dim),
-            IterNorm(proj_output_dim, num_groups=64, T=5, dim=2) if iternorm else nn.Identity()
+            IterNorm(proj_output_dim, num_groups=64, T=5, dim=2)
         )
 
     @staticmethod

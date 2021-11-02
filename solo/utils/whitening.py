@@ -195,6 +195,7 @@ class IterNorm(torch.nn.Module):
             torch.nn.init.ones_(self.weight)
             torch.nn.init.zeros_(self.bias)
 
+    @custom_fwd(cast_inputs=torch.float32)
     def forward(self, X: torch.Tensor):
         X_hat = iterative_normalization_py.apply(X, self.running_mean, self.running_wm, self.num_channels, self.T,
                                                  self.eps, self.momentum, self.training)
