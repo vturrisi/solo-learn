@@ -184,7 +184,7 @@ class IterNorm(torch.nn.Module):
         self.register_buffer('running_mean', torch.zeros(num_groups, num_channels, 1))
         # running whiten matrix
         self.register_buffer('running_wm',
-                             torch.eye(num_channels).expand(num_groups, num_channels, num_channels))
+                             torch.eye(num_channels).expand(num_groups, num_channels, num_channels).clone())
         self.reset_parameters()
 
     def reset_parameters(self):
