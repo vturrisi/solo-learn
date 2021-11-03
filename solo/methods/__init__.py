@@ -31,8 +31,8 @@ from solo.methods.ressl import ReSSL
 from solo.methods.simclr import SimCLR
 from solo.methods.simsiam import SimSiam
 from solo.methods.swav import SwAV
-from solo.methods.vicreg import VICReg
 from solo.methods.vibcreg import VIbCReg
+from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
 
 METHODS = {
@@ -52,9 +52,9 @@ METHODS = {
     "simclr": SimCLR,
     "simsiam": SimSiam,
     "swav": SwAV,
+    "vibcreg": VIbCReg,
     "vicreg": VICReg,
     "wmse": WMSE,
-    "vibcreg": VIbCReg,
 }
 __all__ = [
     "BarlowTwins",
@@ -71,9 +71,9 @@ __all__ = [
     "SimCLR",
     "SimSiam",
     "SwAV",
+    "VIbCReg",
     "VICReg",
     "WMSE",
-    "VIbCReg",
 ]
 
 try:

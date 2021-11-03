@@ -34,10 +34,11 @@ def test_vibcreg():
         "sim_loss_weight": 25.0,
         "var_loss_weight": 25.0,
         "cov_loss_weight": 200.0,
+        "iternorm": True,
     }
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = VIbCReg(**kwargs, disable_knn_eval=True, iternorm=True)
+    model = VIbCReg(**kwargs, disable_knn_eval=True)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -69,7 +70,7 @@ def test_vibcreg():
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = VIbCReg(**kwargs, disable_knn_eval=True, iternorm=True)
+    model = VIbCReg(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -86,7 +87,7 @@ def test_vibcreg():
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = VIbCReg(**kwargs, disable_knn_eval=True, iternorm=True)
+    model = VIbCReg(**kwargs, disable_knn_eval=True)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
