@@ -62,7 +62,9 @@ class Whitening2d(nn.Module):
 
         f_cov_shrinked = (1 - self.eps) * f_cov + self.eps * eye
 
-        inv_sqrt = torch.triangular_solve(eye, torch.cholesky(f_cov_shrinked), upper=False)[0]
+        inv_sqrt = torch.triangular_solve(
+            eye, torch.cholesky(f_cov_shrinked), upper=False
+        )[0]
         inv_sqrt = inv_sqrt.contiguous().view(self.output_dim, self.output_dim, 1, 1)
 
         decorrelated = conv2d(xn, inv_sqrt)
@@ -89,7 +91,11 @@ class iterative_normalization_py(torch.autograd.Function):
             P = [None] * (ctx.T + 1)
             P[0] = torch.eye(d).to(X).expand(ctx.g, d, d)
             Sigma = torch.baddbmm(
-                beta=eps, input=P[0], alpha=1.0 / m, batch1=xc, batch2=xc.transpose(1, 2)
+                beta=eps,
+                input=P[0],
+                alpha=1.0 / m,
+                batch1=xc,
+                batch2=xc.transpose(1, 2),
             )
             # reciprocal of trace of Sigma: shape [g, 1, 1]
             rTr = (Sigma * P[0]).sum((1, 2), keepdim=True).reciprocal_()
@@ -144,7 +150,9 @@ class iterative_normalization_py(torch.autograd.Function):
             g_tmp = g_P.matmul(sn)
             g_P.baddbmm_(beta=1.5, alpha=-0.5, batch1=g_tmp, batch2=P2)
             g_P.baddbmm_(beta=1, alpha=-0.5, batch1=P2, batch2=g_tmp)
-            g_P.baddbmm_(beta=1, alpha=-0.5, batch1=P[k - 1].matmul(g_tmp), batch2=P[k - 1])
+            g_P.baddbmm_(
+                beta=1, alpha=-0.5, batch1=P[k - 1].matmul(g_tmp), batch2=P[k - 1]
+            )
         g_sn += g_P
         g_tr = ((-sn.matmul(g_sn) + g_wm.transpose(-2, -1).matmul(wm)) * P[0]).sum(
             (1, 2), keepdim=True
@@ -152,7 +160,9 @@ class iterative_normalization_py(torch.autograd.Function):
         g_sigma = (g_sn + g_sn.transpose(-2, -1) + 2.0 * g_tr) * (-0.5 / m * rTr)
         g_x = torch.baddbmm(wm.matmul(g_ - g_.mean(-1, keepdim=True)), g_sigma, xc)
         grad_input = (
-            g_x.view(grad.size(1), grad.size(0), *grad.size()[2:]).transpose(0, 1).contiguous()
+            g_x.view(grad.size(1), grad.size(0), *grad.size()[2:])
+            .transpose(0, 1)
+            .contiguous()
         )
         return grad_input, None, None, None, None, None, None, None
 
@@ -199,9 +209,12 @@ class IterNorm(torch.nn.Module):
 
         self.register_buffer("running_mean", torch.zeros(num_groups, num_channels, 1))
         # running whiten matrix
-        self.register_buffer('running_wm',
-                             torch.eye(num_channels).expand(num_groups, num_channels,
-                                                            num_channels).clone())
+        self.register_buffer(
+            "running_wm",
+            torch.eye(num_channels)
+            .expand(num_groups, num_channels, num_channels)
+            .clone(),
+        )
 
         self.reset_parameters()
 
