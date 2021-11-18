@@ -10,6 +10,7 @@ from solo.losses.simsiam import simsiam_loss_func
 from solo.losses.swav import swav_loss_func
 from solo.losses.vicreg import vicreg_loss_func
 from solo.losses.wmse import wmse_loss_func
+from solo.losses.meanshiftloss import mean_shift_loss_func
 
 __all__ = [
     "barlow_loss_func",
@@ -25,4 +26,5 @@ __all__ = [
     "swav_loss_func",
     "vicreg_loss_func",
     "wmse_loss_func",
+    "mean_shift_loss_func"
 ]

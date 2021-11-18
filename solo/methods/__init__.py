@@ -12,6 +12,7 @@ from solo.methods.simsiam import SimSiam
 from solo.methods.swav import SwAV
 from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
+from solo.methods.meanshift import MeanShift
 
 METHODS = {
     # base classes
@@ -30,6 +31,7 @@ METHODS = {
     "swav": SwAV,
     "vicreg": VICReg,
     "wmse": WMSE,
+    "mean_shift" : MeanShift, 
 }
 __all__ = [
     "BarlowTwins",
@@ -46,6 +48,7 @@ __all__ = [
     "SwAV",
     "VICReg",
     "WMSE",
+    "MeanShift",
 ]
 
 try:
