@@ -81,7 +81,7 @@ class BaseMethod(pl.LightningModule):
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
-        disable_knn_eval: bool = True,
+        knn_eval: bool = False,
         knn_k: int = 20,
         **kwargs,
     ):
@@ -121,7 +121,7 @@ class BaseMethod(pl.LightningModule):
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
-            disable_knn_eval (bool): disables online knn evaluation while training.
+            knn_eval (bool): enables online knn evaluation while training.
             knn_k (int): the number of neighbors to use for knn.
 
         .. note::
@@ -166,7 +166,7 @@ class BaseMethod(pl.LightningModule):
         self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
-        self.disable_knn_eval = disable_knn_eval
+        self.knn_eval = knn_eval
         self.knn_k = knn_k
 
         # multicrop
@@ -234,7 +234,7 @@ class BaseMethod(pl.LightningModule):
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
-        if not self.disable_knn_eval:
+        if self.knn_eval:
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
     @staticmethod
@@ -305,7 +305,7 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
 
         # online knn eval
-        parser.add_argument("--disable_knn_eval", action="store_true")
+        parser.add_argument("--knn_eval", action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
 
         return parent_parser
@@ -477,7 +477,7 @@ class BaseMethod(pl.LightningModule):
 
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-        if not self.disable_knn_eval:
+        if self.knn_eval:
             self.knn(
                 train_features=torch.cat(outs["feats"][: self.num_large_crops]).detach(),
                 train_targets=targets.repeat(self.num_large_crops).detach(),
@@ -505,7 +505,7 @@ class BaseMethod(pl.LightningModule):
 
         out = self._base_shared_step(X, targets)
 
-        if not self.disable_knn_eval and not self.trainer.sanity_checking:
+        if self.knn_eval and not self.trainer.sanity_checking:
             self.knn(test_features=out.pop("feats").detach(), test_targets=targets.detach())
 
         metrics = {
@@ -531,7 +531,7 @@ class BaseMethod(pl.LightningModule):
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
 
-        if not self.disable_knn_eval and not self.trainer.sanity_checking:
+        if self.knn_eval and not self.trainer.sanity_checking:
             val_knn_acc1, val_knn_acc5 = self.knn.compute()
             log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
 
