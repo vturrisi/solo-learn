@@ -70,16 +70,22 @@ While the library is self-contained, it is possible to use the models outside of
 ## Requirements
 
 * torch
+* torchvision
 * tqdm
 * einops
 * wandb
 * pytorch-lightning
 * lightning-bolts
+* torchmetrics
+* scipy
+* timm
 
 **Optional**:
 * nvidia-dali
-
-**NOTE:** if you are using CUDA 10.X change `nvidia-dali-cuda110` to `nvidia-dali-cuda100` in `setup.py`, line 7.
+* matplotlib
+* seaborn
+* pandas
+* umap-learn
 
 ---
 
@@ -95,9 +101,11 @@ If no Dali/UMAP support is needed, the repository can be installed as:
 pip3 install .
 ```
 
-**NOTE:** If you want to modify the library, install it in dev mode with `-e`.
+**NOTE:**: if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
 
-**NOTE 2:** Soon to be on pip.
+**NOTE 2:** If you want to modify the library, install it in dev mode with `-e`.
+
+**NOTE 3:** Soon to be on pip.
 
 ---
 
@@ -108,6 +116,13 @@ For pretraining the encoder, follow one of the many bash files in `bash_files/pr
 After that, for offline linear evaluation, follow the examples on `bash_files/linear`.
 
 **NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
+
+---
+
+## Model Zoo
+
+All pretrained models avaiable can be downloaded directly via the tables below or programmatically by running one of the following scripts
+`zoo/cifar10.sh`, `zoo/cifar100.sh`, `zoo/imagenet100.sh` and `zoo/imagenet.sh`.
 
 ---
 
