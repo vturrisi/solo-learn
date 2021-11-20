@@ -131,7 +131,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |                 |     99.75      |                 | [:link:](https://drive.google.com/drive/folders/1mcvWr8P2WNJZ7TVpdLHA_Q91q4VK3y8O?usp=sharing) |
 | Simsiam      | ResNet18 |  1000  |  :x: |      90.51     |                 |     99.72      |                 | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      89.17     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1nlJH4Ljm8-5fOIeAaKppQT6gtsmmW1T0?usp=sharing) |
-| VIbCReg      | ResNet18 |  1000  |  :x: |      91.18     |                 |     99.74      |                 | [:link:]() |
+| VIbCReg      | ResNet18 |  1000  |  :x: |      91.18     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/1XvxUOnLPZlC_-OkeuO7VqXT7z9_tNVk7?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/159ZgCxocB7aaHxwNDubnAWU71zXV9hn-?usp=sharing) |
 | W-MSE        | ResNet18 |  1000  |  :x: |      88.67     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1xPCiULzQ4JCmhrTsbxBp9S2jRZ01KiVM?usp=sharing) |
 
@@ -150,7 +150,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |                 |     89.04      |                 | [:link:](https://drive.google.com/drive/folders/13pGPcOO9Y3rBoeRVWARgbMFEp8OXxZa0?usp=sharing) |
 | Simsiam      | ResNet18 |  1000  |  :x: |      66.04     |                 |     89.62      |                 | [:link:](https://drive.google.com/drive/folders/1AJUPmsIHh_nqEcFe-Vcz2o4ruEibFHWO?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      64.88     |                 |     88.78      |                 | [:link:](https://drive.google.com/drive/folders/1U_bmyhlPEN941hbx0SdRGOT4ivCarQB9?usp=sharing) |
-| VIbCReg      | ResNet18 |  1000  |  :x: |      67.37     |                 |     90.07      |                 | [:link:]() |
+| VIbCReg      | ResNet18 |  1000  |  :x: |      67.37     |                 |     90.07      |                 | [:link:](https://drive.google.com/drive/folders/19u3p1maX3xqwoCHNrqSDb98J5fRvd_6v?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      68.54     |                 |     90.83      |                 | [:link:](https://drive.google.com/drive/folders/1AHmVf_Zl5fikkmR4X3NWlmMOnRzfv0aT?usp=sharing) |
 | W-MSE        | ResNet18 |  1000  |  :x: |      61.33     |                 |     87.26      |                 | [:link:](https://drive.google.com/drive/folders/1vc9j3RLpVCbECh6o-44oMiE5snNyKPlF?usp=sharing) |
 
@@ -169,7 +169,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 | SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.04     |     77.48       |      94.02     |      93.42      | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
 | Simsiam                 | ResNet18 |   400  | :heavy_check_mark: |      74.54     |     78.72       |      93.16     |      94.78      | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
 | SwAV                    | ResNet18 |   400  | :heavy_check_mark: |      74.04     |     74.28       |      92.70     |      92.84      | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
-| VIbCReg                 | ResNet18 |   400  | :heavy_check_mark: |      XX.XX     |     XX.XX       |      XX.XX     |      XX.XX      | [:link:]() |
+| VIbCReg                 | ResNet18 |   400  | :heavy_check_mark: |      XX.XX     |     XX.XX       |      XX.XX     |      XX.XX      | [:link:](https://drive.google.com/drive/folders/1Q06hH18usvRwj2P0bsmoCkjNUX_0syCK?usp=sharing) |
 | VICReg       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.22     |     79.40       |      95.06     |      95.02      | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
 | W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |     69.06       |      90.94     |      91.22      | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
 
