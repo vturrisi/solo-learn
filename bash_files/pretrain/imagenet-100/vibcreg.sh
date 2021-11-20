@@ -5,7 +5,7 @@ python3 ../../../main_pretrain.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
-    --gpus 0 \
+    --gpus 0,1 \
     --accelerator ddp \
     --sync_batchnorm \
     --precision 16 \
