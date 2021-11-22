@@ -1,7 +1,7 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
     --encoder vit_tiny \
-    --data_dir /data/datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --max_epochs 400 \
