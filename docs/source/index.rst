@@ -76,6 +76,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/simclr
    solo/methods/simsiam
    solo/methods/swav
+   solo/methods/vibcreg
    solo/methods/vicreg
    solo/methods/wmse
 
@@ -96,6 +97,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/losses/simclr
    solo/losses/simsiam
    solo/losses/swav
+   solo/losses/vibcreg
    solo/losses/vicreg
    solo/losses/wmse
 
