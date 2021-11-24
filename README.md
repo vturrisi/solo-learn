@@ -93,7 +93,9 @@ While the library is self-contained, it is possible to use the models outside of
 
 ## Installation
 
-To install the repository with Dali and/or UMAP support, use:
+First clone the repo.
+
+Then, to install solo-learn with Dali and/or UMAP support, use:
 ```
 pip3 install .[dali,umap]
 ```
@@ -118,6 +120,12 @@ For pretraining the encoder, follow one of the many bash files in `bash_files/pr
 After that, for offline linear evaluation, follow the examples on `bash_files/linear`.
 
 **NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
+
+---
+
+## Tutorials
+* [pretraining](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html)
+* [offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html)
 
 ---
 
