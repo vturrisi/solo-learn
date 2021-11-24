@@ -5,7 +5,8 @@ We want to make contributing to this project as easy and transparent as possible
 We fix issues as we discover them, either by running the code or by checking the issues tab on github. Major changes (e.g., new methods, other downstream tasks, additional features etc), are added periodically and based on how we judge its priority.
 
 ## Issues
-We use GitHub issues to track public bugs and questions. We will make templates for each type of issue, but for now, please be as verbose and clear as possible. Also, provide ways to reproduce the issue (e.g., bash script).
+We use GitHub issues to track public bugs and questions. We will make templates for each type of issue in [issue templates](https://github.com/vturrisi/solo-learn/issues/new/choose), but for now, check if your issue has a fitting template or please be as verbose and clear as possible. Also, provide ways to reproduce the issue (e.g., bash script).
+
 
 ## Pull Requests
 We actively welcome pull requests.
