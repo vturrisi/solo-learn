@@ -31,7 +31,7 @@ def test_moco_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         loss = ressl_loss_func(query, key, queue, temperature_q=0.1, temperature_k=0.04)
         loss.backward()
         query.data.add_(-0.5 * query.grad)

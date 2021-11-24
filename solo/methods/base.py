@@ -44,7 +44,7 @@ def static_lr(
 
 class BaseMethod(pl.LightningModule):
 
-    _SUPPORTED_ENCODERS = [
+    SUPPORTED_ENCODERS = [
         "resnet18",
         "resnet50",
         "vit_tiny",
@@ -184,7 +184,7 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = self.min_lr * self.accumulate_grad_batches
         self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert encoder in BaseMethod._SUPPORTED_ENCODERS
+        assert encoder in BaseMethod.SUPPORTED_ENCODERS
         from solo.utils.backbones import (
             swin_base,
             swin_large,
@@ -252,7 +252,7 @@ class BaseMethod(pl.LightningModule):
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
-        SUPPORTED_ENCODERS = BaseMethod._SUPPORTED_ENCODERS
+        SUPPORTED_ENCODERS = BaseMethod.SUPPORTED_ENCODERS
 
         parser.add_argument("--encoder", choices=SUPPORTED_ENCODERS, type=str)
         # extra args for resnet
@@ -370,30 +370,30 @@ class BaseMethod(pl.LightningModule):
 
         if self.scheduler == "none":
             return optimizer
-        else:
-            if self.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=self.warmup_epochs,
-                    max_epochs=self.max_epochs,
-                    warmup_start_lr=self.warmup_start_lr,
-                    eta_min=self.min_lr,
-                )
-            elif self.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, self.max_epochs, eta_min=self.min_lr)
-            elif self.scheduler == "step":
-                scheduler = MultiStepLR(optimizer, self.lr_decay_steps)
-            else:
-                raise ValueError(f"{self.scheduler} not in (warmup_cosine, cosine, step)")
 
-            if idxs_no_scheduler:
-                partial_fn = partial(
-                    static_lr,
-                    get_lr=scheduler.get_lr,
-                    param_group_indexes=idxs_no_scheduler,
-                    lrs_to_replace=[self.lr] * len(idxs_no_scheduler),
-                )
-                scheduler.get_lr = partial_fn
+        if self.scheduler == "warmup_cosine":
+            scheduler = LinearWarmupCosineAnnealingLR(
+                optimizer,
+                warmup_epochs=self.warmup_epochs,
+                max_epochs=self.max_epochs,
+                warmup_start_lr=self.warmup_start_lr,
+                eta_min=self.min_lr,
+            )
+        elif self.scheduler == "cosine":
+            scheduler = CosineAnnealingLR(optimizer, self.max_epochs, eta_min=self.min_lr)
+        elif self.scheduler == "step":
+            scheduler = MultiStepLR(optimizer, self.lr_decay_steps)
+        else:
+            raise ValueError(f"{self.scheduler} not in (warmup_cosine, cosine, step)")
+
+        if idxs_no_scheduler:
+            partial_fn = partial(
+                static_lr,
+                get_lr=scheduler.get_lr,
+                param_group_indexes=idxs_no_scheduler,
+                lrs_to_replace=[self.lr] * len(idxs_no_scheduler),
+            )
+            scheduler.get_lr = partial_fn
 
             return [optimizer], [scheduler]
 

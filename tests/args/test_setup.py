@@ -419,7 +419,6 @@ def test_additional_setup_linear():
             "crop_size": [224],
             "dali": False,
             "num_crops_per_aug": [2],
-            "encoder": "vit_small",
             "optimizer": "sgd",
             "gpus": 0,
             "lr": 0.1,

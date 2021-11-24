@@ -46,13 +46,13 @@ class BaseWrapper(DALIGenericIterator):
         if self._reader_name:
             if self._last_batch_policy != LastBatchPolicy.DROP:
                 return math.ceil(size / self.batch_size)
-            else:
-                return size // self.batch_size
+
+            return size // self.batch_size
         else:
             if self._last_batch_policy != LastBatchPolicy.DROP:
                 return math.ceil(size / (self._num_gpus * self.batch_size))
-            else:
-                return size // (self._num_gpus * self.batch_size)
+
+            return size // (self._num_gpus * self.batch_size)
 
 
 class PretrainWrapper(BaseWrapper):

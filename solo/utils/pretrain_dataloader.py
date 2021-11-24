@@ -67,13 +67,16 @@ class CustomDatasetWithoutLabels(Dataset):
 
 
 class GaussianBlur:
-    def __init__(self, sigma: Sequence[float] = [0.1, 2.0]):
+    def __init__(self, sigma: Sequence[float] = None):
         """Gaussian blur as a callable object.
 
         Args:
             sigma (Sequence[float]): range to sample the radius of the gaussian blur filter.
                 Defaults to [0.1, 2.0].
         """
+
+        if sigma is None:
+            sigma = [0.1, 2.0]
 
         self.sigma = sigma
 
@@ -434,6 +437,8 @@ def prepare_transform(dataset: str, **kwargs) -> Any:
         return ImagenetTransform(**kwargs)
     elif dataset == "custom":
         return CustomTransform(**kwargs)
+    else:
+        raise ValueError(f"{dataset} is not currently supported.")
 
 
 def prepare_n_crop_transform(
@@ -494,7 +499,7 @@ def prepare_datasets(
         train_dataset = dataset_with_index(DatasetClass)(
             data_dir / train_dir,
             train=True,
-            download=True,
+            download=download,
             transform=transform,
         )
 
@@ -502,7 +507,7 @@ def prepare_datasets(
         train_dataset = dataset_with_index(STL10)(
             data_dir / train_dir,
             split="train+unlabeled",
-            download=True,
+            download=download,
             transform=transform,
         )
 

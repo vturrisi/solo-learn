@@ -31,7 +31,7 @@ def test_simclr_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         loss = simclr_loss_func(z1, z2, temperature=0.1)
         loss.backward()
         z1.data.add_(-0.5 * z1.grad)
@@ -58,7 +58,7 @@ def test_manual_simclr_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         z = torch.cat((z1, z2))
         loss = manual_simclr_loss_func(z, pos_mask=pos_mask, neg_mask=neg_mask, temperature=0.1)
         loss.backward()
