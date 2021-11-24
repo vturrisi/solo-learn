@@ -114,7 +114,7 @@ class LinearModel(pl.LightningModule):
         parser = parent_parser.add_argument_group("linear")
 
         # encoder args
-        parser.add_argument("--encoder", choices=BaseMethod.SUPPORTED_ENCODERS, type=str)
+        parser.add_argument("--encoder", choices=BaseMethod._SUPPORTED_ENCODERS, type=str)
         # for ViT
         parser.add_argument("--patch_size", type=int, default=16)
 
@@ -217,7 +217,7 @@ class LinearModel(pl.LightningModule):
                 f"{self.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)"
             )
 
-            return [optimizer], [scheduler]
+        return [optimizer], [scheduler]
 
     def shared_step(
         self, batch: Tuple, batch_idx: int

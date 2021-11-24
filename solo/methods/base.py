@@ -44,7 +44,7 @@ def static_lr(
 
 class BaseMethod(pl.LightningModule):
 
-    SUPPORTED_ENCODERS = [
+    _SUPPORTED_ENCODERS = [
         "resnet18",
         "resnet50",
         "vit_tiny",
@@ -184,7 +184,7 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = self.min_lr * self.accumulate_grad_batches
         self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert encoder in BaseMethod.SUPPORTED_ENCODERS
+        assert encoder in BaseMethod._SUPPORTED_ENCODERS
         from solo.utils.backbones import (
             swin_base,
             swin_large,
@@ -252,7 +252,7 @@ class BaseMethod(pl.LightningModule):
         parser = parent_parser.add_argument_group("base")
 
         # encoder args
-        SUPPORTED_ENCODERS = BaseMethod.SUPPORTED_ENCODERS
+        SUPPORTED_ENCODERS = BaseMethod._SUPPORTED_ENCODERS
 
         parser.add_argument("--encoder", choices=SUPPORTED_ENCODERS, type=str)
         # extra args for resnet
