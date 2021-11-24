@@ -1,10 +1,12 @@
+<!-- Adapted from https://github.com/facebookresearch/vissl/blob/main/.github/ISSUE_TEMPLATE/new-ssl-approach.md -->
+
 ---
-name: "\U0001F31F New Method addition"
-about: Submit a proposal of implementation/request to implement a new SSL approach in VISSL
+name: "\U0001F31F New SSL method addition"
+about: Submit a proposal of implementation/request to implement a new SSL method in solo-learn.
 
 ---
 
-# 🌟 New SSL approach addition
+# 🌟 New SSL method addition
 
 ## Approach description
 

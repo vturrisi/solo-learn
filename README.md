@@ -103,7 +103,7 @@ If no Dali/UMAP support is needed, the repository can be installed as:
 pip3 install .
 ```
 
-**NOTE:**: if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
+**NOTE:** if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
 
 **NOTE 2:** If you want to modify the library, install it in dev mode with `-e`.
 

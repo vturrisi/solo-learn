@@ -29,7 +29,7 @@ When implementing extensions for the library, detail why this is important by pr
 
 ## Coding Style
 
-Please follow our coding style and use [black](https://github.com/psf/black) with line lenght of 100. We will update this section with a more hands-on guide.
+Please follow our coding style and use [black](https://github.com/psf/black) with line length of 100. We will update this section with a more hands-on guide.
 
 ## License
 By contributing to solo-learn, you agree that your contributions will be licensed under the LICENSE file in the root directory of this source tree.

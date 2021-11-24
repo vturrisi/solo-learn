@@ -1,6 +1,8 @@
+<!-- Adapted from https://github.com/facebookresearch/vissl/blob/main/.github/ISSUE_TEMPLATE/bugs.md -->
+
 ---
 name: "🐛 Bugs"
-about: Report bugs in vissl
+about: Report bugs in solo-learn
 title: Please read & provide the following
 
 ---
