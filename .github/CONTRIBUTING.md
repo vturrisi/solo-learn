@@ -14,7 +14,7 @@ Before you start implementing a new method, make sure that the method has an acc
 
 When implementing the new method:
 1. Fork the repo and create your branch from `main`.
-2. Extend the available `BaseMethod` and `BaseMomentumMethod` classes. Your new method should reuse our base structures or provide enough justification for changing/incrementing the base structures if needed.
+2. Extend the available `BaseMethod` and `BaseMomentumMethod` classes, or even the methods that are already implemented. Your new method should reuse our base structures or provide enough justification for changing/incrementing the base structures if needed.
 3. Provide a clear and simple implementation following our code style.
 4. Provide unit tests.
 5. Modify the documentation to add the new method and accompanying features. We use Sphinx for that.
