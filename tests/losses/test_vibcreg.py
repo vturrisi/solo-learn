@@ -17,33 +17,29 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from solo.losses.barlow import barlow_loss_func
-from solo.losses.byol import byol_loss_func
-from solo.losses.deepclusterv2 import deepclusterv2_loss_func
-from solo.losses.dino import DINOLoss
-from solo.losses.moco import moco_loss_func
-from solo.losses.nnclr import nnclr_loss_func
-from solo.losses.ressl import ressl_loss_func
-from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
-from solo.losses.simsiam import simsiam_loss_func
-from solo.losses.swav import swav_loss_func
-from solo.losses.vibcreg import vibcreg_loss_func
-from solo.losses.vicreg import vicreg_loss_func
-from solo.losses.wmse import wmse_loss_func
+import torch
+from solo.losses import vibcreg_loss_func
 
-__all__ = [
-    "barlow_loss_func",
-    "byol_loss_func",
-    "deepclusterv2_loss_func",
-    "DINOLoss",
-    "moco_loss_func",
-    "nnclr_loss_func",
-    "ressl_loss_func",
-    "simclr_loss_func",
-    "manual_simclr_loss_func",
-    "simsiam_loss_func",
-    "swav_loss_func",
-    "vibcreg_loss_func",
-    "vicreg_loss_func",
-    "wmse_loss_func",
-]
+
+def test_vibcreg_loss_func():
+    b, f = 32, 128
+    z1 = torch.randn(b, f).requires_grad_()
+    z2 = torch.randn(b, f).requires_grad_()
+
+    loss = vibcreg_loss_func(
+        z1, z2, sim_loss_weight=25.0, var_loss_weight=25.0, cov_loss_weight=200.0
+    )
+    initial_loss = loss.item()
+    assert loss != 0
+
+    for i in range(20):
+        loss = vibcreg_loss_func(
+            z1, z2, sim_loss_weight=25.0, var_loss_weight=25.0, cov_loss_weight=200.0
+        )
+        loss.backward()
+        z1.data.add_(-0.5 * z1.grad)
+        z2.data.add_(-0.5 * z2.grad)
+
+        z1.grad = z2.grad = None
+
+    assert loss < initial_loss

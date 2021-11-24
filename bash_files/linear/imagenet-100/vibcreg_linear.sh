@@ -9,13 +9,13 @@ python3 ../../../main_linear.py \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
-    --lr 0.1 \
+    --lr 0.3 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
-    --batch_size 256 \
-    --num_workers 4 \
+    --batch_size 512 \
+    --num_workers 5 \
     --dali \
-    --name barlow-imagenet100-linear-eval \
+    --name vibcreg-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
