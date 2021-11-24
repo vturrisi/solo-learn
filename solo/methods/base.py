@@ -395,7 +395,7 @@ class BaseMethod(pl.LightningModule):
             )
             scheduler.get_lr = partial_fn
 
-            return [optimizer], [scheduler]
+        return [optimizer], [scheduler]
 
     def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
