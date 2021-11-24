@@ -23,6 +23,8 @@ gdown https://drive.google.com/uc?id=15fI7gb9M92jZWBZoGLvarYDiNYK3RN2O
 gdown https://drive.google.com/uc?id=1ZMGGTziK0DbCP43fDx2rPFrtJxCLJDmb
 # SwAV
 gdown https://drive.google.com/uc?id=1CPok55wwN_4QecEjubdLeBo_9qWSJTHw
+# VIbCReg
+gdown https://drive.google.com/uc?id=1Mh3hsMjFjBO7nvTX9GOIilw-lZhRIr11
 # VICReg
 gdown https://drive.google.com/uc?id=1TeliMNt5bOchqJj2u_JjB0_ahKB5LKi5
 # W-MSE
