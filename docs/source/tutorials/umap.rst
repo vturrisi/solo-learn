@@ -100,22 +100,36 @@ Finally, you import the offline umap class and creates a visualization:
 And that's it!
 For example, here are some cool examples of UMAPs for Imagenet-100 with a random ResNet18 versus our Barlow Twins and BYOL pretrained models.
 
-.. image:: imgs/im100_train_umap_random.png
+Imagenet-100 Train: Random, Barlow Twins, BYOL
+
+|random-im100-train| |barlow-im100-train| |byol-im100-train|
+
+Imagenet-100 Validation: Random, Barlow Twins, BYOL
+
+|random-im100-val| |barlow-im100-val| |byol-im100-val|
+
+.. |random-im100-train| image:: imgs/im100_train_umap_random.png
+    :width: 28%
     :alt: Random ResNet18 on Imagenet-100 train data
 
-.. image:: imgs/im100_train_umap_random.png
+.. |barlow-im100-train| image:: imgs/im100_train_umap_barlow.png
+    :width: 28%
     :alt: Barlow Twins ResNet18 on Imagenet-100 train data
 
-.. image:: imgs/im100_train_umap_random.png
+.. |byol-im100-train| image:: imgs/im100_train_umap_byol.png
+    :width: 28%
     :alt: BYOL ResNet18 on Imagenet-100 train data
 
-.. image:: imgs/im100_val_umap_random.png
+.. |random-im100-val| image:: imgs/im100_val_umap_random.png
+    :width: 28%
     :alt: Random ResNet18 on Imagenet-100 val data
 
-.. image:: imgs/im100_val_umap_random.png
+.. |barlow-im100-val| image:: imgs/im100_val_umap_barlow.png
+    :width: 28%
     :alt: Barlow Twins ResNet18 on Imagenet-100 val data
 
-.. image:: imgs/im100_val_umap_random.png
+.. |byol-im100-val| image:: imgs/im100_val_umap_byol.png
+    :width: 28%
     :alt: BYOL ResNet18 on Imagenet-100 val data
 
 
