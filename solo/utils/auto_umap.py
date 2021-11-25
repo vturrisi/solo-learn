@@ -195,8 +195,7 @@ class AutoUMAP(Callback):
 
             if isinstance(trainer.logger, pl.loggers.WandbLogger):
                 wandb.log(
-                    {"validation_umap": wandb.Image(ax)},
-                    commit=False,
+                    {"validation_umap": wandb.Image(ax)}, commit=False,
                 )
 
             # save plot locally as well
@@ -231,7 +230,7 @@ class OfflineUMAP:
         self,
         device: str,
         model: nn.Module,
-        dataloader: torch.utils.data.Dataloader,
+        dataloader: torch.utils.data.DataLoader,
         plot_path: str,
     ):
         """Produces a UMAP visualization by forwarding all data of the

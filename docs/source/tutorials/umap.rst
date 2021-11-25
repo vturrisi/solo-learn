@@ -5,13 +5,10 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
 
 .. code-block:: python
 
-    import os
-
     import torch
     import torch.nn as nn
     from torchvision.models import resnet18, resnet50
 
-    from solo.methods.base import BaseMethod
     from solo.utils.backbones import (
         swin_base,
         swin_large,
@@ -23,12 +20,6 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
         vit_tiny,
     )
 
-    try:
-        from solo.methods.dali import ClassificationABC
-    except ImportError:
-        _dali_avaliable = False
-    else:
-        _dali_avaliable = True
     from solo.utils.classification_dataloader import prepare_data
 
     # change this if you wanna load a different model
@@ -97,7 +88,7 @@ Finally, you import the offline umap class and creates a visualization:
 
 .. code-block:: python
 
-    from solo.utils.autoumap import OfflineUMAP
+    from solo.utils.auto_umap import OfflineUMAP
 
     umap = OfflineUMAP()
 
