@@ -17,17 +17,29 @@ datasets/
 *.tar
 *.pkl
 
-*.png
-*.jpg
-*.jpeg
+bash_files/*.png
+bash_files/*.jpg
+bash_files/*.jpeg
+
+downstream/*.png
+downstream/*.jpg
+downstream/*.jpeg
+
+solo/*.png
+solo/*.jpg
+solo/*.jpeg
+
+tests/*.png
+tests/*.jpg
+tests/*.jpeg
+
+zoo/*.png
+zoo/*.jpg
+zoo/*.jpeg
 
 saved_models/
-model_storage/
 model_storage*/
 lightning_logs/
-
-# allow some images
-!docs/tutorials/imgs/*
 
 *.json
 
