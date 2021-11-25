@@ -35,6 +35,7 @@ import umap
 import wandb
 from matplotlib import pyplot as plt
 from pytorch_lightning.callbacks import Callback
+from tqdm import tqdm
 
 from .misc import gather
 
@@ -251,7 +252,7 @@ class OfflineUMAP:
         # set module to eval model and collect all feature representations
         model.eval()
         with torch.no_grad():
-            for x, y in dataloader:
+            for x, y in tqdm(dataloader, desc="Collecting features"):
                 x = x.to(device, non_blocking=True)
                 y = y.to(device, non_blocking=True)
 
@@ -265,6 +266,7 @@ class OfflineUMAP:
         num_classes = len(torch.unique(Y))
         Y = Y.numpy()
 
+        print("Creating UMAP")
         data = umap.UMAP(n_components=2).fit_transform(data)
 
         # passing to dataframe
