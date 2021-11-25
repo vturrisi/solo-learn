@@ -30,6 +30,7 @@ import pandas as pd
 import pytorch_lightning as pl
 import seaborn as sns
 import torch
+import torch.nn as nn
 import umap
 import wandb
 from matplotlib import pyplot as plt
@@ -214,3 +215,85 @@ class AutoUMAP(Callback):
         epoch = trainer.current_epoch  # type: ignore
         if epoch % self.frequency == 0 and not trainer.sanity_checking:
             self.plot(trainer, module)
+
+
+class OfflineUMAP:
+    def __init__(self, color_palette: str = "hls"):
+        """Offline UMAP helper.
+
+        Args:
+            color_palette (str, optional): color scheme for the classes. Defaults to "hls".
+        """
+
+        self.color_palette = color_palette
+
+    def plot(
+        self,
+        device: str,
+        model: nn.Module,
+        dataloader: torch.utils.data.Dataloader,
+        plot_path: str,
+    ):
+        """Produces a UMAP visualization by forwarding all data of the
+        first validation dataloader through the model.
+        **Note: the model should produce features for the forward() function.
+
+        Args:
+            device (str): gpu/cpu device.
+            model (nn.Module): current model.
+            dataloader (torch.utils.data.Dataloader): current dataloader containing data.
+            plot_path (str): path to save the figure.
+        """
+
+        data = []
+        Y = []
+
+        # set module to eval model and collect all feature representations
+        model.eval()
+        with torch.no_grad():
+            for x, y in dataloader:
+                x = x.to(device, non_blocking=True)
+                y = y.to(device, non_blocking=True)
+
+                feats = model(x)
+                data.append(feats.cpu())
+                Y.append(y.cpu())
+        model.train()
+
+        data = torch.cat(data, dim=0).numpy()
+        Y = torch.cat(Y, dim=0)
+        num_classes = len(torch.unique(Y))
+        Y = Y.numpy()
+
+        data = umap.UMAP(n_components=2).fit_transform(data)
+
+        # passing to dataframe
+        df = pd.DataFrame()
+        df["feat_1"] = data[:, 0]
+        df["feat_2"] = data[:, 1]
+        df["Y"] = Y
+        plt.figure(figsize=(9, 9))
+        ax = sns.scatterplot(
+            x="feat_1",
+            y="feat_2",
+            hue="Y",
+            palette=sns.color_palette(self.color_palette, num_classes),
+            data=df,
+            legend="full",
+            alpha=0.3,
+        )
+        ax.set(xlabel="", ylabel="", xticklabels=[], yticklabels=[])
+        ax.tick_params(left=False, right=False, bottom=False, top=False)
+
+        # manually improve quality of imagenet umaps
+        if num_classes > 100:
+            anchor = (0.5, 1.8)
+        else:
+            anchor = (0.5, 1.35)
+
+        plt.legend(loc="upper center", bbox_to_anchor=anchor, ncol=math.ceil(num_classes / 10))
+        plt.tight_layout()
+
+        # save plot locally as well
+        plt.savefig(plot_path)
+        plt.close()

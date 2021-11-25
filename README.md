@@ -124,8 +124,11 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 ---
 
 ## Tutorials
-* [pretraining](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html)
-* [offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html)
+* [Overview](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html)
+* [Offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html)
+* [Object detection](https://github.com/vturrisi/solo-learn/blob/main/downstream/object_detection/README.md)
+* [Adding a new method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method.rst)
+* [Adding a new momentum method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method_momentum.rst)
 
 ---
 

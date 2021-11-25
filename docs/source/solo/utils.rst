@@ -29,6 +29,22 @@ on_validation_end
 .. automethod:: solo.utils.auto_umap.AutoUMAP.on_validation_end
    :noindex:
 
+
+OfflineUMAP
+-----------
+
+__init__
+~~~~~~~~
+.. automethod:: solo.utils.auto_umap.OfflineUMAP.__init__
+   :noindex:
+
+plot
+~~~~
+.. automethod:: solo.utils.auto_umap.OfflineUMAP.plot
+   :noindex:
+
+
+
 Checkpointer
 ------------
 
