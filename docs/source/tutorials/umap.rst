@@ -86,9 +86,9 @@ Then, you create a dataloader for your data:
     # UMAP visualization for validation data
     _, val_loader = prepare_data(
         "imagenet100",
-        data_dir="/datasets/im100/",
-        train_dir="/datasets/im100/train",
-        val_dir="/datasets/im100/val",
+        data_dir="/datasets",
+        train_dir="imagenet-100/train",
+        val_dir="imagenet-100/val",
         batch_size=64,
         num_workers=4,
     )
@@ -110,4 +110,4 @@ Finally, you import the offline umap class and creates a visualization:
 And that's it!
 
 For online UMAPs of your data, you simply need to add the flag `--auto_umap` and you are done!
-Don't forget that this makes training times much longer since the UMAPs are produced after each epoch. 
+Don't forget that this makes training muc slower since the UMAPs are produced after each epoch. 
