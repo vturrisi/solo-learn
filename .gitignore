@@ -26,6 +26,9 @@ model_storage/
 model_storage*/
 lightning_logs/
 
+# allow some images
+!docs/tutorials/imgs/*
+
 *.json
 
 *logs*/
