@@ -129,6 +129,7 @@ After that, for offline linear evaluation, follow the examples on `bash_files/li
 * [Object detection](https://github.com/vturrisi/solo-learn/blob/main/downstream/object_detection/README.md)
 * [Adding a new method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method.rst)
 * [Adding a new momentum method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method_momentum.rst)
+* [Visualizing features with UMAP](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/umap.rst)
 
 ---
 
