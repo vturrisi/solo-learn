@@ -44,6 +44,8 @@ except ImportError:
 else:
     _umap_available = True
 
+import types
+
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.pretrain_dataloader import (
@@ -69,7 +71,7 @@ def main():
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with [dali]."
-        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
+        MethodClass = types.new_class(f"Dali{MethodClass.__name__}", (PretrainABC, MethodClass))
 
     model = MethodClass(**args.__dict__)
 

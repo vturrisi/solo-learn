@@ -10,7 +10,8 @@ python3 ../../../main_pretrain.py \
     --no_labels \
     --max_epochs 400 \
     --gpus 0,1 \
-    --accelerator ddp \
+    --accelerator gpu \
+    --strategy ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \

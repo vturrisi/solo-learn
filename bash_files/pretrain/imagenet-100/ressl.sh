@@ -6,7 +6,8 @@ python3 ../../../main_pretrain.py \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
     --gpus 0,1 \
-    --accelerator ddp \
+    --accelerator gpu \
+    --strategy ddp \
     --precision 16 \
     --optimizer sgd \
     --scheduler warmup_cosine \

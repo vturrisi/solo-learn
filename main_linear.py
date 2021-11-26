@@ -46,6 +46,8 @@ except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
+import types
+
 from solo.methods.linear import LinearModel
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data
@@ -101,7 +103,9 @@ def main():
 
     if args.dali:
         assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
-        MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
+        MethodClass = types.new_class(
+            f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel)
+        )
     else:
         MethodClass = LinearModel
 

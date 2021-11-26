@@ -147,6 +147,8 @@ def test_setup_linear():
         "--gpus",
         "0",
         "--accelerator",
+        "gpu",
+        "--strategy",
         "ddp",
         "--sync_batchnorm",
         "--precision",
