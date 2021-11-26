@@ -153,6 +153,7 @@ def main():
 
     # 1.7 will deprecate resume_from_checkpoint, but for the moment
     # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
+    ckpt_path = None
     if args.auto_resume and args.resume_from_checkpoint is None:
         auto_resumer = AutoResumer(
             checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
@@ -168,8 +169,6 @@ def main():
     elif args.resume_from_checkpoint is not None:
         ckpt_path = args.resume_from_checkpoint
         del args.resume_from_checkpoint
-    else:
-        ckpt_path = None
 
     trainer = Trainer.from_argparse_args(
         args,
