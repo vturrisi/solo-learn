@@ -19,17 +19,17 @@
 
 from argparse import ArgumentParser
 from functools import partial
-from typing import Any, Callable, Dict, List, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
-from solo.utils.knn import WeightedKNNClassifier
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 
 
@@ -70,7 +70,7 @@ class BaseMethod(pl.LightningModule):
         weight_decay: float,
         classifier_lr: float,
         exclude_bias_n_norm: bool,
-        accumulate_grad_batches: int,
+        accumulate_grad_batches: Union[int, None],
         extra_optimizer_args: Dict,
         scheduler: str,
         min_lr: float,
@@ -109,7 +109,7 @@ class BaseMethod(pl.LightningModule):
             classifier_lr (float): learning rate for the online linear classifier.
             exclude_bias_n_norm (bool): flag indicating if bias and norms should be excluded from
                 lars.
-            accumulate_grad_batches (int): number of batches for gradient accumulation.
+            accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
             extra_optimizer_args (Dict): extra named arguments for the optimizer.
             scheduler (str): name of the scheduler.
             min_lr (float): minimum learning rate for warmup scheduler.
@@ -179,10 +179,11 @@ class BaseMethod(pl.LightningModule):
         self.multicrop = self.num_small_crops != 0
 
         # if accumulating gradient then scale lr
-        self.lr = self.lr * self.accumulate_grad_batches
-        self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
-        self.min_lr = self.min_lr * self.accumulate_grad_batches
-        self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
+        if self.accumulate_grad_batches:
+            self.lr = self.lr * self.accumulate_grad_batches
+            self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
+            self.min_lr = self.min_lr * self.accumulate_grad_batches
+            self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
         assert encoder in BaseMethod._SUPPORTED_ENCODERS
         from solo.utils.backbones import (
@@ -764,8 +765,11 @@ class BaseMomentumMethod(BaseMethod):
             # log tau momentum
             self.log("tau", self.momentum_updater.cur_tau)
             # update tau
+            cur_step = self.trainer.global_step
+            if self.trainer.accumulate_grad_batches:
+                cur_step = cur_step * self.trainer.accumulate_grad_batches
             self.momentum_updater.update_tau(
-                cur_step=self.trainer.global_step * self.trainer.accumulate_grad_batches,
+                cur_step=cur_step,
                 max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
             )
         self.last_step = self.trainer.global_step

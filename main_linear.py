@@ -139,18 +139,25 @@ def main():
         )
         callbacks.append(ckpt)
 
+    # 1.7 will deprecate resume_from_checkpoint, but for the moment
+    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
+    if args.resume_from_checkpoint is not None:
+        ckpt_path = args.resume_from_checkpoint
+        del args.resume_from_checkpoint
+    else:
+        ckpt_path = None
+
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=True) if args.accelerator == "ddp" else None,
-        checkpoint_callback=False,
-        terminate_on_nan=True,
+        enable_checkpointing=False,
     )
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader)
+        trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
     else:
-        trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":
