@@ -227,7 +227,7 @@ class DINO(BaseMomentumMethod):
         extra_momentum_pairs = [(self.head, self.momentum_head)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    def clip_gradients(self, clip: float):
+    def dino_clip_gradients(self, clip: float):
         """Clips gradients after backward pass.
 
         Args:
@@ -298,7 +298,7 @@ class DINO(BaseMomentumMethod):
 
         # clip gradients
         if self.clip_grad:
-            self.clip_gradients(self.clip_grad)
+            self.dino_clip_gradients(self.clip_grad)
         # zero gradients on last layer
         if self.current_epoch < self.freeze_last_layer:
             for p in self.head.last_layer.parameters():
