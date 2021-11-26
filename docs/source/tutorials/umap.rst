@@ -133,5 +133,5 @@ Imagenet-100 Validation: Random, Barlow Twins, BYOL
     :alt: BYOL ResNet18 on Imagenet-100 val data
 
 
-For online UMAPs of your data, you simply need to add the flag `--auto_umap` and you are done!
+For online UMAPs of your data, you simply need to add the flag :code:`--auto_umap` and you are done!
 Don't forget that this makes training muc slower since the UMAPs are produced after each epoch. 
