@@ -37,7 +37,7 @@ def parse_requirements(path):
 setup(
     name="solo-learn",
     packages=find_packages(exclude=["bash_files"]),
-    version="1.0.2",
+    version="1.0.3",
     license="MIT",
     author="solo-learn development team",
     author_email="vturrisi@gmail.com, enrico.fini@gmail.com",
