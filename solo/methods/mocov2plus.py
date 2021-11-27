@@ -143,7 +143,7 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         out = super().forward(X, *args, **kwargs)
         q = F.normalize(self.projector(out["feats"]), dim=-1)
-        return {**out, "q": q}
+        return {**out, "q": q, "z": q}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """

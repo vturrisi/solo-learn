@@ -73,7 +73,7 @@ def main():
 
     model = MethodClass(**args.__dict__)
 
-    # contrastive dataloader
+    # pretrain dataloader
     if not args.dali:
         # asymmetric augmentations
         if args.unique_augs > 1:

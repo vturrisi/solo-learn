@@ -20,6 +20,7 @@
 from typing import Sequence
 
 import torch
+import torch.nn.functional as F
 from torchmetrics.metric import Metric
 
 
@@ -107,6 +108,10 @@ class WeightedKNNClassifier(Metric):
         test_features = torch.cat(self.test_features)
         test_targets = torch.cat(self.test_targets)
 
+        if self.distance_fx == "cosine":
+            train_features = F.normalize(train_features)
+            test_features = F.normalize(test_features)
+
         num_classes = torch.unique(test_targets).numel()
         num_train_images = train_targets.size(0)
         num_test_images = test_targets.size(0)
@@ -127,13 +132,13 @@ class WeightedKNNClassifier(Metric):
 
             # calculate the dot product and compute top-k neighbors
             if self.distance_fx == "cosine":
-                similarity = torch.mm(features, train_features.t())
+                similarities = torch.mm(features, train_features.t())
             elif self.distance_fx == "euclidean":
-                similarity = 1 / (torch.cdist(features, train_features) + self.epsilon)
+                similarities = 1 / (torch.cdist(features, train_features) + self.epsilon)
             else:
                 raise NotImplementedError
 
-            distances, indices = similarity.topk(k, largest=True, sorted=True)
+            similarities, indices = similarities.topk(k, largest=True, sorted=True)
             candidates = train_targets.view(1, -1).expand(batch_size, -1)
             retrieved_neighbors = torch.gather(candidates, 1, indices)
 
@@ -141,12 +146,12 @@ class WeightedKNNClassifier(Metric):
             retrieval_one_hot.scatter_(1, retrieved_neighbors.view(-1, 1), 1)
 
             if self.distance_fx == "cosine":
-                distances = distances.clone().div_(self.T).exp_()
+                similarities = similarities.clone().div_(self.T).exp_()
 
             probs = torch.sum(
                 torch.mul(
                     retrieval_one_hot.view(batch_size, -1, num_classes),
-                    distances.view(batch_size, -1, 1),
+                    similarities.view(batch_size, -1, 1),
                 ),
                 1,
             )
