@@ -17,7 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from typing import Sequence
+from typing import Tuple
 
 import torch
 import torch.nn.functional as F
@@ -93,14 +93,14 @@ class WeightedKNNClassifier(Metric):
             self.test_targets.append(test_targets.detach())
 
     @torch.no_grad()
-    def compute(self) -> Sequence[float]:
+    def compute(self) -> Tuple[float]:
         """Computes weighted k-NN accuracy @1 and @5. If cosine distance is selected,
         the weight is computed using the exponential of the temperature scaled cosine
         distance of the samples. If euclidean distance is selected, the weight corresponds
         to the inverse of the euclidean distance.
 
         Returns:
-            Sequence[float]: k-NN accuracy @1 and @5.
+            Tuple[float]: k-NN accuracy @1 and @5.
         """
 
         train_features = torch.cat(self.train_features)

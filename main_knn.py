@@ -17,24 +17,38 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import json
+import os
 from pathlib import Path
-from tqdm import tqdm
+from typing import Tuple
 
 import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 from solo.args.setup import parse_args_knn
 from solo.methods import METHODS
 from solo.utils.classification_dataloader import (
-    prepare_transforms,
-    prepare_datasets,
     prepare_dataloaders,
+    prepare_datasets,
+    prepare_transforms,
 )
 from solo.utils.knn import WeightedKNNClassifier
 
 
 @torch.no_grad()
-def extract_features(loader, model):
+def extract_features(loader: DataLoader, model: nn.Module) -> Tuple(torch.Tensor):
+    """Extract features from a data loader using a model.
+
+    Args:
+        loader (DataLoader): dataloader for a dataset.
+        model (nn.Module): torch module used to extract features.
+
+    Returns:
+        Tuple(torch.Tensor): tuple containing the backbone features, projector features and labels.
+    """
+
     model.eval()
     backbone_features, proj_features, labels = [], [], []
     for im, lab in tqdm(loader):
@@ -44,6 +58,7 @@ def extract_features(loader, model):
         backbone_features.append(outs["feats"].detach())
         proj_features.append(outs["z"])
         labels.append(lab)
+    model.train()
     backbone_features = torch.cat(backbone_features)
     proj_features = torch.cat(proj_features)
     labels = torch.cat(labels)
@@ -59,7 +74,23 @@ def run_knn(
     k: int,
     T: float,
     distance_fx: str,
-):
+) -> Tuple[float]:
+    """Runs offline knn on a train and a test dataset.
+
+    Args:
+        train_features (torch.Tensor, optional): train features.
+        train_targets (torch.Tensor, optional): train targets.
+        test_features (torch.Tensor, optional): test features.
+        test_targets (torch.Tensor, optional): test targets.
+        k (int): number of neighbors.
+        T (float): temperature for the exponential. Only used with cosine
+            distance.
+        distance_fx (str): distance function.
+
+    Returns:
+        Tuple[float]: tuple containing the the knn acc@1 and acc@5 for the model.
+    """
+
     # build knn
     knn = WeightedKNNClassifier(
         k=k,
@@ -85,7 +116,6 @@ def run_knn(
 
 
 def main():
-
     args = parse_args_knn()
 
     # build paths

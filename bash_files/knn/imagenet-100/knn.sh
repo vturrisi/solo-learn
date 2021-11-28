@@ -1,6 +1,6 @@
 python3 ../../../main_knn.py \
     --dataset imagenet100 \
-    --data_dir /data0/SHARED/datasets \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --batch_size 16 \
