@@ -97,7 +97,7 @@ def parse_args_pretrain() -> argparse.Namespace:
 def parse_args_linear() -> argparse.Namespace:
     """Parses feature extractor, dataset, pytorch lightning, linear eval specific and additional args.
 
-    First adds and arg for the pretrained feature extractor, then adds dataset, pytorch lightning
+    First adds an arg for the pretrained feature extractor, then adds dataset, pytorch lightning
     and linear eval specific args. If wandb is enabled, it adds checkpointer args. Finally, adds
     additional non-user given parameters.
 
@@ -131,5 +131,28 @@ def parse_args_linear() -> argparse.Namespace:
     # parse args
     args = parser.parse_args()
     additional_setup_linear(args)
+
+    return args
+
+
+def parse_args_knn() -> argparse.Namespace:
+
+    parser = argparse.ArgumentParser()
+
+    # add knn args
+    parser.add_argument("--pretrained_checkpoint_dir", type=str)
+    parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--num_workers", type=int, default=10)
+    parser.add_argument("--k", type=int, nargs="+")
+    parser.add_argument("--temperature", type=float, nargs="+")
+    parser.add_argument("--distance_function", type=str, nargs="+")
+    parser.add_argument("--feature_type", type=str, nargs="+")
+
+    # add shared arguments
+    dataset_args(parser)
+    custom_dataset_args(parser)
+
+    # parse args
+    args = parser.parse_args()
 
     return args

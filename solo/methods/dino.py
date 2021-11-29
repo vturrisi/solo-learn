@@ -256,8 +256,8 @@ class DINO(BaseMomentumMethod):
         """
 
         out = super().forward(X, *args, **kwargs)
-        p = self.head(out["feats"])
-        return {**out, "p": p}
+        z = self.head(out["feats"])
+        return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for DINO reusing BaseMomentumMethod training step.

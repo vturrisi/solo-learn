@@ -101,8 +101,8 @@ class WMSE(BaseMethod):
         """
 
         out = super().forward(X, *args, **kwargs)
-        v = self.projector(out["feats"])
-        return {**out, "v": v}
+        z = self.projector(out["feats"])
+        return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for W-MSE reusing BaseMethod training step.
