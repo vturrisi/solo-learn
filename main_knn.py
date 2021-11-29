@@ -38,7 +38,7 @@ from solo.utils.knn import WeightedKNNClassifier
 
 
 @torch.no_grad()
-def extract_features(loader: DataLoader, model: nn.Module) -> Tuple(torch.Tensor):
+def extract_features(loader: DataLoader, model: nn.Module) -> Tuple[torch.Tensor]:
     """Extract features from a data loader using a model.
 
     Args:
