@@ -15,8 +15,9 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Nov 26 2021]**: :rotating_light: Updated PyTorch and PyTorch Lightning versions.
-* **[Nov 26 2021]**: :beers: Added code of conduct, contribution instructions, issue templates and UMAP tutorial.
+* **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions.
+* **[Nov 29 2021]**: :rotating_light: Updated PyTorch and PyTorch Lightning versions. 10% faster.
+* **[Nov 29 2021]**: :beers: Added code of conduct, contribution instructions, issue templates and UMAP tutorial.
 * **[Nov 23 2021]**: :space_invader: Added [VIbCReg](https://arxiv.org/abs/2109.00783).
 * **[Oct 21 2021]**: :triumph: Added support for object recognition via Detectron v2 and auto resume functionally that automatically tries to resume an experiment that crashed/reached a timeout.
 * **[Oct 10 2021]**: :japanese_ogre: Restructured augmentation pipelines to allow more flexibility and multicrop. Also added multicrop for BYOL.
