@@ -135,3 +135,16 @@ Imagenet-100 Validation: Random, Barlow Twins, BYOL
 
 For online UMAPs of your data, you simply need to add the flag :code:`--auto_umap` and you are done!
 Don't forget that this makes training muc slower since the UMAPs are produced after each epoch. 
+
+
+Note that the same can be accomplished by running the following bash file.
+
+.. code-block:: bash
+    python3 ../../../main_umap.py \
+        --dataset imagenet100 \
+        --data_dir /datasets \
+        --train_dir imagenet-100/train \
+        --val_dir imagenet-100/val \
+        --batch_size 16 \
+        --num_workers 10 \
+        --pretrained_checkpoint_dir PATH_TO_PRETRAINED_MODEL_DIR
