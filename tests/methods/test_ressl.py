@@ -63,9 +63,9 @@ def test_mocov2plus():
         and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
-        "q" in out
-        and isinstance(out["q"], torch.Tensor)
-        and out["q"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
+        "z" in out
+        and isinstance(out["z"], torch.Tensor)
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     # imagenet
