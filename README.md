@@ -16,6 +16,7 @@ While the library is self-contained, it is possible to use the models outside of
 
 ## News
 * **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions.
+* **[Nov 29 2021]**: :book: New tutorials!
 * **[Nov 29 2021]**: :rotating_light: Updated PyTorch and PyTorch Lightning versions. 10% faster.
 * **[Nov 29 2021]**: :beers: Added code of conduct, contribution instructions, issue templates and UMAP tutorial.
 * **[Nov 23 2021]**: :space_invader: Added [VIbCReg](https://arxiv.org/abs/2109.00783).
@@ -134,6 +135,7 @@ Please, check out our [documentation](https://solo-learn.readthedocs.io/en/lates
 * [Adding a new method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method.rst)
 * [Adding a new momentum method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method_momentum.rst)
 * [Visualizing features with UMAP](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/umap.rst)
+* [(Offline) K-NN](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/knn.rst)
 
 ---
 

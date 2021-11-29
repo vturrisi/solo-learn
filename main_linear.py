@@ -103,13 +103,11 @@ def main():
 
     if args.dali:
         assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
-        MethodClass = types.new_class(
-            f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel)
-        )
+        Class = types.new_class(f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel))
     else:
-        MethodClass = LinearModel
+        Class = LinearModel
 
-    model = MethodClass(backbone, **args.__dict__)
+    model = Class(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(
         args.dataset,
