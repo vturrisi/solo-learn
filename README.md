@@ -15,7 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions.
+* **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions!!!
 * **[Nov 29 2021]**: :book: New tutorials!
 * **[Nov 29 2021]**: :rotating_light: Updated PyTorch and PyTorch Lightning versions. 10% faster.
 * **[Nov 29 2021]**: :beers: Added code of conduct, contribution instructions, issue templates and UMAP tutorial.
