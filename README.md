@@ -135,7 +135,7 @@ Please, check out our [documentation](https://solo-learn.readthedocs.io/en/lates
 * [Adding a new method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method.rst)
 * [Adding a new momentum method](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/add_new_method_momentum.rst)
 * [Visualizing features with UMAP](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/umap.rst)
-* [(Offline) K-NN](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/knn.rst)
+* [Offline k-NN](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/knn.rst)
 
 ---
 
