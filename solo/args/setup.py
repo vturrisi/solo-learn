@@ -30,7 +30,6 @@ from solo.args.utils import additional_setup_linear, additional_setup_pretrain
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.knn import WeightedKNNClassifier
 
 try:
     from solo.utils.auto_umap import AutoUMAP

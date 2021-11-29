@@ -2,7 +2,6 @@ Adding New Methods (Momentum Version)
 *************************************
 
 As of now, you should be familiar with how to implement new methods in `solo-learn`. If not, please read this tutorial: :doc:`Adding New Methods <add_new_method>`. This tutorial will help you creating methods that use a momentum encoder.
-
 Let's now suppose we wanted to implement NNBYOL (similar to `NNSiam <https://arxiv.org/abs/2104.14548/>`_ but with momentum encoder). As always, the fist thing to do is to navigate to `solo/methods` and create a python file for our new method (e.g.: `nnbyol.py`):
 
 .. code-block:: python
