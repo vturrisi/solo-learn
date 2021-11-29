@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import argparse
+import types
 
 from nvidia.dali.plugin.base_iterator import LastBatchPolicy
 from pytorch_lightning import Trainer
@@ -64,7 +65,7 @@ def test_dali_pretrain():
             )
             kwargs["unique_augs"] = 1
 
-            MethodClass = type(f"Dali{BarlowTwins.__name__}", (BarlowTwins, PretrainABC), {})
+            MethodClass = types.new_class(f"Dali{BarlowTwins.__name__}", (PretrainABC, BarlowTwins))
             model = MethodClass(**kwargs)
 
             args = argparse.Namespace(**kwargs)
@@ -109,7 +110,9 @@ def test_dali_linear():
         kwargs["val_dir"] = "dummy_val"
         kwargs["dataset"] = "custom"
 
-        MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
+        MethodClass = types.new_class(
+            f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel)
+        )
         model = MethodClass(backbone, **kwargs)
 
         args = argparse.Namespace(**kwargs)

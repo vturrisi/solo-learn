@@ -29,6 +29,22 @@ on_validation_end
 .. automethod:: solo.utils.auto_umap.AutoUMAP.on_validation_end
    :noindex:
 
+
+OfflineUMAP
+-----------
+
+__init__
+~~~~~~~~
+.. automethod:: solo.utils.auto_umap.OfflineUMAP.__init__
+   :noindex:
+
+plot
+~~~~
+.. automethod:: solo.utils.auto_umap.OfflineUMAP.plot
+   :noindex:
+
+
+
 Checkpointer
 ------------
 
@@ -68,12 +84,33 @@ on_validation_end
    :noindex:
 
 
-
 Gather layer
 ------------
 
 .. autofunction:: solo.utils.misc.gather
    :noindex:
+
+
+Weighted KNN Classifier
+-----------------------
+
+__init__
+~~~~~~~~
+.. automethod:: solo.utils.knn.WeightedKNNClassifier.__init__
+   :noindex:
+
+
+update
+~~~~~~
+.. automethod:: solo.utils.knn.WeightedKNNClassifier.update
+   :noindex:
+
+
+compute
+~~~~~~~
+.. automethod:: solo.utils.knn.WeightedKNNClassifier.compute
+   :noindex:
+
 
 
 LARS

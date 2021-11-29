@@ -63,9 +63,9 @@ def test_wmse():
         and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
-        "v" in out
-        and isinstance(out["v"], torch.Tensor)
-        and out["v"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
+        "z" in out
+        and isinstance(out["z"], torch.Tensor)
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     for num_large_crops in [2, 4]:

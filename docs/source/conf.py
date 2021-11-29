@@ -23,7 +23,7 @@ copyright = "2021, solo-learn development team"
 author = "solo-learn development team"
 
 # The full version, including alpha/beta/rc tags
-release = "0.9"
+release = "1.0.3"
 
 
 # -- General configuration ---------------------------------------------------

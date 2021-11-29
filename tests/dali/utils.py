@@ -35,18 +35,18 @@ class DummyDataset:
         self.num_classes = num_classes
 
     def __enter__(self):
-        for dir in [self.train_dir, self.val_dir]:
+        for D in [self.train_dir, self.val_dir]:
             for y in range(self.num_classes):
                 # make needed directories
                 with contextlib.suppress(OSError):
-                    os.makedirs(dir / str(y))
+                    os.makedirs(D / str(y))
 
                 for i in range(self.size):
                     # generate random image
                     size = (random.randint(300, 400), random.randint(300, 400))
                     im = np.random.rand(*size, 3) * 255
                     im = Image.fromarray(im.astype("uint8")).convert("RGB")
-                    im.save(dir / str(y) / f"{i}.jpg")
+                    im.save(D / str(y) / f"{i}.jpg")
 
     def __exit__(self, *args):
         with contextlib.suppress(OSError):

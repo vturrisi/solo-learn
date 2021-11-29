@@ -46,7 +46,7 @@ def test_linear():
     parser = Trainer.add_argparse_args(parser)
     assert model.add_model_specific_args(parser) is not None
 
-    batch, batch_idx = gen_classification_batch(
+    batch, _ = gen_classification_batch(
         BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
     )
     out = model(batch[0])

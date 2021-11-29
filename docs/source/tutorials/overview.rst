@@ -26,16 +26,18 @@ We start by importing everything that we will need (we will be relying on Pytorc
 
     import torch
     from pytorch_lightning import Trainer
-    from pytorch_lightning.loggers import WandbLogger
     from pytorch_lightning.callbacks import LearningRateMonitor
+    from pytorch_lightning.loggers import WandbLogger
     from pytorch_lightning.plugins import DDPPlugin
-    
+
     from solo.methods import BarlowTwins  # imports the method class
+    from solo.utils.checkpointer import Checkpointer
 
     # some data utilities
     # we need one dataloader to train an online linear classifier
     # (don't worry, the rest of the model has no idea of this classifier, so it doesn't use label info)
     from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
+
     # and some utilities to perform data loading for the method itself, including augmentation pipelines
     from solo.utils.pretrain_dataloader import (
         prepare_dataloader,
@@ -44,12 +46,13 @@ We start by importing everything that we will need (we will be relying on Pytorc
         prepare_transform,
     )
 
+
 There are tons of parameters that need to be set and, fortunately, ``main_pretrain.py`` takes care of this for us.
 We can also call specific methods from the many ``solo`` classes to automatically change an argparse and add new subparsers.
 However, for now, we won't rely on this, so let's just define all the needed parameters and create a Barlow Twins object:
 
 .. code-block:: python
-    
+
     # common parameters for all methods
     # some parameters for extra functionally are missing, but don't mind this for now.
     base_kwargs = {
@@ -72,21 +75,34 @@ However, for now, we won't rely on this, so let's just define all the needed par
         "min_lr": 0.0,
         "warmup_start_lr": 0.0,
         "warmup_epochs": 10,
-        "multicrop": False,
+        "num_crops_per_aug": [2, 0],
         "num_large_crops": 2,
         "num_small_crops": 0,
         "eta_lars": 0.02,
         "lr_decay_steps": None,
-        "batch_size": 128,
+        "dali_device": "gpu",
+        "batch_size": 256,
         "num_workers": 4,
+        "data_dir": "/data/datasets",
+        "train_dir": "cifar10/train",
+        "val_dir": "cifar10/val",
+        "dataset": "cifar10",
+        "name": "barlow-cifar10",
     }
 
     # barlow specific parameters
-    method_kwargs = {"proj_hidden_dim": 2048, "output_dim": 2048, "lamb": 5e-3, "scale_loss": 0.025}
+    method_kwargs = {
+        "proj_hidden_dim": 2048,
+        "proj_output_dim": 2048,
+        "lamb": 5e-3,
+        "scale_loss": 0.025,
+        "backbone_args": {"cifar": True, "zero_init_residual": True},
+    }
 
     kwargs = {**base_kwargs, **method_kwargs}
 
     model = BarlowTwins(**kwargs)
+
 
 Now, let's create all the necessary data loaders.
 
@@ -101,13 +117,11 @@ Now, let's create all the necessary data loaders.
         "gaussian_prob": 0.0,
         "solarization_prob": 0.0,
     }
-    transform = prepare_transform(
-        "cifar10", multicrop=False, **transform_kwargs
-    )
+    transform = [prepare_transform("cifar10", **transform_kwargs)]
 
     # then, we wrap the pipepline using this utility function
-    # to make it produce an arbitrary number of crops 
-    transform = prepare_n_crop_transform(transform, num_large_crops=2)
+    # to make it produce an arbitrary number of crops
+    transform = prepare_n_crop_transform(transform, num_crops_per_aug=[2])
 
     # finally, we produce the Dataset/Dataloader classes
     train_dataset = prepare_datasets(
@@ -135,7 +149,7 @@ Now, let's create all the necessary data loaders.
 Now, we just need to define some extra magic for Pytorch Lightning to automatically log some stuff for us and then we can just create our lightning Trainer.
 
 .. code-block:: python
-    
+
     wandb_logger = WandbLogger(
         name="barlow-cifar10",  # name of the experiment
         project="self-supervised",  # name of the wandb project
@@ -153,6 +167,7 @@ Now, we just need to define some extra magic for Pytorch Lightning to automatica
     # checkpointer can automatically log your parameters,
     # but we need to wrap it on a Namespace object
     from argparse import Namespace
+
     args = Namespace(**kwargs)
     # saves the checkout after every epoch
     ckpt = Checkpointer(
@@ -164,7 +179,7 @@ Now, we just need to define some extra magic for Pytorch Lightning to automatica
 
     trainer = Trainer.from_argparse_args(
         args,
-        logger=wandb_logger if args.wandb else None,
+        logger=wandb_logger,
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=True),
         checkpoint_callback=False,
@@ -173,6 +188,7 @@ Now, we just need to define some extra magic for Pytorch Lightning to automatica
     )
 
     trainer.fit(model, train_loader, val_loader)
+
 
 And that's it, we basically replicated a small version of ``main_pretrain.py``. Of course, we can accomplish the same thing by simply running the following script:
 

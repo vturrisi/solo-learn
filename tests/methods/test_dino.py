@@ -69,9 +69,9 @@ def test_dino():
         and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
-        "p" in out
-        and isinstance(out["p"], torch.Tensor)
-        and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["num_prototypes"])
+        "z" in out
+        and isinstance(out["z"], torch.Tensor)
+        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["num_prototypes"])
     )
 
     # imagenet

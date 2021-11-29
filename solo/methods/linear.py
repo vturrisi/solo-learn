@@ -201,23 +201,23 @@ class LinearModel(pl.LightningModule):
         # select scheduler
         if self.scheduler == "none":
             return optimizer
-        else:
-            if self.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.max_epochs)
-            elif self.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
-            elif self.scheduler == "reduce":
-                scheduler = ReduceLROnPlateau(optimizer)
-            elif self.scheduler == "step":
-                scheduler = MultiStepLR(optimizer, self.lr_decay_steps, gamma=0.1)
-            elif self.scheduler == "exponential":
-                scheduler = ExponentialLR(optimizer, self.weight_decay)
-            else:
-                raise ValueError(
-                    f"{self.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)"
-                )
 
-            return [optimizer], [scheduler]
+        if self.scheduler == "warmup_cosine":
+            scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.max_epochs)
+        elif self.scheduler == "cosine":
+            scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
+        elif self.scheduler == "reduce":
+            scheduler = ReduceLROnPlateau(optimizer)
+        elif self.scheduler == "step":
+            scheduler = MultiStepLR(optimizer, self.lr_decay_steps, gamma=0.1)
+        elif self.scheduler == "exponential":
+            scheduler = ExponentialLR(optimizer, self.weight_decay)
+        else:
+            raise ValueError(
+                f"{self.scheduler} not in (warmup_cosine, cosine, reduce, step, exponential)"
+            )
+
+        return [optimizer], [scheduler]
 
     def shared_step(
         self, batch: Tuple, batch_idx: int

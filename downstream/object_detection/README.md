@@ -1,5 +1,5 @@
 <!-- Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved -->
-<!-- Copied from https://github.com/facebookresearch/moco/blob/main/detection/README.md -->
+<!-- Adapted from https://github.com/facebookresearch/moco/blob/main/detection/README.md -->
 
 ## Transferring to Detection
 

@@ -222,6 +222,7 @@ And that is it, you are good to go. You can now run your implementation of NNSia
         --saturation 0.4 \
         --hue 0.1 \
         --gaussian_prob 0.0 0.0 \
+        --num_crops_per_aug 1 1 \
         --zero_init_residual \
         --name nnsiam-DATASET \
         --project solo-learn \

@@ -18,8 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-from torch.nn import functional as F
-
+import torch.nn.functional as F
 from solo.utils.knn import WeightedKNNClassifier
 
 

@@ -35,8 +35,8 @@ def byol_loss_func(p: torch.Tensor, z: torch.Tensor, simplified: bool = True) ->
 
     if simplified:
         return 2 - 2 * F.cosine_similarity(p, z.detach(), dim=-1).mean()
-    else:
-        p = F.normalize(p, dim=-1)
-        z = F.normalize(z, dim=-1)
 
-        return 2 - 2 * (p * z.detach()).sum(dim=1).mean()
+    p = F.normalize(p, dim=-1)
+    z = F.normalize(z, dim=-1)
+
+    return 2 - 2 * (p * z.detach()).sum(dim=1).mean()

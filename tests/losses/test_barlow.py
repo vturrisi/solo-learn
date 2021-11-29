@@ -30,7 +30,7 @@ def test_barlow_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         loss = barlow_loss_func(z1, z2, lamb=5e-3, scale_loss=0.025)
         loss.backward()
         z1.data.add_(-0.5 * z1.grad)

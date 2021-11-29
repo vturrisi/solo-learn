@@ -28,7 +28,7 @@ def get_assignments(preds):
     assignments = []
     sk = SinkhornKnopp(10, 0.05, 1)
 
-    for i, p in enumerate(preds):
+    for p in preds:
         # compute assignments with sinkhorn-knopp
         assignments.append(sk(p)[:bs])
     return assignments
@@ -46,7 +46,7 @@ def test_swav_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         preds = prototypes(z)
         assignments = get_assignments(preds)
         loss = swav_loss_func(preds, assignments, temperature=0.1)

@@ -30,7 +30,7 @@ def test_byol_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         loss = byol_loss_func(p, z)
         loss.backward()
         p.data.add_(-0.5 * p.grad)

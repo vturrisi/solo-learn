@@ -169,20 +169,20 @@ class GatherLayer(torch.autograd.Function):
     """Gathers tensors from all processes, supporting backward propagation."""
 
     @staticmethod
-    def forward(ctx, input):
-        ctx.save_for_backward(input)
+    def forward(ctx, inp):
+        ctx.save_for_backward(inp)
         if dist.is_available() and dist.is_initialized():
-            output = [torch.zeros_like(input) for _ in range(dist.get_world_size())]
-            dist.all_gather(output, input)
+            output = [torch.zeros_like(inp) for _ in range(dist.get_world_size())]
+            dist.all_gather(output, inp)
         else:
-            output = [input]
+            output = [inp]
         return tuple(output)
 
     @staticmethod
     def backward(ctx, *grads):
-        (input,) = ctx.saved_tensors
+        (inp,) = ctx.saved_tensors
         if dist.is_available() and dist.is_initialized():
-            grad_out = torch.zeros_like(input)
+            grad_out = torch.zeros_like(inp)
             grad_out[:] = grads[dist.get_rank()]
         else:
             grad_out = grads[0]

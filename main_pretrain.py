@@ -44,6 +44,8 @@ except ImportError:
 else:
     _umap_available = True
 
+import types
+
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.pretrain_dataloader import (
@@ -69,11 +71,11 @@ def main():
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with [dali]."
-        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
+        MethodClass = types.new_class(f"Dali{MethodClass.__name__}", (PretrainABC, MethodClass))
 
     model = MethodClass(**args.__dict__)
 
-    # contrastive dataloader
+    # pretrain dataloader
     if not args.dali:
         # asymmetric augmentations
         if args.unique_augs > 1:
@@ -151,6 +153,9 @@ def main():
         )
         callbacks.append(auto_umap)
 
+    # 1.7 will deprecate resume_from_checkpoint, but for the moment
+    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
+    ckpt_path = None
     if args.auto_resume and args.resume_from_checkpoint is None:
         auto_resumer = AutoResumer(
             checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
@@ -162,21 +167,23 @@ def main():
                 "Resuming from previous checkpoint that matches specifications:",
                 f"'{resume_from_checkpoint}'",
             )
-            args.resume_from_checkpoint = resume_from_checkpoint
+            ckpt_path = resume_from_checkpoint
+    elif args.resume_from_checkpoint is not None:
+        ckpt_path = args.resume_from_checkpoint
+        del args.resume_from_checkpoint
 
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=True) if args.accelerator == "ddp" else None,
-        checkpoint_callback=False,
-        terminate_on_nan=True,
+        enable_checkpointing=False,
     )
 
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader)
+        trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
     else:
-        trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ def test_vicreg_loss():
     initial_loss = loss.item()
     assert loss != 0
 
-    for i in range(20):
+    for _ in range(20):
         loss = vicreg_loss_func(
             z1, z2, sim_loss_weight=25.0, var_loss_weight=25.0, cov_loss_weight=1.0
         )

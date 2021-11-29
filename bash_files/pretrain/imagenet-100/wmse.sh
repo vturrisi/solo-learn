@@ -7,7 +7,8 @@ python3 ../../../main_pretrain.py \
     --max_epochs 400 \
     --precision 16 \
     --gpus 0,1 \
-    --accelerator ddp \
+    --accelerator gpu \
+    --strategy ddp \
     --num_workers 4 \
     --optimizer adam \
     --scheduler warmup_cosine \

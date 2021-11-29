@@ -68,7 +68,7 @@ class SinkhornKnopp(torch.nn.Module):
             dist.all_reduce(sum_Q)
         Q /= sum_Q
 
-        for it in range(self.num_iters):
+        for _ in range(self.num_iters):
             # normalize each row: total weight per prototype must be 1/K
             sum_of_rows = torch.sum(Q, dim=1, keepdim=True)
             if dist.is_available() and dist.is_initialized():

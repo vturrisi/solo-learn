@@ -46,6 +46,8 @@ except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
+import types
+
 from solo.methods.linear import LinearModel
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data
@@ -101,11 +103,11 @@ def main():
 
     if args.dali:
         assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
-        MethodClass = type(f"Dali{LinearModel.__name__}", (LinearModel, ClassificationABC), {})
+        Class = types.new_class(f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel))
     else:
-        MethodClass = LinearModel
+        Class = LinearModel
 
-    model = MethodClass(backbone, **args.__dict__)
+    model = Class(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(
         args.dataset,
@@ -139,18 +141,25 @@ def main():
         )
         callbacks.append(ckpt)
 
+    # 1.7 will deprecate resume_from_checkpoint, but for the moment
+    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
+    if args.resume_from_checkpoint is not None:
+        ckpt_path = args.resume_from_checkpoint
+        del args.resume_from_checkpoint
+    else:
+        ckpt_path = None
+
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         plugins=DDPPlugin(find_unused_parameters=True) if args.accelerator == "ddp" else None,
-        checkpoint_callback=False,
-        terminate_on_nan=True,
+        enable_checkpointing=False,
     )
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader)
+        trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
     else:
-        trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":
