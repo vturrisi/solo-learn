@@ -13,7 +13,7 @@ cd ..
 # BYOL
 mkdir byol
 cd byol
-gdown https://drive.google.com/uc?id=159M-_xTIf5-yZeViXTMI_V4WEO5nGqDr # checkpoint
+gdown https://drive.google.com/uc?id=1cgJaSRr3HPZRNMwzYwwS5Vwtkna3LgGs # checkpoint
 gdown https://drive.google.com/uc?id=1EIluSRGaV0Ft1UQecGhpkFUCKVwMmtv9 # args
 cd ..
 
