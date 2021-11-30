@@ -132,7 +132,7 @@ class MoCoV2Plus(BaseMomentumMethod):
         self.queue_ptr[0] = ptr  # type: ignore
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the online backbone and the online projection.
+        """Performs the forward pass of the online backbone and projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.

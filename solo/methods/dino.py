@@ -97,7 +97,7 @@ class DINOHead(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Computes the forward pass of the projector and the last layer (prototypes).
+        """Computes the forward pass of the backbone, the projector and the last layer (prototypes).
 
         Args:
             x (torch.Tensor): a batch of features.

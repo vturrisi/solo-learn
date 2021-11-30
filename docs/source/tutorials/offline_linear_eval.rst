@@ -16,7 +16,7 @@ As for pretraining, we start by importing the required packages:
     from solo.methods.linear import LinearModel  # imports the linear eval class
     from solo.utils.classification_dataloader import prepare_data
 
-There are tons of parameters that need to be set and, fortunatelly, ``main_linear.py`` takes care of this for us.
+There are tons of parameters that need to be set and, fortunately, ``main_linear.py`` takes care of this for us.
 If we want to be able to specify the arguments from the command line, we can simply call the function ``parse_args_linear`` in ``solo.args.setup``.
 However, in this tutorial, we will simply define all the needed parameters to perform linear evaluation:
 
@@ -60,6 +60,8 @@ Apart from the hyperparameters, we also need to load the pretrained model:
     for k in list(state.keys()):
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]
+        if "encoder" in k:  # for compatibility with previous versions
+            state[k.replace("encoder.", "")] = state[k]
         del state[k]
     backbone.load_state_dict(state, strict=False)
 

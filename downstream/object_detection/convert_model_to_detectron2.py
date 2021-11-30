@@ -38,6 +38,7 @@ if __name__ == "__main__":
 
         old_k = k
         k = k.replace("backbone.", "")
+        k = k.replace("encoder.", "")  # for compatibility with previous versions
         if "layer" not in k:
             k = "stem." + k
         for t in [1, 2, 3, 4]:
