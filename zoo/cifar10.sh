@@ -76,7 +76,7 @@ cd ..
 # VIbCReg
 mkdir vibcreg
 cd vibcreg
-gdown https://drive.google.com/uc?id=1Mh3hsMjFjBO7nvTX9GOIilw-lZhRIr11
+gdown https://drive.google.com/uc?id=1dHsKrhCcwWIXFwQJ4oVPgLcEcT3SecQV
 gdown https://drive.google.com/uc?id=1OPsUf8VnKo5w6T8-rEQFaodUNxvQ8CTT
 cd ..
 
