@@ -192,7 +192,7 @@ class CifarTransform(BaseTransform):
         """Class that applies Cifar10/Cifar100 transformations.
 
         Args:
-            cifar (str): type of cifar, either cifar10 or cifar100
+            cifar (str): type of cifar, either cifar10 or cifar100.
             brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
             contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
             saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
