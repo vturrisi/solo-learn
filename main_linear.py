@@ -107,6 +107,7 @@ def main():
     else:
         Class = LinearModel
 
+    del args.backbone
     model = Class(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(

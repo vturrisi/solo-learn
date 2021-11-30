@@ -39,6 +39,7 @@ def test_linear():
     kwargs = {**BASE_KWARGS, **DATA_KWARGS}
     backbone = resnet18()
     backbone.fc = nn.Identity()
+    kwargs.pop("backbone")
     model = LinearModel(backbone, **kwargs)
 
     # test arguments
