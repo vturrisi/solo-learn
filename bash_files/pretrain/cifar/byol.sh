@@ -26,7 +26,6 @@ python3 ../../../main_pretrain.py \
     --num_crops_per_aug 1 1 \
     --name byol-$1 \
     --project solo-learn \
-    --entity unitn-mhug \
     --wandb \
     --save_checkpoint \
     --method byol \

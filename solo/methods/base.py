@@ -31,6 +31,7 @@ from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
+from torchvision.models.feature_extraction import create_feature_extractor
 
 
 def static_lr(
@@ -56,6 +57,31 @@ class BaseMethod(pl.LightningModule):
         "swin_base",
         "swin_large",
     ]
+
+    _NODE_NAMES = {
+        "resnet18": [
+            "layer1.1.relu_1",
+            "layer2.1.relu_1",
+            "layer3.1.relu_1",
+            "layer4.1.relu_1",
+            "flatten",
+        ],
+        "resnet50": [
+            "layer1.2.relu_2",
+            "layer2.3.relu_2",
+            "layer3.5.relu_2",
+            "layer4.2.relu_2",
+            "flatten",
+        ],
+        "vit_tiny": None,
+        "vit_small": None,
+        "vit_base": None,
+        "vit_large": None,
+        "swin_tiny": None,
+        "swin_small": None,
+        "swin_base": None,
+        "swin_large": None,
+    }
 
     def __init__(
         self,
@@ -232,6 +258,15 @@ class BaseMethod(pl.LightningModule):
                 self.encoder.maxpool = nn.Identity()
         else:
             self.features_dim = self.encoder.num_features
+
+        self.node_names = BaseMethod._NODE_NAMES[encoder]
+        self.supports_multilevel = False
+        if self.node_names is not None:
+            self.encoder = create_feature_extractor(
+                self.encoder,
+                return_nodes=self.node_names,
+            )
+            self.supports_multilevel = True
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
@@ -413,9 +448,24 @@ class BaseMethod(pl.LightningModule):
             Dict: dict of logits and features.
         """
 
-        feats = self.encoder(X)
+        if self.supports_multilevel:
+            # features for multiple levels of the encoder
+            multilevel_feats = self.encoder(X)
+
+            # parses features and divide into mid-level features or final representations
+            multilevel_feats = [multilevel_feats[n] for n in self.node_names]
+            feats = multilevel_feats.pop(-1)
+            multilevel_feats = {f"feats-lvl{i}": f for i, f in enumerate(multilevel_feats)}
+        else:
+            feats = self.encoder(X)
+            multilevel_feats = {}
+
         logits = self.classifier(feats.detach())
-        return {"logits": logits, "feats": feats}
+        return {
+            "logits": logits,
+            "feats": feats,
+            **multilevel_feats,
+        }
 
     def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
@@ -463,7 +513,9 @@ class BaseMethod(pl.LightningModule):
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.encoder(x) for x in X[self.num_large_crops :]])
+            outs["feats"].extend(
+                [self.encoder(x)[self.node_names[-1]] for x in X[self.num_large_crops :]]
+            )
 
         # loss and stats
         outs["loss"] = sum(outs["loss"]) / self.num_large_crops
