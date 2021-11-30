@@ -33,7 +33,8 @@ if __name__ == "__main__":
 
     newmodel = {}
     for k, v in checkpoint.items():
-        if not k.startswith("backbone"):
+        # for compatibility with previous versions
+        if not k.startswith("backbone") and not k.startswith("encoder"):
             continue
 
         old_k = k
