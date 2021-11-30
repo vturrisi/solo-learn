@@ -27,7 +27,7 @@ cd ..
 # DINO
 mkdir dino
 cd dino
-gdown https://drive.google.com/uc?id=1Wv9w5j22YitGAWi4p3IJYzLVo4fQkpS
+gdown https://drive.google.com/uc?id=1Wv9w5j22YitGAWi4p3IJYzLVo4fQkpSu
 gdown https://drive.google.com/uc?id=1PBElgMN5gjZsK3o1L55jNnb5A1ebbOvu
 cd ..
 

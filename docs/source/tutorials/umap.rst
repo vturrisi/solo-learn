@@ -63,8 +63,6 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
     for k in list(state.keys()):
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]
-        if "encoder" in k:  # for compatibility with previous versions
-            state[k.replace("encoder.", "")] = state[k]
         del state[k]
     model.load_state_dict(state, strict=False)
 

@@ -60,8 +60,6 @@ Apart from the hyperparameters, we also need to load the pretrained model:
     for k in list(state.keys()):
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]
-        if "encoder" in k:  # for compatibility with previous versions
-            state[k.replace("encoder.", "")] = state[k]
         del state[k]
     backbone.load_state_dict(state, strict=False)
 
