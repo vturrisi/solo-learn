@@ -175,6 +175,7 @@ class BaseTransform:
 class CifarTransform(BaseTransform):
     def __init__(
         self,
+        cifar: str,
         brightness: float,
         contrast: float,
         saturation: float,
@@ -191,6 +192,7 @@ class CifarTransform(BaseTransform):
         """Class that applies Cifar10/Cifar100 transformations.
 
         Args:
+            cifar (str): type of cifar, either cifar10 or cifar100
             brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
             contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
             saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
@@ -212,6 +214,13 @@ class CifarTransform(BaseTransform):
 
         super().__init__()
 
+        if cifar == "cifar10":
+            mean = (0.4914, 0.4822, 0.4465)
+            std = (0.2470, 0.2435, 0.2616)
+        else:
+            mean = (0.5071, 0.4865, 0.4409)
+            std = (0.2673, 0.2564, 0.2762)
+
         self.transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(
@@ -228,7 +237,7 @@ class CifarTransform(BaseTransform):
                 transforms.RandomApply([Solarization()], p=solarization_prob),
                 transforms.RandomHorizontalFlip(p=horizontal_flip_prob),
                 transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
+                transforms.Normalize(mean, std),
             ]
         )
 
@@ -430,7 +439,7 @@ def prepare_transform(dataset: str, **kwargs) -> Any:
     """
 
     if dataset in ["cifar10", "cifar100"]:
-        return CifarTransform(**kwargs)
+        return CifarTransform(cifar=dataset, **kwargs)
     elif dataset == "stl10":
         return STLTransform(**kwargs)
     elif dataset in ["imagenet", "imagenet100"]:
