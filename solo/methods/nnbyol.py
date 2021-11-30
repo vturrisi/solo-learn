@@ -48,7 +48,7 @@ class NNBYOL(BaseMomentumMethod):
 
         .. note::
             NNBYOL is similar to NNSiam but the queue from which the neighbors are retrieved is
-            updated using the features of the momentum encoder. See NNCLR's paper for more detals:
+            updated using the features of the momentum backbone. See NNCLR's paper for more detals:
             https://arxiv.org/abs/2104.14548
 
         """
@@ -171,7 +171,7 @@ class NNBYOL(BaseMomentumMethod):
         return idx, nn
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs forward pass of the online encoder (encoder, projector and predictor).
+        """Performs forward pass of the online backbone (backbone, projector and predictor).
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -210,7 +210,7 @@ class NNBYOL(BaseMomentumMethod):
         p1 = self.predictor(z1)
         p2 = self.predictor(z2)
 
-        # forward momentum encoder
+        # forward momentum backbone
         with torch.no_grad():
             z1_momentum = self.momentum_projector(momentum_feats1)
             z2_momentum = self.momentum_projector(momentum_feats2)

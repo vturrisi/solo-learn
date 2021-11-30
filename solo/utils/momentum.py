@@ -28,8 +28,8 @@ def initialize_momentum_params(online_net: nn.Module, momentum_net: nn.Module):
     """Copies the parameters of the online network to the momentum network.
 
     Args:
-        online_net (nn.Module): online network (e.g. online encoder, online projection, etc...).
-        momentum_net (nn.Module): momentum network (e.g. momentum encoder,
+        online_net (nn.Module): online network (e.g. online backbone, online projection, etc...).
+        momentum_net (nn.Module): momentum network (e.g. momentum backbone,
             momentum projection, etc...).
     """
 
@@ -65,8 +65,8 @@ class MomentumUpdater:
         """Performs the momentum update for each param group.
 
         Args:
-            online_net (nn.Module): online network (e.g. online encoder, online projection, etc...).
-            momentum_net (nn.Module): momentum network (e.g. momentum encoder,
+            online_net (nn.Module): online network (e.g. online backbone, online projection, etc...).
+            momentum_net (nn.Module): momentum network (e.g. momentum backbone,
                 momentum projection, etc...).
         """
 

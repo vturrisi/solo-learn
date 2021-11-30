@@ -13,7 +13,7 @@ class AutoResumer:
     SHOULD_MATCH = [
         "batch_size",
         "dataset",
-        "encoder",
+        "backbone",
         "max_epochs",
         "method",
         "name",

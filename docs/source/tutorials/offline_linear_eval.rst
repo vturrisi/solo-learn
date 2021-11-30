@@ -48,7 +48,7 @@ Apart from the hyperparameters, we also need to load the pretrained model:
 .. code-block:: python
 
     # create the backbone network
-    # the first convolutional and maxpooling layers of the ResNet encoder
+    # the first convolutional and maxpooling layers of the ResNet backbone
     # are adjusted to handle lower resolution images (32x32 instead of 224x224).
     backbone = resnet18()
     backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
@@ -58,8 +58,8 @@ Apart from the hyperparameters, we also need to load the pretrained model:
     # load pretrained feature extractor
     state = torch.load(kwargs["pretrained_feature_extractor"])["state_dict"]
     for k in list(state.keys()):
-        if "encoder" in k:
-            state[k.replace("encoder.", "")] = state[k]
+        if "backbone" in k:
+            state[k.replace("backbone.", "")] = state[k]
         del state[k]
     backbone.load_state_dict(state, strict=False)
 
@@ -125,7 +125,7 @@ And that's it, we basically replicated a small version of ``main_linear.py``. Of
 
     python3 ../../main_linear.py \
         --dataset cifar10 \
-        --encoder resnet18 \
+        --backbone resnet18 \
         --data_dir ./ \
         --max_epochs 100 \
         --gpus 0 \

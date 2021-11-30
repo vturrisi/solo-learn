@@ -112,7 +112,7 @@ class BYOL(BaseMomentumMethod):
         return super().momentum_pairs + extra_momentum_pairs
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs forward pass of the online encoder (encoder, projector and predictor).
+        """Performs forward pass of the online backbone (backbone, projector and predictor).
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -133,7 +133,7 @@ class BYOL(BaseMomentumMethod):
         Z = [self.projector(f) for f in feats]
         P = [self.predictor(z) for z in Z]
 
-        # forward momentum encoder
+        # forward momentum backbone
         with torch.no_grad():
             Z_momentum = [self.momentum_projector(f) for f in momentum_feats]
 

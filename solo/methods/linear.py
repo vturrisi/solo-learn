@@ -113,8 +113,8 @@ class LinearModel(pl.LightningModule):
 
         parser = parent_parser.add_argument_group("linear")
 
-        # encoder args
-        parser.add_argument("--encoder", choices=BaseMethod._SUPPORTED_ENCODERS, type=str)
+        # backbone args
+        parser.add_argument("--backbone", choices=BaseMethod._SUPPORTED_BACKBONES, type=str)
         # for ViT
         parser.add_argument("--patch_size", type=int, default=16)
 
@@ -254,7 +254,7 @@ class LinearModel(pl.LightningModule):
             torch.Tensor: cross-entropy loss between the predictions and the ground truth.
         """
 
-        # set encoder to eval mode
+        # set backbone to eval mode
         self.backbone.eval()
 
         _, loss, acc1, acc5 = self.shared_step(batch, batch_idx)

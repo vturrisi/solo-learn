@@ -194,13 +194,13 @@ def additional_setup_pretrain(args: Namespace):
 
     # create backbone-specific arguments
     args.backbone_args = {"cifar": args.dataset in ["cifar10", "cifar100"]}
-    if "resnet" in args.encoder:
+    if "resnet" in args.backbone:
         args.backbone_args["zero_init_residual"] = args.zero_init_residual
     else:
         # dataset related for all transformers
         crop_size = args.crop_size[0]
         args.backbone_args["img_size"] = crop_size
-        if "vit" in args.encoder:
+        if "vit" in args.backbone:
             args.backbone_args["patch_size"] = args.patch_size
 
     with suppress(AttributeError):
@@ -252,12 +252,12 @@ def additional_setup_linear(args: Namespace):
     # create backbone-specific arguments
     args.backbone_args = {"cifar": args.dataset in ["cifar10", "cifar100"]}
 
-    if "resnet" not in args.encoder:
+    if "resnet" not in args.backbone:
         # dataset related for all transformers
         crop_size = args.crop_size[0]
         args.backbone_args["img_size"] = crop_size
 
-        if "vit" in args.encoder:
+        if "vit" in args.backbone:
             args.backbone_args["patch_size"] = args.patch_size
 
     with suppress(AttributeError):

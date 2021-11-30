@@ -1,6 +1,6 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder vit_tiny \
+    --backbone vit_tiny \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \

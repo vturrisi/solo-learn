@@ -33,11 +33,11 @@ if __name__ == "__main__":
 
     newmodel = {}
     for k, v in checkpoint.items():
-        if not k.startswith("encoder"):
+        if not k.startswith("backbone"):
             continue
 
         old_k = k
-        k = k.replace("encoder.", "")
+        k = k.replace("backbone.", "")
         if "layer" not in k:
             k = "stem." + k
         for t in [1, 2, 3, 4]:
