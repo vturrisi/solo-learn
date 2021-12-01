@@ -250,8 +250,8 @@ class BaseMethod(pl.LightningModule):
         self.node_names = BaseMethod._NODE_NAMES[backbone]
         self.supports_multilevel = False
         if self.node_names is not None:
-            self.encoder = create_feature_extractor(
-                self.encoder,
+            self.backbone = create_feature_extractor(
+                self.backbone,
                 return_nodes=self.node_names,
             )
             self.supports_multilevel = True
