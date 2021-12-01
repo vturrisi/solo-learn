@@ -249,7 +249,7 @@ class BaseMethod(pl.LightningModule):
         else:
             self.features_dim = self.backbone.num_features
 
-        self.node_names = BaseMethod._NODE_NAMES.get(backbone, default=None)
+        self.node_names = BaseMethod._NODE_NAMES.get(backbone, None)
         self.supports_multilevel = self.node_names is not None
         if self.supports_multilevel:
             self.backbone = create_feature_extractor(
