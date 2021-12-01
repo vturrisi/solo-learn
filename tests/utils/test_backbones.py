@@ -19,6 +19,11 @@
 
 import torch
 from solo.utils.backbones import (
+    poolformer_m36,
+    poolformer_m48,
+    poolformer_s12,
+    poolformer_s24,
+    poolformer_s36,
     swin_base,
     swin_large,
     swin_small,
@@ -63,4 +68,25 @@ def test_backbones():
 
     dummy_data = torch.randn(6, 3, 224, 224)
     model = vit_large()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    # poolformer models
+    dummy_data = torch.randn(6, 3, 224, 224)
+    model = poolformer_s12()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    dummy_data = torch.randn(6, 3, 224, 224)
+    model = poolformer_s24()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    dummy_data = torch.randn(6, 3, 224, 224)
+    model = poolformer_s36()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    dummy_data = torch.randn(6, 3, 224, 224)
+    model = poolformer_m36()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    dummy_data = torch.randn(6, 3, 224, 224)
+    model = poolformer_m48()
     assert isinstance(model(dummy_data), torch.Tensor)
