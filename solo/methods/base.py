@@ -27,6 +27,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.backbones import (
+    poolformer_m36,
+    poolformer_m48,
+    poolformer_s12,
+    poolformer_s24,
+    poolformer_s36,
     swin_base,
     swin_large,
     swin_small,
@@ -67,6 +72,11 @@ class BaseMethod(pl.LightningModule):
         "swin_small": swin_small,
         "swin_base": swin_base,
         "swin_large": swin_large,
+        "poolformer_s12": poolformer_s12,
+        "poolformer_s24": poolformer_s24,
+        "poolformer_s36": poolformer_s36,
+        "poolformer_m36": poolformer_m36,
+        "poolformer_m48": poolformer_m48,
     }
 
     _NODE_NAMES = {
