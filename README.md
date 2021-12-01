@@ -15,8 +15,10 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Dec 01 2021]**: :fountain: Added support for getting mid-level features and [PoolFormer](https://arxiv.org/abs/2111.11418).
 * **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions!!!
 * **[Nov 29 2021]**: :book: New tutorials!
+* **[Nov 29 2021]**: :houses: Added offline K-NN and offline UMAP.
 * **[Nov 29 2021]**: :rotating_light: Updated PyTorch and PyTorch Lightning versions. 10% faster.
 * **[Nov 29 2021]**: :beers: Added code of conduct, contribution instructions, issue templates and UMAP tutorial.
 * **[Nov 23 2021]**: :space_invader: Added [VIbCReg](https://arxiv.org/abs/2109.00783).
@@ -27,9 +29,6 @@ While the library is self-contained, it is possible to use the models outside of
 * **[Sep 17 2021]**: :robot: Added [ViT](https://arxiv.org/abs/2010.11929) and [Swin](https://arxiv.org/abs/2103.14030).
 * **[Sep 13 2021]**: :book: Improved [Docs](https://solo-learn.readthedocs.io/en/latest/?badge=latest) and added tutorials for [pretraining](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html) and [offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html).
 * **[Aug 13 2021]**: :whale: [DeepCluster V2](https://arxiv.org/abs/2006.09882) is now available.
-* **[Jul 31 2021]**: :hedgehog: [ReSSL](https://arxiv.org/abs/2107.09282) is now available.
-* **[Jul 21 2021]**: :test_tube: Added Custom Dataset support.
-* **[Jul 21 2021]**: :carousel_horse: Added AutoUMAP.
 
 ---
 
@@ -55,18 +54,27 @@ While the library is self-contained, it is possible to use the models outside of
 
 ## Extra flavor
 
+# Multiple backbones
+* [ResNet](https://arxiv.org/abs/1512.03385)
+* [ViT](https://arxiv.org/abs/2010.11929)
+* [Swin](https://arxiv.org/abs/2103.14030)
+* [PoolFormer](https://arxiv.org/abs/2111.11418)
+
 ### Data
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
-* Asymmetric and symmetric augmentations.
+* Flexible augmentations.
+
 ### Evaluation and logging
 * Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well).
-* Online Knn evaluation.
+* Online and offlfine K-NN evaluation.
 * Normal offline linear evaluation.
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
 * Easy-to-extend modular code structure.
 * Custom model logging with a simpler file organization.
 * Automatic feature space visualization with UMAP.
+* Offline UMAP.
 * Common metrics and more to come...
+
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
     * **Note**: currently, only SimCLR supports this.

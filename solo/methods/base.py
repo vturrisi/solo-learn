@@ -26,13 +26,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from solo.utils.knn import WeightedKNNClassifier
-from solo.utils.lars import LARSWrapper
-from solo.utils.metrics import accuracy_at_k, weighted_mean
-from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
-from torchvision.models import resnet18, resnet50
 from solo.utils.backbones import (
+    poolformer_m36,
+    poolformer_m48,
+    poolformer_s12,
+    poolformer_s24,
+    poolformer_s36,
     swin_base,
     swin_large,
     swin_small,
@@ -42,6 +41,13 @@ from solo.utils.backbones import (
     vit_small,
     vit_tiny,
 )
+from solo.utils.knn import WeightedKNNClassifier
+from solo.utils.lars import LARSWrapper
+from solo.utils.metrics import accuracy_at_k, weighted_mean
+from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
+from torchvision.models import resnet18, resnet50
+from torchvision.models.feature_extraction import create_feature_extractor
 
 
 def static_lr(
@@ -66,6 +72,28 @@ class BaseMethod(pl.LightningModule):
         "swin_small": swin_small,
         "swin_base": swin_base,
         "swin_large": swin_large,
+        "poolformer_s12": poolformer_s12,
+        "poolformer_s24": poolformer_s24,
+        "poolformer_s36": poolformer_s36,
+        "poolformer_m36": poolformer_m36,
+        "poolformer_m48": poolformer_m48,
+    }
+
+    _NODE_NAMES = {
+        "resnet18": [
+            "layer1.1.relu_1",
+            "layer2.1.relu_1",
+            "layer3.1.relu_1",
+            "layer4.1.relu_1",
+            "flatten",
+        ],
+        "resnet50": [
+            "layer1.2.relu_2",
+            "layer2.3.relu_2",
+            "layer3.5.relu_2",
+            "layer4.2.relu_2",
+            "flatten",
+        ],
     }
 
     def __init__(
@@ -220,6 +248,14 @@ class BaseMethod(pl.LightningModule):
                 self.backbone.maxpool = nn.Identity()
         else:
             self.features_dim = self.backbone.num_features
+
+        self.node_names = BaseMethod._NODE_NAMES.get(backbone, None)
+        self.supports_multilevel = self.node_names is not None
+        if self.supports_multilevel:
+            self.backbone = create_feature_extractor(
+                self.backbone,
+                return_nodes=self.node_names,
+            )
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
@@ -402,8 +438,23 @@ class BaseMethod(pl.LightningModule):
         """
 
         feats = self.backbone(X)
+        multilevel_feats = {}
+        if self.supports_multilevel:
+            # features for multiple levels of the backbone
+            multilevel_feats = feats
+
+            # parses features and divide into mid-level features or final representations
+            multilevel_feats = [multilevel_feats[n] for n in self.node_names]
+
+            feats = multilevel_feats.pop(-1)
+            multilevel_feats = {f"feats-lvl{i}": f for i, f in enumerate(multilevel_feats)}
+
         logits = self.classifier(feats.detach())
-        return {"logits": logits, "feats": feats}
+        return {
+            "logits": logits,
+            "feats": feats,
+            **multilevel_feats,
+        }
 
     def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
@@ -451,7 +502,9 @@ class BaseMethod(pl.LightningModule):
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.backbone(x) for x in X[self.num_large_crops :]])
+            outs["feats"].extend(
+                [self.backbone(x)[self.node_names[-1]] for x in X[self.num_large_crops :]]
+            )
 
         # loss and stats
         outs["loss"] = sum(outs["loss"]) / self.num_large_crops
