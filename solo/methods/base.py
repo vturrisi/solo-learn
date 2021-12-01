@@ -84,14 +84,6 @@ class BaseMethod(pl.LightningModule):
             "layer4.2.relu_2",
             "flatten",
         ],
-        "vit_tiny": None,
-        "vit_small": None,
-        "vit_base": None,
-        "vit_large": None,
-        "swin_tiny": None,
-        "swin_small": None,
-        "swin_base": None,
-        "swin_large": None,
     }
 
     def __init__(
@@ -247,14 +239,13 @@ class BaseMethod(pl.LightningModule):
         else:
             self.features_dim = self.backbone.num_features
 
-        self.node_names = BaseMethod._NODE_NAMES[backbone]
-        self.supports_multilevel = False
-        if self.node_names is not None:
+        self.node_names = BaseMethod._NODE_NAMES.get(backbone, default=None)
+        self.supports_multilevel = self.node_names is not None
+        if self.supports_multilevel:
             self.backbone = create_feature_extractor(
                 self.backbone,
                 return_nodes=self.node_names,
             )
-            self.supports_multilevel = True
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
 
@@ -436,17 +427,17 @@ class BaseMethod(pl.LightningModule):
             Dict: dict of logits and features.
         """
 
+        feats = self.backbone(X)
+        multilevel_feats = {}
         if self.supports_multilevel:
             # features for multiple levels of the backbone
-            multilevel_feats = self.backbone(X)
+            multilevel_feats = feats
 
             # parses features and divide into mid-level features or final representations
             multilevel_feats = [multilevel_feats[n] for n in self.node_names]
+
             feats = multilevel_feats.pop(-1)
             multilevel_feats = {f"feats-lvl{i}": f for i, f in enumerate(multilevel_feats)}
-        else:
-            feats = self.backbone(X)
-            multilevel_feats = {}
 
         logits = self.classifier(feats.detach())
         return {
