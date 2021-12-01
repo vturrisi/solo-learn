@@ -12,8 +12,10 @@ Checkpoint = namedtuple("Checkpoint", ["creation_time", "args", "checkpoint"])
 class AutoResumer:
     SHOULD_MATCH = [
         "batch_size",
+        "weight_decay",
+        "lr",
         "dataset",
-        "encoder",
+        "backbone",
         "max_epochs",
         "method",
         "name",

@@ -81,6 +81,15 @@ class BarlowTwins(BaseMethod):
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X, *args, **kwargs):
+        """Performs the forward pass of the backbone and the projector.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
+        """
+
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         return {**out, "z": z}

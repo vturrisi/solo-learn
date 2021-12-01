@@ -27,7 +27,7 @@ cd ..
 # DINO
 mkdir dino
 cd dino
-gdown https://drive.google.com/uc?id=1Wv9w5j22YitGAWi4p3IJYzLVo4fQkpS
+gdown https://drive.google.com/uc?id=1Wv9w5j22YitGAWi4p3IJYzLVo4fQkpSu
 gdown https://drive.google.com/uc?id=1PBElgMN5gjZsK3o1L55jNnb5A1ebbOvu
 cd ..
 
@@ -76,7 +76,7 @@ cd ..
 # VIbCReg
 mkdir vibcreg
 cd vibcreg
-gdown https://drive.google.com/uc?id=1Mh3hsMjFjBO7nvTX9GOIilw-lZhRIr11
+gdown https://drive.google.com/uc?id=1dHsKrhCcwWIXFwQJ4oVPgLcEcT3SecQV
 gdown https://drive.google.com/uc?id=1OPsUf8VnKo5w6T8-rEQFaodUNxvQ8CTT
 cd ..
 

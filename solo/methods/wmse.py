@@ -91,7 +91,7 @@ class WMSE(BaseMethod):
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder and the projector.
+        """Performs the forward pass of the backbone and the projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.

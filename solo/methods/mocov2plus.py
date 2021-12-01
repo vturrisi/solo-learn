@@ -118,7 +118,7 @@ class MoCoV2Plus(BaseMomentumMethod):
         """Adds new samples and removes old samples from the queue in a fifo manner.
 
         Args:
-            keys (torch.Tensor): output features of the momentum encoder.
+            keys (torch.Tensor): output features of the momentum backbone.
         """
 
         batch_size = keys.shape[1]
@@ -132,7 +132,7 @@ class MoCoV2Plus(BaseMomentumMethod):
         self.queue_ptr[0] = ptr  # type: ignore
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the online encoder and the online projection.
+        """Performs the forward pass of the online backbone and projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.

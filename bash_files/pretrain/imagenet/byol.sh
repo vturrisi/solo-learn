@@ -1,6 +1,6 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet \
-    --encoder resnet50 \
+    --backbone resnet50 \
     --data_dir /datasets \
     --train_dir ILSVRC2012/train \
     --val_dir ILSVRC2012/val \

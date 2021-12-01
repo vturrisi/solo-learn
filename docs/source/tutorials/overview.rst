@@ -56,7 +56,7 @@ However, for now, we won't rely on this, so let's just define all the needed par
     # common parameters for all methods
     # some parameters for extra functionally are missing, but don't mind this for now.
     base_kwargs = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "num_classes": 10,
         "cifar": True,
         "zero_init_residual": True,
@@ -196,7 +196,7 @@ And that's it, we basically replicated a small version of ``main_pretrain.py``. 
 
     python3 main_pretrain.py \
         --dataset cifar10 \
-        --encoder resnet18 \
+        --backbone resnet18 \
         --data_dir ./datasets \
         --max_epochs 1000 \
         --gpus 0 \

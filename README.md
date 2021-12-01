@@ -59,7 +59,7 @@ While the library is self-contained, it is possible to use the models outside of
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
 * Asymmetric and symmetric augmentations.
 ### Evaluation and logging
-* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well).
+* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well).
 * Online Knn evaluation.
 * Normal offline linear evaluation.
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
@@ -119,7 +119,7 @@ pip3 install .
 
 ## Training
 
-For pretraining the encoder, follow one of the many bash files in `bash_files/pretrain/`.
+For pretraining the backbone, follow one of the many bash files in `bash_files/pretrain/`.
 
 After that, for offline linear evaluation, follow the examples on `bash_files/linear`.
 

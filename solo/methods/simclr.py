@@ -85,7 +85,7 @@ class SimCLR(BaseMethod):
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder, the projector and the predictor.
+        """Performs the forward pass of the backbone, the projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -93,7 +93,7 @@ class SimCLR(BaseMethod):
         Returns:
             Dict[str, Any]:
                 a dict containing the outputs of the parent
-                and the projected and predicted features.
+                and the projected features.
         """
 
         out = super().forward(X, *args, **kwargs)

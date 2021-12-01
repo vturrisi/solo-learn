@@ -67,7 +67,7 @@ Let's suppose we wanted to implement `NNSiam <https://arxiv.org/abs/2104.14548/>
             self.queue = F.normalize(self.queue, dim=1)
             self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
-As you can see, `NNSiam` is a subclass of `BaseMethod` and only contains a projector, a predictor and a queue. Note that the encoder is handled in the base class.
+As you can see, `NNSiam` is a subclass of `BaseMethod` and only contains a projector, a predictor and a queue. Note that the backbone is handled in the base class.
 
 Now we need to make sure that these new modules that we added will be trained along with the other parameters. To achieve this, it is enough to override `learnable_params` a property of the base class that holds the learnable parameters (i.e. the parameters that will be put in the optimizer).
 
@@ -94,7 +94,7 @@ For convenience, we can also define a forward function in order for our model to
 .. code-block:: python
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder, the projector and the predictor.
+        """Performs the forward pass of the backbone, the projector and the predictor.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -203,7 +203,7 @@ And that is it, you are good to go. You can now run your implementation of NNSia
 
     python3 ../../../main_pretrain.py \
         --dataset DATASET \
-        --encoder resnet18 \
+        --backbone resnet18 \
         --data_dir DATA_DIR \
         --train_dir TRAIN_DIR \
         --val_dir VAL_DIR \

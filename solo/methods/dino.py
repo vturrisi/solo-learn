@@ -44,11 +44,11 @@ class DINOHead(nn.Module):
         hidden_dim: int = 2048,
         bottleneck_dim: int = 256,
     ):
-        """DINO head that takes as input the features of the encoder, projects them in a lower
+        """DINO head that takes as input the features of the backbone, projects them in a lower
         dimensional space and multiplies with the prototypes.
 
         Args:
-            in_dim (int): number of dimensions of the input (aka encoder features).
+            in_dim (int): number of dimensions of the input (aka backbone features).
             num_prototypes (int): number of prototypes.
             use_bn (bool, optional): whether to use batch norm in projector. Defaults to True.
             norm_last_layer (bool, optional): whether to l2-norm the last layer. Defaults to True.
@@ -97,7 +97,7 @@ class DINOHead(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Computes the forward pass of the projector and the last layer (prototypes).
+        """Computes the forward pass of the backbone, the projector and the last layer (prototypes).
 
         Args:
             x (torch.Tensor): a batch of features.
@@ -234,7 +234,7 @@ class DINO(BaseMomentumMethod):
             clip (float): threshold for gradient clipping.
         """
 
-        for p in self.encoder.parameters():
+        for p in self.backbone.parameters():
             if p.grad is not None:
                 param_norm = p.grad.data.norm(2)
                 clip_coef = clip / (param_norm + 1e-6)
@@ -246,7 +246,7 @@ class DINO(BaseMomentumMethod):
         self.dino_loss_func.epoch = self.current_epoch
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs forward pass of the student (encoder and head).
+        """Performs forward pass of the student (backbone and head).
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -276,12 +276,12 @@ class DINO(BaseMomentumMethod):
         feats1, feats2 = out["feats"]
         momentum_feats1, momentum_feats2 = out["momentum_feats"]
 
-        # forward online encoder
+        # forward online backbone
         p1 = self.head(feats1)
         p2 = self.head(feats2)
         p = torch.cat((p1, p2))
 
-        # forward momentum encoder
+        # forward momentum backbone
         p1_momentum = self.momentum_head(momentum_feats1)
         p2_momentum = self.momentum_head(momentum_feats2)
         p_momentum = torch.cat((p1_momentum, p2_momentum))
