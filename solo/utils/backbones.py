@@ -556,7 +556,12 @@ def poolformer_s12(**kwargs):
     mlp_ratios = [4, 4, 4, 4]
     downsamples = [True, True, True, True]
     model = PoolFormer(
-        layers, embed_dims=embed_dims, mlp_ratios=mlp_ratios, downsamples=downsamples, **kwargs
+        layers,
+        num_classes=0,
+        embed_dims=embed_dims,
+        mlp_ratios=mlp_ratios,
+        downsamples=downsamples,
+        **kwargs,
     )
     model.default_cfg = default_cfgs["poolformer_s"]
     return model
@@ -572,7 +577,12 @@ def poolformer_s24(**kwargs):
     mlp_ratios = [4, 4, 4, 4]
     downsamples = [True, True, True, True]
     model = PoolFormer(
-        layers, embed_dims=embed_dims, mlp_ratios=mlp_ratios, downsamples=downsamples, **kwargs
+        layers,
+        num_classes=0,
+        embed_dims=embed_dims,
+        mlp_ratios=mlp_ratios,
+        downsamples=downsamples,
+        **kwargs,
     )
     model.default_cfg = default_cfgs["poolformer_s"]
     return model
@@ -589,6 +599,7 @@ def poolformer_s36(**kwargs):
     downsamples = [True, True, True, True]
     model = PoolFormer(
         layers,
+        num_classes=0,
         embed_dims=embed_dims,
         mlp_ratios=mlp_ratios,
         downsamples=downsamples,
@@ -610,6 +621,7 @@ def poolformer_m36(**kwargs):
     downsamples = [True, True, True, True]
     model = PoolFormer(
         layers,
+        num_classes=0,
         embed_dims=embed_dims,
         mlp_ratios=mlp_ratios,
         downsamples=downsamples,
@@ -631,6 +643,7 @@ def poolformer_m48(**kwargs):
     downsamples = [True, True, True, True]
     model = PoolFormer(
         layers,
+        num_classes=0,
         embed_dims=embed_dims,
         mlp_ratios=mlp_ratios,
         downsamples=downsamples,
