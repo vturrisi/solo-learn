@@ -26,7 +26,7 @@ Evaluation and logging
 ======================
 
 
-* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well)
+* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well)
 * Normal offline linear evaluation
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
 * Easy-to-extend modular code structure

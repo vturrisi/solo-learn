@@ -56,7 +56,7 @@ from solo.utils.classification_dataloader import prepare_data
 def main():
     args = parse_args_linear()
 
-    assert args.encoder in BaseMethod._SUPPORTED_ENCODERS
+    assert args.backbone in BaseMethod._SUPPORTED_BACKBONES
     backbone_model = {
         "resnet18": resnet18,
         "resnet50": resnet50,
@@ -68,17 +68,17 @@ def main():
         "swin_small": swin_small,
         "swin_base": swin_base,
         "swin_large": swin_large,
-    }[args.encoder]
+    }[args.backbone]
 
-    # initialize encoder
+    # initialize backbone
     kwargs = args.backbone_args
     cifar = kwargs.pop("cifar", False)
     # swin specific
-    if "swin" in args.encoder and cifar:
+    if "swin" in args.backbone and cifar:
         kwargs["window_size"] = 4
 
     backbone = backbone_model(**kwargs)
-    if "resnet" in args.encoder:
+    if "resnet" in args.backbone:
         # remove fc layer
         backbone.fc = nn.Identity()
         if cifar:
@@ -94,8 +94,8 @@ def main():
 
     state = torch.load(ckpt_path)["state_dict"]
     for k in list(state.keys()):
-        if "encoder" in k:
-            state[k.replace("encoder.", "")] = state[k]
+        if "backbone" in k:
+            state[k.replace("backbone.", "")] = state[k]
         del state[k]
     backbone.load_state_dict(state, strict=False)
 
@@ -107,6 +107,7 @@ def main():
     else:
         Class = LinearModel
 
+    del args.backbone
     model = Class(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(

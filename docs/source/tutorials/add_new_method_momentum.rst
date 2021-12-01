@@ -1,8 +1,8 @@
 Adding New Methods (Momentum Version)
 *************************************
 
-As of now, you should be familiar with how to implement new methods in `solo-learn`. If not, please read this tutorial: :doc:`Adding New Methods <add_new_method>`. This tutorial will help you creating methods that use a momentum encoder.
-Let's now suppose we wanted to implement NNBYOL (similar to `NNSiam <https://arxiv.org/abs/2104.14548/>`_ but with momentum encoder). As always, the fist thing to do is to navigate to `solo/methods` and create a python file for our new method (e.g.: `nnbyol.py`):
+As of now, you should be familiar with how to implement new methods in `solo-learn`. If not, please read this tutorial: :doc:`Adding New Methods <add_new_method>`. This tutorial will help you creating methods that use a momentum backbone.
+Let's now suppose we wanted to implement NNBYOL (similar to `NNSiam <https://arxiv.org/abs/2104.14548/>`_ but with momentum backbone). As always, the fist thing to do is to navigate to `solo/methods` and create a python file for our new method (e.g.: `nnbyol.py`):
 
 .. code-block:: python
 
@@ -85,7 +85,7 @@ Let's now suppose we wanted to implement NNBYOL (similar to `NNSiam <https://arx
             ]
             return super().learnable_params + extra_learnable_params
 
-Note that here we are inheriting from `BaseMomentumMethod` which already implements most of the complexity for momentum-based models. Apart from this, and similarly to `NNSiam`, `NNBYOL` has a projector, a predictor and a queue. However, NNBYOL also has a momentum encoder and a momentum projector that need to be updated at every step. The library already implements this behavior for the momentum encoder. To achieve the same for the momentum projector, the only thing that you need to do is overriding the `momentum_pairs` property of the parent:
+Note that here we are inheriting from `BaseMomentumMethod` which already implements most of the complexity for momentum-based models. Apart from this, and similarly to `NNSiam`, `NNBYOL` has a projector, a predictor and a queue. However, NNBYOL also has a momentum backbone and a momentum projector that need to be updated at every step. The library already implements this behavior for the momentum backbone. To achieve the same for the momentum projector, the only thing that you need to do is overriding the `momentum_pairs` property of the parent:
 
 .. code-block:: python
 
@@ -129,7 +129,7 @@ You can just use the momentum encoder in your training step:
         p1 = self.predictor(z1)
         p2 = self.predictor(z2)
 
-        # forward momentum encoder
+        # forward momentum backbone
         with torch.no_grad():
             z1_momentum = self.momentum_projector(momentum_feats1)
             z2_momentum = self.momentum_projector(momentum_feats2)

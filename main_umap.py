@@ -43,7 +43,7 @@ def main():
     model = (
         METHODS[method_args["method"]]
         .load_from_checkpoint(ckpt_path, strict=False, **method_args)
-        .encoder
+        .backbone
     )
     model.cuda()
 

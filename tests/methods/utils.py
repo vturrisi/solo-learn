@@ -48,7 +48,7 @@ def gen_base_kwargs(
     batch_size=32,
 ):
     BASE_KWARGS = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "num_classes": 10 if cifar else 100,
         "no_labels": False,
         "backbone_args": {"zero_init_residual": True, "cifar": cifar},

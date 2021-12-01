@@ -23,7 +23,7 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
     from solo.utils.classification_dataloader import prepare_data
 
     # change this if you wanna load a different model
-    my_encoder = "resnet18"
+    my_backbone = "resnet18"
 
     backbone_model = {
         "resnet18": resnet18,
@@ -36,9 +36,9 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
         "swin_small": swin_small,
         "swin_base": swin_base,
         "swin_large": swin_large,
-    }[my_encoder]
+    }[my_backbone]
 
-    # initialize encoder
+    # initialize backbone
     kwargs = {
         "cifar": False,  # <-- change this if you are running on cifar
         # "img_size": 224,  # <-- uncomment this when using vit/swin
@@ -46,11 +46,11 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
     }
     cifar = kwargs.pop("cifar", False)
     # swin specific
-    if "swin" in my_encoder and cifar:
+    if "swin" in my_backbone and cifar:
         kwargs["window_size"] = 4
 
     model = backbone_model(**kwargs)
-    if "resnet" in my_encoder:
+    if "resnet" in my_backbone:
         # remove fc layer
         model.fc = nn.Identity()
         if cifar:
@@ -61,8 +61,8 @@ You can then create a new file by reusing parts of `main_linear.py` to first loa
 
     state = torch.load(ckpt_path)["state_dict"]
     for k in list(state.keys()):
-        if "encoder" in k:
-            state[k.replace("encoder.", "")] = state[k]
+        if "backbone" in k:
+            state[k.replace("backbone.", "")] = state[k]
         del state[k]
     model.load_state_dict(state, strict=False)
 

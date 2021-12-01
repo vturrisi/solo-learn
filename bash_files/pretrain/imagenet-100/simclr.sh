@@ -1,6 +1,6 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
@@ -37,7 +37,7 @@ python3 ../../../main_pretrain.py \
 
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
@@ -75,7 +75,7 @@ python3 ../../../main_pretrain.py \
 
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \

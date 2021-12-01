@@ -154,7 +154,7 @@ class NNCLR(BaseMethod):
         return idx, nn
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder, the projector and the predictor.
+        """Performs the forward pass of the backbone, the projector and the predictor.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.

@@ -138,13 +138,13 @@ class ReSSL(BaseMomentumMethod):
         self.queue_ptr[0] = ptr  # type: ignore
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs forward pass of the online encoder (encoder, projector and predictor).
+        """Performs forward pass of the online backbone, projector and predictor.
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent and the logits of the head.
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
         """
 
         out = super().forward(X, *args, **kwargs)
@@ -170,7 +170,7 @@ class ReSSL(BaseMomentumMethod):
 
         q = self.projector(feats1)
 
-        # forward momentum encoder
+        # forward momentum backbone
         with torch.no_grad():
             k = self.momentum_projector(momentum_feats2)
 

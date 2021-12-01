@@ -4,7 +4,7 @@
 # --dali flag is also supported
 python3 ../../../main_pretrain.py \
     --dataset custom \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir PATH_TO_DIR \
     --train_dir PATH_TO_TRAIN_DIR \
     --no_labels \

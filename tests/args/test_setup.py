@@ -39,7 +39,7 @@ def test_setup_pretrain():
     dummy_args = [
         "--dataset",
         "cifar10",
-        "--encoder",
+        "--backbone",
         "resnet18",
         "--data_dir",
         "./datasets",
@@ -134,7 +134,7 @@ def test_setup_linear():
     dummy_args = [
         "--dataset",
         "imagenet100",
-        "--encoder",
+        "--backbone",
         "resnet18",
         "--data_dir",
         "/datasets",
@@ -199,7 +199,7 @@ def test_setup_linear():
 
 def test_additional_setup_pretrain():
     args = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "multicrop": False,
         "brightness": [0.4],
@@ -233,7 +233,7 @@ def test_additional_setup_pretrain():
 
     # symmetric and no multicrop
     args = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "brightness": [0.4],
         "contrast": [0.4],
@@ -266,7 +266,7 @@ def test_additional_setup_pretrain():
 
     # multicrop
     args = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "brightness": [0.4],
         "contrast": [0.4],
@@ -299,7 +299,7 @@ def test_additional_setup_pretrain():
 
     # check for different gpu syntax
     args = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "brightness": [0.4],
         "contrast": [0.4],
@@ -330,10 +330,10 @@ def test_additional_setup_pretrain():
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
 
-    # check for different encoder / custom dataset
+    # check for different backbone / custom dataset
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
         args = {
-            "encoder": "vit_small",
+            "backbone": "vit_small",
             "dataset": "custom",
             "data_dir": Path("."),
             "train_dir": "dummy_train",
@@ -372,7 +372,7 @@ def test_additional_setup_pretrain():
 
 def test_additional_setup_linear():
     args = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
@@ -391,7 +391,7 @@ def test_additional_setup_linear():
 
     # check for different gpu syntax
     args = {
-        "encoder": "resnet18",
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
@@ -408,10 +408,10 @@ def test_additional_setup_linear():
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
 
-    # check for different encoder / custom dataset
+    # check for different backbone / custom dataset
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
         args = {
-            "encoder": "vit_small",
+            "backbone": "vit_small",
             "dataset": "custom",
             "data_dir": Path("."),
             "train_dir": "dummy_train",
