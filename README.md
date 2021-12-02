@@ -145,7 +145,7 @@ Please, check out our [documentation](https://solo-learn.readthedocs.io/en/lates
 * [Visualizing features with UMAP](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/umap.rst)
 * [Offline k-NN](https://github.com/vturrisi/solo-learn/blob/main/docs/source/tutorials/knn.rst)
 
-If you want to contribute to solo-learn, make sure you take a look at [how to contribute](https://github.com/vturrisi/solo-learn/blob/improvement/umap/.github/CONTRIBUTING.md) and follow the [code of conduct](https://github.com/vturrisi/solo-learn/blob/e093c5b3f4039bbbe13a91af8fe11e0978f04f01/.github/CODE_OF_CONDUCT.md)
+If you want to contribute to solo-learn, make sure you take a look at [how to contribute](https://github.com/vturrisi/solo-learn/blob/main/.github/CONTRIBUTING.md) and follow the [code of conduct](https://github.com/vturrisi/solo-learn/blob/e093c5b3f4039bbbe13a91af8fe11e0978f04f01/.github/CODE_OF_CONDUCT.md)
 
 ---
 
