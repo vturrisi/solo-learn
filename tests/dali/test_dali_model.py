@@ -110,6 +110,8 @@ def test_dali_linear():
         kwargs["val_dir"] = "dummy_val"
         kwargs["dataset"] = "custom"
 
+        del kwargs["backbone"]
+
         MethodClass = types.new_class(
             f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel)
         )
