@@ -192,3 +192,9 @@ class GatherLayer(torch.autograd.Function):
 def gather(X, dim=0):
     """Gathers tensors from all processes, supporting backward propagation."""
     return torch.cat(GatherLayer.apply(X), dim=dim)
+
+
+def get_rank():
+    if dist.is_available() and dist.is_initialized():
+        return dist.get_rank()
+    return 0

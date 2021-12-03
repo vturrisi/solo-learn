@@ -14,7 +14,7 @@ python3 ../../../main_pretrain.py \
     --lr 0.4 \
     --classifier_lr 0.1 \
     --weight_decay 1e-5 \
-    --batch_size 8 \
+    --batch_size 256 \
     --num_workers 4 \
     --crop_size 32 \
     --brightness 0.8 \
@@ -26,6 +26,7 @@ python3 ../../../main_pretrain.py \
     --num_crops_per_aug 1 1 \
     --name simclr-$1 \
     --project solo-learn \
+    --entity unitn-mhug \
     --wandb \
     --save_checkpoint \
     --method simclr \

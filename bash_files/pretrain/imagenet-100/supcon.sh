@@ -25,12 +25,12 @@ python3 ../../../main_pretrain.py \
     --saturation 0.8 \
     --hue 0.2 \
     --num_crops_per_aug 2 \
-    --name simclr-400ep-imagenet100 \
+    --name supcon-400ep-imagenet100 \
     --dali \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
     --save_checkpoint \
-    --method simclr \
+    --method supcon \
     --temperature 0.2 \
     --proj_hidden_dim 2048

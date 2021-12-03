@@ -22,20 +22,12 @@ from typing import Any, Dict, List, Sequence
 
 import torch
 import torch.nn as nn
-from einops import repeat
-from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
+from solo.losses.simclr import simclr_loss_func
 from solo.methods.base import BaseMethod
 
 
 class SimCLR(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        temperature: float,
-        supervised: bool = False,
-        **kwargs
-    ):
+    def __init__(self, proj_output_dim: int, proj_hidden_dim: int, temperature: float, **kwargs):
         """Implements SimCLR (https://arxiv.org/abs/2002.05709).
 
         Args:
@@ -54,11 +46,6 @@ class SimCLR(BaseMethod):
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, proj_output_dim),
         )
-
-        if self.multicrop:
-            self.training_step = self.multicrop_training_step
-        else:
-            self.training_step = self.default_training_step
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -101,35 +88,8 @@ class SimCLR(BaseMethod):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def default_training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Default training step for SimCLR reusing BaseMethod training step.
-
-        Args:
-            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images.
-            batch_idx (int): index of the batch.
-
-        Returns:
-            torch.Tensor: total loss composed of SimCLR loss and classification loss.
-        """
-
-        out = super().training_step(batch, batch_idx)
-        class_loss = out["loss"]
-
-        feats1, feats2 = out["feats"]
-
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
-
-        # ------- contrastive loss -------
-        nce_loss = simclr_loss_func(z1, z2, temperature=self.temperature)
-
-        self.log("train_nce_loss", nce_loss, on_epoch=True, sync_dist=True)
-
-        return nce_loss + class_loss
-
-    def multicrop_training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Multicrop training step for SimCLR reusing BaseMethod training step.
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
+        """Training step for SimCLR reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -145,21 +105,17 @@ class SimCLR(BaseMethod):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
 
-        n_augs = self.num_large_crops + self.num_small_crops
-
         feats = out["feats"]
 
         z = torch.cat([self.projector(f) for f in feats])
 
         # ------- contrastive loss -------
-        index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
-        pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
-        neg_mask = (~pos_mask).fill_diagonal_(False)
+        n_augs = self.num_large_crops + self.num_small_crops
+        indexes = indexes.repeat(n_augs)
 
-        nce_loss = manual_simclr_loss_func(
+        nce_loss = simclr_loss_func(
             z,
-            pos_mask=pos_mask,
-            neg_mask=neg_mask,
+            indexes=indexes,
             temperature=self.temperature,
         )
 

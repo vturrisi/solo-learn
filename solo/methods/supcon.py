@@ -22,8 +22,7 @@ from typing import Any, Dict, List, Sequence
 
 import torch
 import torch.nn as nn
-from einops import repeat
-from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
+from solo.losses.simclr import simclr_loss_func
 from solo.methods.base import BaseMethod
 
 
@@ -89,25 +88,6 @@ class SupCon(BaseMethod):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    @torch.no_grad()
-    def gen_extra_positives_gt(self, Y: torch.Tensor) -> torch.Tensor:
-        """Generates extra positives for supervised contrastive learning.
-
-        Args:
-            Y (torch.Tensor): labels of the samples of the batch.
-
-        Returns:
-            torch.Tensor: matrix with extra positives generated using the labels.
-        """
-
-        if self.multicrop:
-            n_augs = self.num_large_crops + self.num_small_crops
-        else:
-            n_augs = 2
-        labels_matrix = repeat(Y, "b -> c (d b)", c=n_augs * Y.size(0), d=n_augs)
-        labels_matrix = (labels_matrix == labels_matrix.t()).fill_diagonal_(False)
-        return labels_matrix
-
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SupCon reusing BaseMethod training step.
 
@@ -117,53 +97,28 @@ class SupCon(BaseMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of SimCLR loss and classification loss.
+            torch.Tensor: total loss composed of SupCon loss and classification loss.
         """
 
-        target = batch[-1]
+        targets = batch[-1]
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
 
-        if self.multicrop:
+        feats = out["feats"]
 
-            feats = out["feats"]
+        z = torch.cat([self.projector(f) for f in feats])
 
-            z = torch.cat([self.projector(f) for f in feats])
+        # ------- contrastive loss -------
+        n_augs = self.num_large_crops + self.num_small_crops
+        targets = targets.repeat(n_augs)
 
-            # ------- supervised contrastive loss -------
-            pos_mask = self.gen_extra_positives_gt(target)
-            neg_mask = (~pos_mask).fill_diagonal_(False)
-
-            nce_loss = manual_simclr_loss_func(
-                z,
-                pos_mask=pos_mask,
-                neg_mask=neg_mask,
-                temperature=self.temperature,
-            )
-        else:
-            feats1, feats2 = out["feats"]
-
-            z1 = self.projector(feats1)
-            z2 = self.projector(feats2)
-
-            # ------- supervised contrastive loss -------
-            pos_mask = self.gen_extra_positives_gt(target)
-            nce_loss = simclr_loss_func(
-                z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
-            )
-
-        # compute number of extra positives
-        n_positives = (
-            (pos_mask != 0).sum().float()
-            if self.supervised
-            else torch.tensor(0.0, device=self.device)
+        nce_loss = simclr_loss_func(
+            z,
+            indexes=targets,
+            temperature=self.temperature,
         )
 
-        metrics = {
-            "train_nce_loss": nce_loss,
-            "train_n_positives": n_positives,
-        }
-        self.log_dict(metrics, on_epoch=True, sync_dist=True)
+        self.log("train_nce_loss", nce_loss, on_epoch=True, sync_dist=True)
 
         return nce_loss + class_loss
