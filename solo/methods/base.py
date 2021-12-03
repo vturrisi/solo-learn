@@ -464,9 +464,7 @@ class BaseMethod(pl.LightningModule):
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend(
-                [self.backbone(x)[self.node_names[-1]] for x in X[self.num_large_crops :]]
-            )
+            outs["feats"].extend([self.backbone(x) for x in X[self.num_large_crops :]])
 
         # loss and stats
         outs["loss"] = sum(outs["loss"]) / self.num_large_crops
