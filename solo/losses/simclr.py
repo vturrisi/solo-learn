@@ -20,6 +20,7 @@
 import torch
 import torch.nn.functional as F
 from typing import Optional
+from solo.utils.misc import gather
 
 
 def simclr_loss_func(
@@ -44,33 +45,33 @@ def simclr_loss_func(
 
     device = z1.device
 
-    b = z1.size(0)
     z = torch.cat((z1, z2), dim=0)
     z = F.normalize(z, dim=-1)
 
-    logits = torch.einsum("if, jf -> ij", z, z) / temperature
-    logits_max, _ = torch.max(logits, dim=1, keepdim=True)
-    logits = logits - logits_max.detach()
+    gathered_z = gather(z)
+    bz = z.size(0)
+    bgz = gathered_z.size(0)
+
+    sim = torch.exp(torch.einsum("if, jf -> ij", z, gathered_z) / temperature)
 
     # positive mask are matches i, j (i from aug1, j from aug2), where i == j and matches j, i
-    pos_mask = torch.zeros((2 * b, 2 * b), dtype=torch.bool, device=device)
-    pos_mask[:, b:].fill_diagonal_(True)
-    pos_mask[b:, :].fill_diagonal_(True)
+    pos_mask = torch.zeros((bz, bgz), dtype=torch.bool, device=device)
+    pos_mask[: bz // 2, bz // 2 :].fill_diagonal_(True)
+    pos_mask[bz // 2 :, : bz // 2].fill_diagonal_(True)
 
     # if we have extra "positives"
     if extra_pos_mask is not None:
         pos_mask = torch.bitwise_or(pos_mask, extra_pos_mask)
 
-    # all matches excluding the main diagonal
-    logit_mask = torch.ones_like(pos_mask, device=device).fill_diagonal_(0)
+    neg_mask = torch.bitwise_not(pos_mask)
+    neg_mask[:, :bz].fill_diagonal_(False)
 
-    exp_logits = torch.exp(logits) * logit_mask
-    log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
-
-    # compute mean of log-likelihood over positives
-    mean_log_prob_pos = (pos_mask * log_prob).sum(1) / pos_mask.sum(1)
-    # loss
-    loss = -mean_log_prob_pos.mean()
+    print(pos_mask)
+    print(neg_mask)
+    exit()
+    pos = torch.sum(sim * pos_mask, 1)
+    neg = torch.sum(sim * neg_mask, 1)
+    loss = -(torch.mean(torch.log(pos / (pos + neg))))
     return loss
 
 

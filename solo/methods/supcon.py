@@ -27,16 +27,9 @@ from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
 from solo.methods.base import BaseMethod
 
 
-class SimCLR(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        temperature: float,
-        supervised: bool = False,
-        **kwargs
-    ):
-        """Implements SimCLR (https://arxiv.org/abs/2002.05709).
+class SupCon(BaseMethod):
+    def __init__(self, proj_output_dim: int, proj_hidden_dim: int, temperature: float, **kwargs):
+        """Implements SupCon (https://arxiv.org/abs/2004.11362).
 
         Args:
             proj_output_dim (int): number of dimensions of the projected features.
@@ -55,15 +48,10 @@ class SimCLR(BaseMethod):
             nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
-        if self.multicrop:
-            self.training_step = self.multicrop_training_step
-        else:
-            self.training_step = self.default_training_step
-
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(SimCLR, SimCLR).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("simclr")
+        parent_parser = super(SupCon, SupCon).add_model_specific_args(parent_parser)
+        parser = parent_parser.add_argument_group("supcon")
 
         # projector
         parser.add_argument("--proj_output_dim", type=int, default=128)
@@ -101,8 +89,27 @@ class SimCLR(BaseMethod):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
-    def default_training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Default training step for SimCLR reusing BaseMethod training step.
+    @torch.no_grad()
+    def gen_extra_positives_gt(self, Y: torch.Tensor) -> torch.Tensor:
+        """Generates extra positives for supervised contrastive learning.
+
+        Args:
+            Y (torch.Tensor): labels of the samples of the batch.
+
+        Returns:
+            torch.Tensor: matrix with extra positives generated using the labels.
+        """
+
+        if self.multicrop:
+            n_augs = self.num_large_crops + self.num_small_crops
+        else:
+            n_augs = 2
+        labels_matrix = repeat(Y, "b -> c (d b)", c=n_augs * Y.size(0), d=n_augs)
+        labels_matrix = (labels_matrix == labels_matrix.t()).fill_diagonal_(False)
+        return labels_matrix
+
+    def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
+        """Training step for SupCon reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -113,56 +120,50 @@ class SimCLR(BaseMethod):
             torch.Tensor: total loss composed of SimCLR loss and classification loss.
         """
 
-        out = super().training_step(batch, batch_idx)
-        class_loss = out["loss"]
-
-        feats1, feats2 = out["feats"]
-
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
-
-        # ------- contrastive loss -------
-        nce_loss = simclr_loss_func(z1, z2, temperature=self.temperature)
-
-        self.log("train_nce_loss", nce_loss, on_epoch=True, sync_dist=True)
-
-        return nce_loss + class_loss
-
-    def multicrop_training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Multicrop training step for SimCLR reusing BaseMethod training step.
-
-        Args:
-            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images.
-            batch_idx (int): index of the batch.
-
-        Returns:
-            torch.Tensor: total loss composed of SimCLR loss and classification loss.
-        """
-
-        indexes = batch[0]
+        target = batch[-1]
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
 
-        n_augs = self.num_large_crops + self.num_small_crops
+        if self.multicrop:
 
-        feats = out["feats"]
+            feats = out["feats"]
 
-        z = torch.cat([self.projector(f) for f in feats])
+            z = torch.cat([self.projector(f) for f in feats])
 
-        # ------- contrastive loss -------
-        index_matrix = repeat(indexes, "b -> c (d b)", c=n_augs * indexes.size(0), d=n_augs)
-        pos_mask = (index_matrix == index_matrix.t()).fill_diagonal_(False)
-        neg_mask = (~pos_mask).fill_diagonal_(False)
+            # ------- supervised contrastive loss -------
+            pos_mask = self.gen_extra_positives_gt(target)
+            neg_mask = (~pos_mask).fill_diagonal_(False)
 
-        nce_loss = manual_simclr_loss_func(
-            z,
-            pos_mask=pos_mask,
-            neg_mask=neg_mask,
-            temperature=self.temperature,
+            nce_loss = manual_simclr_loss_func(
+                z,
+                pos_mask=pos_mask,
+                neg_mask=neg_mask,
+                temperature=self.temperature,
+            )
+        else:
+            feats1, feats2 = out["feats"]
+
+            z1 = self.projector(feats1)
+            z2 = self.projector(feats2)
+
+            # ------- supervised contrastive loss -------
+            pos_mask = self.gen_extra_positives_gt(target)
+            nce_loss = simclr_loss_func(
+                z1, z2, extra_pos_mask=pos_mask, temperature=self.temperature
+            )
+
+        # compute number of extra positives
+        n_positives = (
+            (pos_mask != 0).sum().float()
+            if self.supervised
+            else torch.tensor(0.0, device=self.device)
         )
 
-        self.log("train_nce_loss", nce_loss, on_epoch=True, sync_dist=True)
+        metrics = {
+            "train_nce_loss": nce_loss,
+            "train_n_positives": n_positives,
+        }
+        self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
         return nce_loss + class_loss
