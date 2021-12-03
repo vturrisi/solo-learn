@@ -15,7 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Dec 01 2021]**: :fountain: Added support for getting mid-level features and [PoolFormer](https://arxiv.org/abs/2111.11418).
+* **[Dec 01 2021]**: :fountain: Added [PoolFormer](https://arxiv.org/abs/2111.11418).
 * **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions!!!
 * **[Nov 29 2021]**: :book: New tutorials!
 * **[Nov 29 2021]**: :houses: Added offline K-NN and offline UMAP.
