@@ -66,6 +66,13 @@ gdown https://drive.google.com/uc?id=1DStn9PAEMJtzh1Mxb3NjfTtm5vaNgRM5
 gdown https://drive.google.com/uc?id=1y03EtFuMi5fZGPJZfN3hkONe99WsFBOJ
 cd ..
 
+# SupCon
+mkdir supcon
+cd supcon
+gdown https://drive.google.com/uc?id=1QhPHENtgYttIF1Dn1srA4dAkIiC_5P7W
+gdown https://drive.google.com/uc?id=1QsZs9TfWoycrHBBUrliWe-cqkGQ9epAD
+cd ..
+
 # SwAV
 mkdir swav
 cd swav

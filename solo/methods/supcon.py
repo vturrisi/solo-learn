@@ -26,9 +26,9 @@ from solo.losses.simclr import simclr_loss_func
 from solo.methods.base import BaseMethod
 
 
-class SimCLR(BaseMethod):
+class SupCon(BaseMethod):
     def __init__(self, proj_output_dim: int, proj_hidden_dim: int, temperature: float, **kwargs):
-        """Implements SimCLR (https://arxiv.org/abs/2002.05709).
+        """Implements SupCon (https://arxiv.org/abs/2004.11362).
 
         Args:
             proj_output_dim (int): number of dimensions of the projected features.
@@ -49,8 +49,8 @@ class SimCLR(BaseMethod):
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(SimCLR, SimCLR).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("simclr")
+        parent_parser = super(SupCon, SupCon).add_model_specific_args(parent_parser)
+        parser = parent_parser.add_argument_group("supcon")
 
         # projector
         parser.add_argument("--proj_output_dim", type=int, default=128)
@@ -89,7 +89,7 @@ class SimCLR(BaseMethod):
         return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for SimCLR reusing BaseMethod training step.
+        """Training step for SupCon reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -97,10 +97,10 @@ class SimCLR(BaseMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of SimCLR loss and classification loss.
+            torch.Tensor: total loss composed of SupCon loss and classification loss.
         """
 
-        indexes = batch[0]
+        targets = batch[-1]
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
@@ -111,11 +111,11 @@ class SimCLR(BaseMethod):
 
         # ------- contrastive loss -------
         n_augs = self.num_large_crops + self.num_small_crops
-        indexes = indexes.repeat(n_augs)
+        targets = targets.repeat(n_augs)
 
         nce_loss = simclr_loss_func(
             z,
-            indexes=indexes,
+            indexes=targets,
             temperature=self.temperature,
         )
 

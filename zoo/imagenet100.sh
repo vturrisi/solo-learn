@@ -73,6 +73,13 @@ gdown https://drive.google.com/uc?id=1cwAyDCpU36zmQ6-r4Ww7YqiZ41vbjckQ # checkpo
 gdown https://drive.google.com/uc?id=1EU43HZKrLu_ZTV3CVAkjkFS6HORhtmR9 # args
 cd ..
 
+# SupCon
+mkdir supcon
+cd supcon
+gdown https://drive.google.com/uc?id=1-NRvw7J9WrQKBvDhmuirQmTklMlQasxI # checkpoint
+gdown https://drive.google.com/uc?id=1IKTW20UTWlHSO4RsgO1QxakYs5ZscY26 # args
+cd ..
+
 # SwAV
 mkdir swav
 cd swav

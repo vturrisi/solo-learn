@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Dec 05 2021]**: :notes: Separated [SupCon](https://arxiv.org/abs/2004.11362) from SimCLR and added runs.
 * **[Dec 01 2021]**: :fountain: Added [PoolFormer](https://arxiv.org/abs/2111.11418).
 * **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions!!!
 * **[Nov 29 2021]**: :book: New tutorials!
@@ -43,9 +44,10 @@ While the library is self-contained, it is possible to use the models outside of
 * [NNCLR](https://arxiv.org/abs/2104.14548)
 * [NNSiam](https://arxiv.org/abs/2104.14548)
 * [ReSSL](https://arxiv.org/abs/2107.09282)
-* [SimCLR](https://arxiv.org/abs/2002.05709) + [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
+* [SimCLR](https://arxiv.org/abs/2002.05709)
 * [SimSiam](https://arxiv.org/abs/2011.10566)
-* [Swav](https://arxiv.org/abs/2006.09882)
+* [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
+* [SwAV](https://arxiv.org/abs/2006.09882)
 * [VIbCReg](https://arxiv.org/abs/2109.00783)
 * [VICReg](https://arxiv.org/abs/2105.04906)
 * [W-MSE](https://arxiv.org/abs/2007.06346)
@@ -173,6 +175,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | ReSSL        | ResNet18 |  1000  |  :x: |      90.63     |                 |     99.62      |                 | [:link:](https://drive.google.com/drive/folders/1jrFcztY2eO_fG98xPshqOD15pDIhLXp-?usp=sharing) |
 | SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |                 |     99.75      |                 | [:link:](https://drive.google.com/drive/folders/1mcvWr8P2WNJZ7TVpdLHA_Q91q4VK3y8O?usp=sharing) |
 | Simsiam      | ResNet18 |  1000  |  :x: |      90.51     |                 |     99.72      |                 | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
+| SupCon       | ResNet18 |  1000  |  :x: |      93.82     |                 |     99.65      |                 | [:link:](https://drive.google.com/drive/folders/1VwZ9TrJXCpnxyo7P_l397yGrGH-DAUv-?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      89.17     |                 |     99.68      |                 | [:link:](https://drive.google.com/drive/folders/1nlJH4Ljm8-5fOIeAaKppQT6gtsmmW1T0?usp=sharing) |
 | VIbCReg      | ResNet18 |  1000  |  :x: |      91.18     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/1XvxUOnLPZlC_-OkeuO7VqXT7z9_tNVk7?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      92.07     |                 |     99.74      |                 | [:link:](https://drive.google.com/drive/folders/159ZgCxocB7aaHxwNDubnAWU71zXV9hn-?usp=sharing) |
@@ -192,6 +195,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | ReSSL        | ResNet18 |  1000  |  :x: |      65.92     |                 |     89.73      |                 | [:link:](https://drive.google.com/drive/folders/1aVZs9cHAu6Ccz8ILyWkp6NhTsJGBGfjr?usp=sharing) |
 | SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |                 |     89.04      |                 | [:link:](https://drive.google.com/drive/folders/13pGPcOO9Y3rBoeRVWARgbMFEp8OXxZa0?usp=sharing) |
 | Simsiam      | ResNet18 |  1000  |  :x: |      66.04     |                 |     89.62      |                 | [:link:](https://drive.google.com/drive/folders/1AJUPmsIHh_nqEcFe-Vcz2o4ruEibFHWO?usp=sharing) |
+| SupCon       | ResNet18 |  1000  |  :x: |      70.38     |                 |     89.57      |                 | [:link:](https://drive.google.com/drive/folders/15C68oHPDMAOPtmBAm_Xw6YI6GgOW00gM?usp=sharing) |
 | SwAV         | ResNet18 |  1000  |  :x: |      64.88     |                 |     88.78      |                 | [:link:](https://drive.google.com/drive/folders/1U_bmyhlPEN941hbx0SdRGOT4ivCarQB9?usp=sharing) |
 | VIbCReg      | ResNet18 |  1000  |  :x: |      67.37     |                 |     90.07      |                 | [:link:](https://drive.google.com/drive/folders/19u3p1maX3xqwoCHNrqSDb98J5fRvd_6v?usp=sharing) |
 | VICReg       | ResNet18 |  1000  |  :x: |      68.54     |                 |     90.83      |                 | [:link:](https://drive.google.com/drive/folders/1AHmVf_Zl5fikkmR4X3NWlmMOnRzfv0aT?usp=sharing) |
@@ -211,6 +215,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | ReSSL                   | ResNet18 |   400  | :heavy_check_mark: |      76.92     |     78.48       |      94.20     |      94.24      | [:link:](https://drive.google.com/drive/folders/1urWIFACLont4GAduis6l0jcEbl080c9U?usp=sharing) |
 | SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.04     |     77.48       |      94.02     |      93.42      | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
 | Simsiam                 | ResNet18 |   400  | :heavy_check_mark: |      74.54     |     78.72       |      93.16     |      94.78      | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
+| SupCon                  | ResNet18 |   400  | :heavy_check_mark: |      84.40     |                 |      95.72     |                 | [:link:](https://drive.google.com/drive/folders/1BzR0nehkCKpnLhi-oeDynzzUcCYOCUJi?usp=sharing) |
 | SwAV                    | ResNet18 |   400  | :heavy_check_mark: |      74.04     |     74.28       |      92.70     |      92.84      | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
 | VIbCReg                 | ResNet18 |   400  | :heavy_check_mark: |      79.86     |     79.38       |      94.98     |      94.60      | [:link:](https://drive.google.com/drive/folders/1Q06hH18usvRwj2P0bsmoCkjNUX_0syCK?usp=sharing) |
 | VICReg       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.22     |     79.40       |      95.06     |      95.02      | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
@@ -233,8 +238,9 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | ReSSL        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | Simsiam      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| SupCon       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SwAV         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| VIbCReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| VIbCReg      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | W-MSE        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 

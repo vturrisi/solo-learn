@@ -24,7 +24,7 @@ from solo.losses.dino import DINOLoss
 from solo.losses.moco import moco_loss_func
 from solo.losses.nnclr import nnclr_loss_func
 from solo.losses.ressl import ressl_loss_func
-from solo.losses.simclr import manual_simclr_loss_func, simclr_loss_func
+from solo.losses.simclr import simclr_loss_func
 from solo.losses.simsiam import simsiam_loss_func
 from solo.losses.swav import swav_loss_func
 from solo.losses.vibcreg import vibcreg_loss_func
@@ -40,7 +40,6 @@ __all__ = [
     "nnclr_loss_func",
     "ressl_loss_func",
     "simclr_loss_func",
-    "manual_simclr_loss_func",
     "simsiam_loss_func",
     "swav_loss_func",
     "vibcreg_loss_func",

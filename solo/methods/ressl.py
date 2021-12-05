@@ -181,7 +181,7 @@ class ReSSL(BaseMomentumMethod):
         queue = self.queue.clone().detach()
         ressl_loss = ressl_loss_func(q, k, queue, self.temperature_q, self.temperature_k)
 
-        self.log("ressl_loss", ressl_loss, on_epoch=True, sync_dist=True)
+        self.log("train_ressl_loss", ressl_loss, on_epoch=True, sync_dist=True)
 
         # dequeue and enqueue
         self.dequeue_and_enqueue(k)
