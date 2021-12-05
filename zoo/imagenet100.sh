@@ -76,8 +76,8 @@ cd ..
 # SupCon
 mkdir supcon
 cd supcon
-gdown https://drive.google.com/uc?id=
-gdown https://drive.google.com/uc?id=
+gdown https://drive.google.com/uc?id=1-NRvw7J9WrQKBvDhmuirQmTklMlQasxI # checkpoint
+gdown https://drive.google.com/uc?id=1IKTW20UTWlHSO4RsgO1QxakYs5ZscY26 # args
 cd ..
 
 # SwAV

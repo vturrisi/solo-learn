@@ -69,8 +69,8 @@ cd ..
 # SupCon
 mkdir supcon
 cd supcon
-gdown https://drive.google.com/uc?id=
-gdown https://drive.google.com/uc?id=
+gdown https://drive.google.com/uc?id=1QhPHENtgYttIF1Dn1srA4dAkIiC_5P7W
+gdown https://drive.google.com/uc?id=1QsZs9TfWoycrHBBUrliWe-cqkGQ9epAD
 cd ..
 
 # SwAV
