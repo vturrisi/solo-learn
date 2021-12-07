@@ -4,6 +4,7 @@ python3 ../../../main_pretrain.py \
     --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
+    --accelerator gpu \
     --precision 16 \
     --optimizer sgd \
     --lars \
