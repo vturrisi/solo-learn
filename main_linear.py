@@ -94,6 +94,12 @@ def main():
 
     state = torch.load(ckpt_path)["state_dict"]
     for k in list(state.keys()):
+        if "encoder" in k:
+            raise Exception(
+                "You are using an older checkpoint."
+                "Either use a new one, or convert it by replacing"
+                "all 'encoder' occurances in state_dict with 'backbone'"
+            )
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]
         del state[k]
