@@ -19,7 +19,7 @@
 
 import torch
 import torch.nn.functional as F
-from solo.utils.misc import gather
+from solo.utils.misc import gather, get_rank
 
 
 def simclr_loss_func(
@@ -48,7 +48,8 @@ def simclr_loss_func(
     indexes = indexes.unsqueeze(0)
     gathered_indexes = gathered_indexes.unsqueeze(0)
     # positives
-    pos_mask = (indexes.t() == gathered_indexes).fill_diagonal_(False)
+    pos_mask = indexes.t() == gathered_indexes
+    pos_mask[:, z.size(0) * get_rank() :].fill_diagonal_(0)
     # negatives
     neg_mask = indexes.t() != gathered_indexes
 
