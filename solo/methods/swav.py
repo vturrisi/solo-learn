@@ -1,3 +1,22 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import argparse
 from typing import Any, Dict, List, Sequence
 
@@ -5,14 +24,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.swav import swav_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
 
-class SwAV(BaseModel):
+class SwAV(BaseMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         num_prototypes: int,
         sk_iters: int,
@@ -26,7 +45,7 @@ class SwAV(BaseModel):
         """Implements SwAV (https://arxiv.org/abs/2006.09882).
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             num_prototypes (int): number of prototypes.
             sk_iters (int): number of iterations for the sinkhorn-knopp algorithm.
@@ -39,7 +58,7 @@ class SwAV(BaseModel):
 
         super().__init__(**kwargs)
 
-        self.output_dim = output_dim
+        self.proj_output_dim = proj_output_dim
         self.sk_iters = sk_iters
         self.sk_epsilon = sk_epsilon
         self.temperature = temperature
@@ -52,11 +71,13 @@ class SwAV(BaseModel):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # prototypes
-        self.prototypes = nn.utils.weight_norm(nn.Linear(output_dim, num_prototypes, bias=False))
+        self.prototypes = nn.utils.weight_norm(
+            nn.Linear(proj_output_dim, num_prototypes, bias=False)
+        )
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -64,7 +85,7 @@ class SwAV(BaseModel):
         parser = parent_parser.add_argument_group("swav")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # queue settings
@@ -105,13 +126,13 @@ class SwAV(BaseModel):
                 torch.zeros(
                     2,
                     self.queue_size // world_size,
-                    self.output_dim,
+                    self.proj_output_dim,
                     device=self.device,
                 ),
             )
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder, the projector and the prototypes.
+        """Performs the forward pass of the backbone, the projector and the prototypes.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -151,11 +172,11 @@ class SwAV(BaseModel):
         return assignments
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for SwAV reusing BaseModel training step.
+        """Training step for SwAV reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:

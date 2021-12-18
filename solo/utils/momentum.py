@@ -1,3 +1,22 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import math
 
 import torch
@@ -9,8 +28,8 @@ def initialize_momentum_params(online_net: nn.Module, momentum_net: nn.Module):
     """Copies the parameters of the online network to the momentum network.
 
     Args:
-        online_net (nn.Module): online network (e.g. online encoder, online projection, etc...).
-        momentum_net (nn.Module): momentum network (e.g. momentum encoder,
+        online_net (nn.Module): online network (e.g. online backbone, online projection, etc...).
+        momentum_net (nn.Module): momentum network (e.g. momentum backbone,
             momentum projection, etc...).
     """
 
@@ -46,8 +65,8 @@ class MomentumUpdater:
         """Performs the momentum update for each param group.
 
         Args:
-            online_net (nn.Module): online network (e.g. online encoder, online projection, etc...).
-            momentum_net (nn.Module): momentum network (e.g. momentum encoder,
+            online_net (nn.Module): online network (e.g. online backbone, online projection, etc...).
+            momentum_net (nn.Module): momentum network (e.g. momentum backbone,
                 momentum projection, etc...).
         """
 

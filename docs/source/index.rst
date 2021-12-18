@@ -13,12 +13,26 @@ While the library is self contained, it is possible to use the models outside of
 
 ======================================
 
+
 .. toctree::
    :maxdepth: 2
    :caption: Getting started
 
    start/install
    start/available
+
+
+======================================
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials/overview
+   tutorials/offline_linear_eval
+   tutorials/add_new_method
+   tutorials/add_new_method_momentum
 
 
 ======================================
@@ -55,11 +69,14 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/deepclusterv2
    solo/methods/dino
    solo/methods/mocov2plus
+   solo/methods/nnbyol
    solo/methods/nnclr
+   solo/methods/nnsiam
    solo/methods/ressl
    solo/methods/simclr
    solo/methods/simsiam
    solo/methods/swav
+   solo/methods/vibcreg
    solo/methods/vicreg
    solo/methods/wmse
 
@@ -80,6 +97,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/losses/simclr
    solo/losses/simsiam
    solo/losses/swav
+   solo/losses/vibcreg
    solo/losses/vicreg
    solo/losses/wmse
 

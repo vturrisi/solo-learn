@@ -1,11 +1,12 @@
 python3 ../../../main_pretrain.py \
     --dataset $1 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0 \
-    --num_workers 4 \
+    --accelerator gpu \
     --precision 16 \
+    --num_workers 4 \
     --optimizer sgd \
     --lars \
     --grad_clip_lars \
@@ -21,11 +22,14 @@ python3 ../../../main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.2 \
+    --crop_size 32 \
+    --num_crops_per_aug 1 1 \
     --name barlow-$1 \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
+    --save_checkpoint \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
-    --output_dim 2048 \
+    --proj_output_dim 2048 \
     --scale_loss 0.1

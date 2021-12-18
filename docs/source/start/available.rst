@@ -19,14 +19,14 @@ Extra flavor
 Data
 ====
 
-* Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI)
+* Increased data processing speed by up to 100% using `Nvidia Dali <https://github.com/NVIDIA/DALI>`_
 * Asymmetric and symmetric augmentations
 
 Evaluation and logging
 ======================
 
 
-* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum encoder as well)
+* Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well)
 * Normal offline linear evaluation
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more)
 * Easy-to-extend modular code structure
@@ -38,7 +38,7 @@ Evaluation and logging
 Training tricks
 ===============
 
-* Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
+* Multi-cropping dataloading following `SwAV <https://arxiv.org/abs/2006.09882>`_:
     * **Note**: currently, only SimCLR supports this
 * Exclude batchnorm and biases from LARS
 * No LR scheduler for the projection head in SimSiam

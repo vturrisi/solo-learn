@@ -15,19 +15,36 @@ datasets/
 *.pth
 *.ckpt
 *.tar
+*.pkl
 
-*.png
-*.jpg
-*.jpeg
+bash_files/*.png
+bash_files/*.jpg
+bash_files/*.jpeg
+
+downstream/*.png
+downstream/*.jpg
+downstream/*.jpeg
+
+solo/*.png
+solo/*.jpg
+solo/*.jpeg
+
+tests/*.png
+tests/*.jpg
+tests/*.jpeg
+
+zoo/*.png
+zoo/*.jpg
+zoo/*.jpeg
 
 saved_models/
-model_storage/
 model_storage*/
 lightning_logs/
 
 *.json
 
 *logs*/
+*output*/
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode
@@ -139,10 +156,10 @@ dmypy.json
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files

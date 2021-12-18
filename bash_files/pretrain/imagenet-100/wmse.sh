@@ -1,12 +1,14 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/test \
     --max_epochs 400 \
     --precision 16 \
-    --gpus 0 \
+    --gpus 0,1 \
+    --accelerator gpu \
+    --strategy ddp \
     --num_workers 4 \
     --optimizer adam \
     --scheduler warmup_cosine \
@@ -22,11 +24,13 @@ python3 ../../../main_pretrain.py \
     --hue 0.2 \
     --gaussian_prob 0.2 \
     --min_scale 0.08 \
+    --num_crops_per_aug 2 \
     --dali \
     --wandb \
+    --save_checkpoint \
     --name wmse-imagenet100 \
     --project solo-learn \
     --entity unitn-mhug \
     --method wmse \
-    --output_dim 64 \
+    --proj_output_dim 64 \
     --whitening_size 128

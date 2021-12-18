@@ -1,3 +1,22 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import math
 from abc import ABC
 from pathlib import Path
@@ -10,7 +29,6 @@ from solo.utils.dali_dataloader import (
     CustomNormalPipeline,
     CustomTransform,
     ImagenetTransform,
-    MulticropPretrainPipeline,
     NormalPipeline,
     PretrainPipeline,
 )
@@ -28,13 +46,13 @@ class BaseWrapper(DALIGenericIterator):
         if self._reader_name:
             if self._last_batch_policy != LastBatchPolicy.DROP:
                 return math.ceil(size / self.batch_size)
-            else:
-                return size // self.batch_size
+
+            return size // self.batch_size
         else:
             if self._last_batch_policy != LastBatchPolicy.DROP:
                 return math.ceil(size / (self._num_gpus * self.batch_size))
-            else:
-                return size // (self._num_gpus * self.batch_size)
+
+            return size // (self._num_gpus * self.batch_size)
 
 
 class PretrainWrapper(BaseWrapper):
@@ -132,6 +150,7 @@ class PretrainABC(ABC):
         # data augmentations
         unique_augs = self.extra_args["unique_augs"]
         transform_kwargs = self.extra_args["transform_kwargs"]
+        num_crops_per_aug = self.extra_args["num_crops_per_aug"]
 
         num_workers = self.extra_args["num_workers"]
         data_dir = Path(self.extra_args["data_dir"])
@@ -149,71 +168,35 @@ class PretrainABC(ABC):
         else:
             raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
 
-        if self.multicrop:
-            num_crops = [self.num_crops, self.num_small_crops]
-            size_crops = [224, 96]
-            min_scales = [0.14, 0.05]
-            max_scale_crops = [1.0, 0.14]
-
-            transforms = []
-            for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
-                transform = transform_pipeline(
+        if unique_augs > 1:
+            transforms = [
+                transform_pipeline(
                     device=dali_device,
-                    **transform_kwargs,
-                    size=size,
-                    min_scale=min_scale,
-                    max_scale=max_scale,
+                    **kwargs,
                 )
-                transforms.append(transform)
-            train_pipeline = MulticropPretrainPipeline(
-                data_dir / train_dir,
-                batch_size=self.batch_size,
-                transforms=transforms,
-                num_crops=num_crops,
-                device=dali_device,
-                device_id=device_id,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                num_threads=num_workers,
-                no_labels=self.extra_args["no_labels"],
-                encode_indexes_into_labels=self.encode_indexes_into_labels,
-            )
-            output_map = [
-                *[f"large{i}" for i in range(num_crops[0])],
-                *[f"small{i}" for i in range(num_crops[1])],
-                "label",
+                for kwargs in transform_kwargs
             ]
-
         else:
-            if unique_augs > 1:
-                transform = [
-                    transform_pipeline(
-                        device=dali_device,
-                        **kwargs,
-                        max_scale=1.0,
-                    )
-                    for kwargs in transform_kwargs
-                ]
-            else:
-                transform = transform_pipeline(
-                    device=dali_device,
-                    **transform_kwargs,
-                    max_scale=1.0,
-                )
+            transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]
 
-            train_pipeline = PretrainPipeline(
-                data_dir / train_dir,
-                batch_size=self.batch_size,
-                transform=transform,
-                device=dali_device,
-                device_id=device_id,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                num_threads=num_workers,
-                no_labels=self.extra_args["no_labels"],
-                encode_indexes_into_labels=self.encode_indexes_into_labels,
-            )
-            output_map = [f"large{i}" for i in range(self.num_crops)] + ["label"]
+        train_pipeline = PretrainPipeline(
+            data_dir / train_dir,
+            batch_size=self.batch_size,
+            transforms=transforms,
+            num_crops_per_aug=num_crops_per_aug,
+            device=dali_device,
+            device_id=device_id,
+            shard_id=shard_id,
+            num_shards=num_shards,
+            num_threads=num_workers,
+            no_labels=self.extra_args["no_labels"],
+            encode_indexes_into_labels=self.encode_indexes_into_labels,
+        )
+        output_map = (
+            [f"large{i}" for i in range(self.num_large_crops)]
+            + [f"small{i}" for i in range(self.num_small_crops)]
+            + ["label"]
+        )
 
         policy = LastBatchPolicy.DROP
         conversion_map = train_pipeline.conversion_map if self.encode_indexes_into_labels else None

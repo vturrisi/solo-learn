@@ -1,16 +1,52 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 from argparse import ArgumentParser
 from functools import partial
-from typing import Any, Callable, Dict, List, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+from solo.utils.backbones import (
+    poolformer_m36,
+    poolformer_m48,
+    poolformer_s12,
+    poolformer_s24,
+    poolformer_s36,
+    swin_base,
+    swin_large,
+    swin_small,
+    swin_tiny,
+    vit_base,
+    vit_large,
+    vit_small,
+    vit_tiny,
+)
+from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
+from torchvision.models import resnet18, resnet50
 
 
 def static_lr(
@@ -22,13 +58,31 @@ def static_lr(
     return lrs
 
 
-class BaseModel(pl.LightningModule):
+class BaseMethod(pl.LightningModule):
+
+    _SUPPORTED_BACKBONES = {
+        "resnet18": resnet18,
+        "resnet50": resnet50,
+        "vit_tiny": vit_tiny,
+        "vit_small": vit_small,
+        "vit_base": vit_base,
+        "vit_large": vit_large,
+        "swin_tiny": swin_tiny,
+        "swin_small": swin_small,
+        "swin_base": swin_base,
+        "swin_large": swin_large,
+        "poolformer_s12": poolformer_s12,
+        "poolformer_s24": poolformer_s24,
+        "poolformer_s36": poolformer_s36,
+        "poolformer_m36": poolformer_m36,
+        "poolformer_m48": poolformer_m48,
+    }
+
     def __init__(
         self,
-        encoder: str,
+        backbone: str,
         num_classes: int,
-        cifar: bool,
-        zero_init_residual: bool,
+        backbone_args: dict,
         max_epochs: int,
         batch_size: int,
         optimizer: str,
@@ -37,18 +91,19 @@ class BaseModel(pl.LightningModule):
         weight_decay: float,
         classifier_lr: float,
         exclude_bias_n_norm: bool,
-        accumulate_grad_batches: int,
+        accumulate_grad_batches: Union[int, None],
         extra_optimizer_args: Dict,
         scheduler: str,
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
-        multicrop: bool,
-        num_crops: int,
+        num_large_crops: int,
         num_small_crops: int,
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
+        knn_eval: bool = False,
+        knn_k: int = 20,
         **kwargs,
     ):
         """Base model that implements all basic operations for all self-supervised methods.
@@ -57,10 +112,15 @@ class BaseModel(pl.LightningModule):
         trains the online classifier and implements validation_step.
 
         Args:
-            encoder (str): architecture of the base encoder.
+            backbone (str): architecture of the base backbone.
             num_classes (int): number of classes.
-            cifar (bool): flag indicating if cifar is being used.
-            zero_init_residual (bool): change the initialization of the resnet encoder.
+            backbone_params (dict): dict containing extra backbone args, namely:
+                #! optional, if it's not present, it is considered as False
+                cifar (bool): flag indicating if cifar is being used.
+                #! only for resnet
+                zero_init_residual (bool): change the initialization of the resnet backbone.
+                #! only for vit
+                patch_size (int): size of the patches for ViT.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
@@ -70,26 +130,41 @@ class BaseModel(pl.LightningModule):
             classifier_lr (float): learning rate for the online linear classifier.
             exclude_bias_n_norm (bool): flag indicating if bias and norms should be excluded from
                 lars.
-            accumulate_grad_batches (int): number of batches for gradient accumulation.
+            accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
             extra_optimizer_args (Dict): extra named arguments for the optimizer.
             scheduler (str): name of the scheduler.
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
-            multicrop (bool): flag indicating if multi-resolution crop is being used.
-            num_crops (int): number of big crops
-            num_small_crops (int): number of small crops (will be set to 0 if multicrop is False).
+            num_large_crops (int): number of big crops.
+            num_small_crops (int): number of small crops .
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
+            knn_eval (bool): enables online knn evaluation while training.
+            knn_k (int): the number of neighbors to use for knn.
+
+        .. note::
+            When using distributed data parallel, the batch size and the number of workers are
+            specified on a per process basis. Therefore, the total batch size (number of workers)
+            is calculated as the product of the number of GPUs with the batch size (number of
+            workers).
+
+        .. note::
+            The learning rate (base, min and warmup) is automatically scaled linearly based on the
+            batch size and gradient accumulation.
+
+        .. note::
+            For CIFAR10/100, the first convolutional and maxpooling layers of the ResNet backbone
+            are slightly adjusted to handle lower resolution images (32x32 instead of 224x224).
+
         """
 
         super().__init__()
 
-        # back-bone related
-        self.cifar = cifar
-        self.zero_init_residual = zero_init_residual
+        # resnet backbone related
+        self.backbone_args = backbone_args
 
         # training related
         self.num_classes = num_classes
@@ -108,42 +183,58 @@ class BaseModel(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
-        self.multicrop = multicrop
-        self.num_crops = num_crops
+        self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
         self.grad_clip_lars = grad_clip_lars
+        self.knn_eval = knn_eval
+        self.knn_k = knn_k
 
-        # sanity checks on multicrop
-        if self.multicrop:
-            assert num_small_crops > 0
-        else:
-            self.num_small_crops = 0
+        # multicrop
+        self.num_crops = self.num_large_crops + self.num_small_crops
 
         # all the other parameters
         self.extra_args = kwargs
 
+        # turn on multicrop if there are small crops
+        self.multicrop = self.num_small_crops != 0
+
         # if accumulating gradient then scale lr
-        self.lr = self.lr * self.accumulate_grad_batches
-        self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
-        self.min_lr = self.min_lr * self.accumulate_grad_batches
-        self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
+        if self.accumulate_grad_batches:
+            self.lr = self.lr * self.accumulate_grad_batches
+            self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
+            self.min_lr = self.min_lr * self.accumulate_grad_batches
+            self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert encoder in ["resnet18", "resnet50"]
-        from torchvision.models import resnet18, resnet50
+        assert backbone in BaseMethod._SUPPORTED_BACKBONES
+        self.base_model = self._SUPPORTED_BACKBONES[backbone]
 
-        self.base_model = {"resnet18": resnet18, "resnet50": resnet50}[encoder]
+        self.backbone_name = backbone
 
-        # initialize encoder
-        self.encoder = self.base_model(zero_init_residual=zero_init_residual)
-        self.features_dim = self.encoder.inplanes
-        # remove fc layer
-        self.encoder.fc = nn.Identity()
-        if cifar:
-            self.encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=2, bias=False)
-            self.encoder.maxpool = nn.Identity()
+        # initialize backbone
+        kwargs = self.backbone_args.copy()
+        cifar = kwargs.pop("cifar", False)
+        # swin specific
+        if "swin" in self.backbone_name and cifar:
+            kwargs["window_size"] = 4
+
+        self.backbone = self.base_model(**kwargs)
+        if "resnet" in self.backbone_name:
+            self.features_dim = self.backbone.inplanes
+            # remove fc layer
+            self.backbone.fc = nn.Identity()
+            if cifar:
+                self.backbone.conv1 = nn.Conv2d(
+                    3, 64, kernel_size=3, stride=1, padding=2, bias=False
+                )
+                self.backbone.maxpool = nn.Identity()
+        else:
+            self.features_dim = self.backbone.num_features
 
         self.classifier = nn.Linear(self.features_dim, num_classes)
+
+        if self.knn_eval:
+            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -159,11 +250,14 @@ class BaseModel(pl.LightningModule):
 
         parser = parent_parser.add_argument_group("base")
 
-        # encoder args
-        SUPPORTED_NETWORKS = ["resnet18", "resnet50"]
+        # backbone args
+        SUPPORTED_BACKBONES = BaseMethod._SUPPORTED_BACKBONES
 
-        parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS, type=str)
+        parser.add_argument("--backbone", choices=SUPPORTED_BACKBONES, type=str)
+        # extra args for resnet
         parser.add_argument("--zero_init_residual", action="store_true")
+        # extra args for ViT
+        parser.add_argument("--patch_size", type=int, default=16)
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)
@@ -180,7 +274,7 @@ class BaseModel(pl.LightningModule):
         parser.add_argument("--offline", action="store_true")
 
         # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
+        SUPPORTED_OPTIMIZERS = ["sgd", "adam", "adamw"]
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
         parser.add_argument("--lars", action="store_true")
@@ -209,6 +303,10 @@ class BaseModel(pl.LightningModule):
         # this may use more CPU memory, so just use when needed.
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
 
+        # online knn eval
+        parser.add_argument("--knn_eval", action="store_true")
+        parser.add_argument("--knn_k", default=20, type=int)
+
         return parent_parser
 
     @property
@@ -221,7 +319,7 @@ class BaseModel(pl.LightningModule):
         """
 
         return [
-            {"name": "encoder", "params": self.encoder.parameters()},
+            {"name": "backbone", "params": self.backbone.parameters()},
             {
                 "name": "classifier",
                 "params": self.classifier.parameters(),
@@ -247,8 +345,10 @@ class BaseModel(pl.LightningModule):
             optimizer = torch.optim.SGD
         elif self.optimizer == "adam":
             optimizer = torch.optim.Adam
+        elif self.optimizer == "adamw":
+            optimizer = torch.optim.AdamW
         else:
-            raise ValueError(f"{self.optimizer} not in (sgd, adam)")
+            raise ValueError(f"{self.optimizer} not in (sgd, adam, adamw)")
 
         # create optimizer
         optimizer = optimizer(
@@ -259,6 +359,7 @@ class BaseModel(pl.LightningModule):
         )
         # optionally wrap with lars
         if self.lars:
+            assert self.optimizer == "sgd", "LARS is only compatible with SGD."
             optimizer = LARSWrapper(
                 optimizer,
                 eta=self.eta_lars,
@@ -268,32 +369,32 @@ class BaseModel(pl.LightningModule):
 
         if self.scheduler == "none":
             return optimizer
+
+        if self.scheduler == "warmup_cosine":
+            scheduler = LinearWarmupCosineAnnealingLR(
+                optimizer,
+                warmup_epochs=self.warmup_epochs,
+                max_epochs=self.max_epochs,
+                warmup_start_lr=self.warmup_start_lr,
+                eta_min=self.min_lr,
+            )
+        elif self.scheduler == "cosine":
+            scheduler = CosineAnnealingLR(optimizer, self.max_epochs, eta_min=self.min_lr)
+        elif self.scheduler == "step":
+            scheduler = MultiStepLR(optimizer, self.lr_decay_steps)
         else:
-            if self.scheduler == "warmup_cosine":
-                scheduler = LinearWarmupCosineAnnealingLR(
-                    optimizer,
-                    warmup_epochs=self.warmup_epochs,
-                    max_epochs=self.max_epochs,
-                    warmup_start_lr=self.warmup_start_lr,
-                    eta_min=self.min_lr,
-                )
-            elif self.scheduler == "cosine":
-                scheduler = CosineAnnealingLR(optimizer, self.max_epochs, eta_min=self.min_lr)
-            elif self.scheduler == "step":
-                scheduler = MultiStepLR(optimizer, self.lr_decay_steps)
-            else:
-                raise ValueError(f"{self.scheduler} not in (warmup_cosine, cosine, step)")
+            raise ValueError(f"{self.scheduler} not in (warmup_cosine, cosine, step)")
 
-            if idxs_no_scheduler:
-                partial_fn = partial(
-                    static_lr,
-                    get_lr=scheduler.get_lr,
-                    param_group_indexes=idxs_no_scheduler,
-                    lrs_to_replace=[self.lr] * len(idxs_no_scheduler),
-                )
-                scheduler.get_lr = partial_fn
+        if idxs_no_scheduler:
+            partial_fn = partial(
+                static_lr,
+                get_lr=scheduler.get_lr,
+                param_group_indexes=idxs_no_scheduler,
+                lrs_to_replace=[self.lr] * len(idxs_no_scheduler),
+            )
+            scheduler.get_lr = partial_fn
 
-            return [optimizer], [scheduler]
+        return [optimizer], [scheduler]
 
     def forward(self, *args, **kwargs) -> Dict:
         """Dummy forward, calls base forward."""
@@ -310,35 +411,34 @@ class BaseModel(pl.LightningModule):
             Dict: dict of logits and features.
         """
 
-        feats = self.encoder(X)
+        feats = self.backbone(X)
         logits = self.classifier(feats.detach())
-        return {"logits": logits, "feats": feats}
+        return {
+            "logits": logits,
+            "feats": feats,
+        }
 
-    def _shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+    def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
         features, acc@1 and acc@5.
 
         Args:
-            X (torch.Tensor): batch of images in tensor format
-            targets (torch.Tensor): batch of labels for X
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
 
         Returns:
-            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
         """
 
         out = self.base_forward(X)
         logits = out["logits"]
+
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
         # handle when the number of classes is smaller than 5
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
 
-        return {
-            "loss": loss,
-            **out,
-            "acc1": acc1.detach(),
-            "acc5": acc5.detach(),
-        }
+        return {**out, "loss": loss, "acc1": acc1, "acc5": acc5}
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
@@ -346,11 +446,11 @@ class BaseModel(pl.LightningModule):
 
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size self.num_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: dict with the classification loss, features and logits
+            Dict[str, Any]: dict with the classification loss, features and logits.
         """
 
         _, X, targets = batch
@@ -358,18 +458,18 @@ class BaseModel(pl.LightningModule):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
-        assert len(X) == self.num_crops + self.num_small_crops
+        assert len(X) == self.num_crops
 
-        outs = [self._shared_step(x, targets) for x in X[: self.num_crops]]
+        outs = [self._base_shared_step(x, targets) for x in X[: self.num_large_crops]]
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.encoder(x) for x in X[self.num_crops :]])
+            outs["feats"].extend([self.backbone(x) for x in X[self.num_large_crops :]])
 
         # loss and stats
-        outs["loss"] = sum(outs["loss"]) / self.num_crops
-        outs["acc1"] = sum(outs["acc1"]) / self.num_crops
-        outs["acc5"] = sum(outs["acc5"]) / self.num_crops
+        outs["loss"] = sum(outs["loss"]) / self.num_large_crops
+        outs["acc1"] = sum(outs["acc1"]) / self.num_large_crops
+        outs["acc5"] = sum(outs["acc5"]) / self.num_large_crops
 
         metrics = {
             "train_class_loss": outs["loss"],
@@ -379,26 +479,38 @@ class BaseModel(pl.LightningModule):
 
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
+        if self.knn_eval:
+            targets = targets.repeat(self.num_large_crops)
+            mask = targets != -1
+            self.knn(
+                train_features=torch.cat(outs["feats"][: self.num_large_crops])[mask].detach(),
+                train_targets=targets[mask],
+            )
+
         return outs
 
-    def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def validation_step(
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
+    ) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
 
         Args:
-            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y]
-            batch_idx (int): index of the batch
+            batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y].
+            batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]:
-                dict with the batch_size (used for averaging),
-                the classification loss and accuracies
+            Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
+                and accuracies.
         """
 
         X, targets = batch
         batch_size = targets.size(0)
 
-        out = self._shared_step(X, targets)
+        out = self._base_shared_step(X, targets)
+
+        if self.knn_eval and not self.trainer.sanity_checking:
+            self.knn(test_features=out.pop("feats").detach(), test_targets=targets.detach())
 
         metrics = {
             "batch_size": batch_size,
@@ -422,10 +534,15 @@ class BaseModel(pl.LightningModule):
         val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
+
+        if self.knn_eval and not self.trainer.sanity_checking:
+            val_knn_acc1, val_knn_acc5 = self.knn.compute()
+            log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
+
         self.log_dict(log, sync_dist=True)
 
 
-class BaseMomentumModel(BaseModel):
+class BaseMomentumMethod(BaseMethod):
     def __init__(
         self,
         base_tau_momentum: float,
@@ -434,8 +551,8 @@ class BaseMomentumModel(BaseModel):
         **kwargs,
     ):
         """Base momentum model that implements all basic operations for all self-supervised methods
-        that use a momentum encoder. It adds shared momentum arguments, adds basic learnable
-        parameters, implements basic training and validation steps for the momentum encoder and
+        that use a momentum backbone. It adds shared momentum arguments, adds basic learnable
+        parameters, implements basic training and validation steps for the momentum backbone and
         classifier. Also implements momentum update using exponential moving average and cosine
         annealing of the weighting decrease coefficient.
 
@@ -445,20 +562,32 @@ class BaseMomentumModel(BaseModel):
             final_tau_momentum (float): final value of the weighting decrease coefficient (should be
                 in [0,1]).
             momentum_classifier (bool): whether or not to train a classifier on top of the momentum
-                encoder.
+                backbone.
         """
 
         super().__init__(**kwargs)
 
-        # momentum encoder
-        self.momentum_encoder = self.base_model(zero_init_residual=self.zero_init_residual)
-        self.momentum_encoder.fc = nn.Identity()
-        if self.cifar:
-            self.momentum_encoder.conv1 = nn.Conv2d(
-                3, 64, kernel_size=3, stride=1, padding=2, bias=False
-            )
-            self.momentum_encoder.maxpool = nn.Identity()
-        initialize_momentum_params(self.encoder, self.momentum_encoder)
+        # momentum backbone
+        kwargs = self.backbone_args.copy()
+        cifar = kwargs.pop("cifar", False)
+        # swin specific
+        if "swin" in self.backbone_name and cifar:
+            kwargs["window_size"] = 4
+
+        self.momentum_backbone = self.base_model(**kwargs)
+        if "resnet" in self.backbone_name:
+            self.features_dim = self.momentum_backbone.inplanes
+            # remove fc layer
+            self.momentum_backbone.fc = nn.Identity()
+            if cifar:
+                self.momentum_backbone.conv1 = nn.Conv2d(
+                    3, 64, kernel_size=3, stride=1, padding=2, bias=False
+                )
+                self.momentum_backbone.maxpool = nn.Identity()
+        else:
+            self.features_dim = self.momentum_backbone.num_features
+
+        initialize_momentum_params(self.backbone, self.momentum_backbone)
 
         # momentum classifier
         if momentum_classifier:
@@ -498,7 +627,7 @@ class BaseMomentumModel(BaseModel):
             List[Tuple[Any, Any]]: list of momentum pairs (two element tuples).
         """
 
-        return [(self.encoder, self.momentum_encoder)]
+        return [(self.backbone, self.momentum_backbone)]
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -512,7 +641,7 @@ class BaseMomentumModel(BaseModel):
             ArgumentParser: same as the argument, used to avoid errors.
         """
 
-        parent_parser = super(BaseMomentumModel, BaseMomentumModel).add_model_specific_args(
+        parent_parser = super(BaseMomentumMethod, BaseMomentumMethod).add_model_specific_args(
             parent_parser
         )
         parser = parent_parser.add_argument_group("base")
@@ -530,18 +659,18 @@ class BaseMomentumModel(BaseModel):
 
     @torch.no_grad()
     def base_momentum_forward(self, X: torch.Tensor) -> Dict:
-        """Momentum forward that allows children classes to override how the momentum encoder is used.
+        """Momentum forward that allows children classes to override how the momentum backbone is used.
         Args:
             X (torch.Tensor): batch of images in tensor format.
         Returns:
             Dict: dict of logits and features.
         """
 
-        feats = self.momentum_encoder(X)
+        feats = self.momentum_backbone(X)
         return {"feats": feats}
 
     def _shared_step_momentum(self, X: torch.Tensor, targets: torch.Tensor) -> Dict[str, Any]:
-        """Forwards a batch of images X in the momentum encoder and optionally computes the
+        """Forwards a batch of images X in the momentum backbone and optionally computes the
         classification loss, the logits, the features, acc@1 and acc@5 for of momentum classifier.
 
         Args:
@@ -551,7 +680,7 @@ class BaseMomentumModel(BaseModel):
         Returns:
             Dict[str, Any]:
                 a dict containing the classification loss, logits, features, acc@1 and
-                acc@5 of the momentum encoder / classifier.
+                acc@5 of the momentum backbone / classifier.
         """
 
         out = self.base_momentum_forward(X)
@@ -559,26 +688,24 @@ class BaseMomentumModel(BaseModel):
         if self.momentum_classifier is not None:
             feats = out["feats"]
             logits = self.momentum_classifier(feats)
+
             loss = F.cross_entropy(logits, targets, ignore_index=-1)
             acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, 5))
-            out.update(
-                {"logits": logits, "loss": loss, "acc1": acc1.detach(), "acc5": acc5.detach()}
-            )
+            out.update({"logits": logits, "loss": loss, "acc1": acc1, "acc5": acc5})
 
         return out
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It performs all the shared operations for the
-        momentum encoder and classifier, such as forwarding the crops in the momentum encoder
+        momentum backbone and classifier, such as forwarding the crops in the momentum backbone
         and classifier, and computing statistics.
-
         Args:
             batch (List[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
-            Dict[str, Any]: a dict with the features of the momentum encoder and the classification
+            Dict[str, Any]: a dict with the features of the momentum backbone and the classification
                 loss and logits of the momentum classifier.
         """
 
@@ -588,7 +715,7 @@ class BaseMomentumModel(BaseModel):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # remove small crops
-        X = X[: self.num_crops]
+        X = X[: self.num_large_crops]
 
         momentum_outs = [self._shared_step_momentum(x, targets) for x in X]
         momentum_outs = {
@@ -597,9 +724,15 @@ class BaseMomentumModel(BaseModel):
 
         if self.momentum_classifier is not None:
             # momentum loss and stats
-            momentum_outs["momentum_loss"] = sum(momentum_outs["momentum_loss"]) / self.num_crops
-            momentum_outs["momentum_acc1"] = sum(momentum_outs["momentum_acc1"]) / self.num_crops
-            momentum_outs["momentum_acc5"] = sum(momentum_outs["momentum_acc5"]) / self.num_crops
+            momentum_outs["momentum_loss"] = (
+                sum(momentum_outs["momentum_loss"]) / self.num_large_crops
+            )
+            momentum_outs["momentum_acc1"] = (
+                sum(momentum_outs["momentum_acc1"]) / self.num_large_crops
+            )
+            momentum_outs["momentum_acc5"] = (
+                sum(momentum_outs["momentum_acc5"]) / self.num_large_crops
+            )
 
             metrics = {
                 "train_momentum_class_loss": momentum_outs["momentum_loss"],
@@ -628,30 +761,31 @@ class BaseMomentumModel(BaseModel):
         """
 
         if self.trainer.global_step > self.last_step:
-            # update momentum encoder and projector
+            # update momentum backbone and projector
             momentum_pairs = self.momentum_pairs
             for mp in momentum_pairs:
                 self.momentum_updater.update(*mp)
             # log tau momentum
             self.log("tau", self.momentum_updater.cur_tau)
             # update tau
+            cur_step = self.trainer.global_step
+            if self.trainer.accumulate_grad_batches:
+                cur_step = cur_step * self.trainer.accumulate_grad_batches
             self.momentum_updater.update_tau(
-                cur_step=self.trainer.global_step * self.trainer.accumulate_grad_batches,
+                cur_step=cur_step,
                 max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
             )
         self.last_step = self.trainer.global_step
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int
+        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Validation step for pytorch lightning. It performs all the shared operations for the
-        momentum encoder and classifier, such as forwarding a batch of images in the momentum
-        encoder and classifier and computing statistics.
-
+        momentum backbone and classifier, such as forwarding a batch of images in the momentum
+        backbone and classifier and computing statistics.
         Args:
             batch (List[torch.Tensor]): a batch of data in the format of [X, Y].
             batch_idx (int): index of the batch.
-
         Returns:
             Tuple(Dict[str, Any], Dict[str, Any]): tuple of dicts containing the batch_size (used
                 for averaging), the classification loss and accuracies for both the online and the
@@ -677,10 +811,9 @@ class BaseMomentumModel(BaseModel):
         return parent_metrics, metrics
 
     def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
-        """Averages the losses and accuracies of the momentum encoder / classifier for all the
+        """Averages the losses and accuracies of the momentum backbone / classifier for all the
         validation batches. This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
-
         Args:
             outs (Tuple[List[Dict[str, Any]]]):): list of outputs of the validation step for self
                 and the parent.

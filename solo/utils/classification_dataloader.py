@@ -1,3 +1,22 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import os
 from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
@@ -127,6 +146,7 @@ def prepare_datasets(
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
     val_dir: Optional[Union[str, Path]] = None,
+    download: bool = True,
 ) -> Tuple[Dataset, Dataset]:
     """Prepares train and val datasets.
 
@@ -165,14 +185,14 @@ def prepare_datasets(
         train_dataset = DatasetClass(
             data_dir / train_dir,
             train=True,
-            download=True,
+            download=download,
             transform=T_train,
         )
 
         val_dataset = DatasetClass(
             data_dir / val_dir,
             train=False,
-            download=True,
+            download=download,
             transform=T_val,
         )
 
@@ -186,7 +206,7 @@ def prepare_datasets(
         val_dataset = STL10(
             data_dir / val_dir,
             split="test",
-            download=True,
+            download=download,
             transform=T_val,
         )
 
@@ -239,6 +259,7 @@ def prepare_data(
     val_dir: Optional[Union[str, Path]] = None,
     batch_size: int = 64,
     num_workers: int = 4,
+    download: bool = True,
 ) -> Tuple[DataLoader, DataLoader]:
     """Prepares transformations, creates dataset objects and wraps them in dataloaders.
 
@@ -265,6 +286,7 @@ def prepare_data(
         data_dir=data_dir,
         train_dir=train_dir,
         val_dir=val_dir,
+        download=download,
     )
     train_loader, val_loader = prepare_dataloaders(
         train_dataset,

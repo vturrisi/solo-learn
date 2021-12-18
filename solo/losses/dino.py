@@ -1,8 +1,27 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
+import numpy as np
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
-import numpy as np
 
 
 class DINOLoss(nn.Module):
@@ -14,7 +33,7 @@ class DINOLoss(nn.Module):
         warmup_teacher_temp_epochs: float,
         num_epochs: int,
         student_temp: float = 0.1,
-        num_crops: int = 2,
+        num_large_crops: int = 2,
         center_momentum: float = 0.9,
     ):
         """Auxiliary module to compute DINO's loss.
@@ -27,7 +46,7 @@ class DINOLoss(nn.Module):
             warmup_teacher_temp_epochs (float): number of epochs for the cosine annealing schedule.
             num_epochs (int): total number of epochs.
             student_temp (float, optional): temperature for the student. Defaults to 0.1.
-            num_crops (int, optional): number of crops/views. Defaults to 2.
+            num_large_crops (int, optional): number of crops/views. Defaults to 2.
             center_momentum (float, optional): momentum for the EMA update of the center of
                 mass of the teacher. Defaults to 0.9.
         """
@@ -36,7 +55,7 @@ class DINOLoss(nn.Module):
         self.epoch = 0
         self.student_temp = student_temp
         self.center_momentum = center_momentum
-        self.num_crops = num_crops
+        self.num_large_crops = num_large_crops
         self.register_buffer("center", torch.zeros(1, num_prototypes))
         # we apply a warm up for the teacher temperature because
         # a too high temperature makes the training instable at the beginning
@@ -60,7 +79,7 @@ class DINOLoss(nn.Module):
         """
 
         student_out = student_output / self.student_temp
-        student_out = student_out.chunk(self.num_crops)
+        student_out = student_out.chunk(self.num_large_crops)
 
         # teacher centering and sharpening
         temp = self.teacher_temp_schedule[self.epoch]
@@ -70,11 +89,11 @@ class DINOLoss(nn.Module):
         total_loss = 0
         n_loss_terms = 0
         for iq, q in enumerate(teacher_out):
-            for v in range(len(student_out)):
-                if v == iq:
+            for iv, v in enumerate(student_out):
+                if iv == iq:
                     # we skip cases where student and teacher operate on the same view
                     continue
-                loss = torch.sum(-q * F.log_softmax(student_out[v], dim=-1), dim=-1)
+                loss = torch.sum(-q * F.log_softmax(v, dim=-1), dim=-1)
                 total_loss += loss.mean()
                 n_loss_terms += 1
         total_loss /= n_loss_terms

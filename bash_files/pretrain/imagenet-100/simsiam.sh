@@ -1,12 +1,13 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
     --gpus 0,1 \
-    --distributed_backend ddp \
+    --accelerator gpu \
+    --strategy ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
@@ -20,13 +21,15 @@ python3 ../../../main_pretrain.py \
     --contrast 0.4 \
     --saturation 0.4 \
     --hue 0.1 \
+    --num_crops_per_aug 2 \
     --zero_init_residual \
     --name simsiam-400ep-imagenet100 \
     --dali \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method simsiam \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 512 \
-    --output_dim 2048
+    --proj_output_dim 2048

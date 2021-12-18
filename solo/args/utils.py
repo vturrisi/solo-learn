@@ -1,5 +1,26 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import os
 from argparse import Namespace
+from contextlib import suppress
+
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -22,7 +43,6 @@ def additional_setup_pretrain(args: Namespace):
         - dataset: dataset name.
         - brightness, contrast, saturation, hue, min_scale: required augmentations
             settings.
-        - multicrop: flag to use multicrop.
         - dali: flag to use dali.
         - optimizer: optimizer name being used.
         - gpus: list of gpus to use.
@@ -31,8 +51,6 @@ def additional_setup_pretrain(args: Namespace):
         [optional]
         - gaussian_prob, solarization_prob: optional augmentations settings.
     """
-
-    args.transform_kwargs = {}
 
     if args.dataset in N_CLASSES_PER_DATASET:
         args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
@@ -52,13 +70,17 @@ def additional_setup_pretrain(args: Namespace):
             args.contrast,
             args.saturation,
             args.hue,
+            args.color_jitter_prob,
+            args.gray_scale_prob,
+            args.horizontal_flip_prob,
             args.gaussian_prob,
             args.solarization_prob,
+            args.crop_size,
             args.min_scale,
-            args.size,
+            args.max_scale,
         ]
     )
-    assert unique_augs == args.num_crops or unique_augs == 1
+    assert len(args.num_crops_per_aug) == unique_augs
 
     # assert that either all unique augmentation pipelines have a unique
     # parameter or that a single parameter is replicated to all pipelines
@@ -67,10 +89,14 @@ def additional_setup_pretrain(args: Namespace):
         "contrast",
         "saturation",
         "hue",
+        "color_jitter_prob",
+        "gray_scale_prob",
+        "horizontal_flip_prob",
         "gaussian_prob",
         "solarization_prob",
+        "crop_size",
         "min_scale",
-        "size",
+        "max_scale",
     ]:
         values = getattr(args, p)
         n = len(values)
@@ -88,52 +114,73 @@ def additional_setup_pretrain(args: Namespace):
                 contrast=contrast,
                 saturation=saturation,
                 hue=hue,
+                color_jitter_prob=color_jitter_prob,
+                gray_scale_prob=gray_scale_prob,
+                horizontal_flip_prob=horizontal_flip_prob,
                 gaussian_prob=gaussian_prob,
                 solarization_prob=solarization_prob,
+                crop_size=crop_size,
                 min_scale=min_scale,
-                size=size,
+                max_scale=max_scale,
             )
             for (
                 brightness,
                 contrast,
                 saturation,
                 hue,
+                color_jitter_prob,
+                gray_scale_prob,
+                horizontal_flip_prob,
                 gaussian_prob,
                 solarization_prob,
+                crop_size,
                 min_scale,
-                size,
+                max_scale,
             ) in zip(
                 args.brightness,
                 args.contrast,
                 args.saturation,
                 args.hue,
+                args.color_jitter_prob,
+                args.gray_scale_prob,
+                args.horizontal_flip_prob,
                 args.gaussian_prob,
                 args.solarization_prob,
+                args.crop_size,
                 args.min_scale,
-                args.size,
+                args.max_scale,
             )
         ]
 
-    elif not args.multicrop:
-        args.transform_kwargs = dict(
-            brightness=args.brightness[0],
-            contrast=args.contrast[0],
-            saturation=args.saturation[0],
-            hue=args.hue[0],
-            gaussian_prob=args.gaussian_prob[0],
-            solarization_prob=args.solarization_prob[0],
-            min_scale=args.min_scale[0],
-            size=args.size[0],
-        )
+        # find number of big/small crops
+        big_size = args.crop_size[0]
+        num_large_crops = num_small_crops = 0
+        for size, n_crops in zip(args.crop_size, args.num_crops_per_aug):
+            if big_size == size:
+                num_large_crops += n_crops
+            else:
+                num_small_crops += n_crops
+        args.num_large_crops = num_large_crops
+        args.num_small_crops = num_small_crops
     else:
         args.transform_kwargs = dict(
             brightness=args.brightness[0],
             contrast=args.contrast[0],
             saturation=args.saturation[0],
             hue=args.hue[0],
+            color_jitter_prob=args.color_jitter_prob[0],
+            gray_scale_prob=args.gray_scale_prob[0],
+            horizontal_flip_prob=args.horizontal_flip_prob[0],
             gaussian_prob=args.gaussian_prob[0],
             solarization_prob=args.solarization_prob[0],
+            crop_size=args.crop_size[0],
+            min_scale=args.min_scale[0],
+            max_scale=args.max_scale[0],
         )
+
+        # find number of big/small crops
+        args.num_large_crops = args.num_crops_per_aug[0]
+        args.num_small_crops = 0
 
     # add support for custom mean and std
     if args.dataset == "custom":
@@ -145,14 +192,21 @@ def additional_setup_pretrain(args: Namespace):
                 kwargs["mean"] = args.mean
                 kwargs["std"] = args.std
 
-    if args.dataset in ["cifar10", "cifar100", "stl10"]:
-        if isinstance(args.transform_kwargs, dict):
-            del args.transform_kwargs["size"]
-        else:
-            for kwargs in args.transform_kwargs:
-                del kwargs["size"]
+    # create backbone-specific arguments
+    args.backbone_args = {"cifar": args.dataset in ["cifar10", "cifar100"]}
+    if "resnet" in args.backbone:
+        args.backbone_args["zero_init_residual"] = args.zero_init_residual
+    else:
+        # dataset related for all transformers
+        crop_size = args.crop_size[0]
+        args.backbone_args["img_size"] = crop_size
+        if "vit" in args.backbone:
+            args.backbone_args["patch_size"] = args.patch_size
 
-    args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
+    with suppress(AttributeError):
+        del args.zero_init_residual
+    with suppress(AttributeError):
+        del args.patch_size
 
     if args.dali:
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
@@ -184,13 +238,33 @@ def additional_setup_linear(args: Namespace):
         - lr: learning rate.
     """
 
-    assert args.dataset in N_CLASSES_PER_DATASET
-    args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
+    if args.dataset in N_CLASSES_PER_DATASET:
+        args.num_classes = N_CLASSES_PER_DATASET[args.dataset]
+    else:
+        # hack to maintain the current pipeline
+        # even if the custom dataset doesn't have any labels
+        dir_path = args.data_dir / args.train_dir
+        args.num_classes = max(
+            1,
+            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+        )
 
-    args.cifar = True if args.dataset in ["cifar10", "cifar100"] else False
+    # create backbone-specific arguments
+    args.backbone_args = {"cifar": args.dataset in ["cifar10", "cifar100"]}
+
+    if "resnet" not in args.backbone:
+        # dataset related for all transformers
+        crop_size = args.crop_size[0]
+        args.backbone_args["img_size"] = crop_size
+
+        if "vit" in args.backbone:
+            args.backbone_args["patch_size"] = args.patch_size
+
+    with suppress(AttributeError):
+        del args.patch_size
 
     if args.dali:
-        assert args.dataset in ["imagenet100", "imagenet"]
+        assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":

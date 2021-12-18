@@ -1,11 +1,42 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import json
 import os
+import random
+import string
+import time
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Optional, Union
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
+
+
+def random_string(letter_count=4, digit_count=4):
+    tmp_random = random.Random(time.time())
+    rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
+    rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
+    rand_str = list(rand_str)
+    tmp_random.shuffle(rand_str)
+    return "".join(rand_str)
 
 
 class Checkpointer(Callback):
@@ -55,7 +86,13 @@ class Checkpointer(Callback):
         """
 
         if trainer.logger is None:
-            version = None
+            if self.logdir.exists():
+                existing_versions = set(os.listdir(self.logdir))
+            else:
+                existing_versions = []
+            version = "offline-" + random_string()
+            while version in existing_versions:
+                version = "offline-" + random_string()
         else:
             version = str(trainer.logger.version)
         if version is not None:
@@ -89,7 +126,7 @@ class Checkpointer(Callback):
             trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
-        if trainer.is_global_zero and not trainer.running_sanity_check:
+        if trainer.is_global_zero and not trainer.sanity_checking:
             epoch = trainer.current_epoch  # type: ignore
             ckpt = self.path / self.ckpt_placeholder.format(epoch)
             trainer.save_checkpoint(ckpt)
@@ -108,8 +145,8 @@ class Checkpointer(Callback):
         self.initial_setup(trainer)
         self.save_args(trainer)
 
-    def on_validation_end(self, trainer: pl.Trainer, _):
-        """Tries to save current checkpoint at the end of each validation epoch.
+    def on_train_epoch_end(self, trainer: pl.Trainer, _):
+        """Tries to save current checkpoint at the end of each train epoch.
 
         Args:
             trainer (pl.Trainer): pytorch lightning trainer object.

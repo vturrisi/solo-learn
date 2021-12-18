@@ -1,12 +1,13 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet100 \
-    --encoder resnet18 \
-    --data_dir /data/datasets \
+    --backbone resnet18 \
+    --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
     --gpus 0,1 \
-    --distributed_backend ddp \
+    --accelerator gpu \
+    --strategy ddp \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
@@ -20,20 +21,22 @@ python3 ../../../main_pretrain.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-6 \
     --batch_size 128 \
-    --num_workers 8 \
+    --num_workers 4 \
     --dali \
     --brightness 0.8 \
     --contrast 0.8 \
     --saturation 0.8 \
     --hue 0.2 \
+    --num_crops_per_aug 2 \
     --name swav-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
+    --save_checkpoint \
     --method swav \
     --proj_hidden_dim 2048 \
     --queue_size 3840 \
-    --output_dim 128 \
+    --proj_output_dim 128 \
     --num_prototypes 3000 \
     --epoch_queue_starts 50 \
     --freeze_prototypes_epochs 2

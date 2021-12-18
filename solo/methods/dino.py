@@ -1,3 +1,22 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import argparse
 import distutils
 from typing import Any, List, Sequence, Tuple, Dict
@@ -6,9 +25,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.dino import DINOLoss
-from solo.methods.base import BaseMomentumModel
+from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
-from solo.utils.trunc_normal import trunc_normal_
+from solo.utils.misc import trunc_normal_
 
 
 class DINOHead(nn.Module):
@@ -25,11 +44,11 @@ class DINOHead(nn.Module):
         hidden_dim: int = 2048,
         bottleneck_dim: int = 256,
     ):
-        """DINO head that takes as input the features of the encoder, projects them in a lower
+        """DINO head that takes as input the features of the backbone, projects them in a lower
         dimensional space and multiplies with the prototypes.
 
         Args:
-            in_dim (int): number of dimensions of the input (aka encoder features).
+            in_dim (int): number of dimensions of the input (aka backbone features).
             num_prototypes (int): number of prototypes.
             use_bn (bool, optional): whether to use batch norm in projector. Defaults to True.
             norm_last_layer (bool, optional): whether to l2-norm the last layer. Defaults to True.
@@ -78,7 +97,7 @@ class DINOHead(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Computes the forward pass of the projector and the last layer (prototypes).
+        """Computes the forward pass of the backbone, the projector and the last layer (prototypes).
 
         Args:
             x (torch.Tensor): a batch of features.
@@ -93,12 +112,13 @@ class DINOHead(nn.Module):
         return x
 
 
-class DINO(BaseMomentumModel):
+class DINO(BaseMomentumMethod):
     def __init__(
         self,
-        output_dim: int,
         proj_hidden_dim: int,
+        proj_output_dim: int,
         num_prototypes: int,
+        use_bn_in_head: bool,
         norm_last_layer: bool,
         clip_grad: float,
         freeze_last_layer: bool,
@@ -111,9 +131,10 @@ class DINO(BaseMomentumModel):
         """Adds DINO head to the student and momentum DINO head to the teacher.
 
         Args:
-            output_dim (int): number of prototypes.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+            proj_output_dim (int): number of output neurons in the projector.
             num_prototypes (int): number of prototypes.
+            use_bn_in_head (bool): whether or not to use bn in the head.
             norm_last_layer (bool): whether or not to normalize the last layer (prototypes).
             clip_grad (float): threshold for gradient clipping.
             freeze_last_layer (bool): whether or not to freeze the last layer (prototypes).
@@ -133,7 +154,8 @@ class DINO(BaseMomentumModel):
         self.head = DINOHead(
             in_dim=self.features_dim,
             hidden_dim=proj_hidden_dim,
-            bottleneck_dim=output_dim,
+            use_bn=use_bn_in_head,
+            bottleneck_dim=proj_output_dim,
             num_prototypes=num_prototypes,
             norm_last_layer=norm_last_layer,
         )
@@ -142,7 +164,8 @@ class DINO(BaseMomentumModel):
         self.momentum_head = DINOHead(
             in_dim=self.features_dim,
             hidden_dim=proj_hidden_dim,
-            bottleneck_dim=output_dim,
+            use_bn=use_bn_in_head,
+            bottleneck_dim=proj_output_dim,
             num_prototypes=num_prototypes,
             norm_last_layer=norm_last_layer,
         )
@@ -168,10 +191,11 @@ class DINO(BaseMomentumModel):
         parser.add_argument("--freeze_last_layer", type=int, default=1)
 
         # dino head
-        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
         parser.add_argument("--num_prototypes", type=int, default=4096)
         parser.add_argument("--norm_last_layer", type=distutils.util.strtobool, default=True)
+        parser.add_argument("--use_bn_in_head", type=distutils.util.strtobool, default=False)
 
         # temperature settings
         parser.add_argument("--student_temperature", type=float, default=0.1)
@@ -203,14 +227,14 @@ class DINO(BaseMomentumModel):
         extra_momentum_pairs = [(self.head, self.momentum_head)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    def clip_gradients(self, clip: float):
+    def dino_clip_gradients(self, clip: float):
         """Clips gradients after backward pass.
 
         Args:
             clip (float): threshold for gradient clipping.
         """
 
-        for p in self.encoder.parameters():
+        for p in self.backbone.parameters():
             if p.grad is not None:
                 param_norm = p.grad.data.norm(2)
                 clip_coef = clip / (param_norm + 1e-6)
@@ -222,7 +246,7 @@ class DINO(BaseMomentumModel):
         self.dino_loss_func.epoch = self.current_epoch
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs forward pass of the student (encoder and head).
+        """Performs forward pass of the student (backbone and head).
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -232,15 +256,15 @@ class DINO(BaseMomentumModel):
         """
 
         out = super().forward(X, *args, **kwargs)
-        p = self.head(out["feats"])
-        return {**out, "p": p}
+        z = self.head(out["feats"])
+        return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for DINO reusing BaseMomentumModel training step.
+        """Training step for DINO reusing BaseMomentumMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where [X]
-                is a list of size self.num_crops containing batches of images.
+                is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -252,12 +276,12 @@ class DINO(BaseMomentumModel):
         feats1, feats2 = out["feats"]
         momentum_feats1, momentum_feats2 = out["momentum_feats"]
 
-        # forward online encoder
+        # forward online backbone
         p1 = self.head(feats1)
         p2 = self.head(feats2)
         p = torch.cat((p1, p2))
 
-        # forward momentum encoder
+        # forward momentum backbone
         p1_momentum = self.momentum_head(momentum_feats1)
         p2_momentum = self.momentum_head(momentum_feats2)
         p_momentum = torch.cat((p1_momentum, p2_momentum))
@@ -274,7 +298,7 @@ class DINO(BaseMomentumModel):
 
         # clip gradients
         if self.clip_grad:
-            self.clip_gradients(self.clip_grad)
+            self.dino_clip_gradients(self.clip_grad)
         # zero gradients on last layer
         if self.current_epoch < self.freeze_last_layer:
             for p in self.head.last_layer.parameters():

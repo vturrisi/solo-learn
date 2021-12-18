@@ -1,8 +1,30 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import argparse
 import os
 import subprocess
 import textwrap
-from solo.args.utils import additional_setup_pretrain, additional_setup_linear
+from pathlib import Path
+
+from solo.args.utils import additional_setup_linear, additional_setup_pretrain
+from tests.dali.utils import DummyDataset
 
 
 def test_setup_pretrain():
@@ -17,7 +39,7 @@ def test_setup_pretrain():
     dummy_args = [
         "--dataset",
         "cifar10",
-        "--encoder",
+        "--backbone",
         "resnet18",
         "--data_dir",
         "./datasets",
@@ -52,9 +74,9 @@ def test_setup_pretrain():
         "--hue",
         "0.1",
         "--gaussian_prob",
-        "0.0 0.0",
+        "0.0",
         "--solarization_prob",
-        "0.0 0.2",
+        "0.2",
         "--name",
         "test",
         "--project",
@@ -62,9 +84,10 @@ def test_setup_pretrain():
         "--entity",
         "unitn-mhug",
         "--wandb",
+        "--save_checkpoint",
         "--method",
         "byol",
-        "--output_dim",
+        "--proj_output_dim",
         "256",
         "--proj_hidden_dim",
         "4096",
@@ -75,6 +98,9 @@ def test_setup_pretrain():
         "--final_tau_momentum",
         "1.0",
         "--momentum_classifier",
+        "--wandb",
+        "--save_checkpoint",
+        "--auto_umap",
     ]
     # Write string to a file
     with open("dummy_script.py", "w") as f:
@@ -84,8 +110,11 @@ def test_setup_pretrain():
     try:
         script = ["python3", "dummy_script.py"] + dummy_args
         subprocess.check_output(script)
+        worked = True
     except subprocess.CalledProcessError as e:
         print("error code", e.returncode, e.output)
+        worked = False
+    assert worked
 
     try:
         os.remove("dummy_script.py")
@@ -105,7 +134,7 @@ def test_setup_linear():
     dummy_args = [
         "--dataset",
         "imagenet100",
-        "--encoder",
+        "--backbone",
         "resnet18",
         "--data_dir",
         "/datasets",
@@ -117,7 +146,9 @@ def test_setup_linear():
         "100",
         "--gpus",
         "0",
-        "--distributed_backend",
+        "--accelerator",
+        "gpu",
+        "--strategy",
         "ddp",
         "--sync_batchnorm",
         "--precision",
@@ -129,7 +160,7 @@ def test_setup_linear():
         "--lr",
         "3.0",
         "--lr_decay_steps",
-        "60 80",
+        "60",
         "--weight_decay",
         "0",
         "--batch_size",
@@ -139,10 +170,12 @@ def test_setup_linear():
         "--dali",
         "--name",
         "test",
-        "--pretrained_feature_extractor" "PATH",
+        "--pretrained_feature_extractor",
+        "PATH",
         "--project",
         "solo-learn",
         "--wandb",
+        "--save_checkpoint",
     ]
     # Write string to a file
     with open("dummy_script.py", "w") as f:
@@ -152,8 +185,11 @@ def test_setup_linear():
     try:
         script = ["python3", "dummy_script.py"] + dummy_args
         subprocess.check_output(script)
+        worked = True
     except subprocess.CalledProcessError as e:
         print("error code", e.returncode, e.output)
+        worked = False
+    assert worked
 
     try:
         os.remove("dummy_script.py")
@@ -163,147 +199,239 @@ def test_setup_linear():
 
 def test_additional_setup_pretrain():
     args = {
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "multicrop": False,
         "brightness": [0.4],
         "contrast": [0.4],
         "saturation": [0.2],
         "hue": [0.1],
+        "color_jitter_prob": [0.8],
+        "gray_scale_prob": [0.2],
+        "horizontal_flip_prob": [0.5],
         "gaussian_prob": [1.0, 0.1],
         "solarization_prob": [0.2, 0.1],
         "min_scale": [0.08],
-        "size": [224],
-        "num_crops": 2,
+        "max_scale": [1.0],
+        "crop_size": [224],
+        "num_crops_per_aug": [1, 1],
         "dali": True,
         "optimizer": "sgd",
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
 
-    # - asymmetric - multicrop
+    # symmetric and no multicrop
     args = {
+        "backbone": "resnet18",
         "dataset": "imagenet100",
-        "multicrop": False,
         "brightness": [0.4],
         "contrast": [0.4],
         "saturation": [0.2],
         "hue": [0.1],
+        "color_jitter_prob": [0.8],
+        "gray_scale_prob": [0.2],
+        "horizontal_flip_prob": [0.5],
         "gaussian_prob": [0.5],
         "solarization_prob": [0.5],
         "min_scale": [0.08],
-        "size": [224],
-        "num_crops": 2,
+        "max_scale": [1.0],
+        "crop_size": [224],
+        "num_crops_per_aug": [2],
         "dali": True,
         "optimizer": "sgd",
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
 
-    # + multicrop
+    # multicrop
     args = {
+        "backbone": "resnet18",
         "dataset": "imagenet100",
-        "multicrop": True,
         "brightness": [0.4],
         "contrast": [0.4],
         "saturation": [0.2],
         "hue": [0.1],
+        "color_jitter_prob": [0.8],
+        "gray_scale_prob": [0.2],
+        "horizontal_flip_prob": [0.5],
         "gaussian_prob": [0.5],
         "solarization_prob": [0.5],
         "min_scale": [0.08],
-        "size": [224],
-        "num_crops": 2,
-        "dali": True,
+        "max_scale": [1.0],
+        "crop_size": [224, 96],
+        "num_crops_per_aug": [2, 4],
+        "dali": False,
         "optimizer": "sgd",
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
 
     # check for different gpu syntax
     args = {
+        "backbone": "resnet18",
         "dataset": "imagenet100",
-        "multicrop": False,
         "brightness": [0.4],
         "contrast": [0.4],
         "saturation": [0.2],
         "hue": [0.1],
+        "color_jitter_prob": [0.8],
+        "gray_scale_prob": [0.2],
+        "horizontal_flip_prob": [0.5],
         "gaussian_prob": [0.5, 0.2],
         "solarization_prob": [0.5, 0.3],
         "min_scale": [0.08],
-        "size": [224],
-        "num_crops": 2,
+        "max_scale": [1.0],
+        "crop_size": [224],
+        "num_crops_per_aug": [1, 1],
         "dali": True,
         "optimizer": "sgd",
         "gpus": 0,
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_pretrain(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
     assert "transform_kwargs" in args
+
+    # check for different backbone / custom dataset
+    with DummyDataset("dummy_train", "dummy_val", 10, 4):
+        args = {
+            "backbone": "vit_small",
+            "dataset": "custom",
+            "data_dir": Path("."),
+            "train_dir": "dummy_train",
+            "val_dir": "dummy_val",
+            "mean": [0.485, 0.456, 0.406],
+            "std": [0.228, 0.224, 0.225],
+            "brightness": [0.4],
+            "contrast": [0.4],
+            "saturation": [0.2],
+            "hue": [0.1],
+            "color_jitter_prob": [0.8],
+            "gray_scale_prob": [0.2],
+            "horizontal_flip_prob": [0.5],
+            "gaussian_prob": [0.5, 0.2],
+            "solarization_prob": [0.5, 0.3],
+            "num_crops_per_aug": [1, 1],
+            "min_scale": [0.08],
+            "max_scale": [1.0],
+            "crop_size": [224],
+            "dali": True,
+            "optimizer": "sgd",
+            "gpus": 0,
+            "lr": 0.1,
+            "batch_size": 128,
+            "patch_size": 16,
+        }
+        args = argparse.Namespace(**args)
+
+        additional_setup_pretrain(args)
+
+        assert args.backbone_args["cifar"] is False
+        assert "momentum" in args.extra_optimizer_args
+        assert isinstance(args.gpus, list)
+        assert "transform_kwargs" in args
 
 
 def test_additional_setup_linear():
     args = {
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
         "gpus": "0,1",
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_linear(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
 
     # check for different gpu syntax
     args = {
+        "backbone": "resnet18",
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
         "gpus": 0,
         "lr": 0.1,
         "batch_size": 128,
+        "zero_init_residual": False,
     }
     args = argparse.Namespace(**args)
 
     additional_setup_linear(args)
 
-    assert args.cifar is False
+    assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
     assert isinstance(args.gpus, list)
+
+    # check for different backbone / custom dataset
+    with DummyDataset("dummy_train", "dummy_val", 10, 4):
+        args = {
+            "backbone": "vit_small",
+            "dataset": "custom",
+            "data_dir": Path("."),
+            "train_dir": "dummy_train",
+            "val_dir": "dummy_val",
+            "mean": [0.485, 0.456, 0.406],
+            "std": [0.228, 0.224, 0.225],
+            "crop_size": [224],
+            "dali": False,
+            "num_crops_per_aug": [2],
+            "optimizer": "sgd",
+            "gpus": 0,
+            "lr": 0.1,
+            "batch_size": 128,
+            "zero_init_residual": False,
+            "patch_size": 16,
+        }
+        args = argparse.Namespace(**args)
+
+        additional_setup_linear(args)
+
+        assert args.backbone_args["cifar"] is False
+        assert "momentum" in args.extra_optimizer_args
+        assert isinstance(args.gpus, list)

@@ -1,16 +1,35 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import argparse
 from typing import Any, Dict, List, Sequence
 
 import torch
 import torch.nn as nn
 from solo.losses.vicreg import vicreg_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 
 
-class VICReg(BaseModel):
+class VICReg(BaseMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         sim_loss_weight: float,
         var_loss_weight: float,
@@ -20,7 +39,7 @@ class VICReg(BaseModel):
         """Implements VICReg (https://arxiv.org/abs/2105.04906)
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             sim_loss_weight (float): weight of the invariance term.
             var_loss_weight (float): weight of the variance term.
@@ -41,7 +60,7 @@ class VICReg(BaseModel):
             nn.Linear(proj_hidden_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
     @staticmethod
@@ -50,7 +69,7 @@ class VICReg(BaseModel):
         parser = parent_parser.add_argument_group("vicreg")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=2048)
+        parser.add_argument("--proj_output_dim", type=int, default=2048)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters
@@ -71,7 +90,7 @@ class VICReg(BaseModel):
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder and the projector.
+        """Performs the forward pass of the backbone and the projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -85,11 +104,11 @@ class VICReg(BaseModel):
         return {**out, "z": z}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for VICReg reusing BaseModel training step.
+        """Training step for VICReg reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
@@ -103,7 +122,7 @@ class VICReg(BaseModel):
         z1 = self.projector(feats1)
         z2 = self.projector(feats2)
 
-        # ------- barlow twins loss -------
+        # ------- vicreg loss -------
         vicreg_loss = vicreg_loss_func(
             z1,
             z2,

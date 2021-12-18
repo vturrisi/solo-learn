@@ -1,3 +1,22 @@
+# Copyright 2021 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 import argparse
 from typing import Any, Dict, List, Sequence
 
@@ -5,14 +24,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.deepclusterv2 import deepclusterv2_loss_func
-from solo.methods.base import BaseModel
+from solo.methods.base import BaseMethod
 from solo.utils.kmeans import KMeans
 
 
-class DeepClusterV2(BaseModel):
+class DeepClusterV2(BaseMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         num_prototypes: Sequence[int],
         temperature: float,
@@ -22,7 +41,7 @@ class DeepClusterV2(BaseModel):
         """Implements DeepCluster V2 (https://arxiv.org/abs/2006.09882).
 
         Args:
-            output_dim (int): number of dimensions of the projected features.
+            proj_output_dim (int): number of dimensions of the projected features.
             proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
             num_prototypes (Sequence[int]): number of prototypes.
             temperature (float): temperature for the softmax.
@@ -31,7 +50,7 @@ class DeepClusterV2(BaseModel):
 
         super().__init__(**kwargs)
 
-        self.output_dim = output_dim
+        self.proj_output_dim = proj_output_dim
         self.temperature = temperature
         self.num_prototypes = num_prototypes
         self.kmeans_iters = kmeans_iters
@@ -41,12 +60,12 @@ class DeepClusterV2(BaseModel):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # prototypes
         self.prototypes = nn.ModuleList(
-            [nn.Linear(output_dim, np, bias=False) for np in num_prototypes]
+            [nn.Linear(proj_output_dim, np, bias=False) for np in num_prototypes]
         )
         # normalize and set requires grad to false
         for proto in self.prototypes:
@@ -60,7 +79,7 @@ class DeepClusterV2(BaseModel):
         parser = parent_parser.add_argument_group("deepclusterv2")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=128)
+        parser.add_argument("--proj_output_dim", type=int, default=128)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # parameters
@@ -93,9 +112,9 @@ class DeepClusterV2(BaseModel):
         self.kmeans = KMeans(
             world_size=self.world_size,
             rank=self.global_rank,
-            num_crops=self.num_crops,
+            num_large_crops=self.num_large_crops,
             dataset_size=self.dataset_size,
-            proj_features_dim=self.output_dim,
+            proj_features_dim=self.proj_output_dim,
             num_prototypes=self.num_prototypes,
             kmeans_iters=self.kmeans_iters,
         )
@@ -109,7 +128,8 @@ class DeepClusterV2(BaseModel):
         self.register_buffer(
             "local_memory_embeddings",
             F.normalize(
-                torch.randn(self.num_crops, size_memory_per_process, self.output_dim), dim=-1
+                torch.randn(self.num_large_crops, size_memory_per_process, self.proj_output_dim),
+                dim=-1,
             ).to(self.device, non_blocking=True),
         )
 
@@ -142,7 +162,7 @@ class DeepClusterV2(BaseModel):
             self.local_memory_embeddings[c][start_idx:end_idx] = z_c.detach()
 
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the encoder, the projector and the prototypes.
+        """Performs the forward pass of the backbone, the projector and the prototypes.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -159,11 +179,11 @@ class DeepClusterV2(BaseModel):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for DeepClusterV2 reusing BaseModel training step.
+        """Training step for DeepClusterV2 reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size self.num_crops containing batches of images.
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
