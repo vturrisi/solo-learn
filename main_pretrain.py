@@ -9,6 +9,8 @@ from pytorch_lightning.plugins import DDPPlugin
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
 
+from pytorch_lightning.plugins.environments import SLURMEnvironment
+
 try:
     from solo.methods.dali import PretrainABC
 except ImportError:
@@ -136,7 +138,7 @@ def main():
             logdir=os.path.join(args.checkpoint_dir, args.method),
             frequency=args.checkpoint_frequency,
         )
-        callbacks.append(ckpt)
+        #callbacks.append(ckpt)
 
         if args.auto_umap:
             assert (
@@ -153,10 +155,11 @@ def main():
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
-        plugins=DDPPlugin(find_unused_parameters=True),
-        checkpoint_callback=False,
+        plugins=[SLURMEnvironment()],
+        checkpoint_callback=True,
         terminate_on_nan=True,
-        accelerator="ddp",
+        accelerator="gpu",
+        strategy='ddp'
     )
 
     if args.dali:

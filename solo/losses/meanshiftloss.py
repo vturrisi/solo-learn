@@ -22,8 +22,9 @@ def mean_shift_loss_func(p: torch.Tensor,
     _,indices = torch.topk(z@queue.T,num_neighbors,dim=1)
     nn_targets = queue[indices]
     z = z.unsqueeze(dim=1)
+    p = p.unsqueeze(dim=1)
     return 2 - 2*(
-            torch.einsum('nik,njk->nj',z,nn_targets.detach())
+            torch.einsum('nik,njk->nj',p,nn_targets.detach())
             ).mean()
 
 

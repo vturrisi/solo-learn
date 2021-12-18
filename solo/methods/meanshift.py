@@ -56,9 +56,6 @@ class MeanShift(BaseMomentumModel):
         self.register_buffer("queue_ptr",torch.zeros(1,dtype=torch.long))
         self.queue_once_traversed = False
 
-
-
-
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         parent_parser = super(MeanShift,MeanShift).add_model_specific_args(parent_parser)
@@ -121,6 +118,7 @@ class MeanShift(BaseMomentumModel):
         
         if ptr+batch_size >= self.queue_size:
             self.queue_once_traversed = True
+
         ptr = (ptr + batch_size) % self.queue_size
 
         self.queue_ptr[0] = ptr  # type: ignore
@@ -171,7 +169,7 @@ class MeanShift(BaseMomentumModel):
         mean_neg_cos_sim = (mean_shift_loss_func(p2,z1_momentum,self.queue[:self.queue_ptr[0]],self.num_neighbors)
                             if not self.queue_once_traversed
                             else mean_shift_loss_func(p2,z1_momentum,self.queue,self.num_neighbors))
-
+        mean_neg_cos_sim = (mean_shift_loss_func(p2,z1_momentum,self.queue,self.num_neighbors))
         metrics = {
             "train_mean_neg_cos_sim": mean_neg_cos_sim,
         }
