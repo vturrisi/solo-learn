@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Dec 20 2021]**: :thermometer: Added ImageNet results, scripts and checkpoints for MoCo V2+.
 * **[Dec 05 2021]**: :notes: Separated [SupCon](https://arxiv.org/abs/2004.11362) from SimCLR and added runs.
 * **[Dec 01 2021]**: :fountain: Added [PoolFormer](https://arxiv.org/abs/2111.11418).
 * **[Nov 29 2021]**: :bangbang: Breaking changes! Update your versions!!!
@@ -109,7 +110,7 @@ While the library is self-contained, it is possible to use the models outside of
 
 First clone the repo.
 
-Then, to install solo-learn with Dali and/or UMAP support, use:
+Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
 ```
 pip3 install .[dali,umap]
 ```
@@ -121,9 +122,11 @@ pip3 install .
 
 **NOTE:** if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
 
-**NOTE 2:** If you want to modify the library, install it in dev mode with `-e`.
+**NOTE 2:** consider installing [Pillow-SIMD](https://github.com/uploadcare/pillow-simd) for better loading times when not using Dali.
 
-**NOTE 3:** Soon to be on pip.
+**NOTE 3:** If you want to modify the library, install it in dev mode with `-e`.
+
+**NOTE 4:** Soon to be on pip.
 
 ---
 
@@ -233,7 +236,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |       88.66     | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
 |DeepCluster V2| ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |       87.60     | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | ReSSL        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
