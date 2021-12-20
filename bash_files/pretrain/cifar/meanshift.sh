@@ -1,6 +1,6 @@
 srun python main_pretrain.py \
     --dataset $1 \
-    --encoder resnet18 \
+    --backbone resnet18 \
     --data_dir datasets \
     --max_epochs 1000 \
     --gpus 0,1,2,3 \
@@ -11,7 +11,7 @@ srun python main_pretrain.py \
     --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --accelerator ddp \
+    --accelerator gpu \
     --sync_batchnorm \
     --lr 0.05 \
     --classifier_lr 0.1 \
@@ -24,6 +24,8 @@ srun python main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 0.0 0.0 \
     --solarization_prob 0.0 0.2 \
+    --crop_size 32 \
+    --num_crops_per_aug 1 1 \
     --name mean_shift-2-$1 \
     --project solo-learn \
     --entity a-patnala \
@@ -37,5 +39,3 @@ srun python main_pretrain.py \
     --momentum_classifier \
     --num_neighbors 5 \
     --queue_size 409600 \
-    --auto_umap \
-    --auto_umap_frequency 50

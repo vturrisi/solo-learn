@@ -5,12 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.meanshiftloss import mean_shift_loss_func
-from solo.methods.base import BaseMomentumModel
-from solo.utils.gather_layer import gather
+from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
+from solo.utils.misc import gather
 
-
-class MeanShift(BaseMomentumModel):
+class MeanShift(BaseMomentumMethod):
     def __init__(
         self,
         output_dim: int,
