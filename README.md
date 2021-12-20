@@ -110,7 +110,7 @@ While the library is self-contained, it is possible to use the models outside of
 
 First clone the repo.
 
-Then, to install solo-learn with Dali and/or UMAP support, use:
+Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
 ```
 pip3 install .[dali,umap]
 ```
@@ -122,9 +122,11 @@ pip3 install .
 
 **NOTE:** if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
 
-**NOTE 2:** If you want to modify the library, install it in dev mode with `-e`.
+**NOTE 2:** consider installing [Pillow-SIMD](https://github.com/uploadcare/pillow-simd) for better loading times when not using Dali.
 
-**NOTE 3:** Soon to be on pip.
+**NOTE 3:** If you want to modify the library, install it in dev mode with `-e`.
+
+**NOTE 4:** Soon to be on pip.
 
 ---
 
