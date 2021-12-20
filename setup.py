@@ -44,8 +44,8 @@ setup(
     url="https://github.com/vturrisi/solo-learn",
     keywords=KW,
     install_requires=[
-        "torch==1.10.0",
-        "torchvision",
+        "torch==1.10.1",
+        "torchvision==0.10.1",
         "einops",
         "pytorch-lightning==1.5.3",
         "torchmetrics==0.6.0",
