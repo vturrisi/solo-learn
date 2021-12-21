@@ -13,26 +13,42 @@ MODE=$1
 if [ $mila == 0 ];
 then
   echo "In Mila - $mila"
-  TRAIN=/network/datasets/imagenet/ILSVRC2012_img_train.tar
-  VAL=/network/scratch/l/lavoiems/data/imagenet_val.tar
+  SRC_TRAIN=/network/datasets/imagenet/ILSVRC2012_img_train.tar
+  SRC_VAL=/network/scratch/l/lavoiems/data/imagenet_val.tar
 else
   echo "In CC - $mila"
-  TRAIN=/network/scratch/lavoiems/data/ILSVRC2012_img_train.tar
-  VAL=/network/scratch/lavoiems/data/imagenet_val.tar
+  SRC_TRAIN=/network/scratch/lavoiems/data/ILSVRC2012_img_train.tar
+  SRC_VAL=/network/scratch/lavoiems/data/imagenet_val.tar
 fi
 TRG=$SLURM_TMPDIR/data
+TRG_TRAIN=$TRG/train
+TRG_VAL=$TRG/val
+TRG_TMP=$SLURM_TMPDIR/tmp_data
 mkdir -p $TRG
+mkdir -p $TRG_TRAIN
+mkdir -p $TRG_TMP
 
-tar -xf $TRAIN -C $TRG
+#echo "Extracting IMAGENET from $SRC_TRAIN into $TRG_TMP"
+#tar -xf $SRC_TRAIN -C $TRG_TMP
+#
+#echo "Extracting training set from $TRG_TMP into $TRG_TRAIN"
+#for D in `ls $TRG_TMP`; do
+#  mkdir -p "$TRG_TRAIN/${D%.*}"
+#  tar -xf $TRG_TMP/$D -C "$TRG_TRAIN/${D%.*}" &
+#done
+#wait
+
 if [[ $MODE == "VAL" ]];
 then
-  mkdir -p $TRG/val
-  for D in `ls $TRG/train/`; do
-    mkdir -p $TRG/val/$D
-    echo ${D}
-    ls $TRG/train/$D/ | head -10 | xargs -i mv $TRG/train/$D/{} $TRG/val/$D/
+  echo "Taking 10 samples/class as validation sample"
+  mkdir -p $TRG_VAL
+  for D in `ls $TRG_TRAIN`; do
+    mkdir -p $TRG_VAL/$D
+    ls $TRG_TRAIN/$D/ | head -10 | xargs -i mv $TRG_TRAIN/$D/{} $TRG_VAL/$D/ &
   done
+  wait
 else
-  echo "Test"
-  tar -xf $VAL -C $TRG
+  echo "Extracting test set from $SRC_VAL into $TRG"
+  tar -xf $SRC_VAL -C $TRG
 fi
+
