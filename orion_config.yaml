@@ -1,0 +1,22 @@
+experiment:
+    algorithms:
+        asha:
+            seed: 420
+            num_rungs: 5
+            num_brackets: 2
+            repetitions: 1
+
+
+    strategy: StubParallelStrategy
+    max_broken: 200
+    working_dir: ~/scratch/solo_orion
+
+evc:
+  enable: True
+  algorithm_change: True
+  non_monitored_arguments:
+    - _pos_1
+
+worker:
+   pool_size: 32
+   reservation_timeout: 360

@@ -268,6 +268,7 @@ class BaseMethod(pl.LightningModule):
 
         # wandb
         parser.add_argument("--name")
+        parser.add_argument("--group")
         parser.add_argument("--project")
         parser.add_argument("--entity", default=None, type=str)
         parser.add_argument("--wandb", action="store_true")

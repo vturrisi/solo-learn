@@ -8,3 +8,4 @@ tqdm
 wandb
 scipy
 timm
+orion>=0.2.1

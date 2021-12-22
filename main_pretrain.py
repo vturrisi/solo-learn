@@ -23,10 +23,12 @@ from pprint import pprint
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
+from orion.client import cli as orion_cli
 
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
+
 
 try:
     from solo.methods.dali import PretrainABC
@@ -56,9 +58,8 @@ from solo.utils.pretrain_dataloader import (
 
 
 def main():
-    seed_everything(5)
-
     args = parse_args_pretrain()
+    seed_everything(args.seed)
 
     assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
@@ -121,6 +122,8 @@ def main():
     if args.wandb:
         wandb_logger = WandbLogger(
             name=args.name,
+            #  id=args.name,
+            save_dir=args.checkpoint_dir,
             project=args.project,
             entity=args.entity,
             offline=args.offline,
@@ -136,7 +139,7 @@ def main():
         # save checkpoint on last epoch only
         ckpt = Checkpointer(
             args,
-            logdir=os.path.join(args.checkpoint_dir, args.method),
+            logdir=args.checkpoint_dir,
             frequency=args.checkpoint_frequency,
         )
         callbacks.append(ckpt)
@@ -157,7 +160,7 @@ def main():
     ckpt_path = None
     if args.auto_resume and args.resume_from_checkpoint is None:
         auto_resumer = AutoResumer(
-            checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
+            checkpoint_dir=args.checkpoint_dir,
             max_hours=args.auto_resumer_max_hours,
         )
         resume_from_checkpoint = auto_resumer.find_checkpoint(args)
@@ -178,10 +181,18 @@ def main():
         enable_checkpointing=False,
     )
 
-    if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
+    try:
+        if args.dali:
+            trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
+        else:
+            trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
+    except RuntimeError:
+        orion_cli.report_bad_trial()
+        raise
     else:
-        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
+        # Orion minimize the following objective
+        obj = 100 - float(trainer.callback_metrics["val_acc1"])
+        orion_cli.report_objective(obj)
 
 
 if __name__ == "__main__":
