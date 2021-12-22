@@ -28,15 +28,15 @@ mkdir -p $TRG
 mkdir -p $TRG_TRAIN
 mkdir -p $TRG_TMP
 
-#echo "Extracting IMAGENET from $SRC_TRAIN into $TRG_TMP"
-#tar -xf $SRC_TRAIN -C $TRG_TMP
-#
-#echo "Extracting training set from $TRG_TMP into $TRG_TRAIN"
-#for D in `ls $TRG_TMP`; do
-#  mkdir -p "$TRG_TRAIN/${D%.*}"
-#  tar -xf $TRG_TMP/$D -C "$TRG_TRAIN/${D%.*}" &
-#done
-#wait
+echo "Extracting IMAGENET from $SRC_TRAIN into $TRG_TMP"
+tar -xf $SRC_TRAIN -C $TRG_TMP
+
+echo "Extracting training set from $TRG_TMP into $TRG_TRAIN"
+for D in `ls $TRG_TMP`; do
+  mkdir -p "$TRG_TRAIN/${D%.*}"
+  tar -xf $TRG_TMP/$D -C "$TRG_TRAIN/${D%.*}" &
+done
+wait
 
 if [[ $MODE == "VAL" ]];
 then
