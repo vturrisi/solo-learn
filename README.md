@@ -229,10 +229,10 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 :sleepy: ViT is very compute intensive and unstable, so we are slowly running larger architectures and with a larger batch size. Atm, total batch size is 128 and we needed to use float32 precision. If you want to contribute by running it, let us know!
 
 ### ImageNet
-
+1IQUIrCOSduAjUJ31WJ1G5tHDZzWUIEft
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      65.98     |       TODO      |      86.94     |        TODO     |    TODO    |
+| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      67.18     |       TODO      |      87.69     |        TODO     | [:link:](https://drive.google.com/drive/folders/1IQUIrCOSduAjUJ31WJ1G5tHDZzWUIEft?usp=sharing) |
 | BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |       88.66     | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
 |DeepCluster V2| ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |

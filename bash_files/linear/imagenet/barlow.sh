@@ -19,7 +19,7 @@ python3 ../../../main_linear.py \
     --num_workers 10 \
     --dali \
     --pretrained_feature_extractor PATH \
-    --name byol-resnet50-imagenet-linear-eval \
+    --name barlow-resnet50-imagenet-linear-eval \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb

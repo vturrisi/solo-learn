@@ -1,26 +1,23 @@
 python3 ../../../main_pretrain.py \
     --dataset imagenet \
     --backbone resnet50 \
-    --data_dir /datasets \
-    --train_dir ILSVRC2012/train \
-    --val_dir ILSVRC2012/val \
+    --data_dir /data/datasets \
+    --train_dir imagenet/train \
+    --val_dir imagenet/val \
     --max_epochs 100 \
-    --gpus 0,1 \
-    --accelerator gpu \
-    --strategy ddp \
+    --gpus 0,1,2,3 \
+    --accelerator ddp \
     --sync_batchnorm \
+    --num_workers 4 \
     --precision 16 \
     --optimizer sgd \
     --lars \
     --eta_lars 0.001 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 0.45 \
-    --accumulate_grad_batches 16 \
-    --classifier_lr 0.2 \
-    --weight_decay 1e-6 \
-    --batch_size 128 \
-    --num_workers 4 \
+    --lr 0.8 \
+    --weight_decay 1.5e-6 \
+    --batch_size 64 \
     --dali \
     --brightness 0.4 \
     --contrast 0.4 \
@@ -29,15 +26,14 @@ python3 ../../../main_pretrain.py \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
     --num_crops_per_aug 1 1 \
-    --name byol-resnet50-imagenet-100ep \
+    --name barlow-resnet50-imagenet-100ep \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \
     --save_checkpoint \
-    --method byol \
-    --proj_output_dim 256 \
+    --lamb 0.0051 \
+    --scale_loss 0.048 \
+    --method barlow_twins \
     --proj_hidden_dim 4096 \
-    --pred_hidden_dim 4096 \
-    --base_tau_momentum 0.99 \
-    --final_tau_momentum 1.0 \
-    --momentum_classifier
+    --proj_output_dim 4096 \
+    --auto_resume
