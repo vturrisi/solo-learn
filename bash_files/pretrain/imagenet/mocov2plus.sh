@@ -24,7 +24,7 @@ python3 main_pretrain.py \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
     --num_crops_per_aug 1 1 \
-    --name mocov2plus-imagenet-100ep-augs \
+    --name mocov2plus-resnet50-imagenet-100ep \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \

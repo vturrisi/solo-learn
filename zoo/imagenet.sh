@@ -3,6 +3,13 @@ cd trained_models
 mkdir imagenet
 cd imagenet
 
+# Barlow Twins
+mkdir barlow_twins
+cd barlow_twins
+gdown https://drive.google.com/uc?id=1u0NH9L-p1Y99KVFxjBmZ_wlY-l6YJFtP
+gdown https://drive.google.com/uc?id=1EKdbR72-gtNE782254tjXi9UR2NiwEWh
+cd ..
+
 # BYOL
 mkdir byol
 cd byol

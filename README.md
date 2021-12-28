@@ -232,11 +232,11 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 
 | Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
 |--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      65.98     |       TODO      |      86.94     |        TODO     |    TODO    |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |       88.66     | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
+| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      67.18     |      67.23      |      87.69     |      87.98      | [:link:](https://drive.google.com/drive/folders/1IQUIrCOSduAjUJ31WJ1G5tHDZzWUIEft?usp=sharing) |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |      88.66      | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
 |DeepCluster V2| ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |       87.60     | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) |
+| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |      87.60      | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | ReSSL        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
@@ -252,14 +252,14 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 
 We report the training efficiency of some methods using a ResNet18 with and without DALI (4 workers per GPU) in a server with an Intel i9-9820X and two RTX2080ti.
 
-| Method       |  Dali  |  Total time for 20 epochs  |  Time for a 1 epoch |  GPU memory (per GPU) |
-|--------------|:------:|:--------------------------:|:-------------------:|:---------------------:|
-| Barlow Twins | :x:              | 1h 38m 27s |  4m 55s              |      5097 MB     |
-|              |:heavy_check_mark:| 43m 2s     |  2m 10s (56% faster) |      9292 MB     |
-| BYOL         | :x:              | 1h 38m 46s |  4m 56s              |      5409 MB     |
-|              |:heavy_check_mark:| 50m 33s    |  2m 31s (49% faster) |      9521 MB     |
-| NNCLR        | :x:              | 1h 38m 30s |  4m 55s              |      5060 MB     |
-|              |:heavy_check_mark:| 42m 3s     |  2m 6s  (64% faster) |      9244 MB     |
+| Method       |  Dali            |  Total time for 20 epochs  |  Time for a 1 epoch  |  GPU memory (per GPU) |
+|--------------|:----------------:|:--------------------------:|:--------------------:|:---------------------:|
+| Barlow Twins | :x:              | 1h 38m 27s                 |  4m 55s              |      5097 MB          |
+|              |:heavy_check_mark:| 43m 2s                     |  2m 10s (56% faster) |      9292 MB          |
+| BYOL         | :x:              | 1h 38m 46s                 |  4m 56s              |      5409 MB          |
+|              |:heavy_check_mark:| 50m 33s                    |  2m 31s (49% faster) |      9521 MB          |
+| NNCLR        | :x:              | 1h 38m 30s                 |  4m 55s              |      5060 MB          |
+|              |:heavy_check_mark:| 42m 3s                     |  2m 6s  (64% faster) |      9244 MB          |
 
 **Note**: GPU memory increase doesn't scale with the model, rather it scales with the number of workers.
 

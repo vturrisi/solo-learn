@@ -11,15 +11,14 @@ python3 ../../../main_linear.py \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
-    --scheduler step \
-    --lr 0.1 \
-    --lr_decay_steps 60 80 \
-    --weight_decay 0 \
+    --lr 0.3 \
+    --scheduler cosine \
+    --weight_decay 1e-5 \
     --batch_size 256 \
     --num_workers 10 \
     --dali \
     --pretrained_feature_extractor PATH \
-    --name byol-resnet50-imagenet-linear-eval \
+    --name barlow-resnet50-imagenet-linear-eval \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb
