@@ -1,7 +1,7 @@
 srun python main_pretrain.py \
     --dataset $1 \
     --backbone resnet18 \
-    --data_dir datasets \
+    --data_dir ./datasets \
     --max_epochs 1000 \
     --gpus 0,1,2,3 \
     --precision 16 \
