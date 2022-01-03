@@ -28,8 +28,6 @@ from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 
-from pytorch_lightning.plugins.environments import SLURMEnvironment
-
 try:
     from solo.methods.dali import PretrainABC
 except ImportError as e:
@@ -141,7 +139,7 @@ def main():
             logdir=os.path.join(args.checkpoint_dir, args.method),
             frequency=args.checkpoint_frequency,
         )
-        #callbacks.append(ckpt)
+        callbacks.append(ckpt)
 
     if args.auto_umap:
         assert (
@@ -177,11 +175,7 @@ def main():
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
-        plugins=[SLURMEnvironment()],
-        checkpoint_callback=True,
-        terminate_on_nan=True,
-        accelerator="gpu",
-        strategy='ddp'
+        enable_checkpointing=False,
     )
 
     if args.dali:
