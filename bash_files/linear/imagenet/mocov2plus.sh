@@ -1,4 +1,4 @@
-python3 ../../../main_linear.py \
+python3 main_linear.py \
     --dataset imagenet \
     --backbone resnet50 \
     --data_dir /data/datasets \
@@ -6,20 +6,18 @@ python3 ../../../main_linear.py \
     --val_dir imagenet/val \
     --max_epochs 100 \
     --gpus 0 \
-    --accelerator gpu \
-    --strategy ddp \
-    --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
-    --lr 0.1 \
+    --lr 3.0 \
     --lr_decay_steps 60 80 \
     --weight_decay 0 \
     --batch_size 256 \
-    --num_workers 10 \
+    --num_workers 5 \
     --dali \
+    --name mocov2plus-imagenet-linear-eval \
     --pretrained_feature_extractor PATH \
-    --name byol-resnet50-imagenet-linear-eval \
-    --entity unitn-mhug \
     --project solo-learn \
-    --wandb
+    --entity unitn-mhug \
+    --wandb \
+    --save_checkpoint

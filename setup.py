@@ -36,7 +36,7 @@ def parse_requirements(path):
 
 setup(
     name="solo-learn",
-    packages=find_packages(exclude=["bash_files"]),
+    packages=find_packages(exclude=["bash_files", "docs", "downstream", "tests", "zoo"]),
     version="1.0.3",
     license="MIT",
     author="solo-learn development team",
@@ -45,7 +45,7 @@ setup(
     keywords=KW,
     install_requires=[
         "torch==1.10.0",
-        "torchvision",
+        "torchvision==0.11.1",
         "einops",
         "pytorch-lightning==1.5.3",
         "torchmetrics==0.6.0",
