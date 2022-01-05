@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -133,7 +133,7 @@ def vit_large(patch_size=16, **kwargs):
     return model
 
 
-# Copyright 2021 Garena Online Private Limited
+# Copyright 2022 Garena Online Private Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
