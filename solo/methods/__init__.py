@@ -23,6 +23,7 @@ from solo.methods.byol import BYOL
 from solo.methods.deepclusterv2 import DeepClusterV2
 from solo.methods.dino import DINO
 from solo.methods.linear import LinearModel
+from solo.methods.meanshift import MeanShift
 from solo.methods.mocov2plus import MoCoV2Plus
 from solo.methods.nnbyol import NNBYOL
 from solo.methods.nnclr import NNCLR
@@ -35,7 +36,6 @@ from solo.methods.swav import SwAV
 from solo.methods.vibcreg import VIbCReg
 from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
-from solo.methods.meanshift import MeanShift
 
 METHODS = {
     # base classes
@@ -46,6 +46,7 @@ METHODS = {
     "byol": BYOL,
     "deepclusterv2": DeepClusterV2,
     "dino": DINO,
+    "mean_shift": MeanShift,
     "mocov2plus": MoCoV2Plus,
     "nnbyol": NNBYOL,
     "nnclr": NNCLR,
@@ -58,7 +59,6 @@ METHODS = {
     "vibcreg": VIbCReg,
     "vicreg": VICReg,
     "wmse": WMSE,
-    "mean_shift" : MeanShift, 
 }
 __all__ = [
     "BarlowTwins",
@@ -67,6 +67,7 @@ __all__ = [
     "DeepClusterV2",
     "DINO",
     "LinearModel",
+    "MeanShift",
     "MoCoV2Plus",
     "NNBYOL",
     "NNCLR",
@@ -79,7 +80,6 @@ __all__ = [
     "VIbCReg",
     "VICReg",
     "WMSE",
-    "MeanShift",
 ]
 
 try:

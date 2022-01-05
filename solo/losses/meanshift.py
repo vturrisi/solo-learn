@@ -1,11 +1,12 @@
 import torch
 import torch.nn.functional as F
 
-def mean_shift_loss_func(p: torch.Tensor,
-        z: torch.Tensor,
-        queue: torch.Tensor,
-        num_neighbors: int) -> torch.Tensor:
-    """Computes mean shift loss given batch of predicted features p and projected momentum features z.
+
+def mean_shift_loss_func(
+    p: torch.Tensor, z: torch.Tensor, queue: torch.Tensor, num_neighbors: int
+) -> torch.Tensor:
+    """Computes meanshift's loss given a batch of predicted features p
+    and projected momentum features z.
 
     Args:
         p (torch.Tensor): NxD Tensor containing predicted features from view 1
@@ -16,16 +17,11 @@ def mean_shift_loss_func(p: torch.Tensor,
     Returns:
         torch.Tensor: Mean shift loss.
     """
-    p = F.normalize(p,dim=1)
-    z = F.normalize(z,dim=1)
-    queue = F.normalize(queue,dim=1)
-    _,indices = torch.topk(z@queue.T,num_neighbors,dim=1)
+    p = F.normalize(p, dim=1)
+    z = F.normalize(z, dim=1)
+    queue = F.normalize(queue, dim=1)
+    _, indices = torch.topk(z @ queue.T, num_neighbors, dim=1)
     nn_targets = queue[indices]
     z = z.unsqueeze(dim=1)
     p = p.unsqueeze(dim=1)
-    return 2 - 2*(
-            torch.einsum('nik,njk->nj',p,nn_targets.detach())
-            ).mean()
-
-
-        
+    return 2 - 2 * (torch.einsum("nik,njk->nj", p, nn_targets.detach())).mean()

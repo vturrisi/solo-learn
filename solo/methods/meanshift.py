@@ -4,21 +4,22 @@ from typing import Any, Dict, List, Sequence, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from solo.losses.meanshiftloss import mean_shift_loss_func
+from solo.losses.meanshift import mean_shift_loss_func
 from solo.methods.base import BaseMomentumMethod
-from solo.utils.momentum import initialize_momentum_params
 from solo.utils.misc import gather
+from solo.utils.momentum import initialize_momentum_params
+
 
 class MeanShift(BaseMomentumMethod):
     def __init__(
         self,
-        output_dim: int,
+        proj_output_dim: int,
         proj_hidden_dim: int,
         pred_hidden_dim: int,
         num_neighbors: int,
         queue_size: int,
         **kwargs,
-        ):
+    ):
 
         super().__init__(**kwargs)
 
@@ -27,7 +28,7 @@ class MeanShift(BaseMomentumMethod):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
 
         # momentum projector
@@ -35,42 +36,41 @@ class MeanShift(BaseMomentumMethod):
             nn.Linear(self.features_dim, proj_hidden_dim),
             nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
-            nn.Linear(proj_hidden_dim, output_dim),
+            nn.Linear(proj_hidden_dim, proj_output_dim),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
         # predictor
         self.predictor = nn.Sequential(
-            nn.Linear(output_dim, pred_hidden_dim),
+            nn.Linear(proj_output_dim, pred_hidden_dim),
             nn.BatchNorm1d(pred_hidden_dim),
             nn.ReLU(),
-            nn.Linear(pred_hidden_dim, output_dim),
+            nn.Linear(pred_hidden_dim, proj_output_dim),
         )
 
         self.num_neighbors = num_neighbors
         self.queue_size = queue_size
 
-        self.register_buffer("queue",torch.randn(self.queue_size,output_dim))
-        self.queue = F.normalize(self.queue,dim=1)
-        self.register_buffer("queue_ptr",torch.zeros(1,dtype=torch.long))
+        self.register_buffer("queue", torch.randn(self.queue_size, proj_output_dim))
+        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+        self.queue = F.normalize(self.queue, dim=1)
         self.queue_once_traversed = False
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(MeanShift,MeanShift).add_model_specific_args(parent_parser)
+        parent_parser = super(MeanShift, MeanShift).add_model_specific_args(parent_parser)
         parser = parent_parser.add_argument_group("mean_shift")
 
         # projector
-        parser.add_argument("--output_dim", type=int, default=256)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
         parser.add_argument("--proj_hidden_dim", type=int, default=2048)
 
         # predictor
         parser.add_argument("--pred_hidden_dim", type=int, default=512)
-        parser.add_argument("--num_neighbors",type=int,default=5)
-        parser.add_argument("--queue_size",type=int,default=65536)
+        parser.add_argument("--num_neighbors", type=int, default=5)
+        parser.add_argument("--queue_size", type=int, default=65536)
 
         return parent_parser
-
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -96,7 +96,6 @@ class MeanShift(BaseMomentumMethod):
 
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
-    
 
     @torch.no_grad()
     def dequeue_and_enqueue(self, k: torch.Tensor):
@@ -111,19 +110,17 @@ class MeanShift(BaseMomentumMethod):
         batch_size = k.shape[0]
 
         ptr = int(self.queue_ptr)  # type: ignore
-        #assert self.queue_size % batch_size == 0
+        # assert self.queue_size % batch_size == 0
 
         self.queue[ptr : ptr + batch_size, :] = k
-        
-        if ptr+batch_size >= self.queue_size:
+
+        if ptr + batch_size >= self.queue_size:
             self.queue_once_traversed = True
 
         ptr = (ptr + batch_size) % self.queue_size
 
         self.queue_ptr[0] = ptr  # type: ignore
 
-
-    
     def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
         """Performs forward pass of the online encoder (encoder, projector and predictor).
 
@@ -140,7 +137,7 @@ class MeanShift(BaseMomentumMethod):
         return {**out, "z": z, "p": p}
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for BYOL reusing BaseModel training step.
+        """Training step for MeanShift reusing BaseModel training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -148,7 +145,7 @@ class MeanShift(BaseMomentumMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of BYOL and classification loss.
+            torch.Tensor: total loss composed of MeanShift and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
@@ -164,15 +161,17 @@ class MeanShift(BaseMomentumMethod):
             z1_momentum = self.momentum_projector(momentum_feats1)
 
         self.dequeue_and_enqueue(z1_momentum)
-        # ------- contrastive loss -------
-        mean_neg_cos_sim = (mean_shift_loss_func(p2,z1_momentum,self.queue[:self.queue_ptr[0]],self.num_neighbors)
-                            if not self.queue_once_traversed
-                            else mean_shift_loss_func(p2,z1_momentum,self.queue,self.num_neighbors))
-        mean_neg_cos_sim = (mean_shift_loss_func(p2,z1_momentum,self.queue,self.num_neighbors))
-        metrics = {
-            "train_mean_neg_cos_sim": mean_neg_cos_sim,
-        }
-        self.log_dict(metrics, on_epoch=True, sync_dist=True)
+
+        # ------- meanshift loss -------
+        mean_neg_cos_sim = (
+            mean_shift_loss_func(
+                p2, z1_momentum, self.queue[: self.queue_ptr[0]], self.num_neighbors
+            )
+            if not self.queue_once_traversed
+            else mean_shift_loss_func(p2, z1_momentum, self.queue, self.num_neighbors)
+        )
+        mean_neg_cos_sim = mean_shift_loss_func(p2, z1_momentum, self.queue, self.num_neighbors)
+
+        self.log("train_mean_neg_cos_sim", mean_neg_cos_sim, on_epoch=True, sync_dist=True)
 
         return mean_neg_cos_sim + class_loss
-

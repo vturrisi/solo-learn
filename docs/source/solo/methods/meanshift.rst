@@ -1,9 +1,9 @@
 
 MeanShift
-====
+=========
 
 
-.. automethod:: solo.methods.byol.BYOL.__init__
+.. automethod:: solo.methods.meanshift.MeanShift.__init__
    :noindex:
 
 add_model_specific_args

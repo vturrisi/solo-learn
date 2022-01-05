@@ -1,4 +1,3 @@
-
 # Copyright 2021 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,17 +25,17 @@ def test_mean_shift_loss():
     b, f = 32, 128
     p = torch.randn(b, f).requires_grad_()
     z = torch.randn(b, f)
+    queue = torch.randn(f, f)
 
-    loss = mean_shift_loss_func(p, z,5i,i,,)
+    loss = mean_shift_loss_func(p, z, queue, 5)
     initial_loss = loss.item()
     assert loss != 0
 
     for _ in range(20):
-        loss = mean_shift_loss_func(p, z)
+        loss = mean_shift_loss_func(p, z, queue, 5)
         loss.backward()
         p.data.add_(-0.5 * p.grad)
 
         p.grad = None
 
     assert loss < initial_loss
-

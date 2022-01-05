@@ -1,4 +1,3 @@
-
 # Copyright 2021 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -34,10 +33,10 @@ def test_meanshift():
         "proj_hidden_dim": 4096,
         "pred_hidden_dim": 4096,
         "momentum_classifier": True,
-        "num_neighbors" : 5,
-        "queue_size" : 65536,
+        "num_neighbors": 5,
+        "queue_size": 65536,
     }
-    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=8)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = MeanShift(**kwargs, disable_knn_eval=True)
 
@@ -74,7 +73,7 @@ def test_meanshift():
     )
 
     # imagenet
-    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=8)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = MeanShift(**kwargs, disable_knn_eval=True)
 
@@ -91,7 +90,7 @@ def test_meanshift():
     trainer.fit(model, train_dl, val_dl)
 
     # cifar
-    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
+    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=8)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = MeanShift(**kwargs, disable_knn_eval=True)
 

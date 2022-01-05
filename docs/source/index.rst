@@ -68,6 +68,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/byol
    solo/methods/deepclusterv2
    solo/methods/dino
+   solo/methods/meanshift
    solo/methods/mocov2plus
    solo/methods/nnbyol
    solo/methods/nnclr
@@ -91,6 +92,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/losses/byol
    solo/losses/deepclusterv2
    solo/losses/dino
+   solo/losses/meanshift
    solo/losses/mocov2plus
    solo/losses/nnclr
    solo/losses/ressl
