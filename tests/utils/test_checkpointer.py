@@ -91,7 +91,8 @@ def test_checkpointer():
         "optimizer_states",
         "lr_schedulers",
     ]
-    assert list(ckpt.keys()) == expected_keys
+    ckpt_keys = list(ckpt.keys())
+    assert all(k in ckpt_keys for k in expected_keys)
 
     parser = argparse.ArgumentParser()
     ckpt_callback.add_checkpointer_args(parser)
