@@ -113,7 +113,7 @@ First clone the repo.
 
 Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
 ```
-pip3 install .[dali,umap]
+pip3 install .[dali,umap] --extra-index-url https://developer.download.nvidia.com/compute/redist
 ```
 
 If no Dali/UMAP support is needed, the repository can be installed as:
@@ -121,13 +121,11 @@ If no Dali/UMAP support is needed, the repository can be installed as:
 pip3 install .
 ```
 
-**NOTE:** if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
+**NOTE:** if you are having trouble with dali, install it following their [guide](https://github.com/NVIDIA/DALI).
 
 **NOTE 2:** consider installing [Pillow-SIMD](https://github.com/uploadcare/pillow-simd) for better loading times when not using Dali.
 
-**NOTE 3:** If you want to modify the library, install it in dev mode with `-e`.
-
-**NOTE 4:** Soon to be on pip.
+**NOTE 3:** Soon to be on pip.
 
 ---
 
@@ -135,7 +133,9 @@ pip3 install .
 
 For pretraining the backbone, follow one of the many bash files in `bash_files/pretrain/`.
 
-After that, for offline linear evaluation, follow the examples on `bash_files/linear`.
+After that, for offline linear evaluation, follow the examples in `bash_files/linear`.
+
+There are extra experiments on K-NN evaluation in `bash_files/knn/` and feature visualization with UMAP in `bash_files/umap/`.
 
 **NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
 
