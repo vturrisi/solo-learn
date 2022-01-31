@@ -32,6 +32,10 @@ from solo.utils.backbones import (
     vit_large,
     vit_small,
     vit_tiny,
+    convnext_base,
+    convnext_tiny,
+    convnext_small,
+    convnext_large,
 )
 
 
@@ -45,11 +49,9 @@ def test_backbones():
     model = swin_small()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = swin_base()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = swin_large()
     assert isinstance(model(dummy_data), torch.Tensor)
 
@@ -62,16 +64,14 @@ def test_backbones():
     model = vit_small()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = vit_base()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = vit_large()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    # poolformer models
-    dummy_data = torch.randn(6, 3, 224, 224)
+    # PoolFormer
+    dummy_data = torch.randn(6, 3, 32, 32)
     model = poolformer_s12()
     assert isinstance(model(dummy_data), torch.Tensor)
 
@@ -79,14 +79,26 @@ def test_backbones():
     model = poolformer_s24()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = poolformer_s36()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = poolformer_m36()
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 224, 224)
     model = poolformer_m48()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    # ConvNeXt
+    dummy_data = torch.randn(6, 3, 32, 32)
+    model = convnext_tiny()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    dummy_data = torch.randn(6, 3, 224, 224)
+    model = convnext_small()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    model = convnext_base()
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    model = convnext_large()
     assert isinstance(model(dummy_data), torch.Tensor)
