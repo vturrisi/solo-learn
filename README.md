@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Jan 31 2022]**: :eye: Added ConvNeXt support with timm.
 * **[Dec 20 2021]**: :thermometer: Added ImageNet results, scripts and checkpoints for MoCo V2+.
 * **[Dec 05 2021]**: :notes: Separated [SupCon](https://arxiv.org/abs/2004.11362) from SimCLR and added runs.
 * **[Dec 01 2021]**: :fountain: Added [PoolFormer](https://arxiv.org/abs/2111.11418).
@@ -35,7 +36,6 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## Methods available:
-
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
 * [BYOL](https://arxiv.org/abs/2006.07733)
 * [DeepCluster V2](https://arxiv.org/abs/2006.09882)
@@ -62,6 +62,7 @@ While the library is self-contained, it is possible to use the models outside of
 * [ViT](https://arxiv.org/abs/2010.11929)
 * [Swin](https://arxiv.org/abs/2103.14030)
 * [PoolFormer](https://arxiv.org/abs/2111.11418)
+* [ConvNeXt](https://arxiv.org/abs/2201.03545)
 
 ### Data
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
@@ -69,23 +70,23 @@ While the library is self-contained, it is possible to use the models outside of
 
 ### Evaluation and logging
 * Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well).
-* Online and offlfine K-NN evaluation.
+* Online and offline K-NN evaluation.
 * Normal offline linear evaluation.
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
 * Easy-to-extend modular code structure.
 * Custom model logging with a simpler file organization.
 * Automatic feature space visualization with UMAP.
 * Offline UMAP.
-* Common metrics and more to come...
+* Common metrics.
 
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
-    * **Note**: currently, only SimCLR supports this.
+    * **Note**: currently, only SimCLR and BYOL supports this.
 * Exclude batchnorm and biases from LARS.
 * No LR scheduler for the projection head in SimSiam.
+
 ---
 ## Requirements
-
 * torch
 * torchvision
 * tqdm
