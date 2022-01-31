@@ -43,7 +43,7 @@ def covariance_loss(z1: Tensor, z2: Tensor) -> Tensor:
     fxf_cov_z2 = torch.mm(norm_z2.T, norm_z2)
     fxf_cov_z1.fill_diagonal_(0.0)
     fxf_cov_z2.fill_diagonal_(0.0)
-    cov_loss = (fxf_cov_z1 ** 2).mean() + (fxf_cov_z2 ** 2).mean()
+    cov_loss = (fxf_cov_z1**2).mean() + (fxf_cov_z2**2).mean()
     return cov_loss
 
 

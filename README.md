@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Jan 31 2022]**: :eye: Added ConvNeXt support with timm.
 * **[Dec 20 2021]**: :thermometer: Added ImageNet results, scripts and checkpoints for MoCo V2+.
 * **[Dec 05 2021]**: :notes: Separated [SupCon](https://arxiv.org/abs/2004.11362) from SimCLR and added runs.
 * **[Dec 01 2021]**: :fountain: Added [PoolFormer](https://arxiv.org/abs/2111.11418).
@@ -35,7 +36,6 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## Methods available:
-
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
 * [BYOL](https://arxiv.org/abs/2006.07733)
 * [DeepCluster V2](https://arxiv.org/abs/2006.09882)
@@ -62,6 +62,7 @@ While the library is self-contained, it is possible to use the models outside of
 * [ViT](https://arxiv.org/abs/2010.11929)
 * [Swin](https://arxiv.org/abs/2103.14030)
 * [PoolFormer](https://arxiv.org/abs/2111.11418)
+* [ConvNeXt](https://arxiv.org/abs/2201.03545)
 
 ### Data
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
@@ -69,23 +70,23 @@ While the library is self-contained, it is possible to use the models outside of
 
 ### Evaluation and logging
 * Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well).
-* Online and offlfine K-NN evaluation.
+* Online and offline K-NN evaluation.
 * Normal offline linear evaluation.
 * All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
 * Easy-to-extend modular code structure.
 * Custom model logging with a simpler file organization.
 * Automatic feature space visualization with UMAP.
 * Offline UMAP.
-* Common metrics and more to come...
+* Common metrics.
 
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
-    * **Note**: currently, only SimCLR supports this.
+    * **Note**: currently, only SimCLR and BYOL supports this.
 * Exclude batchnorm and biases from LARS.
 * No LR scheduler for the projection head in SimSiam.
+
 ---
 ## Requirements
-
 * torch
 * torchvision
 * tqdm
@@ -112,7 +113,7 @@ First clone the repo.
 
 Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
 ```
-pip3 install .[dali,umap]
+pip3 install .[dali,umap] --extra-index-url https://developer.download.nvidia.com/compute/redist
 ```
 
 If no Dali/UMAP support is needed, the repository can be installed as:
@@ -120,13 +121,11 @@ If no Dali/UMAP support is needed, the repository can be installed as:
 pip3 install .
 ```
 
-**NOTE:** if you are having trouble with dali, install it with `pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda110` or with your specific cuda version.
+**NOTE:** if you are having trouble with dali, install it following their [guide](https://github.com/NVIDIA/DALI).
 
 **NOTE 2:** consider installing [Pillow-SIMD](https://github.com/uploadcare/pillow-simd) for better loading times when not using Dali.
 
-**NOTE 3:** If you want to modify the library, install it in dev mode with `-e`.
-
-**NOTE 4:** Soon to be on pip.
+**NOTE 3:** Soon to be on pip.
 
 ---
 
@@ -134,7 +133,9 @@ pip3 install .
 
 For pretraining the backbone, follow one of the many bash files in `bash_files/pretrain/`.
 
-After that, for offline linear evaluation, follow the examples on `bash_files/linear`.
+After that, for offline linear evaluation, follow the examples in `bash_files/linear`.
+
+There are extra experiments on K-NN evaluation in `bash_files/knn/` and feature visualization with UMAP in `bash_files/umap/`.
 
 **NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
 
