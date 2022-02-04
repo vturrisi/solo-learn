@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Feb 04 2022]**: :partying_face: Paper got accepted to JMLR.
 * **[Jan 31 2022]**: :eye: Added ConvNeXt support with timm.
 * **[Dec 20 2021]**: :thermometer: Added ImageNet results, scripts and checkpoints for MoCo V2+.
 * **[Dec 05 2021]**: :notes: Separated [SupCon](https://arxiv.org/abs/2004.11362) from SimCLR and added runs.
@@ -267,15 +268,16 @@ We report the training efficiency of some methods using a ResNet18 with and with
 ---
 
 ## Citation
-If you use solo-learn, please cite our [preprint](https://arxiv.org/abs/2108.01775v1):
+If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
 ```
-@misc{turrisi2021sololearn,
-      title={Solo-learn: A Library of Self-supervised Methods for Visual Representation Learning}, 
-      author={Victor G. Turrisi da Costa and Enrico Fini and Moin Nabi and Nicu Sebe and Elisa Ricci},
-      year={2021},
-      eprint={2108.01775},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={\url{https://github.com/vturrisi/solo-learn}},
+@article{JMLR:v23:21-1155,
+  author  = {Victor Guilherme Turrisi da Costa and Enrico Fini and Moin Nabi and Nicu Sebe and Elisa Ricci},
+  title   = {solo-learn: A Library of Self-supervised Methods for Visual Representation Learning},
+  journal = {Journal of Machine Learning Research},
+  year    = {2022},
+  volume  = {23},
+  number  = {56},
+  pages   = {1-6},
+  url     = {http://jmlr.org/papers/v23/21-1155.html}
 }
 ```
