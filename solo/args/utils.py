@@ -196,7 +196,7 @@ def additional_setup_pretrain(args: Namespace):
     args.backbone_args = {"cifar": args.dataset in ["cifar10", "cifar100"]}
     if "resnet" in args.backbone:
         args.backbone_args["zero_init_residual"] = args.zero_init_residual
-    if "convnext" not in args.backbone:
+    elif "convnext" not in args.backbone:
         # dataset related for all transformers
         crop_size = args.crop_size[0]
         args.backbone_args["img_size"] = crop_size
