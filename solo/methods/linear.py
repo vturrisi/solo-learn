@@ -50,6 +50,9 @@ class LinearModel(pl.LightningModule):
         exclude_bias_n_norm: bool,
         extra_optimizer_args: dict,
         scheduler: str,
+        min_lr: float,
+        warmup_start_lr: float,
+        warmup_epochs: float,
         lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
@@ -68,6 +71,9 @@ class LinearModel(pl.LightningModule):
                 and lars adaptation.
             extra_optimizer_args (dict): extra optimizer arguments.
             scheduler (str): learning rate scheduler.
+            min_lr (float): minimum learning rate for warmup scheduler.
+            warmup_start_lr (float): initial learning rate for warmup scheduler.
+            warmup_epochs (float): number of warmup epochs.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
         """
@@ -91,6 +97,9 @@ class LinearModel(pl.LightningModule):
         self.exclude_bias_n_norm = exclude_bias_n_norm
         self.extra_optimizer_args = extra_optimizer_args
         self.scheduler = scheduler
+        self.min_lr = min_lr
+        self.warmup_start_lr = warmup_start_lr
+        self.warmup_epochs = warmup_epochs
         self.lr_decay_steps = lr_decay_steps
 
         # all the other parameters
@@ -151,6 +160,9 @@ class LinearModel(pl.LightningModule):
 
         parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
+        parser.add_argument("--min_lr", default=0.0, type=float)
+        parser.add_argument("--warmup_start_lr", default=0.003, type=float)
+        parser.add_argument("--warmup_epochs", default=10, type=int)
 
         return parent_parser
 
@@ -203,7 +215,13 @@ class LinearModel(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
-            scheduler = LinearWarmupCosineAnnealingLR(optimizer, 10, self.max_epochs)
+            scheduler = LinearWarmupCosineAnnealingLR(
+                optimizer,
+                warmup_epochs=self.warmup_epochs,
+                max_epochs=self.max_epochs,
+                warmup_start_lr=self.warmup_start_lr,
+                eta_min=self.min_lr,
+            )
         elif self.scheduler == "cosine":
             scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
         elif self.scheduler == "reduce":
