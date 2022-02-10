@@ -303,7 +303,7 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
         parser.add_argument("--min_lr", default=0.0, type=float)
-        parser.add_argument("--warmup_start_lr", default=0.003, type=float)
+        parser.add_argument("--warmup_start_lr", default=0.00003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
         # DALI only
