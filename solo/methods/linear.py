@@ -28,12 +28,8 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    ExponentialLR,
-    MultiStepLR,
-    ReduceLROnPlateau,
-)
+from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
+from torch.utils.data import DataLoader
 
 
 class LinearModel(pl.LightningModule):
@@ -166,33 +162,42 @@ class LinearModel(pl.LightningModule):
 
         return parent_parser
 
-    def set_loaders(self, train_loader=None, val_loader=None):
+    def set_loaders(self, train_loader: DataLoader = None, val_loader: DataLoader = None) -> None:
+        """Sets dataloaders so that you can obtain extra information about them.
+        We currently only use to obtain the number of training steps per epoch.
+
+        Args:
+            train_loader (DataLoader, optional): training dataloader.
+            val_loader (DataLoader, optional): validation dataloader.
+
+        """
+
         if train_loader is not None:
             self.train_dataloader = lambda: train_loader
+
         if val_loader is not None:
             self.val_dataloader = lambda: val_loader
 
     @property
     def num_training_steps(self) -> int:
-        """Training steps per epoch inferred from datamodule and devices."""
+        """Compute the number of training steps for each epoch."""
 
         if self._num_training_steps is None:
             if self.trainer.train_dataloader is None:
                 try:
-                    self.train_dataloader()
+                    dataloader = self.train_dataloader()
                 except NotImplementedError:
                     raise RuntimeError(
-                        "To have the number of training steps per epoch "
+                        "To use linear warmup cosine annealing lr"
                         "set the dataloader with .set_loaders(...)"
                     )
 
-            dataset_size = getattr(self, "dali_epoch_size", None) or len(
-                self.trainer.train_dataloader.dataset
-            )
+            dataset_size = getattr(self, "dali_epoch_size", None) or len(dataloader.dataset)
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
             num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
+
             if self.trainer.tpu_cores:
                 num_devices = max(num_devices, self.trainer.tpu_cores)
 
