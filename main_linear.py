@@ -135,7 +135,7 @@ def main():
         wandb_logger.log_hyperparams(args)
 
         # lr logging
-        lr_monitor = LearningRateMonitor(logging_interval="epoch")
+        lr_monitor = LearningRateMonitor(logging_interval="step")
         callbacks.append(lr_monitor)
 
     if args.save_checkpoint:
