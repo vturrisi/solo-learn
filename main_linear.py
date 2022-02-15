@@ -97,7 +97,7 @@ def main():
             raise Exception(
                 "You are using an older checkpoint."
                 "Either use a new one, or convert it by replacing"
-                "all 'encoder' occurances in state_dict with 'backbone'"
+                "all 'encoder' occurrences in state_dict with 'backbone'"
             )
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]
@@ -161,10 +161,13 @@ def main():
         callbacks=callbacks,
         enable_checkpointing=False,
     )
+
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
+        model.set_loaders(val_loader=val_loader)
+        trainer.fit(model, ckpt_path=ckpt_path)
     else:
-        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
+        model.set_loaders(train_loader=train_loader, val_loader=val_loader)
+        trainer.fit(model, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":

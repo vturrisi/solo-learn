@@ -129,7 +129,7 @@ def main():
         wandb_logger.log_hyperparams(args)
 
         # lr logging
-        lr_monitor = LearningRateMonitor(logging_interval="epoch")
+        lr_monitor = LearningRateMonitor(logging_interval="step")
         callbacks.append(lr_monitor)
 
     if args.save_checkpoint:
@@ -179,9 +179,11 @@ def main():
     )
 
     if args.dali:
-        trainer.fit(model, val_dataloaders=val_loader, ckpt_path=ckpt_path)
+        model.set_loaders(val_loader=val_loader)
+        trainer.fit(model, ckpt_path=ckpt_path)
     else:
-        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
+        model.set_loaders(train_loader=train_loader, val_loader=val_loader)
+        trainer.fit(model, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":

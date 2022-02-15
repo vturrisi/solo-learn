@@ -197,6 +197,7 @@ class BaseMethod(pl.LightningModule):
         self.grad_clip_lars = grad_clip_lars
         self.knn_eval = knn_eval
         self.knn_k = knn_k
+        self._num_training_steps = None
 
         # multicrop
         self.num_crops = self.num_large_crops + self.num_small_crops
@@ -293,7 +294,6 @@ class BaseMethod(pl.LightningModule):
         # scheduler
         SUPPORTED_SCHEDULERS = [
             "reduce",
-            "cosine",
             "warmup_cosine",
             "step",
             "exponential",
@@ -316,6 +316,42 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--knn_k", default=20, type=int)
 
         return parent_parser
+
+    def set_loaders(self, train_loader=None, val_loader=None):
+        if train_loader is not None:
+            self.train_dataloader = lambda: train_loader
+        if val_loader is not None:
+            self.val_dataloader = lambda: val_loader
+
+    def num_training_steps(self) -> int:
+        """Training steps per epoch inferred from datamodule and devices."""
+
+        if self._num_training_steps is None:
+            if self.trainer.train_dataloader is None:
+                try:
+                    self.train_dataloader()
+                except NotImplementedError:
+                    raise RuntimeError(
+                        "To use linear warmup cosine annealing lr"
+                        "set the dataloader with .set_loaders(...)"
+                    )
+
+            dataset_size = getattr(self, "dali_epoch_size", None) or len(
+                self.trainer.train_dataloader.dataset
+            )
+
+            dataset_size = self.trainer.limit_train_batches * dataset_size
+
+            num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
+            if self.trainer.tpu_cores:
+                num_devices = max(num_devices, self.trainer.tpu_cores)
+
+            effective_batch_size = (
+                self.batch_size * self.trainer.accumulate_grad_batches * num_devices
+            )
+            self._num_training_steps = dataset_size // effective_batch_size
+
+        return self._num_training_steps
 
     @property
     def learnable_params(self) -> List[Dict[str, Any]]:
@@ -379,15 +415,17 @@ class BaseMethod(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
-            scheduler = LinearWarmupCosineAnnealingLR(
-                optimizer,
-                warmup_epochs=self.warmup_epochs,
-                max_epochs=self.max_epochs,
-                warmup_start_lr=self.warmup_start_lr,
-                eta_min=self.min_lr,
-            )
-        elif self.scheduler == "cosine":
-            scheduler = CosineAnnealingLR(optimizer, self.max_epochs, eta_min=self.min_lr)
+            scheduler = {
+                "scheduler": LinearWarmupCosineAnnealingLR(
+                    optimizer,
+                    warmup_epochs=self.warmup_epochs * self.num_training_steps(),
+                    max_epochs=self.max_epochs * self.num_training_steps(),
+                    warmup_start_lr=self.warmup_start_lr,
+                    eta_min=self.min_lr,
+                ),
+                "interval": "step",
+                "frequency": 1,
+            }
         elif self.scheduler == "step":
             scheduler = MultiStepLR(optimizer, self.lr_decay_steps)
         else:
