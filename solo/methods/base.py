@@ -451,7 +451,10 @@ class BaseMethod(pl.LightningModule):
                 param_group_indexes=idxs_no_scheduler,
                 lrs_to_replace=[self.lr] * len(idxs_no_scheduler),
             )
-            scheduler.get_lr = partial_fn
+            if isinstance(scheduler, dict):
+                scheduler["scheduler"].get_lr = partial_fn
+            else:
+                scheduler.get_lr = partial_fn
 
         return [optimizer], [scheduler]
 
