@@ -165,6 +165,12 @@ def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
 
+def get_rank():
+    if dist.is_available() and dist.is_initialized():
+        return dist.get_rank()
+    return 0
+
+
 class GatherLayer(torch.autograd.Function):
     """Gathers tensors from all processes, supporting backward propagation."""
 
@@ -194,7 +200,25 @@ def gather(X, dim=0):
     return torch.cat(GatherLayer.apply(X), dim=dim)
 
 
-def get_rank():
-    if dist.is_available() and dist.is_initialized():
-        return dist.get_rank()
-    return 0
+class FullGatherLayer(torch.autograd.Function):
+    """
+    Gather tensors from all process and support backward propagation
+    for the gradients across processes.
+    """
+
+    @staticmethod
+    def forward(ctx, x):
+        output = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
+        dist.all_gather(output, x)
+        return tuple(output)
+
+    @staticmethod
+    def backward(ctx, *grads):
+        all_gradients = torch.stack(grads)
+        dist.all_reduce(all_gradients)
+        return all_gradients[get_rank()]
+
+
+def full_gather(X, dim=0):
+    """Gathers tensors from all processes, supporting backward propagation."""
+    return torch.cat(FullGatherLayer.apply(X), dim=dim)
