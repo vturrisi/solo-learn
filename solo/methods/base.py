@@ -445,7 +445,9 @@ class BaseMethod(pl.LightningModule):
         if idxs_no_scheduler:
             partial_fn = partial(
                 static_lr,
-                get_lr=scheduler.get_lr,
+                get_lr=scheduler["scheduler"].get_lr
+                if isinstance(scheduler, dict)
+                else scheduler.get_lr,
                 param_group_indexes=idxs_no_scheduler,
                 lrs_to_replace=[self.lr] * len(idxs_no_scheduler),
             )
