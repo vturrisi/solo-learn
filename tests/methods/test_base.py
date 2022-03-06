@@ -43,10 +43,6 @@ def test_base():
     optimizer = model.configure_optimizers()
     assert isinstance(optimizer, torch.optim.Optimizer)
 
-    model.scheduler = "cosine"
-    scheduler = model.configure_optimizers()[1][0]
-    assert isinstance(scheduler, torch.optim.lr_scheduler.CosineAnnealingLR)
-
     model.scheduler = "step"
     scheduler = model.configure_optimizers()[1][0]
     assert isinstance(scheduler, torch.optim.lr_scheduler.MultiStepLR)

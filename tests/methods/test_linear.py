@@ -74,6 +74,7 @@ def test_linear():
         "imagenet100",
         num_classes=BASE_KWARGS["num_classes"],
     )
+    model.set_loaders(train_loader=train_dl, val_loader=val_dl)
     trainer.fit(model, train_dl, val_dl)
 
     # test optimizers/scheduler
@@ -86,10 +87,6 @@ def test_linear():
     model.scheduler = "none"
     optimizer = model.configure_optimizers()
     assert isinstance(optimizer, torch.optim.Optimizer)
-
-    model.scheduler = "cosine"
-    scheduler = model.configure_optimizers()[1][0]
-    assert isinstance(scheduler, torch.optim.lr_scheduler.CosineAnnealingLR)
 
     model.scheduler = "reduce"
     scheduler = model.configure_optimizers()[1][0]

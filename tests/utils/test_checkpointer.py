@@ -55,7 +55,6 @@ def test_checkpointer():
         limit_val_batches=2,
         callbacks=[ckpt_callback],
     )
-
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
         num_large_crops=BASE_KWARGS["num_large_crops"],
@@ -64,7 +63,7 @@ def test_checkpointer():
         multicrop=False,
         batch_size=BASE_KWARGS["batch_size"],
     )
-
+    model.set_loaders(train_loader=train_dl, val_loader=val_dl)
     trainer.fit(model, train_dl, val_dl)
 
     # check if checkpointer dumped the args

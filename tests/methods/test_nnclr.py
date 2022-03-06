@@ -86,6 +86,7 @@ def test_nnclr():
         multicrop=False,
         batch_size=BASE_KWARGS["batch_size"],
     )
+    model.set_loaders(train_loader=train_dl, val_loader=val_dl)
     trainer.fit(model, train_dl, val_dl)
 
     # cifar
@@ -103,4 +104,5 @@ def test_nnclr():
         multicrop=False,
         batch_size=BASE_KWARGS["batch_size"],
     )
+    model.set_loaders(train_loader=train_dl, val_loader=val_dl)
     trainer.fit(model, train_dl, val_dl)
