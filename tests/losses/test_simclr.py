@@ -18,7 +18,31 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-from solo.losses import simclr_loss_func
+from solo.losses import simclr_loss_func, old_simclr_loss_func
+
+
+def test_old_simclr_loss():
+    b, f = 32, 128
+    z1 = torch.randn(b, f).requires_grad_()
+    z2 = torch.randn(b, f).requires_grad_()
+    z = torch.cat((z1, z2))
+    indexes = torch.arange(b).repeat(2)
+
+    loss = old_simclr_loss_func(z, indexes, temperature=0.1)
+    initial_loss = loss.item()
+    assert loss != 0
+
+    for _ in range(20):
+        z = torch.cat((z1, z2))
+        loss = old_simclr_loss_func(z, indexes, temperature=0.1)
+        loss.backward()
+
+        z1.data.add_(-0.5 * z1.grad)
+        z2.data.add_(-0.5 * z2.grad)
+
+        z1.grad = z2.grad = None
+
+    assert loss < initial_loss
 
 
 def test_simclr_loss():

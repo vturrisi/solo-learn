@@ -28,7 +28,7 @@ python3 ../../../main_pretrain.py \
     --num_crops_per_aug 1 1 \
     --num_workers 4 \
     --dali \
-    --name nnclr-400ep-imagenet100 \
+    --name nnclr-gather-p-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
     --wandb \

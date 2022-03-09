@@ -19,6 +19,7 @@
 
 import torch
 import torch.nn.functional as F
+from solo.utils.misc import gather
 
 
 def invariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
@@ -101,6 +102,11 @@ def vicreg_loss_func(
     """
 
     sim_loss = invariance_loss(z1, z2)
+
+    # vicreg's official coded gathers the tensors here
+    # https://github.com/facebookresearch/vicreg/blob/main/main_vicreg.py
+    z1, z2 = gather(z1), gather(z2)
+
     var_loss = variance_loss(z1, z2)
     cov_loss = covariance_loss(z1, z2)
 

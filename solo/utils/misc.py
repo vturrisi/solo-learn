@@ -172,24 +172,26 @@ def get_rank():
 
 
 class GatherLayer(torch.autograd.Function):
-    """Gathers tensors from all processes, supporting backward propagation."""
+    """
+    Gather tensors from all process and support backward propagation
+    for the gradients across processes.
+    """
 
     @staticmethod
-    def forward(ctx, inp):
-        ctx.save_for_backward(inp)
+    def forward(ctx, x):
         if dist.is_available() and dist.is_initialized():
-            output = [torch.zeros_like(inp) for _ in range(dist.get_world_size())]
-            dist.all_gather(output, inp)
+            output = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
+            dist.all_gather(output, x)
         else:
-            output = [inp]
+            output = [x]
         return tuple(output)
 
     @staticmethod
     def backward(ctx, *grads):
-        (inp,) = ctx.saved_tensors
         if dist.is_available() and dist.is_initialized():
-            grad_out = torch.zeros_like(inp)
-            grad_out[:] = grads[dist.get_rank()]
+            all_gradients = torch.stack(grads)
+            dist.all_reduce(all_gradients)
+            grad_out = all_gradients[get_rank()]
         else:
             grad_out = grads[0]
         return grad_out
@@ -198,27 +200,3 @@ class GatherLayer(torch.autograd.Function):
 def gather(X, dim=0):
     """Gathers tensors from all processes, supporting backward propagation."""
     return torch.cat(GatherLayer.apply(X), dim=dim)
-
-
-class FullGatherLayer(torch.autograd.Function):
-    """
-    Gather tensors from all process and support backward propagation
-    for the gradients across processes.
-    """
-
-    @staticmethod
-    def forward(ctx, x):
-        output = [torch.zeros_like(x) for _ in range(dist.get_world_size())]
-        dist.all_gather(output, x)
-        return tuple(output)
-
-    @staticmethod
-    def backward(ctx, *grads):
-        all_gradients = torch.stack(grads)
-        dist.all_reduce(all_gradients)
-        return all_gradients[get_rank()]
-
-
-def full_gather(X, dim=0):
-    """Gathers tensors from all processes, supporting backward propagation."""
-    return torch.cat(FullGatherLayer.apply(X), dim=dim)

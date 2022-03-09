@@ -62,8 +62,8 @@ cd ..
 # SimCLR
 mkdir simclr
 cd simclr
-gdown https://drive.google.com/uc?id=15uqJBeUb-xUCED_yOGmvrSIVxDuIvBKc # checkpoint
-gdown https://drive.google.com/uc?id=1dYtbV4NzoRoJvZzu2MAy-1HBxp0uTYLO # args
+gdown https://drive.google.com/uc?id=1dU88Sh5F_8J_UXXEQ8FOWS85g8eFEZVa # checkpoint
+gdown https://drive.google.com/uc?id=1865vcQhuvGeNm0iQ9g87APLwLvYNuqcn # args
 cd ..
 
 # Simsiam

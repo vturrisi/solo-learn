@@ -18,12 +18,12 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
+import torch.nn.functional as F
 from solo.losses.vicreg import invariance_loss, variance_loss
-from torch import Tensor
-from torch.nn import functional as F
+from solo.utils.misc import gather
 
 
-def covariance_loss(z1: Tensor, z2: Tensor) -> Tensor:
+def covariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
     """Computes normalized covariance loss given batch of projected features z1 from view 1 and
     projected features z2 from view 2.
 
@@ -43,7 +43,7 @@ def covariance_loss(z1: Tensor, z2: Tensor) -> Tensor:
     fxf_cov_z2 = torch.mm(norm_z2.T, norm_z2)
     fxf_cov_z1.fill_diagonal_(0.0)
     fxf_cov_z2.fill_diagonal_(0.0)
-    cov_loss = (fxf_cov_z1**2).mean() + (fxf_cov_z2**2).mean()
+    cov_loss = (fxf_cov_z1 ** 2).mean() + (fxf_cov_z2 ** 2).mean()
     return cov_loss
 
 
@@ -69,6 +69,10 @@ def vibcreg_loss_func(
     """
 
     sim_loss = invariance_loss(z1, z2)
+    # vicreg's official coded gathers the tensors here, so it's likely to benefit vibcreg
+    # https://github.com/facebookresearch/vicreg/blob/main/main_vicreg.py
+    z1, z2 = gather(z1), gather(z2)
+
     var_loss = variance_loss(z1, z2)
     cov_loss = covariance_loss(z1, z2)
 

@@ -20,6 +20,8 @@
 import torch
 import torch.nn.functional as F
 
+from solo.utils.misc import gather, get_rank
+
 
 def nnclr_loss_func(nn: torch.Tensor, p: torch.Tensor, temperature: float = 0.1) -> torch.Tensor:
     """Computes NNCLR's loss given batch of nearest-neighbors nn from view 1 and
@@ -38,10 +40,12 @@ def nnclr_loss_func(nn: torch.Tensor, p: torch.Tensor, temperature: float = 0.1)
     nn = F.normalize(nn, dim=-1)
     p = F.normalize(p, dim=-1)
 
+    p = gather(p)
+
     logits = nn @ p.T / temperature
 
-    n = p.size(0)
-    labels = torch.arange(n, device=p.device)
-
+    rank = get_rank()
+    n = nn.size(0)
+    labels = torch.arange(n * rank, n * (rank + 1), device=p.device)
     loss = F.cross_entropy(logits, labels)
     return loss

@@ -26,10 +26,10 @@ python3 ../../../main_pretrain.py \
     --hue 0.2 \
     --num_crops_per_aug 2 \
     --name simclr-400ep-imagenet100 \
+    --wandb \
     --dali \
     --project solo-learn \
     --entity unitn-mhug \
-    --wandb \
     --save_checkpoint \
     --method simclr \
     --temperature 0.2 \
