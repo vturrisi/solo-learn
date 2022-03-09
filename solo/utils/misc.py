@@ -173,7 +173,7 @@ def get_rank():
 
 class GatherLayer(torch.autograd.Function):
     """
-    Gather tensors from all process and support backward propagation
+    Gathers tensors from all process and supports backward propagation
     for the gradients across processes.
     """
 
