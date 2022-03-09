@@ -28,12 +28,8 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    ExponentialLR,
-    MultiStepLR,
-    ReduceLROnPlateau,
-)
+from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
+from torch.utils.data import DataLoader
 
 
 class LinearModel(pl.LightningModule):
@@ -101,6 +97,7 @@ class LinearModel(pl.LightningModule):
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
         self.lr_decay_steps = lr_decay_steps
+        self._num_training_steps = None
 
         # all the other parameters
         self.extra_args = kwargs
@@ -151,7 +148,6 @@ class LinearModel(pl.LightningModule):
         # scheduler
         SUPPORTED_SCHEDULERS = [
             "reduce",
-            "cosine",
             "warmup_cosine",
             "step",
             "exponential",
@@ -165,6 +161,52 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
         return parent_parser
+
+    def set_loaders(self, train_loader: DataLoader = None, val_loader: DataLoader = None) -> None:
+        """Sets dataloaders so that you can obtain extra information about them.
+        We currently only use to obtain the number of training steps per epoch.
+
+        Args:
+            train_loader (DataLoader, optional): training dataloader.
+            val_loader (DataLoader, optional): validation dataloader.
+
+        """
+
+        if train_loader is not None:
+            self.train_dataloader = lambda: train_loader
+
+        if val_loader is not None:
+            self.val_dataloader = lambda: val_loader
+
+    @property
+    def num_training_steps(self) -> int:
+        """Compute the number of training steps for each epoch."""
+
+        if self._num_training_steps is None:
+            if self.trainer.train_dataloader is None:
+                try:
+                    dataloader = self.train_dataloader()
+                except NotImplementedError:
+                    raise RuntimeError(
+                        "To use linear warmup cosine annealing lr"
+                        "set the dataloader with .set_loaders(...)"
+                    )
+
+            dataset_size = getattr(self, "dali_epoch_size", None) or len(dataloader.dataset)
+
+            dataset_size = self.trainer.limit_train_batches * dataset_size
+
+            num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
+
+            if self.trainer.tpu_cores:
+                num_devices = max(num_devices, self.trainer.tpu_cores)
+
+            effective_batch_size = (
+                self.batch_size * self.trainer.accumulate_grad_batches * num_devices
+            )
+            self._num_training_steps = dataset_size // effective_batch_size
+
+        return self._num_training_steps
 
     def forward(self, X: torch.tensor) -> Dict[str, Any]:
         """Performs forward pass of the frozen backbone and the linear layer for evaluation.
@@ -215,15 +257,17 @@ class LinearModel(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
-            scheduler = LinearWarmupCosineAnnealingLR(
-                optimizer,
-                warmup_epochs=self.warmup_epochs,
-                max_epochs=self.max_epochs,
-                warmup_start_lr=self.warmup_start_lr,
-                eta_min=self.min_lr,
-            )
-        elif self.scheduler == "cosine":
-            scheduler = CosineAnnealingLR(optimizer, self.max_epochs)
+            scheduler = {
+                "scheduler": LinearWarmupCosineAnnealingLR(
+                    optimizer,
+                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
+                    max_epochs=self.max_epochs * self.num_training_steps,
+                    warmup_start_lr=self.warmup_start_lr,
+                    eta_min=self.min_lr,
+                ),
+                "interval": "step",
+                "frequency": 1,
+            }
         elif self.scheduler == "reduce":
             scheduler = ReduceLROnPlateau(optimizer)
         elif self.scheduler == "step":
