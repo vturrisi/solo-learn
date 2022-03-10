@@ -103,7 +103,7 @@ def vicreg_loss_func(
 
     sim_loss = invariance_loss(z1, z2)
 
-    # vicreg's official coded gathers the tensors here
+    # vicreg's official code gathers the tensors here
     # https://github.com/facebookresearch/vicreg/blob/main/main_vicreg.py
     z1, z2 = gather(z1), gather(z2)
 
