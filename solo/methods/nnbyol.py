@@ -30,6 +30,8 @@ from solo.utils.misc import gather
 
 
 class NNBYOL(BaseMomentumMethod):
+    queue: torch.Tensor
+
     def __init__(
         self,
         proj_output_dim: int,

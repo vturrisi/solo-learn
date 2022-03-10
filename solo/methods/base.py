@@ -17,6 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import warnings
 from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
@@ -103,11 +104,12 @@ class BaseMethod(pl.LightningModule):
         accumulate_grad_batches: Union[int, None],
         extra_optimizer_args: Dict,
         scheduler: str,
-        min_lr: float,
-        warmup_start_lr: float,
-        warmup_epochs: float,
         num_large_crops: int,
         num_small_crops: int,
+        min_lr: float = 0.0,
+        warmup_start_lr: float = 0.00003,
+        warmup_epochs: float = 10,
+        scheduler_interval: str = "step",
         eta_lars: float = 1e-3,
         grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
@@ -142,11 +144,13 @@ class BaseMethod(pl.LightningModule):
             accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
             extra_optimizer_args (Dict): extra named arguments for the optimizer.
             scheduler (str): name of the scheduler.
-            min_lr (float): minimum learning rate for warmup scheduler.
-            warmup_start_lr (float): initial learning rate for warmup scheduler.
-            warmup_epochs (float): number of warmup epochs.
             num_large_crops (int): number of big crops.
             num_small_crops (int): number of small crops .
+            min_lr (float): minimum learning rate for warmup scheduler. Defaults to 0.0.
+            warmup_start_lr (float): initial learning rate for warmup scheduler.
+                Defaults to 0.00003.
+            warmup_epochs (float): number of warmup epochs. Defaults to 10.
+            scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             eta_lars (float): eta parameter for lars.
             grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
@@ -192,6 +196,8 @@ class BaseMethod(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
+        assert scheduler_interval in ["step", "epoch"]
+        self.scheduler_interval = scheduler_interval
         self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
         self.eta_lars = eta_lars
@@ -245,6 +251,12 @@ class BaseMethod(pl.LightningModule):
 
         if self.knn_eval:
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
+
+        if scheduler_interval == "step":
+            warnings.warn(
+                f"Using scheduler_interval={scheduler_interval} might generate "
+                "issues when resuming a checkpoint."
+            )
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -306,6 +318,9 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.00003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
+        parser.add_argument(
+            "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
+        )
 
         # DALI only
         # uses sample indexes as labels and then gets the labels from a lookup table
@@ -434,7 +449,7 @@ class BaseMethod(pl.LightningModule):
                     warmup_start_lr=self.warmup_start_lr,
                     eta_min=self.min_lr,
                 ),
-                "interval": "step",
+                "interval": self.scheduler_interval,
                 "frequency": 1,
             }
         elif self.scheduler == "step":
