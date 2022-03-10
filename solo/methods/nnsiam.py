@@ -29,6 +29,8 @@ from solo.utils.misc import gather
 
 
 class NNSiam(BaseMethod):
+    queue: torch.Tensor
+
     def __init__(
         self,
         proj_output_dim: int,
