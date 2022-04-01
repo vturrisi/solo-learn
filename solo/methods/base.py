@@ -342,9 +342,8 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--knn_eval", action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
 
-        # mosaicml optimization
-        # disables mosaicml channel last optization
-        parser.add_argument("--no_mosaicml_channel_last", action="store_true")
+        # disables channel last optimization
+        parser.add_argument("--no_channel_last", action="store_true")
 
         return parent_parser
 
