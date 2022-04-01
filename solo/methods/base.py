@@ -116,7 +116,7 @@ class BaseMethod(pl.LightningModule):
         lr_decay_steps: Sequence = None,
         knn_eval: bool = False,
         knn_k: int = 20,
-        no_mosaicml_channel_last=False,
+        no_channel_last: bool = False,
         **kwargs,
     ):
         """Base model that implements all basic operations for all self-supervised methods.
@@ -159,9 +159,9 @@ class BaseMethod(pl.LightningModule):
                 step. Defaults to None.
             knn_eval (bool): enables online knn evaluation while training.
             knn_k (int): the number of neighbors to use for knn.
-            no_mosaicml_channel_last (bool). Disables MosaicML ChannelLast operation which
-                speeds up training considerably (https://github.com/mosaicml/composer).
-                Defaults to False.
+            no_channel_last (bool). Disables channel last conversion operation which
+                speeds up training considerably. Defaults to False.
+                https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models
 
         .. note::
             When using distributed data parallel, the batch size and the number of workers are
@@ -209,6 +209,8 @@ class BaseMethod(pl.LightningModule):
         self.grad_clip_lars = grad_clip_lars
         self.knn_eval = knn_eval
         self.knn_k = knn_k
+        self.no_channel_last = no_channel_last
+
         self._num_training_steps = None
 
         # multicrop
@@ -263,10 +265,9 @@ class BaseMethod(pl.LightningModule):
                 "issues when resuming a checkpoint."
             )
 
-        # https://docs.mosaicml.com/en/v0.5.0/method_cards/channels_last.html
         # can provide up to ~20% speed up
-        if not no_mosaicml_channel_last:
-            cf.apply_channels_last(self)
+        if not no_channel_last:
+            self = self.to(memory_format=torch.channels_last)
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -341,9 +342,8 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--knn_eval", action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
 
-        # mosaicml optimization
-        # disables mosaicml channel last optization
-        parser.add_argument("--no_mosaicml_channel_last", action="store_true")
+        # disables channel last optimization
+        parser.add_argument("--no_channel_last", action="store_true")
 
         return parent_parser
 
@@ -502,6 +502,8 @@ class BaseMethod(pl.LightningModule):
             Dict: dict of logits and features.
         """
 
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
         feats = self.backbone(X)
         logits = self.classifier(feats.detach())
         return {
