@@ -208,6 +208,8 @@ class BaseMethod(pl.LightningModule):
         self.grad_clip_lars = grad_clip_lars
         self.knn_eval = knn_eval
         self.knn_k = knn_k
+        self.no_channel_last = no_channel_last
+
         self._num_training_steps = None
 
         # multicrop
