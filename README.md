@@ -15,7 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
-* **[Apr 01 2022]**: :mag: Added [MosaicML's](https://github.com/mosaicml/composer) ChannelLast operation which considerably decreases training times.
+* **[Apr 01 2022]**: :mag: Using [channel last conversion](https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models) which considerably decreases training times.
 * **[Feb 04 2022]**: :partying_face: Paper got accepted to JMLR.
 * **[Jan 31 2022]**: :eye: Added ConvNeXt support with timm.
 * **[Dec 20 2021]**: :thermometer: Added ImageNet results, scripts and checkpoints for MoCo V2+.
