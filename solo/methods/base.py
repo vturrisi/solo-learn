@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
+import composer.functional as cf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -115,6 +116,7 @@ class BaseMethod(pl.LightningModule):
         lr_decay_steps: Sequence = None,
         knn_eval: bool = False,
         knn_k: int = 20,
+        no_mosaicml_channel_last=False,
         **kwargs,
     ):
         """Base model that implements all basic operations for all self-supervised methods.
@@ -157,6 +159,9 @@ class BaseMethod(pl.LightningModule):
                 step. Defaults to None.
             knn_eval (bool): enables online knn evaluation while training.
             knn_k (int): the number of neighbors to use for knn.
+            no_mosaicml_channel_last (bool). Disables MosaicML ChannelLast operation which
+                speeds up training considerably (https://github.com/mosaicml/composer).
+                Defaults to False.
 
         .. note::
             When using distributed data parallel, the batch size and the number of workers are
@@ -258,6 +263,11 @@ class BaseMethod(pl.LightningModule):
                 "issues when resuming a checkpoint."
             )
 
+        # https://docs.mosaicml.com/en/v0.5.0/method_cards/channels_last.html
+        # provides ~20% speed up
+        if not no_mosaicml_channel_last:
+            cf.apply_channels_last(self)
+
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds shared basic arguments that are shared for all methods.
@@ -330,6 +340,10 @@ class BaseMethod(pl.LightningModule):
         # online knn eval
         parser.add_argument("--knn_eval", action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
+
+        # mosaicml optimization
+        # disables mosaicml channel last optization
+        parser.add_argument("--no_mosaicml_channel_last", action="store_true")
 
         return parent_parser
 
