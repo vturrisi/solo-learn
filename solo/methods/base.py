@@ -264,7 +264,7 @@ class BaseMethod(pl.LightningModule):
             )
 
         # https://docs.mosaicml.com/en/v0.5.0/method_cards/channels_last.html
-        # provides ~20% speed up
+        # can provide up to ~20% speed up
         if not no_mosaicml_channel_last:
             cf.apply_channels_last(self)
 
