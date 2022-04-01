@@ -54,6 +54,7 @@ setup(
         "wandb",
         "scipy",
         "timm",
+        "mosaicml",
     ],
     extras_require=EXTRA_REQUIREMENTS,
     dependency_links=["https://developer.download.nvidia.com/compute/redist"],

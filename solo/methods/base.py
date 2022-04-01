@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
+import composer.functional as cf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -264,7 +265,6 @@ class BaseMethod(pl.LightningModule):
                 "issues when resuming a checkpoint."
             )
 
-        # https://docs.mosaicml.com/en/v0.5.0/method_cards/channels_last.html
         # can provide up to ~20% speed up
         if not no_channel_last:
             self = self.to(memory_format=torch.channels_last)
