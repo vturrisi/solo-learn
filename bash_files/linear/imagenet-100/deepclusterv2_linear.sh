@@ -5,7 +5,7 @@ python3 ../../../main_linear.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0 \
+    --devices 0 \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
@@ -16,7 +16,6 @@ python3 ../../../main_linear.py \
     --num_workers 5 \
     --dali \
     --name deepclusterv2-imagenet100-linear-eval \
-    --pretrained_feature_extractor PATH\
-    --project solo-learn \
+    --pretrained_feature_extractor PATH --project solo-learn \
     --entity unitn-mhug \
     --wandb

@@ -142,8 +142,8 @@ class MoCoV2Plus(BaseMomentumMethod):
         """
 
         out = super().forward(X)
-        q = F.normalize(self.projector(out["feats"]), dim=-1)
-        out.update({"q": q})
+        z = F.normalize(self.projector(out["feats"]), dim=-1)
+        out.update({"z": z})
         return out
 
     @torch.no_grad()
@@ -158,8 +158,8 @@ class MoCoV2Plus(BaseMomentumMethod):
         """
 
         out = super().momentum_forward(X)
-        k = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
-        out.update({"k": k})
+        z = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
+        out.update({"z": z})
         return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
@@ -179,8 +179,8 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        q1, q2 = out["q"]
-        k1, k2 = out["momentum_k"]
+        q1, q2 = out["z"]
+        k1, k2 = out["momentum_z"]
 
         # ------- contrastive loss -------
         # symmetric

@@ -256,8 +256,8 @@ class DINO(BaseMomentumMethod):
         """
 
         out = super().forward(X)
-        p = self.head(out["feats"])
-        out.update({"p": p})
+        z = self.head(out["feats"])
+        out.update({"z": z})
         return out
 
     @torch.no_grad()
@@ -272,8 +272,8 @@ class DINO(BaseMomentumMethod):
         """
 
         out = super().momentum_forward(X)
-        p = self.momentum_head(out["feats"])
-        out.update({"p": p})
+        z = self.momentum_head(out["feats"])
+        out.update({"z": z})
         return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
@@ -290,8 +290,8 @@ class DINO(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        p = torch.cat(out["p"])
-        momentum_p = torch.cat(out["momentum_p"])
+        p = torch.cat(out["z"])
+        momentum_p = torch.cat(out["momentum_z"])
 
         # ------- contrastive loss -------
         dino_loss = self.dino_loss_func(p, momentum_p)

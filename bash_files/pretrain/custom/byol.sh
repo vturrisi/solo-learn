@@ -9,7 +9,7 @@ python3 ../../../main_pretrain.py \
     --train_dir PATH_TO_TRAIN_DIR \
     --no_labels \
     --max_epochs 400 \
-    --gpus 0,1 \
+    --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \
