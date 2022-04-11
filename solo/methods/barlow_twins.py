@@ -80,7 +80,7 @@ class BarlowTwins(BaseMethod):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X):
         """Performs the forward pass of the backbone and the projector.
 
         Args:
@@ -90,7 +90,7 @@ class BarlowTwins(BaseMethod):
             Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
@@ -109,10 +109,7 @@ class BarlowTwins(BaseMethod):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
 
-        feats1, feats2 = out["feats"]
-
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
+        z1, z2 = out["z"]
 
         # ------- barlow twins loss -------
         barlow_loss = barlow_loss_func(z1, z2, lamb=self.lamb, scale_loss=self.scale_loss)

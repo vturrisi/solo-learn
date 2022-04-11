@@ -486,13 +486,9 @@ class BaseMethod(pl.LightningModule):
 
         return [optimizer], [scheduler]
 
-    def forward(self, *args, **kwargs) -> Dict:
-        """Dummy forward, calls base forward."""
-
-        return self.base_forward(*args, **kwargs)
-
-    def base_forward(self, X: torch.Tensor) -> Dict:
-        """Basic forward that allows children classes to override forward().
+    def forward(self, X) -> Dict:
+        """Basic forward method. Children methods should call this function,
+        modify the ouputs (without deleting anything) and return it.
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -522,7 +518,7 @@ class BaseMethod(pl.LightningModule):
             Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
         """
 
-        out = self.base_forward(X)
+        out = self(X)
         logits = out["logits"]
 
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
@@ -556,7 +552,10 @@ class BaseMethod(pl.LightningModule):
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.backbone(x) for x in X[self.num_large_crops :]])
+            for x in X[self.num_large_crops :]:
+                for k, v in self(x).items():
+                    if k not in ["loss", "acc1", "acc5"]:
+                        outs[k].extend(v)
 
         # loss and stats
         outs["loss"] = sum(outs["loss"]) / self.num_large_crops
@@ -750,10 +749,13 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = 0
 
     @torch.no_grad()
-    def base_momentum_forward(self, X: torch.Tensor) -> Dict:
-        """Momentum forward that allows children classes to override how the momentum backbone is used.
+    def momentum_forward(self, X: torch.Tensor) -> Dict:
+        """Momentum forward method. Children methods should call this function,
+        modify the ouputs (without deleting anything) and return it.
+
         Args:
             X (torch.Tensor): batch of images in tensor format.
+
         Returns:
             Dict: dict of logits and features.
         """
@@ -775,7 +777,7 @@ class BaseMomentumMethod(BaseMethod):
                 acc@5 of the momentum backbone / classifier.
         """
 
-        out = self.base_momentum_forward(X)
+        out = self.momentum_forward(X)
 
         if self.momentum_classifier is not None:
             feats = out["feats"]
