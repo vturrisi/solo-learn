@@ -30,8 +30,9 @@ python3 ../../../../main_pretrain.py \
     --solarization_prob 0.0 0.2 0.0 \
     --crop_size 224 224 96 \
     --num_crops_per_aug 1 1 6 \
-    --name byol-multicro-400ep-imagenet100 \
-    --project debug \
+    --name byol-multicrop-400ep-imagenet100 \
+    --entity unitn-mhug \
+    --project solo-learn \
     --wandb \
     --save_checkpoint \
     --method byol \

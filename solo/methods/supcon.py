@@ -88,6 +88,22 @@ class SupCon(BaseMethod):
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs multicrop forward method.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[]: a dict containing the outputs of the parent
+                and the projected features.
+        """
+
+        out = super().multicrop_forward(X)
+        z = self.projector(out["feats"])
+        out.update({"z": z})
+        return out
+
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SupCon reusing BaseMethod training step.
 

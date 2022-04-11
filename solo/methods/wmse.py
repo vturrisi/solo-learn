@@ -102,7 +102,24 @@ class WMSE(BaseMethod):
 
         out = super().forward(X)
         z = self.projector(out["feats"])
-        return {**out, "z": z}
+        out.update({"z": z})
+        return out
+
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs multicrop forward method.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[]: a dict containing the outputs of the parent
+                and the projected features.
+        """
+
+        out = super().multicrop_forward(X)
+        z = self.projector(out["feats"])
+        out.update({"z": z})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for W-MSE reusing BaseMethod training step.
@@ -118,9 +135,7 @@ class WMSE(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats = out["feats"]
-
-        v = torch.cat([self.projector(f) for f in feats])
+        v = torch.cat(out["z"])
 
         # ------- wmse loss -------
         bs = self.batch_size
