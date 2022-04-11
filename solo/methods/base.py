@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
+
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -501,10 +502,23 @@ class BaseMethod(pl.LightningModule):
             X = X.to(memory_format=torch.channels_last)
         feats = self.backbone(X)
         logits = self.classifier(feats.detach())
-        return {
-            "logits": logits,
-            "feats": feats,
-        }
+        return {"logits": logits, "feats": feats}
+
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Basic multicrop forward method. Children methods should call this function,
+        modify the ouputs (without deleting anything) and return it.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict: dict of features.
+        """
+
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
+        feats = self.backbone(X)
+        return {"feats": feats}
 
     def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
@@ -526,7 +540,8 @@ class BaseMethod(pl.LightningModule):
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
 
-        return {**out, "loss": loss, "acc1": acc1, "acc5": acc5}
+        out.update({"loss": loss, "acc1": acc1, "acc5": acc5})
+        return out
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
@@ -552,10 +567,9 @@ class BaseMethod(pl.LightningModule):
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            for x in X[self.num_large_crops :]:
-                for k, v in self(x).items():
-                    if k not in ["loss", "acc1", "acc5"]:
-                        outs[k].extend(v)
+            multicrop_outs = [self.multicrop_forward(x) for x in X[self.num_large_crops :]]
+            for k in multicrop_outs[0].keys():
+                outs[k] = outs.get(k, []) + [out[k] for out in multicrop_outs]
 
         # loss and stats
         outs["loss"] = sum(outs["loss"]) / self.num_large_crops
@@ -749,7 +763,7 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = 0
 
     @torch.no_grad()
-    def momentum_forward(self, X: torch.Tensor) -> Dict:
+    def momentum_forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Momentum forward method. Children methods should call this function,
         modify the ouputs (without deleting anything) and return it.
 
@@ -760,6 +774,8 @@ class BaseMomentumMethod(BaseMethod):
             Dict: dict of logits and features.
         """
 
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
         feats = self.momentum_backbone(X)
         return {"feats": feats}
 
@@ -838,7 +854,8 @@ class BaseMomentumMethod(BaseMethod):
             # adds the momentum classifier loss together with the general loss
             outs["loss"] += momentum_outs["momentum_loss"]
 
-        return {**outs, **momentum_outs}
+        outs.update(momentum_outs)
+        return outs
 
     def on_train_batch_end(
         self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int

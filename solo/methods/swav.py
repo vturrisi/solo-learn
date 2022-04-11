@@ -131,7 +131,7 @@ class SwAV(BaseMethod):
                 ),
             )
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs the forward pass of the backbone, the projector and the prototypes.
 
         Args:
@@ -143,11 +143,12 @@ class SwAV(BaseMethod):
                 the projected features and the logits.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
         z = F.normalize(z)
         p = self.prototypes(z)
-        return {**out, "z": z, "p": p}
+        out.update({"z": z, "p": p})
+        return out
 
     @torch.no_grad()
     def get_assignments(self, preds: List[torch.Tensor]) -> List[torch.Tensor]:
@@ -185,13 +186,8 @@ class SwAV(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-
-        z1 = F.normalize(self.projector(feats1))
-        z2 = F.normalize(self.projector(feats2))
-
-        p1 = self.prototypes(z1)
-        p2 = self.prototypes(z2)
+        z1, z2 = out["z"]
+        p1, p2 = out["p"]
 
         # ------- swav loss -------
         preds = [p1, p2]

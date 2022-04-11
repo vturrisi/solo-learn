@@ -176,7 +176,8 @@ class DeepClusterV2(BaseMethod):
         out = super().forward(X)
         z = F.normalize(self.projector(out["feats"]))
         p = torch.stack([p(z) for p in self.prototypes])
-        return {**out, "z": z, "p": p}
+        out.update({"z": z, "p": p})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for DeepClusterV2 reusing BaseMethod training step.
@@ -194,7 +195,6 @@ class DeepClusterV2(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-
         z1, z2 = out["z"]
         p1, p2 = out["p"]
 

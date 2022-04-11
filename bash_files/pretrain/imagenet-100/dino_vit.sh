@@ -3,7 +3,7 @@ python3 ../../../main_pretrain.py \
     --backbone vit_tiny \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
-    --val_dir imagenet-100/test \
+    --val_dir imagenet-100/val \
     --max_epochs 400 \
     --gpus 0,1 \
     --accelerator gpu \

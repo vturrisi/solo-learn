@@ -137,7 +137,7 @@ class ReSSL(BaseMomentumMethod):
 
         self.queue_ptr[0] = ptr  # type: ignore
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs forward pass of the online backbone, projector and predictor.
 
         Args:
@@ -147,9 +147,26 @@ class ReSSL(BaseMomentumMethod):
             Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
         """
 
-        out = super().forward(X, *args, **kwargs)
-        z = F.normalize(self.projector(out["feats"]), dim=-1)
-        return {**out, "z": z}
+        out = super().forward(X)
+        q = F.normalize(self.projector(out["feats"]), dim=-1)
+        out.update({"q": q})
+        return out
+
+    @torch.no_grad()
+    def momentum_forward(self, X: torch.Tensor) -> Dict:
+        """Performs the forward pass of the momentum backbone and projector.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the key.
+        """
+
+        out = super().momentum_forward(X)
+        k = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
+        out.update({"k": k})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for BYOL reusing BaseMethod training step.
@@ -165,17 +182,8 @@ class ReSSL(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, _ = out["feats"]
-        _, momentum_feats2 = out["momentum_feats"]
-
-        q = self.projector(feats1)
-
-        # forward momentum backbone
-        with torch.no_grad():
-            k = self.momentum_projector(momentum_feats2)
-
-        q = F.normalize(q, dim=-1)
-        k = F.normalize(k, dim=-1)
+        q, _ = out["q"]
+        _, k = out["momentum_k"]
 
         # ------- contrastive loss -------
         queue = self.queue.clone().detach()

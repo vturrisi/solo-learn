@@ -1,5 +1,4 @@
-# multicrop byol
-python3 ../../../main_pretrain.py \
+python3 ../../../../main_pretrain.py \
     --dataset imagenet100 \
     --backbone resnet18 \
     --data_dir /datasets \

@@ -245,7 +245,7 @@ class DINO(BaseMomentumMethod):
         """Updates the current epoch in DINO's loss object."""
         self.dino_loss_func.epoch = self.current_epoch
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs forward pass of the student (backbone and head).
 
         Args:
@@ -255,9 +255,26 @@ class DINO(BaseMomentumMethod):
             Dict[str, Any]: a dict containing the outputs of the parent and the logits of the head.
         """
 
-        out = super().forward(X, *args, **kwargs)
-        z = self.head(out["feats"])
-        return {**out, "z": z}
+        out = super().forward(X)
+        p = self.head(out["feats"])
+        out.update({"p": p})
+        return out
+
+    @torch.no_grad()
+    def momentum_forward(self, X: torch.Tensor) -> Dict:
+        """Performs the forward pass of the momentum backbone and projector.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the key.
+        """
+
+        out = super().momentum_forward(X)
+        p = self.momentum_head(out["feats"])
+        out.update({"p": p})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for DINO reusing BaseMomentumMethod training step.
@@ -273,21 +290,11 @@ class DINO(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-        momentum_feats1, momentum_feats2 = out["momentum_feats"]
-
-        # forward online backbone
-        p1 = self.head(feats1)
-        p2 = self.head(feats2)
-        p = torch.cat((p1, p2))
-
-        # forward momentum backbone
-        p1_momentum = self.momentum_head(momentum_feats1)
-        p2_momentum = self.momentum_head(momentum_feats2)
-        p_momentum = torch.cat((p1_momentum, p2_momentum))
+        p = torch.cat(out["p"])
+        momentum_p = torch.cat(out["momentum_p"])
 
         # ------- contrastive loss -------
-        dino_loss = self.dino_loss_func(p, p_momentum)
+        dino_loss = self.dino_loss_func(p, momentum_p)
 
         self.log("dino_loss", dino_loss, on_epoch=True, sync_dist=True)
 

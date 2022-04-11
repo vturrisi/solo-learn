@@ -93,7 +93,7 @@ class SimSiam(BaseMethod):
         ]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs the forward pass of the backbone, the projector and the predictor.
 
         Args:
@@ -105,10 +105,11 @@ class SimSiam(BaseMethod):
                 and the projected and predicted features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
         p = self.predictor(z)
-        return {**out, "z": z, "p": p}
+        out.update({"z": z, "p": p})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SimSiam reusing BaseMethod training step.
@@ -124,13 +125,8 @@ class SimSiam(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
-
-        p1 = self.predictor(z1)
-        p2 = self.predictor(z2)
+        z1, z2 = out["z"]
+        p1, p2 = out["p"]
 
         # ------- contrastive loss -------
         neg_cos_sim = simsiam_loss_func(p1, z2) / 2 + simsiam_loss_func(p2, z1) / 2

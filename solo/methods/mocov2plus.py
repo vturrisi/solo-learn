@@ -143,7 +143,8 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         out = super().forward(X)
         q = F.normalize(self.projector(out["feats"]), dim=-1)
-        return {**out, "q": q}
+        out.update({"q": q})
+        return out
 
     @torch.no_grad()
     def momentum_forward(self, X: torch.Tensor) -> Dict:
@@ -158,7 +159,8 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         out = super().momentum_forward(X)
         k = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
-        return {**out, "k": k}
+        out.update({"k": k})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
@@ -177,7 +179,6 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-
         q1, q2 = out["q"]
         k1, k2 = out["momentum_k"]
 

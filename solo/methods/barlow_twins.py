@@ -92,7 +92,8 @@ class BarlowTwins(BaseMethod):
 
         out = super().forward(X)
         z = self.projector(out["feats"])
-        return {**out, "z": z}
+        out.update({"z": z})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for Barlow Twins reusing BaseMethod training step.
@@ -108,7 +109,6 @@ class BarlowTwins(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-
         z1, z2 = out["z"]
 
         # ------- barlow twins loss -------

@@ -72,7 +72,7 @@ class SupCon(BaseMethod):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X: torch.tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
         """Performs the forward pass of the backbone, the projector.
 
         Args:
@@ -84,7 +84,7 @@ class SupCon(BaseMethod):
                 and the projected features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
         return {**out, "z": z}
 
@@ -104,10 +104,7 @@ class SupCon(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-
-        feats = out["feats"]
-
-        z = torch.cat([self.projector(f) for f in feats])
+        z = torch.cat(out["z"])
 
         # ------- contrastive loss -------
         n_augs = self.num_large_crops + self.num_small_crops

@@ -187,7 +187,24 @@ class NNBYOL(BaseMomentumMethod):
         out = super().forward(X, *args, **kwargs)
         z = self.projector(out["feats"])
         p = self.predictor(z)
-        return {**out, "z": z, "p": p}
+        out.update({"z": z, "p": p})
+        return out
+
+    @torch.no_grad()
+    def momentum_forward(self, X: torch.Tensor) -> Dict:
+        """Performs the forward pass of the momentum backbone and projector.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the key.
+        """
+
+        out = super().momentum_forward(X)
+        z = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
+        out.update({"z": z})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for NNBYOL reusing BaseMethod training step.
@@ -205,22 +222,9 @@ class NNBYOL(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-        momentum_feats1, momentum_feats2 = out["momentum_feats"]
-
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
-
-        p1 = self.predictor(z1)
-        p2 = self.predictor(z2)
-
-        # forward momentum backbone
-        with torch.no_grad():
-            z1_momentum = self.momentum_projector(momentum_feats1)
-            z2_momentum = self.momentum_projector(momentum_feats2)
-
-        z1_momentum = F.normalize(z1_momentum, dim=-1)
-        z2_momentum = F.normalize(z2_momentum, dim=-1)
+        z1, z2 = out["z"]
+        p1, p2 = out["p"]
+        z1_momentum, z2_momentum = out["momentum_z"]
 
         # find nn
         idx1, nn1_momentum = self.find_nn(z1_momentum)
