@@ -505,8 +505,8 @@ class BaseMethod(pl.LightningModule):
         return {"logits": logits, "feats": feats}
 
     def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Basic multicrop forward method that performs the forward pass 
-        for the multicrop views. Children classes can override this method to 
+        """Basic multicrop forward method that performs the forward pass
+        for the multicrop views. Children classes can override this method to
         add new outputs but should still call this function. Make sure
         that this method and its overrides always return a dict.
 
