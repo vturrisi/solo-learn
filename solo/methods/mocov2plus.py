@@ -156,7 +156,7 @@ class MoCoV2Plus(BaseMomentumMethod):
             Dict[str, Any]: a dict containing the outputs of the parent and the key.
         """
 
-        out = super().forward(X)
+        out = super().momentum_forward(X)
         k = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
         return {**out, "k": k}
 
