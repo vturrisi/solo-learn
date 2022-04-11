@@ -128,7 +128,7 @@ class BYOL(BaseMomentumMethod):
         return out
 
     def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Performs multicrop forward method.
+        """Performs the forward pass for the multicrop views.
 
         Args:
             X (torch.Tensor): batch of images in tensor format.

@@ -116,11 +116,11 @@ class SimSiam(BaseMethod):
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
-                [X] is a list of size num_crops containing batches of images
-            batch_idx (int): index of the batch
+                [X] is a list of size num_crops containing batches of images.
+            batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of SimSiam loss and classification loss
+            torch.Tensor: total loss composed of SimSiam loss and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

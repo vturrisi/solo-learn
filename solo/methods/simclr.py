@@ -73,7 +73,7 @@ class SimCLR(BaseMethod):
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Performs the forward pass of the backbone, the projector.
+        """Performs the forward pass of the backbone and the projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -90,7 +90,7 @@ class SimCLR(BaseMethod):
         return out
 
     def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Performs multicrop forward method.
+        """Performs the forward pass for the multicrop views.
 
         Args:
             X (torch.Tensor): batch of images in tensor format.

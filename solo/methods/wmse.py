@@ -138,6 +138,6 @@ class WMSE(BaseMethod):
                     num_losses += 1
         wmse_loss /= num_losses
 
-        self.log("train_neg_cos_sim", wmse_loss, on_epoch=True, sync_dist=True)
+        self.log("train_wmse_loss", wmse_loss, on_epoch=True, sync_dist=True)
 
         return wmse_loss + class_loss
