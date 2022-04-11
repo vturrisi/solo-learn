@@ -50,6 +50,7 @@ class LinearModel(pl.LightningModule):
         warmup_start_lr: float,
         warmup_epochs: float,
         lr_decay_steps: Optional[Sequence[int]] = None,
+        no_channel_last: bool = False,
         **kwargs,
     ):
         """Implements linear evaluation.
@@ -72,6 +73,9 @@ class LinearModel(pl.LightningModule):
             warmup_epochs (float): number of warmup epochs.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
+            no_channel_last (bool). Disables channel last conversion operation which
+                speeds up training considerably. Defaults to False.
+                https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models
         """
 
         super().__init__()
@@ -97,6 +101,8 @@ class LinearModel(pl.LightningModule):
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
         self.lr_decay_steps = lr_decay_steps
+        self.no_channel_last = no_channel_last
+
         self._num_training_steps = None
 
         # all the other parameters
@@ -104,6 +110,10 @@ class LinearModel(pl.LightningModule):
 
         for param in self.backbone.parameters():
             param.requires_grad = False
+
+        # can provide up to ~20% speed up
+        if not no_channel_last:
+            self = self.to(memory_format=torch.channels_last)
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -160,6 +170,9 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
+        # disables channel last optimization
+        parser.add_argument("--no_channel_last", action="store_true")
+
         return parent_parser
 
     def set_loaders(self, train_loader: DataLoader = None, val_loader: DataLoader = None) -> None:
@@ -196,10 +209,9 @@ class LinearModel(pl.LightningModule):
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
-            num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
-
-            if self.trainer.tpu_cores:
-                num_devices = max(num_devices, self.trainer.tpu_cores)
+            num_devices = 1
+            if isinstance(self.trainer.devices, list):
+                num_devices = len(self.trainer.devices)
 
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices
@@ -217,6 +229,9 @@ class LinearModel(pl.LightningModule):
         Returns:
             Dict[str, Any]: a dict containing features and logits.
         """
+
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
 
         with torch.no_grad():
             feats = self.backbone(X)

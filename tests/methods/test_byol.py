@@ -70,6 +70,32 @@ def test_byol():
         and out["p"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
+    momentum_out = model.momentum_forward(batch[1][0])
+    assert (
+        "feats" in momentum_out
+        and isinstance(momentum_out["feats"], torch.Tensor)
+        and momentum_out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
+    )
+    assert (
+        "z" in momentum_out
+        and isinstance(momentum_out["z"], torch.Tensor)
+        and momentum_out["z"].size()
+        == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
+    )
+
+    multicrop_out = model.multicrop_forward(batch[1][0])
+    assert (
+        "feats" in multicrop_out
+        and isinstance(multicrop_out["feats"], torch.Tensor)
+        and multicrop_out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
+    )
+    assert (
+        "z" in multicrop_out
+        and isinstance(multicrop_out["z"], torch.Tensor)
+        and multicrop_out["z"].size()
+        == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
+    )
+
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}

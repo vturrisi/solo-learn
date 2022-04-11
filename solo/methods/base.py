@@ -393,10 +393,9 @@ class BaseMethod(pl.LightningModule):
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
-            num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
-
-            if self.trainer.tpu_cores:
-                num_devices = max(num_devices, self.trainer.tpu_cores)
+            num_devices = 1
+            if isinstance(self.trainer.devices, list):
+                num_devices = len(self.trainer.devices)
 
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices

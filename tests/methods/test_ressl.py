@@ -70,14 +70,14 @@ def test_ressl():
 
     momentum_out = model.momentum_forward(batch[1][0])
     assert (
-        "momentum_feats" in momentum_out
-        and isinstance(momentum_out["momentum_feats"], torch.Tensor)
-        and momentum_out["momentum_feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
+        "feats" in momentum_out
+        and isinstance(momentum_out["feats"], torch.Tensor)
+        and momentum_out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
     )
     assert (
-        "momentum_z" in momentum_out
-        and isinstance(momentum_out["momentum_z"], torch.Tensor)
-        and momentum_out["momentum_z"].size()
+        "z" in momentum_out
+        and isinstance(momentum_out["z"], torch.Tensor)
+        and momentum_out["z"].size()
         == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
