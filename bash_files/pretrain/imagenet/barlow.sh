@@ -5,7 +5,7 @@ python3 ../../../main_pretrain.py \
     --train_dir imagenet/train \
     --val_dir imagenet/val \
     --max_epochs 100 \
-    --gpus 0,1,2,3 \
+    --devices 0,1,2,3 \
     --accelerator ddp \
     --sync_batchnorm \
     --num_workers 4 \

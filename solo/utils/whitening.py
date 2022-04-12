@@ -62,7 +62,9 @@ class Whitening2d(nn.Module):
 
         f_cov_shrinked = (1 - self.eps) * f_cov + self.eps * eye
 
-        inv_sqrt = torch.triangular_solve(eye, torch.cholesky(f_cov_shrinked), upper=False)[0]
+        inv_sqrt = torch.triangular_solve(eye, torch.linalg.cholesky(f_cov_shrinked), upper=False)[
+            0
+        ]
         inv_sqrt = inv_sqrt.contiguous().view(self.output_dim, self.output_dim, 1, 1)
 
         decorrelated = conv2d(xn, inv_sqrt)

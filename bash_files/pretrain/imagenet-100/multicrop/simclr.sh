@@ -1,11 +1,11 @@
-python3 ../../../main_pretrain.py \
+python3 ../../../../main_pretrain.py \
     --dataset imagenet100 \
     --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
-    --gpus 0,1 \
+    --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \

@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
+
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -268,6 +269,18 @@ class BaseMethod(pl.LightningModule):
         if not no_channel_last:
             self = self.to(memory_format=torch.channels_last)
 
+    def optimizer_zero_grad(self, epoch, batch_idx, optimizer, optimizer_idx):
+        """
+        This improves performance marginally. It should be fine
+        since we are not affected by any of the downsides descrited in
+        https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad
+
+        Implemented as in here
+        https://pytorch-lightning.readthedocs.io/en/1.5.10/guides/speed.html#set-grads-to-none
+        """
+
+        optimizer.zero_grad(set_to_none=True)
+
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds shared basic arguments that are shared for all methods.
@@ -380,10 +393,9 @@ class BaseMethod(pl.LightningModule):
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
-            num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
-
-            if self.trainer.tpu_cores:
-                num_devices = max(num_devices, self.trainer.tpu_cores)
+            num_devices = 1
+            if isinstance(self.trainer.devices, list):
+                num_devices = len(self.trainer.devices)
 
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices
@@ -486,13 +498,9 @@ class BaseMethod(pl.LightningModule):
 
         return [optimizer], [scheduler]
 
-    def forward(self, *args, **kwargs) -> Dict:
-        """Dummy forward, calls base forward."""
-
-        return self.base_forward(*args, **kwargs)
-
-    def base_forward(self, X: torch.Tensor) -> Dict:
-        """Basic forward that allows children classes to override forward().
+    def forward(self, X) -> Dict:
+        """Basic forward method. Children methods should call this function,
+        modify the ouputs (without deleting anything) and return it.
 
         Args:
             X (torch.Tensor): batch of images in tensor format.
@@ -505,10 +513,25 @@ class BaseMethod(pl.LightningModule):
             X = X.to(memory_format=torch.channels_last)
         feats = self.backbone(X)
         logits = self.classifier(feats.detach())
-        return {
-            "logits": logits,
-            "feats": feats,
-        }
+        return {"logits": logits, "feats": feats}
+
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Basic multicrop forward method that performs the forward pass
+        for the multicrop views. Children classes can override this method to
+        add new outputs but should still call this function. Make sure
+        that this method and its overrides always return a dict.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict: dict of features.
+        """
+
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
+        feats = self.backbone(X)
+        return {"feats": feats}
 
     def _base_shared_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
         """Forwards a batch of images X and computes the classification loss, the logits, the
@@ -522,7 +545,7 @@ class BaseMethod(pl.LightningModule):
             Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
         """
 
-        out = self.base_forward(X)
+        out = self(X)
         logits = out["logits"]
 
         loss = F.cross_entropy(logits, targets, ignore_index=-1)
@@ -530,7 +553,8 @@ class BaseMethod(pl.LightningModule):
         top_k_max = min(5, logits.size(1))
         acc1, acc5 = accuracy_at_k(logits, targets, top_k=(1, top_k_max))
 
-        return {**out, "loss": loss, "acc1": acc1, "acc5": acc5}
+        out.update({"loss": loss, "acc1": acc1, "acc5": acc5})
+        return out
 
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
@@ -556,7 +580,9 @@ class BaseMethod(pl.LightningModule):
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
-            outs["feats"].extend([self.backbone(x) for x in X[self.num_large_crops :]])
+            multicrop_outs = [self.multicrop_forward(x) for x in X[self.num_large_crops :]]
+            for k in multicrop_outs[0].keys():
+                outs[k] = outs.get(k, []) + [out[k] for out in multicrop_outs]
 
         # loss and stats
         outs["loss"] = sum(outs["loss"]) / self.num_large_crops
@@ -750,14 +776,19 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = 0
 
     @torch.no_grad()
-    def base_momentum_forward(self, X: torch.Tensor) -> Dict:
-        """Momentum forward that allows children classes to override how the momentum backbone is used.
+    def momentum_forward(self, X: torch.Tensor) -> Dict[str, Any]:
+        """Momentum forward method. Children methods should call this function,
+        modify the ouputs (without deleting anything) and return it.
+
         Args:
             X (torch.Tensor): batch of images in tensor format.
+
         Returns:
             Dict: dict of logits and features.
         """
 
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
         feats = self.momentum_backbone(X)
         return {"feats": feats}
 
@@ -775,7 +806,7 @@ class BaseMomentumMethod(BaseMethod):
                 acc@5 of the momentum backbone / classifier.
         """
 
-        out = self.base_momentum_forward(X)
+        out = self.momentum_forward(X)
 
         if self.momentum_classifier is not None:
             feats = out["feats"]
@@ -836,7 +867,8 @@ class BaseMomentumMethod(BaseMethod):
             # adds the momentum classifier loss together with the general loss
             outs["loss"] += momentum_outs["momentum_loss"]
 
-        return {**outs, **momentum_outs}
+        outs.update(momentum_outs)
+        return outs
 
     def on_train_batch_end(
         self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int

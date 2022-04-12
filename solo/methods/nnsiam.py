@@ -150,7 +150,7 @@ class NNSiam(BaseMethod):
         nn = self.queue[idx]
         return idx, nn
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs the forward pass of the backbone, the projector and the predictor.
 
         Args:
@@ -162,10 +162,12 @@ class NNSiam(BaseMethod):
                 and the projected and predicted features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
         p = self.predictor(z)
-        return {**out, "z": z, "p": p}
+        z = F.normalize(z, dim=-1)
+        out.update({"z": z, "p": p})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for NNSiam reusing BaseMethod training step.
@@ -183,16 +185,8 @@ class NNSiam(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-
-        z1 = self.projector(feats1)
-        z2 = self.projector(feats2)
-
-        p1 = self.predictor(z1)
-        p2 = self.predictor(z2)
-
-        z1 = F.normalize(z1, dim=-1)
-        z2 = F.normalize(z2, dim=-1)
+        z1, z2 = out["z"]
+        p1, p2 = out["p"]
 
         # find nn
         idx1, nn1 = self.find_nn(z1)
@@ -209,8 +203,8 @@ class NNSiam(BaseMethod):
         self.dequeue_and_enqueue(z1, targets)
 
         # calculate std of features
-        z1_std = F.normalize(z1, dim=-1).std(dim=0).mean()
-        z2_std = F.normalize(z2, dim=-1).std(dim=0).mean()
+        z1_std = z1.std(dim=0).mean()
+        z2_std = z2.std(dim=0).mean()
         z_std = (z1_std + z2_std) / 2
 
         metrics = {

@@ -5,7 +5,7 @@ python3 main_linear.py \
     --train_dir imagenet/train \
     --val_dir imagenet/val \
     --max_epochs 100 \
-    --gpus 0 \
+    --devices 0 \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \

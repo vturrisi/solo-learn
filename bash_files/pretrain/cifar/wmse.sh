@@ -3,7 +3,7 @@ python3 ../../../main_pretrain.py \
     --backbone resnet18 \
     --data_dir ./datasets \
     --max_epochs 1000 \
-    --gpus 0 \
+    --devices 0 \
     --accelerator gpu \
     --precision 16 \
     --num_workers 4 \

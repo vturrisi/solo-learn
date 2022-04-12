@@ -27,7 +27,7 @@ from solo.methods import ReSSL
 from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
-def test_mocov2plus():
+def test_ressl():
     method_kwargs = {
         "proj_output_dim": 256,
         "proj_hidden_dim": 2048,
@@ -66,6 +66,19 @@ def test_mocov2plus():
         "z" in out
         and isinstance(out["z"], torch.Tensor)
         and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
+    )
+
+    momentum_out = model.momentum_forward(batch[1][0])
+    assert (
+        "feats" in momentum_out
+        and isinstance(momentum_out["feats"], torch.Tensor)
+        and momentum_out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
+    )
+    assert (
+        "z" in momentum_out
+        and isinstance(momentum_out["z"], torch.Tensor)
+        and momentum_out["z"].size()
+        == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     # imagenet

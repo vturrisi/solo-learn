@@ -131,19 +131,36 @@ class MoCoV2Plus(BaseMomentumMethod):
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
         self.queue_ptr[0] = ptr  # type: ignore
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs the forward pass of the online backbone and projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
+            Dict[str, Any]: a dict containing the outputs of the parent and query.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = F.normalize(self.projector(out["feats"]), dim=-1)
-        return {**out, "z": z}
+        out.update({"z": z})
+        return out
+
+    @torch.no_grad()
+    def momentum_forward(self, X: torch.Tensor) -> Dict:
+        """Performs the forward pass of the momentum backbone and projector.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of the parent and the key.
+        """
+
+        out = super().momentum_forward(X)
+        z = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
+        out.update({"z": z})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
@@ -162,19 +179,8 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-        momentum_feats1, momentum_feats2 = out["momentum_feats"]
-
-        q1 = self.projector(feats1)
-        q2 = self.projector(feats2)
-        q1 = F.normalize(q1, dim=-1)
-        q2 = F.normalize(q2, dim=-1)
-
-        with torch.no_grad():
-            k1 = self.momentum_projector(momentum_feats1)
-            k2 = self.momentum_projector(momentum_feats2)
-            k1 = F.normalize(k1, dim=-1)
-            k2 = F.normalize(k2, dim=-1)
+        q1, q2 = out["z"]
+        k1, k2 = out["momentum_z"]
 
         # ------- contrastive loss -------
         # symmetric

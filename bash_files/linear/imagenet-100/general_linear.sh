@@ -5,7 +5,7 @@ python3 ../../../main_linear.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
-    --gpus 0,1 \
+    --devices 0,1 \
     --strategy ddp \
     --sync_batchnorm \
     --precision 16 \

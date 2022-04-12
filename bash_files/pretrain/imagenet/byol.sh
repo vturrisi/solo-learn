@@ -5,7 +5,7 @@ python3 ../../../main_pretrain.py \
     --train_dir ILSVRC2012/train \
     --val_dir ILSVRC2012/val \
     --max_epochs 100 \
-    --gpus 0,1 \
+    --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \

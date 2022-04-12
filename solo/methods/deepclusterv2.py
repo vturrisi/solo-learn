@@ -161,7 +161,7 @@ class DeepClusterV2(BaseMethod):
         for c, z_c in enumerate(z):
             self.local_memory_embeddings[c][start_idx:end_idx] = z_c.detach()
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs the forward pass of the backbone, the projector and the prototypes.
 
         Args:
@@ -173,10 +173,11 @@ class DeepClusterV2(BaseMethod):
                 the projected features and the logits.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = F.normalize(self.projector(out["feats"]))
         p = torch.stack([p(z) for p in self.prototypes])
-        return {**out, "z": z, "p": p}
+        out.update({"z": z, "p": p})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for DeepClusterV2 reusing BaseMethod training step.
@@ -194,13 +195,8 @@ class DeepClusterV2(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats1, feats2 = out["feats"]
-
-        z1 = F.normalize(self.projector(feats1))
-        z2 = F.normalize(self.projector(feats2))
-
-        p1 = torch.stack([proto(z1) for proto in self.prototypes])
-        p2 = torch.stack([proto(z2) for proto in self.prototypes])
+        z1, z2 = out["z"]
+        p1, p2 = out["p"]
 
         # ------- deepclusterv2 loss -------
         preds = torch.stack([p1.unsqueeze(1), p2.unsqueeze(1)], dim=1)

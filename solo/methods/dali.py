@@ -50,9 +50,9 @@ class BaseWrapper(DALIGenericIterator):
             return size // self.batch_size
         else:
             if self._last_batch_policy != LastBatchPolicy.DROP:
-                return math.ceil(size / (self._num_gpus * self.batch_size))
+                return math.ceil(size / (self._devices * self.batch_size))
 
-            return size // (self._num_gpus * self.batch_size)
+            return size // (self._devices * self.batch_size)
 
 
 class PretrainWrapper(BaseWrapper):
@@ -257,6 +257,9 @@ class ClassificationABC(ABC):
             last_batch_policy=LastBatchPolicy.DROP,
             auto_reset=True,
         )
+
+        self.dali_epoch_size = train_pipeline.epoch_size("Reader")
+
         return train_loader
 
     def val_dataloader(self) -> DALIGenericIterator:

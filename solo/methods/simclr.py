@@ -72,8 +72,8 @@ class SimCLR(BaseMethod):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X: torch.tensor, *args, **kwargs) -> Dict[str, Any]:
-        """Performs the forward pass of the backbone, the projector.
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs the forward pass of the backbone and the projector.
 
         Args:
             X (torch.Tensor): a batch of images in the tensor format.
@@ -84,9 +84,26 @@ class SimCLR(BaseMethod):
                 and the projected features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
-        return {**out, "z": z}
+        out.update({"z": z})
+        return out
+
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs the forward pass for the multicrop views.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[]: a dict containing the outputs of the parent
+                and the projected features.
+        """
+
+        out = super().multicrop_forward(X)
+        z = self.projector(out["feats"])
+        out.update({"z": z})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for SimCLR reusing BaseMethod training step.
@@ -104,10 +121,7 @@ class SimCLR(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-
-        feats = out["feats"]
-
-        z = torch.cat([self.projector(f) for f in feats])
+        z = torch.cat(out["z"])
 
         # ------- contrastive loss -------
         n_augs = self.num_large_crops + self.num_small_crops

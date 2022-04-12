@@ -93,12 +93,13 @@ def test_dali_pretrain():
                 last_batch_policy=LastBatchPolicy.PARTIAL,
                 auto_reset=True,
             )
+            model.set_loaders(val_loader=val_dl)
             trainer.fit(model, val_dataloaders=val_dl)
 
 
 def test_dali_linear():
     # creates a dummy dataset that autodeletes after usage
-    with DummyDataset("dummy_train", "dummy_val", 128, 4):
+    with DummyDataset("./dummy_train", "./dummy_val", 128, 4):
         BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)
         kwargs = {**BASE_KWARGS, **DATA_KWARGS}
         backbone = resnet18()
@@ -112,10 +113,8 @@ def test_dali_linear():
 
         del kwargs["backbone"]
 
-        MethodClass = types.new_class(
-            f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel)
-        )
-        model = MethodClass(backbone, **kwargs)
+        Class = types.new_class(f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel))
+        model = Class(backbone, **kwargs)
 
         args = argparse.Namespace(**kwargs)
         trainer = Trainer.from_argparse_args(
@@ -124,5 +123,8 @@ def test_dali_linear():
             limit_train_batches=2,
             limit_val_batches=2,
         )
-
+        model.set_loaders()
         trainer.fit(model)
+
+
+test_dali_linear()

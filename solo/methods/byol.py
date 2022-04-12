@@ -111,7 +111,7 @@ class BYOL(BaseMomentumMethod):
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs forward pass of the online backbone, projector and predictor.
 
         Args:
@@ -121,10 +121,45 @@ class BYOL(BaseMomentumMethod):
             Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
         p = self.predictor(z)
-        return {**out, "z": z, "p": p}
+        out.update({"z": z, "p": p})
+        return out
+
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs the forward pass for the multicrop views.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[]: a dict containing the outputs of the parent
+                and the projected features.
+        """
+
+        out = super().multicrop_forward(X)
+        z = self.projector(out["feats"])
+        p = self.predictor(z)
+        out.update({"z": z, "p": p})
+        return out
+
+    @torch.no_grad()
+    def momentum_forward(self, X: torch.Tensor) -> Dict:
+        """Performs the forward pass of the momentum backbone and projector.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing the outputs of
+                the parent and the momentum projected features.
+        """
+
+        out = super().momentum_forward(X)
+        z = self.momentum_projector(out["feats"])
+        out.update({"z": z})
+        return out
 
     def _shared_step(
         self, feats: List[torch.Tensor], momentum_feats: List[torch.Tensor]
@@ -163,8 +198,19 @@ class BYOL(BaseMomentumMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
+        Z = out["z"]
+        P = out["p"]
+        Z_momentum = out["momentum_z"]
 
-        neg_cos_sim, z_std = self._shared_step(out["feats"], out["momentum_feats"])
+        # ------- negative consine similarity loss -------
+        neg_cos_sim = 0
+        for v1 in range(self.num_large_crops):
+            for v2 in np.delete(range(self.num_crops), v1):
+                neg_cos_sim += byol_loss_func(P[v2], Z_momentum[v1])
+
+        # calculate std of features
+        with torch.no_grad():
+            z_std = F.normalize(torch.stack(Z[: self.num_large_crops]), dim=-1).std(dim=1).mean()
 
         metrics = {
             "train_neg_cos_sim": neg_cos_sim,

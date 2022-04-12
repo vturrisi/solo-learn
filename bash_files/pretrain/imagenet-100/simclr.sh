@@ -5,7 +5,7 @@ python3 ../../../main_pretrain.py \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
-    --gpus 0,1 \
+    --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \
@@ -18,7 +18,7 @@ python3 ../../../main_pretrain.py \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
-    --batch_size 128 \
+    --batch_size 64 \
     --num_workers 4 \
     --brightness 0.8 \
     --contrast 0.8 \

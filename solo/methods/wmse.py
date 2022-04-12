@@ -90,7 +90,7 @@ class WMSE(BaseMethod):
         extra_learnable_params = [{"params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
-    def forward(self, X: torch.Tensor, *args, **kwargs) -> Dict[str, Any]:
+    def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs the forward pass of the backbone and the projector.
 
         Args:
@@ -100,9 +100,10 @@ class WMSE(BaseMethod):
             Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X)
         z = self.projector(out["feats"])
-        return {**out, "z": z}
+        out.update({"z": z})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for W-MSE reusing BaseMethod training step.
@@ -118,9 +119,7 @@ class WMSE(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        feats = out["feats"]
-
-        v = torch.cat([self.projector(f) for f in feats])
+        v = torch.cat(out["z"])
 
         # ------- wmse loss -------
         bs = self.batch_size
@@ -139,6 +138,6 @@ class WMSE(BaseMethod):
                     num_losses += 1
         wmse_loss /= num_losses
 
-        self.log("train_neg_cos_sim", wmse_loss, on_epoch=True, sync_dist=True)
+        self.log("train_wmse_loss", wmse_loss, on_epoch=True, sync_dist=True)
 
         return wmse_loss + class_loss

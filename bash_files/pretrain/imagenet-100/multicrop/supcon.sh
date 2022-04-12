@@ -1,11 +1,11 @@
-python3 ../../../main_pretrain.py \
+python3 ../../../../main_pretrain.py \
     --dataset imagenet100 \
     --backbone resnet18 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
     --max_epochs 400 \
-    --gpus 0,1 \
+    --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \
@@ -27,7 +27,7 @@ python3 ../../../main_pretrain.py \
     --hue 0.2 \
     --crop_size 224 96 \
     --num_crops_per_aug 2 6 \
-    --name multicrop-supcon-400ep-imagenet100 \
+    --name supcon-multicrop-400ep-imagenet100 \
     --dali \
     --project solo-learn \
     --entity unitn-mhug \
@@ -35,5 +35,4 @@ python3 ../../../main_pretrain.py \
     --save_checkpoint \
     --method supcon \
     --temperature 0.1 \
-    --proj_hidden_dim 2048 \
-    --supervised
+    --proj_hidden_dim 2048

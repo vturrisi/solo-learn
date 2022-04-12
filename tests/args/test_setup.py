@@ -45,7 +45,7 @@ def test_setup_pretrain():
         "./datasets",
         "--max_epochs",
         "1000",
-        "--gpus",
+        "--devices",
         "0",
         "--precision",
         "16",
@@ -144,7 +144,7 @@ def test_setup_linear():
         "imagenet-100/val",
         "--max_epochs",
         "100",
-        "--gpus",
+        "--devices",
         "0",
         "--accelerator",
         "gpu",
@@ -217,7 +217,7 @@ def test_additional_setup_pretrain():
         "num_crops_per_aug": [1, 1],
         "dali": True,
         "optimizer": "sgd",
-        "gpus": "0,1",
+        "devices": "0,1",
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
@@ -228,7 +228,7 @@ def test_additional_setup_pretrain():
 
     assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
-    assert isinstance(args.gpus, list)
+    assert isinstance(args.devices, list)
     assert "transform_kwargs" in args
 
     # symmetric and no multicrop
@@ -250,7 +250,7 @@ def test_additional_setup_pretrain():
         "num_crops_per_aug": [2],
         "dali": True,
         "optimizer": "sgd",
-        "gpus": "0,1",
+        "devices": "0,1",
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
@@ -261,7 +261,7 @@ def test_additional_setup_pretrain():
 
     assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
-    assert isinstance(args.gpus, list)
+    assert isinstance(args.devices, list)
     assert "transform_kwargs" in args
 
     # multicrop
@@ -283,7 +283,7 @@ def test_additional_setup_pretrain():
         "num_crops_per_aug": [2, 4],
         "dali": False,
         "optimizer": "sgd",
-        "gpus": "0,1",
+        "devices": "0,1",
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
@@ -294,7 +294,7 @@ def test_additional_setup_pretrain():
 
     assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
-    assert isinstance(args.gpus, list)
+    assert isinstance(args.devices, list)
     assert "transform_kwargs" in args
 
     # check for different gpu syntax
@@ -316,7 +316,7 @@ def test_additional_setup_pretrain():
         "num_crops_per_aug": [1, 1],
         "dali": True,
         "optimizer": "sgd",
-        "gpus": 0,
+        "devices": 0,
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
@@ -327,7 +327,7 @@ def test_additional_setup_pretrain():
 
     assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
-    assert isinstance(args.gpus, list)
+    assert isinstance(args.devices, list)
     assert "transform_kwargs" in args
 
     # check for different backbone / custom dataset
@@ -355,7 +355,7 @@ def test_additional_setup_pretrain():
             "crop_size": [224],
             "dali": True,
             "optimizer": "sgd",
-            "gpus": 0,
+            "devices": 0,
             "lr": 0.1,
             "batch_size": 128,
             "patch_size": 16,
@@ -366,7 +366,7 @@ def test_additional_setup_pretrain():
 
         assert args.backbone_args["cifar"] is False
         assert "momentum" in args.extra_optimizer_args
-        assert isinstance(args.gpus, list)
+        assert isinstance(args.devices, list)
         assert "transform_kwargs" in args
 
 
@@ -376,7 +376,7 @@ def test_additional_setup_linear():
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
-        "gpus": "0,1",
+        "devices": "0,1",
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
@@ -387,7 +387,7 @@ def test_additional_setup_linear():
 
     assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
-    assert isinstance(args.gpus, list)
+    assert isinstance(args.devices, list)
 
     # check for different gpu syntax
     args = {
@@ -395,7 +395,7 @@ def test_additional_setup_linear():
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
-        "gpus": 0,
+        "devices": 0,
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
@@ -406,7 +406,7 @@ def test_additional_setup_linear():
 
     assert args.backbone_args["cifar"] is False
     assert "momentum" in args.extra_optimizer_args
-    assert isinstance(args.gpus, list)
+    assert isinstance(args.devices, list)
 
     # check for different backbone / custom dataset
     with DummyDataset("dummy_train", "dummy_val", 10, 4):
@@ -422,7 +422,7 @@ def test_additional_setup_linear():
             "dali": False,
             "num_crops_per_aug": [2],
             "optimizer": "sgd",
-            "gpus": 0,
+            "devices": 0,
             "lr": 0.1,
             "batch_size": 128,
             "zero_init_residual": False,
@@ -434,4 +434,4 @@ def test_additional_setup_linear():
 
         assert args.backbone_args["cifar"] is False
         assert "momentum" in args.extra_optimizer_args
-        assert isinstance(args.gpus, list)
+        assert isinstance(args.devices, list)
