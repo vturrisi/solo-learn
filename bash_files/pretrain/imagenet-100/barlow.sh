@@ -31,6 +31,7 @@ python3 ../../../main_pretrain.py \
     --name barlow-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
+    --wandb \
     --save_checkpoint \
     --scale_loss 0.1 \
     --method barlow_twins \
