@@ -349,6 +349,8 @@ class BaseMethod(pl.LightningModule):
         # uses sample indexes as labels and then gets the labels from a lookup table
         # this may use more CPU memory, so just use when needed.
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
+        # percentage of data for pretraining, leave -1 to use all data available
+        parser.add_argument("--data_fraction", default=-1.0, type=float)
 
         # online knn eval
         parser.add_argument("--knn_eval", action="store_true")
@@ -471,7 +473,7 @@ class BaseMethod(pl.LightningModule):
                     optimizer,
                     warmup_epochs=self.warmup_epochs * self.num_training_steps,
                     max_epochs=self.max_epochs * self.num_training_steps,
-                    warmup_start_lr=self.warmup_start_lr,
+                    warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
                 "interval": self.scheduler_interval,
