@@ -185,7 +185,7 @@ class NormalPipeline(Pipeline):
         num_shards: int = 1,
         num_threads: int = 4,
         seed: int = 12,
-        data_percent: float = -1.0,
+        data_fraction: float = -1.0,
     ):
         """Initializes the pipeline for validation or linear eval training.
 
@@ -205,7 +205,7 @@ class NormalPipeline(Pipeline):
             num_shards (int): total number of shards. Defaults to 1.
             num_threads (int): number of threads to run in parallel. Defaults to 4.
             seed (int): seed for random number generation. Defaults to 12.
-            data_percent (float): percentage of data to use. Use all data when set to -1.0.
+            data_fraction (float): percentage of data to use. Use all data when set to -1.0.
                 Defaults to -1.0.
         """
 
@@ -225,13 +225,13 @@ class NormalPipeline(Pipeline):
         files, labels = map(list, zip(*data))
 
         # sample data if needed
-        if data_percent > 0:
-            assert data_percent < 1, "Only use data_percent for values smaller than 1."
+        if data_fraction > 0:
+            assert data_fraction < 1, "data_fraction must be smaller than 1."
 
             from sklearn.model_selection import train_test_split
 
             files, _, labels, _ = train_test_split(
-                files, labels, train_size=data_percent, stratify=labels, random_state=42
+                files, labels, train_size=data_fraction, stratify=labels, random_state=42
             )
 
         self.reader = ops.readers.File(
@@ -537,7 +537,7 @@ class PretrainPipeline(Pipeline):
         seed: int = 12,
         no_labels: bool = False,
         encode_indexes_into_labels: bool = False,
-        data_percent: float = -1.0,
+        data_fraction: float = -1.0,
     ):
         """Initializes the pipeline for pretraining.
 
@@ -559,7 +559,7 @@ class PretrainPipeline(Pipeline):
             encode_indexes_into_labels (bool, optional): uses sample indexes as labels
                 and then gets the labels from a lookup table. This may use more CPU memory,
                 so just use when needed. Defaults to False.
-            data_percent (float): percentage of data to use. Use all data when set to -1.
+            data_fraction (float): percentage of data to use. Use all data when set to -1.
                 Defaults to -1.
         """
 
@@ -588,8 +588,8 @@ class PretrainPipeline(Pipeline):
             ]
             files, labels = map(list, zip(*data))
 
-        if data_percent > 0:
-            assert data_percent < 1, "Only use data_percent for values smaller than 1."
+        if data_fraction > 0:
+            assert data_fraction < 1, "Only use data_fraction for values smaller than 1."
 
             if no_labels:
                 labels = [-1] * len(files)
@@ -599,7 +599,7 @@ class PretrainPipeline(Pipeline):
             from sklearn.model_selection import train_test_split
 
             files, _, labels, _ = train_test_split(
-                files, labels, train_size=data_percent, stratify=labels, random_state=42
+                files, labels, train_size=data_fraction, stratify=labels, random_state=42
             )
             self.reader = ops.readers.File(
                 files=files,

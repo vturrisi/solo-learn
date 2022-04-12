@@ -170,6 +170,9 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
+        # percentage of data for linear eval, leave -1 to use all data available
+        parser.add_argument("--data_fraction", default=-1.0, type=float)
+
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
 
@@ -204,20 +207,15 @@ class LinearModel(pl.LightningModule):
                         "To use linear warmup cosine annealing lr"
                         "set the dataloader with .set_loaders(...)"
                     )
-
             dataset_size = getattr(self, "dali_epoch_size", None) or len(dataloader.dataset)
-
             dataset_size = self.trainer.limit_train_batches * dataset_size
-
             num_devices = 1
             if isinstance(self.trainer.devices, list):
                 num_devices = len(self.trainer.devices)
-
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices
             )
             self._num_training_steps = dataset_size // effective_batch_size
-
         return self._num_training_steps
 
     def forward(self, X: torch.tensor) -> Dict[str, Any]:
