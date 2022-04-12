@@ -185,6 +185,7 @@ class NormalPipeline(Pipeline):
         num_shards: int = 1,
         num_threads: int = 4,
         seed: int = 12,
+        data_percent: float = -1.0,
     ):
         """Initializes the pipeline for validation or linear eval training.
 
@@ -204,6 +205,8 @@ class NormalPipeline(Pipeline):
             num_shards (int): total number of shards. Defaults to 1.
             num_threads (int): number of threads to run in parallel. Defaults to 4.
             seed (int): seed for random number generation. Defaults to 12.
+            data_percent (float): percentage of data to use. Use all data when set to -1.0.
+                Defaults to -1.0.
         """
 
         seed += device_id
@@ -212,8 +215,28 @@ class NormalPipeline(Pipeline):
         self.device = device
         self.validation = validation
 
+        # manually load files and labels
+        labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
+        data = [
+            (data_path / label / file, label_idx)
+            for label_idx, label in enumerate(labels)
+            for file in sorted(os.listdir(data_path / label))
+        ]
+        files, labels = map(list, zip(*data))
+
+        # sample data if needed
+        if data_percent > 0:
+            assert data_percent < 1, "Only use data_percent for values smaller than 1."
+
+            from sklearn.model_selection import train_test_split
+
+            files, _, labels, _ = train_test_split(
+                files, labels, train_size=data_percent, stratify=labels, random_state=42
+            )
+
         self.reader = ops.readers.File(
-            file_root=data_path,
+            files=files,
+            labels=labels,
             shard_id=shard_id,
             num_shards=num_shards,
             shuffle_after_epoch=not self.validation,
@@ -514,6 +537,7 @@ class PretrainPipeline(Pipeline):
         seed: int = 12,
         no_labels: bool = False,
         encode_indexes_into_labels: bool = False,
+        data_percent: float = -1.0,
     ):
         """Initializes the pipeline for pretraining.
 
@@ -535,6 +559,8 @@ class PretrainPipeline(Pipeline):
             encode_indexes_into_labels (bool, optional): uses sample indexes as labels
                 and then gets the labels from a lookup table. This may use more CPU memory,
                 so just use when needed. Defaults to False.
+            data_percent (float): percentage of data to use. Use all data when set to -1.
+                Defaults to -1.
         """
 
         seed += device_id
@@ -548,54 +574,63 @@ class PretrainPipeline(Pipeline):
         self.device = device
 
         data_path = Path(data_path)
+
+        # manually load files and labels
         if no_labels:
             files = [data_path / f for f in sorted(os.listdir(data_path))]
             labels = [-1] * len(files)
-            self.reader = ops.readers.File(
-                files=files,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                shuffle_after_epoch=random_shuffle,
-                labels=labels,
-            )
-        elif encode_indexes_into_labels:
+        else:
             labels = sorted(Path(entry.name) for entry in os.scandir(data_path) if entry.is_dir())
-
             data = [
                 (data_path / label / file, label_idx)
                 for label_idx, label in enumerate(labels)
                 for file in sorted(os.listdir(data_path / label))
             ]
+            files, labels = map(list, zip(*data))
 
-            files = []
-            labels = []
-            # for debugging
-            true_labels = []
+        if data_percent > 0:
+            assert data_percent < 1, "Only use data_percent for values smaller than 1."
 
-            self.conversion_map = []
-            for file_idx, (file, label_idx) in enumerate(data):
-                files.append(file)
-                labels.append(file_idx)
-                true_labels.append(label_idx)
-                self.conversion_map.append(label_idx)
+            if no_labels:
+                labels = [-1] * len(files)
+            else:
+                labels = [l for _, l in data]
 
-            # debugging
-            for file, file_idx, label_idx in zip(files, labels, true_labels):
-                assert self.conversion_map[file_idx] == label_idx
+            from sklearn.model_selection import train_test_split
 
+            files, _, labels, _ = train_test_split(
+                files, labels, train_size=data_percent, stratify=labels, random_state=42
+            )
             self.reader = ops.readers.File(
                 files=files,
+                labels=labels,
                 shard_id=shard_id,
                 num_shards=num_shards,
                 shuffle_after_epoch=random_shuffle,
             )
-        else:
-            self.reader = ops.readers.File(
-                file_root=data_path,
-                shard_id=shard_id,
-                num_shards=num_shards,
-                shuffle_after_epoch=random_shuffle,
-            )
+
+        if encode_indexes_into_labels:
+            encoded_labels = []
+
+            self.conversion_map = []
+            for file_idx, label_idx in enumerate(labels):
+                encoded_labels.append(file_idx)
+                self.conversion_map.append(label_idx)
+
+            # to assert that everything is fine
+            for file_idx, label_idx in zip(encoded_labels, labels):
+                assert self.conversion_map[file_idx] == label_idx
+
+            # use the encoded labels which will be decoded later
+            labels = encoded_labels
+
+        self.reader = ops.readers.File(
+            files=files,
+            labels=labels,
+            shard_id=shard_id,
+            num_shards=num_shards,
+            shuffle_after_epoch=random_shuffle,
+        )
 
         decoder_device = "mixed" if self.device == "gpu" else "cpu"
         device_memory_padding = 211025920 if decoder_device == "mixed" else 0
