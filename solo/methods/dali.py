@@ -233,6 +233,8 @@ class ClassificationABC(ABC):
         data_dir = Path(self.extra_args["data_dir"])
         train_dir = Path(self.extra_args["train_dir"])
 
+        self.data_fraction = self.extra_args["data_fraction"]
+
         # handle custom data by creating the needed pipeline
         dataset = self.extra_args["dataset"]
         if dataset in ["imagenet100", "imagenet"]:
@@ -274,8 +276,6 @@ class ClassificationABC(ABC):
         dali_device = self.extra_args["dali_device"]
         data_dir = Path(self.extra_args["data_dir"])
         val_dir = Path(self.extra_args["val_dir"])
-
-        self.data_fraction = self.extra_args["data_fraction"]
 
         # handle custom data by creating the needed pipeline
         dataset = self.extra_args["dataset"]

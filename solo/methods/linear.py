@@ -207,15 +207,20 @@ class LinearModel(pl.LightningModule):
                         "To use linear warmup cosine annealing lr"
                         "set the dataloader with .set_loaders(...)"
                     )
+
             dataset_size = getattr(self, "dali_epoch_size", None) or len(dataloader.dataset)
+
             dataset_size = self.trainer.limit_train_batches * dataset_size
+
             num_devices = 1
             if isinstance(self.trainer.devices, list):
                 num_devices = len(self.trainer.devices)
+
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices
             )
             self._num_training_steps = dataset_size // effective_batch_size
+
         return self._num_training_steps
 
     def forward(self, X: torch.tensor) -> Dict[str, Any]:

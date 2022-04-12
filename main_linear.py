@@ -91,7 +91,7 @@ def main():
     )
     ckpt_path = args.pretrained_feature_extractor
 
-    state = torch.load(ckpt_path)["state_dict"]
+    state = torch.load(ckpt_path)
     for k in list(state.keys()):
         if "encoder" in k:
             raise Exception(
