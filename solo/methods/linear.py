@@ -277,7 +277,7 @@ class LinearModel(pl.LightningModule):
                     optimizer,
                     warmup_epochs=self.warmup_epochs * self.num_training_steps,
                     max_epochs=self.max_epochs * self.num_training_steps,
-                    warmup_start_lr=self.warmup_start_lr,
+                    warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
                 "interval": "step",
