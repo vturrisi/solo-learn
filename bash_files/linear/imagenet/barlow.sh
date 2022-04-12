@@ -12,7 +12,8 @@ python3 ../../../main_linear.py \
     --precision 16 \
     --optimizer sgd \
     --lr 0.3 \
-    --scheduler cosine \
+    --scheduler warmup_cosine \
+    --warmup_epochs 0 \
     --weight_decay 1e-5 \
     --batch_size 256 \
     --num_workers 10 \
