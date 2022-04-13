@@ -24,6 +24,7 @@ import torch.nn as nn
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.plugins import DDPPlugin
 from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
@@ -160,6 +161,9 @@ def main():
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         enable_checkpointing=False,
+        strategy=DDPPlugin(find_unused_parameters=False)
+        if args.strategy == "ddp"
+        else args.strategy,
     )
 
     if args.dali:

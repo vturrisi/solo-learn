@@ -177,7 +177,9 @@ def main():
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         enable_checkpointing=False,
-        strategy=DDPPlugin(find_unused_parameters=False),
+        strategy=DDPPlugin(find_unused_parameters=False)
+        if args.strategy == "ddp"
+        else args.strategy,
     )
 
     if args.dali:
