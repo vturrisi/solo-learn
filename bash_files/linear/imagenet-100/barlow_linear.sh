@@ -17,6 +17,6 @@ python3 ../../../main_linear.py \
     --num_workers 4 \
     --dali \
     --name barlow-imagenet100-linear-eval \
-    --pretrained_feature_extractor /home/vturrisi/projects/solo-learn/bash_files/linear/barlow-400ep-imagenet100-fv1nl9um-ep=399.ckpt \
+    --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug
