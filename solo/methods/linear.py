@@ -170,9 +170,6 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
 
-        # percentage of data for linear eval, leave -1 to use all data available
-        parser.add_argument("--data_fraction", default=-1.0, type=float)
-
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
 

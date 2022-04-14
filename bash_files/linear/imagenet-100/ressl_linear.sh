@@ -6,6 +6,7 @@ python3 ../../../main_linear.py \
     --val_dir imagenet-100/test \
     --max_epochs 100 \
     --devices 0 \
+    --accelerator gpu \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \

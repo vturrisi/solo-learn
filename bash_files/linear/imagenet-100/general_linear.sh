@@ -6,6 +6,7 @@ python3 ../../../main_linear.py \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
     --devices 0,1 \
+    --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \
     --precision 16 \

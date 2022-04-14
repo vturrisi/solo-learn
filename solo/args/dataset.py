@@ -44,6 +44,9 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--train_dir", type=Path, default=None)
     parser.add_argument("--val_dir", type=Path, default=None)
 
+    # percentage of data used from training, leave -1.0 to use all data available
+    parser.add_argument("--data_fraction", default=-1.0, type=float)
+
     # dali (imagenet-100/imagenet/custom only)
     parser.add_argument("--dali", action="store_true")
     parser.add_argument("--dali_device", type=str, default="gpu")

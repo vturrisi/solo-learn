@@ -147,6 +147,7 @@ def prepare_datasets(
     train_dir: Optional[Union[str, Path]] = None,
     val_dir: Optional[Union[str, Path]] = None,
     download: bool = True,
+    data_fraction: float = -1.0,
 ) -> Tuple[Dataset, Dataset]:
     """Prepares train and val datasets.
 
@@ -157,6 +158,8 @@ def prepare_datasets(
         data_dir Optional[Union[str, Path]]: path where to download/locate the dataset.
         train_dir Optional[Union[str, Path]]: subpath where the training data is located.
         val_dir Optional[Union[str, Path]]: subpath where the validation data is located.
+        data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
+            Defaults to -1.0.
 
     Returns:
         Tuple[Dataset, Dataset]: training dataset and validation dataset.
@@ -217,6 +220,19 @@ def prepare_datasets(
         train_dataset = ImageFolder(train_dir, T_train)
         val_dataset = ImageFolder(val_dir, T_val)
 
+    if data_fraction > 0:
+        assert data_fraction < 1, "Only use data_fraction for values smaller than 1."
+        data = train_dataset.samples
+        files = [f for f, _ in data]
+        labels = [l for _, l in data]
+
+        from sklearn.model_selection import train_test_split
+
+        files, _, labels, _ = train_test_split(
+            files, labels, train_size=data_fraction, stratify=labels, random_state=42
+        )
+        train_dataset.samples = [tuple(p) for p in zip(files, labels)]
+
     return train_dataset, val_dataset
 
 
@@ -260,6 +276,7 @@ def prepare_data(
     batch_size: int = 64,
     num_workers: int = 4,
     download: bool = True,
+    data_fraction: float = -1.0,
 ) -> Tuple[DataLoader, DataLoader]:
     """Prepares transformations, creates dataset objects and wraps them in dataloaders.
 
@@ -273,6 +290,8 @@ def prepare_data(
             validation data is located. Defaults to None.
         batch_size (int, optional): batch size. Defaults to 64.
         num_workers (int, optional): number of parallel workers. Defaults to 4.
+        data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
+            Defaults to -1.0.
 
     Returns:
         Tuple[DataLoader, DataLoader]: prepared training and validation dataloader;.
@@ -287,6 +306,7 @@ def prepare_data(
         train_dir=train_dir,
         val_dir=val_dir,
         download=download,
+        data_fraction=data_fraction,
     )
     train_loader, val_loader = prepare_dataloaders(
         train_dataset,
