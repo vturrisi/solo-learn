@@ -222,7 +222,6 @@ def prepare_datasets(
 
     if data_fraction > 0:
         assert data_fraction < 1, "Only use data_fraction for values smaller than 1."
-
         data = train_dataset.samples
         files = [f for f, _ in data]
         labels = [l for _, l in data]
