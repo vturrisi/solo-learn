@@ -221,6 +221,8 @@ def prepare_datasets(
         val_dataset = ImageFolder(val_dir, T_val)
 
     if data_fraction > 0:
+        assert data_fraction < 1, "Only use data_fraction for values smaller than 1."
+
         data = train_dataset.samples
         files = [f for f, _ in data]
         labels = [l for _, l in data]
