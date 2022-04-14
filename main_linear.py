@@ -123,6 +123,7 @@ def main():
         val_dir=args.val_dir,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
+        data_fraction=args.data_fraction,
     )
 
     callbacks = []

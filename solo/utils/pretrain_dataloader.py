@@ -478,6 +478,7 @@ def prepare_datasets(
     train_dir: Optional[Union[str, Path]] = None,
     no_labels: Optional[Union[str, Path]] = False,
     download: bool = True,
+    data_fraction: float = -1.0,
 ) -> Dataset:
     """Prepares the desired dataset.
 
@@ -489,7 +490,8 @@ def prepare_datasets(
         train_dir (Optional[Union[str, Path]], optional): training data directory
             to be appended to data_dir. Defaults to None.
         no_labels (Optional[bool], optional): if the custom dataset has no labels.
-
+        data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
+            Defaults to -1.0.
     Returns:
         Dataset: the desired dataset with transformations.
     """
@@ -533,6 +535,18 @@ def prepare_datasets(
             dataset_class = ImageFolder
 
         train_dataset = dataset_with_index(dataset_class)(train_dir, transform)
+
+    if data_fraction > 0:
+        data = train_dataset.samples
+        files = [f for f, _ in data]
+        labels = [l for _, l in data]
+
+        from sklearn.model_selection import train_test_split
+
+        files, _, labels, _ = train_test_split(
+            files, labels, train_size=data_fraction, stratify=labels, random_state=42
+        )
+        train_dataset.samples = [tuple(p) for p in zip(files, labels)]
 
     return train_dataset
 

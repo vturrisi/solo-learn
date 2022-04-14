@@ -349,8 +349,6 @@ class BaseMethod(pl.LightningModule):
         # uses sample indexes as labels and then gets the labels from a lookup table
         # this may use more CPU memory, so just use when needed.
         parser.add_argument("--encode_indexes_into_labels", action="store_true")
-        # percentage of data for pretraining, leave -1 to use all data available
-        parser.add_argument("--data_fraction", default=-1.0, type=float)
 
         # online knn eval
         parser.add_argument("--knn_eval", action="store_true")

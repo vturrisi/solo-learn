@@ -96,6 +96,7 @@ def main():
             data_dir=args.data_dir,
             train_dir=args.train_dir,
             no_labels=args.no_labels,
+            data_fraction=args.data_fraction,
         )
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
