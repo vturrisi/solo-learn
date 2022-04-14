@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+import warnings
 
 import torch
 import torch.nn as nn
@@ -95,10 +96,9 @@ def main():
     state = torch.load(ckpt_path)["state_dict"]
     for k in list(state.keys()):
         if "encoder" in k:
-            raise Exception(
-                "You are using an older checkpoint."
-                "Either use a new one, or convert it by replacing"
-                "all 'encoder' occurrences in state_dict with 'backbone'"
+            state[k.replace("encoder", "backbone")] = state[k]
+            warnings.warn(
+                "You are using an older checkpoint. Use a new one as some issues might arrise."
             )
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]

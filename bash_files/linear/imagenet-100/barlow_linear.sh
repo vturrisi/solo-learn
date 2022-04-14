@@ -6,6 +6,7 @@ python3 ../../../main_linear.py \
     --val_dir imagenet-100/val \
     --max_epochs 100 \
     --devices 0 \
+    --accelerator gpu \
     --precision 16 \
     --optimizer sgd \
     --scheduler step \
@@ -16,7 +17,6 @@ python3 ../../../main_linear.py \
     --num_workers 4 \
     --dali \
     --name barlow-imagenet100-linear-eval \
-    --pretrained_feature_extractor PATH \
+    --pretrained_feature_extractor /home/vturrisi/projects/solo-learn/bash_files/linear/barlow-400ep-imagenet100-fv1nl9um-ep=399.ckpt \
     --project solo-learn \
-    --entity unitn-mhug \
-    --wandb
+    --entity unitn-mhug
