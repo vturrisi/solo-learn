@@ -19,4 +19,5 @@ python3 ../../../main_linear.py \
     --name barlow-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
-    --entity unitn-mhug
+    --entity unitn-mhug \
+    --wandb
