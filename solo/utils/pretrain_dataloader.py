@@ -80,19 +80,19 @@ class GaussianBlur:
 
         self.sigma = sigma
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+    def __call__(self, img: Image) -> Image:
         """Applies gaussian blur to an input image.
 
         Args:
-            x (torch.Tensor): an image in the tensor format.
+            img (Image): an image in the PIL.Image format.
 
         Returns:
-            torch.Tensor: returns a blurred image.
+            Image: blurred image.
         """
 
         sigma = random.uniform(self.sigma[0], self.sigma[1])
-        x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
-        return x
+        img = img.filter(ImageFilter.GaussianBlur(radius=sigma))
+        return img
 
 
 class Solarization:
@@ -105,7 +105,7 @@ class Solarization:
             img (Image): an image in the PIL.Image format.
 
         Returns:
-            Image: a solarized image.
+            Image: solarized image.
         """
 
         return ImageOps.solarize(img)
