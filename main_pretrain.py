@@ -29,10 +29,10 @@ from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 
+
 try:
-    from solo.methods.dali import PretrainABC
-except ImportError as e:
-    print(e)
+    from solo.utils.dali_dataloader import PretrainDALIDataModule
+except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
@@ -44,7 +44,6 @@ except ImportError:
 else:
     _umap_available = True
 
-import types
 
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
@@ -66,17 +65,30 @@ def main():
     if args.num_large_crops != 2:
         assert args.method == "wmse"
 
-    MethodClass = METHODS[args.method]
+    model = METHODS[args.method](**args.__dict__)
     if args.dali:
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with [dali]."
-        MethodClass = types.new_class(f"Dali{MethodClass.__name__}", (PretrainABC, MethodClass))
 
-    model = MethodClass(**args.__dict__)
-
+        dali_datamodule = PretrainDALIDataModule(
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            train_dir=args.train_dir,
+            unique_augs=args.unique_augs,
+            transform_kwargs=args.transform_kwargs,
+            num_crops_per_aug=args.num_crops_per_aug,
+            num_large_crops=args.num_large_crops,
+            num_small_crops=args.num_small_crops,
+            num_workers=args.num_workers,
+            batch_size=args.batch_size,
+            no_labels=args.no_labels,
+            data_fraction=args.data_fraction,
+            dali_device=args.dali_device,
+            encode_indexes_into_labels=args.encode_indexes_into_labels,
+        )
     # pretrain dataloader
-    if not args.dali:
+    else:
         # asymmetric augmentations
         if args.unique_augs > 1:
             transform = [
@@ -116,6 +128,9 @@ def main():
             batch_size=args.batch_size,
             num_workers=args.num_workers,
         )
+
+    if args.dali:
+        dali_datamodule.val_dataloader = lambda: val_loader
 
     callbacks = []
 
@@ -185,7 +200,7 @@ def main():
 
     if args.dali:
         model.set_loaders(val_loader=val_loader)
-        trainer.fit(model, ckpt_path=ckpt_path)
+        trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         model.set_loaders(train_loader=train_loader, val_loader=val_loader)
         trainer.fit(model, ckpt_path=ckpt_path)

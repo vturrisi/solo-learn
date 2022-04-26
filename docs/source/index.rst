@@ -62,7 +62,6 @@ While the library is self contained, it is possible to use the models outside of
    :caption: Methods
 
    solo/methods/base
-   solo/methods/dali
    solo/methods/linear
    solo/methods/barlow
    solo/methods/byol

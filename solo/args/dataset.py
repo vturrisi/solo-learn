@@ -49,7 +49,6 @@ def dataset_args(parser: ArgumentParser):
 
     # dali (imagenet-100/imagenet/custom only)
     parser.add_argument("--dali", action="store_true")
-    parser.add_argument("--dali_device", type=str, default="gpu")
 
 
 def augmentations_args(parser: ArgumentParser):

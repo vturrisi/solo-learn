@@ -345,11 +345,6 @@ class BaseMethod(pl.LightningModule):
             "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
         )
 
-        # DALI only
-        # uses sample indexes as labels and then gets the labels from a lookup table
-        # this may use more CPU memory, so just use when needed.
-        parser.add_argument("--encode_indexes_into_labels", action="store_true")
-
         # online knn eval
         parser.add_argument("--knn_eval", action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
@@ -380,16 +375,18 @@ class BaseMethod(pl.LightningModule):
         """Compute the number of training steps for each epoch."""
 
         if self._num_training_steps is None:
-            if self.trainer.train_dataloader is None:
+            datamodule = self.trainer.datamodule
+            if datamodule is not None:
+                datamodule.train_dataloader()
+                dataset_size = datamodule.dali_epoch_size
+            elif self.trainer.train_dataloader is None:
                 try:
-                    dataloader = self.train_dataloader()
+                    dataset_size = len(self.train_dataloader().dataset)
                 except NotImplementedError:
                     raise RuntimeError(
                         "To use linear warmup cosine annealing lr"
                         "set the dataloader with .set_loaders(...)"
                     )
-
-            dataset_size = getattr(self, "dali_epoch_size", None) or len(dataloader.dataset)
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 

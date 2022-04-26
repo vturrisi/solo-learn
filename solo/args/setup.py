@@ -38,6 +38,13 @@ except ImportError:
 else:
     _umap_available = True
 
+try:
+    from solo.utils.dali_dataloader import ClassificationDALIDataModule, PretrainDALIDataModule
+except ImportError:
+    _dali_available = False
+else:
+    _dali_available = True
+
 
 def parse_args_pretrain() -> argparse.Namespace:
     """Parses dataset, augmentation, pytorch lightning, model specific and additional args.
@@ -85,6 +92,9 @@ def parse_args_pretrain() -> argparse.Namespace:
     if temp_args.auto_resume:
         parser = AutoResumer.add_autoresumer_args(parser)
 
+    if _dali_available and temp_args.dali:
+        parser = PretrainDALIDataModule.add_dali_args(parser)
+
     # parse args
     args = parser.parse_args()
 
@@ -127,6 +137,9 @@ def parse_args_linear() -> argparse.Namespace:
     # optionally add checkpointer
     if temp_args.save_checkpoint:
         parser = Checkpointer.add_checkpointer_args(parser)
+
+    if _dali_available and temp_args.dali:
+        parser = ClassificationDALIDataModule.add_dali_args(parser)
 
     # parse args
     args = parser.parse_args()

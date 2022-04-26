@@ -42,12 +42,11 @@ from solo.utils.backbones import (
 )
 
 try:
-    from solo.methods.dali import ClassificationABC
+    from solo.utils.dali_dataloader import ClassificationDALIDataModule
 except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
-import types
 
 from solo.methods.linear import LinearModel
 from solo.utils.checkpointer import Checkpointer
@@ -107,14 +106,8 @@ def main():
 
     print(f"loaded {ckpt_path}")
 
-    if args.dali:
-        assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
-        Class = types.new_class(f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel))
-    else:
-        Class = LinearModel
-
     del args.backbone
-    model = Class(backbone, **args.__dict__)
+    model = LinearModel(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(
         args.dataset,
@@ -125,9 +118,26 @@ def main():
         num_workers=args.num_workers,
         data_fraction=args.data_fraction,
     )
+    if args.dali:
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with [dali]."
+
+        dali_datamodule = ClassificationDALIDataModule(
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            train_dir=args.train_dir,
+            val_dir=args.val_dir,
+            num_workers=args.num_workers,
+            batch_size=args.batch_size,
+            data_fraction=args.data_fraction,
+            dali_device=args.dali_device,
+        )
+
+        # maybe?
+        dali_datamodule.val_dataloader = lambda: val_loader
 
     callbacks = []
-
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
@@ -169,7 +179,7 @@ def main():
 
     if args.dali:
         model.set_loaders(val_loader=val_loader)
-        trainer.fit(model, ckpt_path=ckpt_path)
+        trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         model.set_loaders(train_loader=train_loader, val_loader=val_loader)
         trainer.fit(model, ckpt_path=ckpt_path)
