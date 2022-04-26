@@ -22,7 +22,6 @@ from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
-
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn

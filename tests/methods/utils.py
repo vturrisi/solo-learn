@@ -51,6 +51,7 @@ def gen_base_kwargs(
         "backbone": "resnet18",
         "num_classes": 10 if cifar else 100,
         "no_labels": False,
+        "data_fraction": -1,
         "backbone_args": {"zero_init_residual": True, "cifar": cifar},
         "max_epochs": 2,
         "optimizer": "sgd",

@@ -31,7 +31,6 @@ def test_argparse_dataset():
     assert "train_dir" in actions
     assert "val_dir" in actions
     assert "dali" in actions
-    assert "dali_device" in actions
 
 
 def test_argparse_augmentations():

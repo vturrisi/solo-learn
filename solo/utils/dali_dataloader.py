@@ -29,7 +29,7 @@ import nvidia.dali.types as types
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-from nvidia.dali.pipeline import Pipeline
+from nvidia.dali.pipeline import pipeline_def
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
 
@@ -179,7 +179,7 @@ class RandomSolarize:
         return self.mux(true_case=out, false_case=images)
 
 
-class NormalPipeline(Pipeline):
+class NormalPipelineBuilder:
     def __init__(
         self,
         data_path: str,
@@ -215,8 +215,12 @@ class NormalPipeline(Pipeline):
                 Defaults to -1.0.
         """
 
-        seed += device_id
-        super().__init__(batch_size, num_threads, device_id, seed)
+        super().__init__()
+
+        self.batch_size = batch_size
+        self.num_threads = num_threads
+        self.device_id = device_id
+        self.seed = seed + device_id
 
         self.device = device
         self.validation = validation
@@ -292,8 +296,9 @@ class NormalPipeline(Pipeline):
         self.coin05 = ops.random.CoinFlip(probability=0.5)
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-    def define_graph(self):
-        """Defines the computational graph for dali operations."""
+    @pipeline_def
+    def pipeline(self):
+        """Defines the computational pipeline for dali operations."""
 
         # read images from memory
         inputs, labels = self.reader(name="Reader")
@@ -317,7 +322,7 @@ class NormalPipeline(Pipeline):
         return (images, labels)
 
 
-class CustomNormalPipeline(NormalPipeline):
+class CustomNormalPipelineBuilder(NormalPipelineBuilder):
     """Initializes the custom pipeline for validation or linear eval training.
     This acts as a placeholder and behaves exactly like NormalPipeline.
     If you want to do exoteric augmentations, you can just re-write this class.
@@ -527,7 +532,7 @@ class CustomTransform:
         return self.str
 
 
-class PretrainPipeline(Pipeline):
+class PretrainPipelineBuilder:
     def __init__(
         self,
         data_path: Union[str, Path],
@@ -545,7 +550,7 @@ class PretrainPipeline(Pipeline):
         encode_indexes_into_labels: bool = False,
         data_fraction: float = -1.0,
     ):
-        """Initializes the pipeline for pretraining.
+        """Builder for a pretrain pipeline with Nvidia DALI.
 
         Args:
             data_path (str): directory that contains the data.
@@ -569,13 +574,12 @@ class PretrainPipeline(Pipeline):
                 Defaults to -1.
         """
 
-        seed += device_id
-        super().__init__(
-            batch_size=batch_size,
-            num_threads=num_threads,
-            device_id=device_id,
-            seed=seed,
-        )
+        super().__init__()
+
+        self.batch_size = batch_size
+        self.num_threads = num_threads
+        self.device_id = device_id
+        self.seed = seed + device_id
 
         self.device = device
 
@@ -654,8 +658,9 @@ class PretrainPipeline(Pipeline):
             T.append(NCropAugmentation(transform, num_crops))
         self.transforms = FullTransformPipeline(T)
 
-    def define_graph(self):
-        """Defines the computational graph for dali operations."""
+    @pipeline_def
+    def pipeline(self):
+        """Defines the computational pipeline for dali operations."""
 
         # read images from memory
         inputs, labels = self.reader(name="Reader")
@@ -874,13 +879,13 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         self.num_shards = self.trainer.world_size
 
         # get current device
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and self.dali_device == "gpu":
             self.device = torch.device(f"cuda:{torch.cuda.current_device()}")
         else:
             self.device = torch.device("cpu")
 
     def train_dataloader(self):
-        train_pipeline = PretrainPipeline(
+        train_pipeline_builder = PretrainPipelineBuilder(
             self.data_dir / self.train_dir,
             batch_size=self.batch_size,
             transforms=self.transforms,
@@ -894,6 +899,14 @@ class PretrainDALIDataModule(pl.LightningDataModule):
             encode_indexes_into_labels=self.encode_indexes_into_labels,
             data_fraction=self.data_fraction,
         )
+        train_pipeline = train_pipeline_builder.pipeline(
+            batch_size=train_pipeline_builder.batch_size,
+            num_threads=train_pipeline_builder.num_threads,
+            device_id=train_pipeline_builder.device_id,
+            seed=train_pipeline_builder.seed,
+        )
+        train_pipeline.build()
+
         output_map = (
             [f"large{i}" for i in range(self.num_large_crops)]
             + [f"small{i}" for i in range(self.num_small_crops)]
@@ -901,7 +914,9 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         )
 
         policy = LastBatchPolicy.DROP
-        conversion_map = train_pipeline.conversion_map if self.encode_indexes_into_labels else None
+        conversion_map = (
+            train_pipeline_builder.conversion_map if self.encode_indexes_into_labels else None
+        )
         train_loader = PretrainWrapper(
             model_batch_size=self.batch_size,
             model_rank=self.device_id,
@@ -966,9 +981,9 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
 
         # handle custom data by creating the needed pipeline
         if dataset in ["imagenet100", "imagenet"]:
-            self.pipeline_class = NormalPipeline
+            self.pipeline_class = NormalPipelineBuilder
         elif dataset == "custom":
-            self.pipeline_class = CustomNormalPipeline
+            self.pipeline_class = CustomNormalPipelineBuilder
         else:
             raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
 
@@ -987,13 +1002,13 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         self.num_shards = self.trainer.world_size
 
         # get current device
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and self.dali_device == "gpu":
             self.device = torch.device(f"cuda:{torch.cuda.current_device()}")
         else:
             self.device = torch.device("cpu")
 
     def train_dataloader(self):
-        train_pipeline = self.pipeline_class(
+        train_pipeline_builder = self.pipeline_class(
             self.data_dir / self.train_dir,
             validation=False,
             batch_size=self.batch_size,
@@ -1004,6 +1019,14 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             num_threads=self.num_workers,
             data_fraction=self.data_fraction,
         )
+        train_pipeline = train_pipeline_builder.pipeline(
+            batch_size=train_pipeline_builder.batch_size,
+            num_threads=train_pipeline_builder.num_threads,
+            device_id=train_pipeline_builder.device_id,
+            seed=train_pipeline_builder.seed,
+        )
+        train_pipeline.build()
+
         train_loader = Wrapper(
             train_pipeline,
             output_map=["x", "label"],
@@ -1017,7 +1040,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         return train_loader
 
     def val_dataloader(self) -> DALIGenericIterator:
-        val_pipeline = self.pipeline_class(
+        val_pipeline_builder = self.pipeline_class(
             self.data_dir / self.val_dir,
             validation=True,
             batch_size=self.batch_size,
@@ -1027,6 +1050,13 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             num_shards=self.num_shards,
             num_threads=self.num_workers,
         )
+        val_pipeline = val_pipeline_builder.pipeline(
+            batch_size=val_pipeline_builder.batch_size,
+            num_threads=val_pipeline_builder.num_threads,
+            device_id=val_pipeline_builder.device_id,
+            seed=val_pipeline_builder.seed,
+        )
+        val_pipeline.build()
 
         val_loader = Wrapper(
             val_pipeline,
