@@ -18,8 +18,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 import math
+import os
 import warnings
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import torch
 import torch.distributed as dist
@@ -200,3 +201,50 @@ class GatherLayer(torch.autograd.Function):
 def gather(X, dim=0):
     """Gathers tensors from all processes, supporting backward propagation."""
     return torch.cat(GatherLayer.apply(X), dim=dim)
+
+
+def compute_dataset_size(
+    dataset: Optional[str] = None,
+    train: Optional[str] = True,
+    folder: Optional[str] = None,
+    no_labels: Optional[bool] = False,
+    data_fraction: Optional[float] = -1,
+):
+    """Utility function to get the dataset size. If using cifar or stl,
+    provide dataset and the train flag.
+    E.g., compute_dataset_size(dataset='cifar10', train=True/False).
+    When using an ImageFolder dataset, just provide the path to the folder and
+    specify if it has labels or not with the no_labels flag.
+
+    Args:
+        folder (Optional[str], optional): path to the ImageFolder. Defaults to None.
+        dataset (Optional[str], optional): dataset size for predefined datasets
+            [cifar10, cifar100, stl10]. Defaults to None.
+        train (Optional[str], optional): either train dataset or validation. Defaults to True.
+        no_labels (Optional[bool], optional): if the dataset has no labels. Defaults to False.
+        data_fraction (Optional[float], optional): amount of data to use. Defaults to -1.
+
+    Returns:
+        _type_: _description_
+    """
+    DATASET_SIZES = {
+        "cifar10": {"train": 50_000, "val": 10_000},
+        "cifar100": {"train": 50_000, "val": 10_000},
+        "stl10": {"train": 105_000, "val": 8_000},
+    }
+    size = None
+
+    if dataset is not None:
+        size = DATASET_SIZES.get(dataset.lower(), {}).get("train" if train else "val", None)
+
+    if size is None:
+        if no_labels:
+            size = len(os.listdir(folder))
+        else:
+            size = sum(
+                len(os.listdir(os.path.join(folder, class_))) for class_ in os.listdir(folder)
+            )
+
+    if data_fraction != -1:
+        size = int(size * data_fraction)
+    return size

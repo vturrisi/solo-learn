@@ -178,11 +178,9 @@ def main():
     )
 
     if args.dali:
-        model.set_loaders(val_loader=val_loader)
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
-        model.set_loaders(train_loader=train_loader, val_loader=val_loader)
-        trainer.fit(model, ckpt_path=ckpt_path)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":

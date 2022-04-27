@@ -74,7 +74,6 @@ def test_linear():
         "imagenet100",
         num_classes=BASE_KWARGS["num_classes"],
     )
-    model.set_loaders(train_loader=train_dl, val_loader=val_dl)
     trainer.fit(model, train_dl, val_dl)
 
     # test optimizers/scheduler
