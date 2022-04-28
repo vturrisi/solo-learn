@@ -47,6 +47,7 @@ else:
 
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
+
 from solo.utils.pretrain_dataloader import (
     prepare_dataloader,
     prepare_datasets,
@@ -66,10 +67,25 @@ def main():
         assert args.method == "wmse"
 
     model = METHODS[args.method](**args.__dict__)
+
+    # validation dataloader for when it is available
+    if args.dataset == "custom" and (args.no_labels or args.val_dir is None):
+        val_loader = None
+    elif args.dataset in ["imagenet100", "imagenet"] and args.val_dir is None:
+        val_loader = None
+    else:
+        _, val_loader = prepare_data_classification(
+            args.dataset,
+            data_dir=args.data_dir,
+            train_dir=args.train_dir,
+            val_dir=args.val_dir,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+        )
+
+    # pretrain dataloader
     if args.dali:
-        assert (
-            _dali_avaliable
-        ), "Dali is not currently avaiable, please install it first with [dali]."
+        assert _dali_avaliable, "Dali is not avaiable, please install it first with [dali]."
 
         dali_datamodule = PretrainDALIDataModule(
             dataset=args.dataset,
@@ -87,17 +103,16 @@ def main():
             dali_device=args.dali_device,
             encode_indexes_into_labels=args.encode_indexes_into_labels,
         )
-    # pretrain dataloader
+        dali_datamodule.val_dataloader = lambda: val_loader
     else:
-        # asymmetric augmentations
-        if args.unique_augs > 1:
-            transform = [
-                prepare_transform(args.dataset, **kwargs) for kwargs in args.transform_kwargs
-            ]
-        else:
-            transform = [prepare_transform(args.dataset, **args.transform_kwargs)]
+        transform_kwargs = (
+            args.transform_kwargs if args.unique_augs > 1 else [args.transform_kwargs]
+        )
+        transform = prepare_n_crop_transform(
+            [prepare_transform(args.dataset, **kwargs) for kwargs in transform_kwargs],
+            num_crops_per_aug=args.num_crops_per_aug,
+        )
 
-        transform = prepare_n_crop_transform(transform, num_crops_per_aug=args.num_crops_per_aug)
         if args.debug_augmentations:
             print("Transforms:")
             pprint(transform)
@@ -113,24 +128,6 @@ def main():
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
-
-    # normal dataloader for when it is available
-    if args.dataset == "custom" and (args.no_labels or args.val_dir is None):
-        val_loader = None
-    elif args.dataset in ["imagenet100", "imagenet"] and args.val_dir is None:
-        val_loader = None
-    else:
-        _, val_loader = prepare_data_classification(
-            args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
-        )
-
-    if args.dali:
-        dali_datamodule.val_dataloader = lambda: val_loader
 
     callbacks = []
 
