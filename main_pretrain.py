@@ -130,6 +130,25 @@ def main():
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
         )
 
+    # 1.7 will deprecate resume_from_checkpoint, but for the moment
+    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
+    ckpt_path, wandb_run_id = None, None
+    if args.auto_resume and args.resume_from_checkpoint is None:
+        auto_resumer = AutoResumer(
+            checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
+            max_hours=args.auto_resumer_max_hours,
+        )
+        resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
+        if resume_from_checkpoint is not None:
+            print(
+                "Resuming from previous checkpoint that matches specifications:",
+                f"'{resume_from_checkpoint}'",
+            )
+            ckpt_path = resume_from_checkpoint
+    elif args.resume_from_checkpoint is not None:
+        ckpt_path = args.resume_from_checkpoint
+        del args.resume_from_checkpoint
+
     callbacks = []
 
     if args.save_checkpoint:
@@ -151,25 +170,6 @@ def main():
             frequency=args.auto_umap_frequency,
         )
         callbacks.append(auto_umap)
-
-    # 1.7 will deprecate resume_from_checkpoint, but for the moment
-    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
-    ckpt_path, wandb_run_id = None, None
-    if args.auto_resume and args.resume_from_checkpoint is None:
-        auto_resumer = AutoResumer(
-            checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
-            max_hours=args.auto_resumer_max_hours,
-        )
-        resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
-        if resume_from_checkpoint is not None:
-            print(
-                "Resuming from previous checkpoint that matches specifications:",
-                f"'{resume_from_checkpoint}'",
-            )
-            ckpt_path = resume_from_checkpoint
-    elif args.resume_from_checkpoint is not None:
-        ckpt_path = args.resume_from_checkpoint
-        del args.resume_from_checkpoint
 
     # wandb logging
     if args.wandb:

@@ -132,11 +132,15 @@ def parse_args_linear() -> argparse.Namespace:
 
     # THIS LINE IS KEY TO PULL WANDB AND SAVE_CHECKPOINT
     parser.add_argument("--save_checkpoint", action="store_true")
+    parser.add_argument("--auto_resume", action="store_true")
     temp_args, _ = parser.parse_known_args()
 
     # optionally add checkpointer
     if temp_args.save_checkpoint:
         parser = Checkpointer.add_checkpointer_args(parser)
+
+    if temp_args.auto_resume:
+        parser = AutoResumer.add_autoresumer_args(parser)
 
     if _dali_available and temp_args.dali:
         parser = ClassificationDALIDataModule.add_dali_args(parser)
