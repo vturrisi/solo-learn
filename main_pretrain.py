@@ -17,7 +17,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from functools import wraps
 import os
 from pprint import pprint
 
@@ -29,7 +28,6 @@ from pytorch_lightning.plugins import DDPPlugin
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
-
 
 try:
     from solo.utils.dali_dataloader import PretrainDALIDataModule
@@ -48,7 +46,6 @@ else:
 
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
-
 from solo.utils.pretrain_dataloader import (
     prepare_dataloader,
     prepare_datasets,
@@ -179,7 +176,7 @@ def main():
             entity=args.entity,
             offline=args.offline,
             resume="allow" if wandb_run_id else None,
-            id=wandb_run_id
+            id=wandb_run_id,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
