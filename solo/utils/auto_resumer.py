@@ -92,6 +92,7 @@ class AutoResumer:
                     getattr(checkpoint_args, param) == getattr(args, param)
                     for param in AutoResumer.SHOULD_MATCH
                 ):
-                    return checkpoint.checkpoint
+                    wandb_run_id = getattr(checkpoint_args, "wandb_run_id", None)
+                    return checkpoint.checkpoint, wandb_run_id
 
-        return None
+        return None, None

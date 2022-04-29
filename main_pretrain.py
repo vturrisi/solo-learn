@@ -17,9 +17,12 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from functools import wraps
 import os
 from pprint import pprint
+from typing import Any, Callable, Optional
 
+import pytorch_lightning.loggers.base as logger
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
@@ -131,21 +134,6 @@ def main():
 
     callbacks = []
 
-    # wandb logging
-    if args.wandb:
-        wandb_logger = WandbLogger(
-            name=args.name,
-            project=args.project,
-            entity=args.entity,
-            offline=args.offline,
-        )
-        wandb_logger.watch(model, log="gradients", log_freq=100)
-        wandb_logger.log_hyperparams(args)
-
-        # lr logging
-        lr_monitor = LearningRateMonitor(logging_interval="step")
-        callbacks.append(lr_monitor)
-
     if args.save_checkpoint:
         # save checkpoint on last epoch only
         ckpt = Checkpointer(
@@ -168,13 +156,13 @@ def main():
 
     # 1.7 will deprecate resume_from_checkpoint, but for the moment
     # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
-    ckpt_path = None
+    ckpt_path, wandb_run_id = None, None
     if args.auto_resume and args.resume_from_checkpoint is None:
         auto_resumer = AutoResumer(
             checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
             max_hours=args.auto_resumer_max_hours,
         )
-        resume_from_checkpoint = auto_resumer.find_checkpoint(args)
+        resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
         if resume_from_checkpoint is not None:
             print(
                 "Resuming from previous checkpoint that matches specifications:",
@@ -184,6 +172,23 @@ def main():
     elif args.resume_from_checkpoint is not None:
         ckpt_path = args.resume_from_checkpoint
         del args.resume_from_checkpoint
+
+    # wandb logging
+    if args.wandb:
+        wandb_logger = WandbLogger(
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
+            resume="allow" if wandb_run_id else None,
+            id=wandb_run_id
+        )
+        wandb_logger.watch(model, log="gradients", log_freq=100)
+        wandb_logger.log_hyperparams(args)
+
+        # lr logging
+        lr_monitor = LearningRateMonitor(logging_interval="step")
+        callbacks.append(lr_monitor)
 
     trainer = Trainer.from_argparse_args(
         args,
