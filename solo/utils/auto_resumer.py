@@ -21,7 +21,7 @@ class AutoResumer:
         "name",
         "project",
         "entity",
-        "pretrained_feature_extractor"
+        "pretrained_feature_extractor",
     ]
 
     def __init__(
@@ -83,9 +83,7 @@ class AutoResumer:
 
         if candidates:
             # sort by most recent
-            candidates = sorted(
-                candidates, key=lambda ck: ck.creation_time, reverse=True
-            )
+            candidates = sorted(candidates, key=lambda ck: ck.creation_time, reverse=True)
 
             for candidate in candidates:
                 candidate_args = Namespace(**json.load(open(candidate.args)))
