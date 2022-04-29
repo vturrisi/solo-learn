@@ -20,9 +20,7 @@
 from functools import wraps
 import os
 from pprint import pprint
-from typing import Any, Callable, Optional
 
-import pytorch_lightning.loggers.base as logger
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
