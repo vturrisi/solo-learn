@@ -1,4 +1,4 @@
-python3 ../../../main_umap.py \
+python3 main_umap.py \
     --dataset imagenet100 \
     --data_dir /datasets \
     --train_dir imagenet-100/train \

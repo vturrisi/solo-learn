@@ -95,6 +95,7 @@ class Checkpointer(Callback):
                 version = "offline-" + random_string()
         else:
             version = str(trainer.logger.version)
+            self.wandb_run_id = version
         if version is not None:
             self.path = self.logdir / version
             self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
@@ -116,6 +117,7 @@ class Checkpointer(Callback):
 
         if trainer.is_global_zero:
             args = vars(self.args)
+            args["wandb_run_id"] = getattr(self, "wandb_run_id", None)
             json_path = self.path / "args.json"
             json.dump(args, open(json_path, "w"), default=lambda o: "<not serializable>")
 

@@ -294,7 +294,7 @@ def prepare_data(
             Defaults to -1.0.
 
     Returns:
-        Tuple[DataLoader, DataLoader]: prepared training and validation dataloader;.
+        Tuple[DataLoader, DataLoader]: prepared training and validation dataloader.
     """
 
     T_train, T_val = prepare_transforms(dataset)

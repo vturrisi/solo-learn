@@ -29,6 +29,7 @@ python3 main_pretrain.py \
     --entity unitn-mhug \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --method mocov2plus \
     --proj_hidden_dim 2048 \
     --queue_size 65536 \

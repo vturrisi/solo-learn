@@ -1,4 +1,4 @@
-python3 ../../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset imagenet100 \
     --backbone vit_tiny \
     --data_dir /datasets \
@@ -30,6 +30,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --method dino \
     --proj_output_dim 256 \
     --proj_hidden_dim 2048 \

@@ -17,14 +17,20 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import math
 import os
+from argparse import ArgumentParser
 from pathlib import Path
-from typing import Callable, List, Sequence, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
-from nvidia.dali.pipeline import Pipeline
+import pytorch_lightning as pl
+import torch
+import torch.nn as nn
+from nvidia.dali.pipeline import pipeline_def
+from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from solo.utils.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
 
 
@@ -173,7 +179,7 @@ class RandomSolarize:
         return self.mux(true_case=out, false_case=images)
 
 
-class NormalPipeline(Pipeline):
+class NormalPipelineBuilder:
     def __init__(
         self,
         data_path: str,
@@ -209,8 +215,12 @@ class NormalPipeline(Pipeline):
                 Defaults to -1.0.
         """
 
-        seed += device_id
-        super().__init__(batch_size, num_threads, device_id, seed)
+        super().__init__()
+
+        self.batch_size = batch_size
+        self.num_threads = num_threads
+        self.device_id = device_id
+        self.seed = seed + device_id
 
         self.device = device
         self.validation = validation
@@ -286,8 +296,9 @@ class NormalPipeline(Pipeline):
         self.coin05 = ops.random.CoinFlip(probability=0.5)
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-    def define_graph(self):
-        """Defines the computational graph for dali operations."""
+    @pipeline_def
+    def pipeline(self):
+        """Defines the computational pipeline for dali operations."""
 
         # read images from memory
         inputs, labels = self.reader(name="Reader")
@@ -311,7 +322,7 @@ class NormalPipeline(Pipeline):
         return (images, labels)
 
 
-class CustomNormalPipeline(NormalPipeline):
+class CustomNormalPipelineBuilder(NormalPipelineBuilder):
     """Initializes the custom pipeline for validation or linear eval training.
     This acts as a placeholder and behaves exactly like NormalPipeline.
     If you want to do exoteric augmentations, you can just re-write this class.
@@ -521,7 +532,7 @@ class CustomTransform:
         return self.str
 
 
-class PretrainPipeline(Pipeline):
+class PretrainPipelineBuilder:
     def __init__(
         self,
         data_path: Union[str, Path],
@@ -539,7 +550,7 @@ class PretrainPipeline(Pipeline):
         encode_indexes_into_labels: bool = False,
         data_fraction: float = -1.0,
     ):
-        """Initializes the pipeline for pretraining.
+        """Builder for a pretrain pipeline with Nvidia DALI.
 
         Args:
             data_path (str): directory that contains the data.
@@ -563,13 +574,12 @@ class PretrainPipeline(Pipeline):
                 Defaults to -1.
         """
 
-        seed += device_id
-        super().__init__(
-            batch_size=batch_size,
-            num_threads=num_threads,
-            device_id=device_id,
-            seed=seed,
-        )
+        super().__init__()
+
+        self.batch_size = batch_size
+        self.num_threads = num_threads
+        self.device_id = device_id
+        self.seed = seed + device_id
 
         self.device = device
 
@@ -648,8 +658,9 @@ class PretrainPipeline(Pipeline):
             T.append(NCropAugmentation(transform, num_crops))
         self.transforms = FullTransformPipeline(T)
 
-    def define_graph(self):
-        """Defines the computational graph for dali operations."""
+    @pipeline_def
+    def pipeline(self):
+        """Defines the computational pipeline for dali operations."""
 
         # read images from memory
         inputs, labels = self.reader(name="Reader")
@@ -667,3 +678,391 @@ class PretrainPipeline(Pipeline):
 
     def __repr__(self) -> str:
         return str(self.transforms)
+
+
+class BaseWrapper(DALIGenericIterator):
+    """Temporary fix to handle LastBatchPolicy.DROP."""
+
+    def __len__(self):
+        size = (
+            self._size_no_pad // self._shards_num
+            if self._last_batch_policy == LastBatchPolicy.DROP
+            else self.size
+        )
+        if self._reader_name:
+            if self._last_batch_policy != LastBatchPolicy.DROP:
+                return math.ceil(size / self.batch_size)
+
+            return size // self.batch_size
+        else:
+            if self._last_batch_policy != LastBatchPolicy.DROP:
+                return math.ceil(size / (self._devices * self.batch_size))
+
+            return size // (self._devices * self.batch_size)
+
+
+class PretrainWrapper(BaseWrapper):
+    def __init__(
+        self,
+        model_batch_size: int,
+        model_rank: int,
+        model_device: str,
+        conversion_map: List[int] = None,
+        *args,
+        **kwargs,
+    ):
+        """Adds indices to a batch fetched from the parent.
+
+        Args:
+            model_batch_size (int): batch size.
+            model_rank (int): rank of the current process.
+            model_device (str): id of the current device.
+            conversion_map  (List[int], optional): list of integers that map each index
+                to a class label. If nothing is passed, no label mapping needs to be done.
+                Defaults to None.
+        """
+
+        super().__init__(*args, **kwargs)
+        self.model_batch_size = model_batch_size
+        self.model_rank = model_rank
+        self.model_device = model_device
+        self.conversion_map = conversion_map
+        if self.conversion_map is not None:
+            self.conversion_map = torch.tensor(
+                self.conversion_map, dtype=torch.float32, device=self.model_device
+            ).reshape(-1, 1)
+            self.conversion_map = nn.Embedding.from_pretrained(self.conversion_map)
+
+    def __next__(self):
+        batch = super().__next__()[0]
+        # PyTorch Lightning does double buffering
+        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316,
+        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs,
+        # to be made before returning.
+
+        if self.conversion_map is not None:
+            *all_X, indexes = [batch[v] for v in self.output_map]
+            targets = self.conversion_map(indexes).flatten().long().detach().clone()
+            indexes = indexes.flatten().long().detach().clone()
+        else:
+            *all_X, targets = [batch[v] for v in self.output_map]
+            targets = targets.squeeze(-1).long().detach().clone()
+            # creates dummy indexes
+            indexes = (
+                (
+                    torch.arange(self.model_batch_size, device=self.model_device)
+                    + (self.model_rank * self.model_batch_size)
+                )
+                .detach()
+                .clone()
+            )
+
+        all_X = [x.detach().clone() for x in all_X]
+        return [indexes, all_X, targets]
+
+
+class Wrapper(BaseWrapper):
+    def __next__(self):
+        batch = super().__next__()
+        x, target = batch[0]["x"], batch[0]["label"]
+        target = target.squeeze(-1).long()
+        # PyTorch Lightning does double buffering
+        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316,
+        # and as DALI owns the tensors it returns the content of it is trashed so the copy needs,
+        # to be made before returning.
+        x = x.detach().clone()
+        target = target.detach().clone()
+        return x, target
+
+
+class PretrainDALIDataModule(pl.LightningDataModule):
+    def __init__(
+        self,
+        dataset: str,
+        data_dir: Union[str, Path],
+        train_dir: Union[str, Path],
+        unique_augs: int,
+        transform_kwargs: Dict[str, Any],
+        num_crops_per_aug: List[int],
+        num_large_crops: int,
+        num_small_crops: int,
+        batch_size: int,
+        num_workers: int = 4,
+        no_labels=False,
+        data_fraction: float = -1.0,
+        dali_device: str = "gpu",
+        encode_indexes_into_labels: bool = False,
+    ):
+
+        """DataModule for pretrain data using Nvidia DALI.
+
+        Args:
+            dataset (str): dataset name.
+            data_dir (Union[str, Path]): path where to download/locate the dataset.
+            train_dir (Union[str, Path]): subpath where the training data is located.
+            unique_augs (int): number of unique augmentation pielines
+            transform_kwargs (Dict[str, Any]): kwargs for the transformations.
+            num_crops_per_aug (List[int]): number of crops per pipeline.
+            num_large_crops (int): total number of large crops.
+            num_small_crops (int): total number of small crops.
+            batch_size (int): batch size..
+            num_workers (int, optional): number of parallel workers. Defaults to 4.
+            data_fraction (Optional[float]): percentage of data to use.
+                Use all data when set to -1.0. Defaults to -1.0.
+            dali_device (str, optional): device used by the dali pipeline.
+                Either 'gpu' or 'cpu'. Defaults to 'gpu'.
+            encode_indexes_into_labels (bool, optional). Encodes instance indexes
+                together with labels. Allows user to access the true instance index.
+                Defaults to False.
+
+        """
+
+        super().__init__()
+
+        self.dataset = dataset
+
+        # paths
+        self.data_dir = Path(data_dir)
+        self.train_dir = Path(train_dir)
+
+        # augmentation-related
+        self.unique_augs = unique_augs
+        self.transform_kwargs = transform_kwargs
+        self.num_crops_per_aug = num_crops_per_aug
+        self.num_large_crops = num_large_crops
+        self.num_small_crops = num_small_crops
+
+        self.num_workers = num_workers
+
+        self.batch_size = batch_size
+
+        self.no_labels = no_labels
+        self.data_fraction = data_fraction
+
+        self.dali_device = dali_device
+        assert dali_device in ["gpu", "cpu"]
+        # hack to encode image indexes into the labels
+        self.encode_indexes_into_labels = encode_indexes_into_labels
+
+        # handle custom data by creating the needed pipeline
+        if dataset in ["imagenet100", "imagenet"]:
+            transform_pipeline = ImagenetTransform
+        elif dataset == "custom":
+            transform_pipeline = CustomTransform
+        else:
+            raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
+
+        if unique_augs > 1:
+            self.transforms = [
+                transform_pipeline(
+                    device=dali_device,
+                    **kwargs,
+                )
+                for kwargs in transform_kwargs
+            ]
+        else:
+            self.transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]
+
+    @staticmethod
+    def add_dali_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        parser = parent_parser.add_argument_group("dali")
+
+        parser.add_argument("--dali_device", type=str, default="gpu")
+        parser.add_argument("--encode_indexes_into_labels", action="store_true")
+
+        return parent_parser
+
+    def setup(self, stage: Optional[str] = None):
+        # extra info about training
+        self.device_id = self.trainer.local_rank
+        self.shard_id = self.trainer.global_rank
+        self.num_shards = self.trainer.world_size
+
+        # get current device
+        if torch.cuda.is_available() and self.dali_device == "gpu":
+            self.device = torch.device(f"cuda:{torch.cuda.current_device()}")
+        else:
+            self.device = torch.device("cpu")
+
+    def train_dataloader(self):
+        train_pipeline_builder = PretrainPipelineBuilder(
+            self.data_dir / self.train_dir,
+            batch_size=self.batch_size,
+            transforms=self.transforms,
+            num_crops_per_aug=self.num_crops_per_aug,
+            device=self.dali_device,
+            device_id=self.device_id,
+            shard_id=self.shard_id,
+            num_shards=self.num_shards,
+            num_threads=self.num_workers,
+            no_labels=self.no_labels,
+            encode_indexes_into_labels=self.encode_indexes_into_labels,
+            data_fraction=self.data_fraction,
+        )
+        train_pipeline = train_pipeline_builder.pipeline(
+            batch_size=train_pipeline_builder.batch_size,
+            num_threads=train_pipeline_builder.num_threads,
+            device_id=train_pipeline_builder.device_id,
+            seed=train_pipeline_builder.seed,
+        )
+        train_pipeline.build()
+
+        output_map = (
+            [f"large{i}" for i in range(self.num_large_crops)]
+            + [f"small{i}" for i in range(self.num_small_crops)]
+            + ["label"]
+        )
+
+        policy = LastBatchPolicy.DROP
+        conversion_map = (
+            train_pipeline_builder.conversion_map if self.encode_indexes_into_labels else None
+        )
+        train_loader = PretrainWrapper(
+            model_batch_size=self.batch_size,
+            model_rank=self.device_id,
+            model_device=self.device,
+            conversion_map=conversion_map,
+            pipelines=train_pipeline,
+            output_map=output_map,
+            reader_name="Reader",
+            last_batch_policy=policy,
+            auto_reset=True,
+        )
+
+        self.dali_epoch_size = train_pipeline.epoch_size("Reader")
+
+        return train_loader
+
+
+class ClassificationDALIDataModule(pl.LightningDataModule):
+    def __init__(
+        self,
+        dataset: str,
+        data_dir: Union[str, Path],
+        train_dir: Union[str, Path],
+        val_dir: Union[str, Path],
+        batch_size: int,
+        num_workers: int = 4,
+        data_fraction: float = -1.0,
+        dali_device: str = "gpu",
+    ):
+        """DataModule for classification data using Nvidia DALI.
+
+        Args:
+            dataset (str): dataset name.
+            data_dir (Union[str, Path]): path where to download/locate the dataset.
+            train_dir (Union[str, Path]): subpath where the training data is located.
+            val_dir (Union[str, Path]): subpath where the validation data is located.
+            batch_size (int): batch size..
+            num_workers (int, optional): number of parallel workers. Defaults to 4.
+            data_fraction (float, optional): percentage of data to use.
+                Use all data when set to -1.0. Defaults to -1.0.
+            dali_device (str, optional): device used by the dali pipeline.
+                Either 'gpu' or 'cpu'. Defaults to 'gpu'.
+        """
+
+        super().__init__()
+
+        self.dataset = dataset
+
+        # paths
+        self.data_dir = Path(data_dir)
+        self.train_dir = Path(train_dir)
+        self.val_dir = Path(val_dir)
+
+        self.num_workers = num_workers
+
+        self.batch_size = batch_size
+
+        self.data_fraction = data_fraction
+
+        self.dali_device = dali_device
+        assert dali_device in ["gpu", "cpu"]
+
+        # handle custom data by creating the needed pipeline
+        if dataset in ["imagenet100", "imagenet"]:
+            self.pipeline_class = NormalPipelineBuilder
+        elif dataset == "custom":
+            self.pipeline_class = CustomNormalPipelineBuilder
+        else:
+            raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
+
+    @staticmethod
+    def add_dali_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        parser = parent_parser.add_argument_group("dali")
+
+        parser.add_argument("--dali_device", type=str, default="gpu")
+
+        return parent_parser
+
+    def setup(self, stage: Optional[str] = None):
+        # extra info about training
+        self.device_id = self.trainer.local_rank
+        self.shard_id = self.trainer.global_rank
+        self.num_shards = self.trainer.world_size
+
+        # get current device
+        if torch.cuda.is_available() and self.dali_device == "gpu":
+            self.device = torch.device(f"cuda:{torch.cuda.current_device()}")
+        else:
+            self.device = torch.device("cpu")
+
+    def train_dataloader(self):
+        train_pipeline_builder = self.pipeline_class(
+            self.data_dir / self.train_dir,
+            validation=False,
+            batch_size=self.batch_size,
+            device=self.dali_device,
+            device_id=self.device_id,
+            shard_id=self.shard_id,
+            num_shards=self.num_shards,
+            num_threads=self.num_workers,
+            data_fraction=self.data_fraction,
+        )
+        train_pipeline = train_pipeline_builder.pipeline(
+            batch_size=train_pipeline_builder.batch_size,
+            num_threads=train_pipeline_builder.num_threads,
+            device_id=train_pipeline_builder.device_id,
+            seed=train_pipeline_builder.seed,
+        )
+        train_pipeline.build()
+
+        train_loader = Wrapper(
+            train_pipeline,
+            output_map=["x", "label"],
+            reader_name="Reader",
+            last_batch_policy=LastBatchPolicy.DROP,
+            auto_reset=True,
+        )
+
+        self.dali_epoch_size = train_pipeline.epoch_size("Reader")
+
+        return train_loader
+
+    def val_dataloader(self) -> DALIGenericIterator:
+        val_pipeline_builder = self.pipeline_class(
+            self.data_dir / self.val_dir,
+            validation=True,
+            batch_size=self.batch_size,
+            device=self.dali_device,
+            device_id=self.device_id,
+            shard_id=self.shard_id,
+            num_shards=self.num_shards,
+            num_threads=self.num_workers,
+        )
+        val_pipeline = val_pipeline_builder.pipeline(
+            batch_size=val_pipeline_builder.batch_size,
+            num_threads=val_pipeline_builder.num_threads,
+            device_id=val_pipeline_builder.device_id,
+            seed=val_pipeline_builder.seed,
+        )
+        val_pipeline.build()
+
+        val_loader = Wrapper(
+            val_pipeline,
+            output_map=["x", "label"],
+            reader_name="Reader",
+            last_batch_policy=LastBatchPolicy.PARTIAL,
+            auto_reset=True,
+        )
+        return val_loader

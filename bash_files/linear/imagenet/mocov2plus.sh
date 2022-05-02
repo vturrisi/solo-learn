@@ -21,4 +21,5 @@ python3 main_linear.py \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
-    --save_checkpoint
+    --save_checkpoint \
+    --auto_resume

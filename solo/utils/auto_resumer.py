@@ -21,6 +21,7 @@ class AutoResumer:
         "name",
         "project",
         "entity",
+        "pretrained_feature_extractor",
     ]
 
     def __init__(
@@ -61,7 +62,7 @@ class AutoResumer:
 
         current_time = datetime.now()
 
-        possible_checkpoints = []
+        candidates = []
         for rootdir, _, files in os.walk(self.checkpoint_dir):
             rootdir = Path(rootdir)
             if files:
@@ -78,20 +79,19 @@ class AutoResumer:
                         args=rootdir / "args.json",
                         checkpoint=checkpoint_file,
                     )
-                    possible_checkpoints.append(ck)
+                    candidates.append(ck)
 
-        if possible_checkpoints:
+        if candidates:
             # sort by most recent
-            possible_checkpoints = sorted(
-                possible_checkpoints, key=lambda ck: ck.creation_time, reverse=True
-            )
+            candidates = sorted(candidates, key=lambda ck: ck.creation_time, reverse=True)
 
-            for checkpoint in possible_checkpoints:
-                checkpoint_args = Namespace(**json.load(open(checkpoint.args)))
+            for candidate in candidates:
+                candidate_args = Namespace(**json.load(open(candidate.args)))
                 if all(
-                    getattr(checkpoint_args, param) == getattr(args, param)
+                    getattr(candidate_args, param, None) == getattr(args, param, None)
                     for param in AutoResumer.SHOULD_MATCH
                 ):
-                    return checkpoint.checkpoint
+                    wandb_run_id = getattr(candidate_args, "wandb_run_id", None)
+                    return candidate.checkpoint, wandb_run_id
 
-        return None
+        return None, None

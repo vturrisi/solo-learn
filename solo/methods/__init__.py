@@ -78,10 +78,3 @@ __all__ = [
     "VICReg",
     "WMSE",
 ]
-
-try:
-    from solo.methods import dali  # noqa: F401
-except ImportError:
-    pass
-else:
-    __all__.append("dali")

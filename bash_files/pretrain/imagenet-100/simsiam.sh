@@ -1,4 +1,4 @@
-python3 ../../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset imagenet100 \
     --backbone resnet18 \
     --data_dir /datasets \
@@ -29,6 +29,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --method simsiam \
     --proj_hidden_dim 2048 \
     --pred_hidden_dim 512 \

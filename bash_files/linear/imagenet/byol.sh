@@ -1,4 +1,4 @@
-python3 ../../../main_linear.py \
+python3 main_linear.py \
     --dataset imagenet \
     --backbone resnet50 \
     --data_dir /data/datasets \
@@ -22,4 +22,6 @@ python3 ../../../main_linear.py \
     --name byol-resnet50-imagenet-linear-eval \
     --entity unitn-mhug \
     --project solo-learn \
-    --wandb
+    --wandb \
+    --save_checkpoint \
+    --auto_resume

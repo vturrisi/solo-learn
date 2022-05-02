@@ -17,11 +17,11 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
 import warnings
 from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
-
 
 import pytorch_lightning as pl
 import torch
@@ -50,9 +50,9 @@ from solo.utils.backbones import (
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARSWrapper
 from solo.utils.metrics import accuracy_at_k, weighted_mean
+from solo.utils.misc import compute_dataset_size
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
-from torch.utils.data import DataLoader
 from torchvision.models import resnet18, resnet50
 
 
@@ -345,11 +345,6 @@ class BaseMethod(pl.LightningModule):
             "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
         )
 
-        # DALI only
-        # uses sample indexes as labels and then gets the labels from a lookup table
-        # this may use more CPU memory, so just use when needed.
-        parser.add_argument("--encode_indexes_into_labels", action="store_true")
-
         # online knn eval
         parser.add_argument("--knn_eval", action="store_true")
         parser.add_argument("--knn_k", default=20, type=int)
@@ -359,37 +354,32 @@ class BaseMethod(pl.LightningModule):
 
         return parent_parser
 
-    def set_loaders(self, train_loader: DataLoader = None, val_loader: DataLoader = None) -> None:
-        """Sets dataloaders so that you can obtain extra information about them.
-        We currently only use to obtain the number of training steps per epoch.
-
-        Args:
-            train_loader (DataLoader, optional): training dataloader.
-            val_loader (DataLoader, optional): validation dataloader.
-
-        """
-
-        if train_loader is not None:
-            self.train_dataloader = lambda: train_loader
-
-        if val_loader is not None:
-            self.val_dataloader = lambda: val_loader
-
     @property
     def num_training_steps(self) -> int:
         """Compute the number of training steps for each epoch."""
 
         if self._num_training_steps is None:
-            if self.trainer.train_dataloader is None:
-                try:
-                    dataloader = self.train_dataloader()
-                except NotImplementedError:
-                    raise RuntimeError(
-                        "To use linear warmup cosine annealing lr"
-                        "set the dataloader with .set_loaders(...)"
-                    )
+            try:
+                dataset = self.extra_args.get("dataset", None)
+                if dataset not in ["cifar10", "cifar100", "stl10"]:
+                    folder = os.path.join(self.extra_args["data_dir"], self.extra_args["train_dir"])
+                else:
+                    folder = None
+                no_labels = self.extra_args.get("no_labels", False)
+                data_fraction = self.extra_args.get("data_fraction", -1.0)
 
-            dataset_size = getattr(self, "dali_epoch_size", None) or len(dataloader.dataset)
+                dataset_size = compute_dataset_size(
+                    dataset=dataset,
+                    folder=folder,
+                    train=True,
+                    no_labels=no_labels,
+                    data_fraction=data_fraction,
+                )
+            except:
+                raise RuntimeError(
+                    "Please pass 'dataset' or 'data_dir '"
+                    "and 'train_dir' as parameters to the model."
+                )
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
@@ -895,10 +885,7 @@ class BaseMomentumMethod(BaseMethod):
             cur_step = self.trainer.global_step
             if self.trainer.accumulate_grad_batches:
                 cur_step = cur_step * self.trainer.accumulate_grad_batches
-            self.momentum_updater.update_tau(
-                cur_step=cur_step,
-                max_steps=len(self.trainer.train_dataloader) * self.trainer.max_epochs,
-            )
+            self.momentum_updater.update_tau(cur_step=cur_step, max_steps=self.num_training_steps)
         self.last_step = self.trainer.global_step
 
     def validation_step(

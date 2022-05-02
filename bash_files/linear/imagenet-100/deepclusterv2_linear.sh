@@ -1,4 +1,4 @@
-python3 ../../../main_linear.py \
+python3 main_linear.py \
     --dataset imagenet100 \
     --backbone resnet18 \
     --data_dir /data/datasets \
@@ -19,4 +19,6 @@ python3 ../../../main_linear.py \
     --name deepclusterv2-imagenet100-linear-eval \
     --pretrained_feature_extractor PATH --project solo-learn \
     --entity unitn-mhug \
-    --wandb
+    --wandb \
+    --save_checkpoint \
+    --auto_resume

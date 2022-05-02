@@ -30,6 +30,7 @@ from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
 from solo.methods.base import BaseMethod
+from solo.utils.auto_resumer import AutoResumer
 from solo.utils.backbones import (
     swin_base,
     swin_large,
@@ -42,12 +43,11 @@ from solo.utils.backbones import (
 )
 
 try:
-    from solo.methods.dali import ClassificationABC
+    from solo.utils.dali_dataloader import ClassificationDALIDataModule
 except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
-import types
 
 from solo.methods.linear import LinearModel
 from solo.utils.checkpointer import Checkpointer
@@ -107,14 +107,8 @@ def main():
 
     print(f"loaded {ckpt_path}")
 
-    if args.dali:
-        assert _dali_avaliable, "Dali is not currently avaiable, please install it first."
-        Class = types.new_class(f"Dali{LinearModel.__name__}", (ClassificationABC, LinearModel))
-    else:
-        Class = LinearModel
-
     del args.backbone
-    model = Class(backbone, **args.__dict__)
+    model = LinearModel(backbone, **args.__dict__)
 
     train_loader, val_loader = prepare_data(
         args.dataset,
@@ -125,20 +119,45 @@ def main():
         num_workers=args.num_workers,
         data_fraction=args.data_fraction,
     )
+    if args.dali:
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with [dali]."
+
+        dali_datamodule = ClassificationDALIDataModule(
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            train_dir=args.train_dir,
+            val_dir=args.val_dir,
+            num_workers=args.num_workers,
+            batch_size=args.batch_size,
+            data_fraction=args.data_fraction,
+            dali_device=args.dali_device,
+        )
+
+        # use normal torchvision dataloader for validation to save memory
+        dali_datamodule.val_dataloader = lambda: val_loader
+
+    # 1.7 will deprecate resume_from_checkpoint, but for the moment
+    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
+    ckpt_path, wandb_run_id = None, None
+    if args.auto_resume and args.resume_from_checkpoint is None:
+        auto_resumer = AutoResumer(
+            checkpoint_dir=os.path.join(args.checkpoint_dir, "linear"),
+            max_hours=args.auto_resumer_max_hours,
+        )
+        resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
+        if resume_from_checkpoint is not None:
+            print(
+                "Resuming from previous checkpoint that matches specifications:",
+                f"'{resume_from_checkpoint}'",
+            )
+            ckpt_path = resume_from_checkpoint
+    elif args.resume_from_checkpoint is not None:
+        ckpt_path = args.resume_from_checkpoint
+        del args.resume_from_checkpoint
 
     callbacks = []
-
-    # wandb logging
-    if args.wandb:
-        wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline
-        )
-        wandb_logger.watch(model, log="gradients", log_freq=100)
-        wandb_logger.log_hyperparams(args)
-
-        # lr logging
-        lr_monitor = LearningRateMonitor(logging_interval="step")
-        callbacks.append(lr_monitor)
 
     if args.save_checkpoint:
         # save checkpoint on last epoch only
@@ -149,13 +168,22 @@ def main():
         )
         callbacks.append(ckpt)
 
-    # 1.7 will deprecate resume_from_checkpoint, but for the moment
-    # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
-    if args.resume_from_checkpoint is not None:
-        ckpt_path = args.resume_from_checkpoint
-        del args.resume_from_checkpoint
-    else:
-        ckpt_path = None
+    # wandb logging
+    if args.wandb:
+        wandb_logger = WandbLogger(
+            name=args.name,
+            project=args.project,
+            entity=args.entity,
+            offline=args.offline,
+            resume="allow" if wandb_run_id else None,
+            id=wandb_run_id,
+        )
+        wandb_logger.watch(model, log="gradients", log_freq=100)
+        wandb_logger.log_hyperparams(args)
+
+        # lr logging
+        lr_monitor = LearningRateMonitor(logging_interval="step")
+        callbacks.append(lr_monitor)
 
     trainer = Trainer.from_argparse_args(
         args,
@@ -168,11 +196,9 @@ def main():
     )
 
     if args.dali:
-        model.set_loaders(val_loader=val_loader)
-        trainer.fit(model, ckpt_path=ckpt_path)
+        trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
-        model.set_loaders(train_loader=train_loader, val_loader=val_loader)
-        trainer.fit(model, ckpt_path=ckpt_path)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
 
 
 if __name__ == "__main__":
