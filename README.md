@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[May 02 2022]**: :diamond_shape_with_a_dot_inside: Wrapped Dali with a DataModule, added auto resume for linear eval and Wandb run resume.
 * **[Apr 12 2022]**: :rainbow: Improved design of models and added support to train with a fraction of data.
 * **[Apr 01 2022]**: :mag: Added the option to use [channel last conversion](https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models) which considerably decreases training times.
 * **[Feb 04 2022]**: :partying_face: Paper got accepted to JMLR.
