@@ -1,4 +1,4 @@
-python3 ../../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset imagenet \
     --backbone resnet50 \
     --data_dir /data/datasets \
@@ -31,6 +31,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --lamb 0.0051 \
     --scale_loss 0.048 \
     --method barlow_twins \

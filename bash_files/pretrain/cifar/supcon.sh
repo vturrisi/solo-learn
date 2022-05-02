@@ -1,4 +1,4 @@
-python3 ../../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset $1 \
     --backbone resnet18 \
     --data_dir ./datasets \
@@ -30,6 +30,7 @@ python3 ../../../main_pretrain.py \
     --entity unitn-mhug \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --method supcon \
     --temperature 0.2 \
     --proj_hidden_dim 2048 \

@@ -1,4 +1,4 @@
-python3 ../../../main_linear.py \
+python3 main_linear.py \
     --dataset imagenet100 \
     --backbone resnet18 \
     --data_dir /datasets \
@@ -20,4 +20,6 @@ python3 ../../../main_linear.py \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
-    --wandb
+    --wandb \
+    --save_checkpoint \
+    --auto_resume

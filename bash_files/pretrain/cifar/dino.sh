@@ -1,4 +1,4 @@
-python3 ../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset $1 \
     --backbone resnet18 \
     --data_dir ./datasets \
@@ -31,6 +31,7 @@ python3 ../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --method dino \
     --proj_output_dim 256 \
     --proj_hidden_dim 2048 \

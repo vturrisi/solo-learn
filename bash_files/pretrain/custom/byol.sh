@@ -2,7 +2,7 @@
 # To train with labels, simply remove --no_labels
 # --val_dir is optional and will expect a directory with subfolder (classes)
 # --dali flag is also supported
-python3 ../../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset custom \
     --backbone resnet18 \
     --data_dir PATH_TO_DIR \
@@ -40,6 +40,7 @@ python3 ../../../main_pretrain.py \
     --project solo-learn \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --method byol \
     --output_dim 256 \
     --proj_hidden_dim 4096 \

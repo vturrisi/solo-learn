@@ -1,4 +1,4 @@
-python3 ../../../main_pretrain.py \
+python3 main_pretrain.py \
     --dataset $1 \
     --backbone resnet18 \
     --data_dir ./datasets \
@@ -28,6 +28,7 @@ python3 ../../../main_pretrain.py \
     --name swav-$1 \
     --wandb \
     --save_checkpoint \
+    --auto_resume \
     --project solo-learn \
     --entity unitn-mhug \
     --method swav \
