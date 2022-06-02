@@ -885,7 +885,7 @@ class BaseMomentumMethod(BaseMethod):
             cur_step = self.trainer.global_step
             if self.trainer.accumulate_grad_batches:
                 cur_step = cur_step * self.trainer.accumulate_grad_batches
-            self.momentum_updater.update_tau(cur_step=cur_step, max_steps=self.num_training_steps)
+            self.momentum_updater.update_tau(cur_step=cur_step, max_steps=self.max_epochs * self.num_training_steps)
         self.last_step = self.trainer.global_step
 
     def validation_step(
