@@ -78,6 +78,8 @@ class SwAV(BaseMethod):
         self.prototypes = nn.utils.weight_norm(
             nn.Linear(proj_output_dim, num_prototypes, bias=False)
         )
+        self.prototypes.weight_g.data.fill_(1)  # type: ignore
+        self.prototypes.weight_g.requires_grad = False
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
