@@ -8,3 +8,5 @@ matplotlib
 seaborn
 pandas
 umap-learn
+
+setuptools==59.5.0
