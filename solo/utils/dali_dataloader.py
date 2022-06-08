@@ -852,7 +852,9 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         else:
             raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
 
-        assert all([(kwargs["equalization_prob"] == .0) for kwargs in transform_kwargs]), "Equalization is not yet supported in Dali"
+        assert all(
+            [(kwargs["equalization_prob"] == 0.0) for kwargs in transform_kwargs]
+        ), "Equalization is not yet supported in Dali"
         for kwargs in transform_kwargs:
             del kwargs["equalization_prob"]
 
