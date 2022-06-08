@@ -210,12 +210,12 @@ class SwAV(BaseMethod):
         preds = out["p"]
 
         # ------- swav loss -------
-        assignments = self.get_assignments(preds[:self.num_large_crops])
+        assignments = self.get_assignments(preds[: self.num_large_crops])
         swav_loss = swav_loss_func(preds, assignments, self.temperature)
 
         # ------- update queue -------
         if self.queue_size > 0:
-            z = torch.stack(out["z"][:self.num_large_crops])
+            z = torch.stack(out["z"][: self.num_large_crops])
             self.queue[:, z.size(1) :] = self.queue[:, : -z.size(1)].clone()
             self.queue[:, : z.size(1)] = z.detach()
 
