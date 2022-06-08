@@ -78,6 +78,8 @@ class SwAV(BaseMethod):
         self.prototypes = nn.utils.weight_norm(
             nn.Linear(proj_output_dim, num_prototypes, bias=False)
         )
+        self.prototypes.weight_g.data.fill_(1)  # type: ignore
+        self.prototypes.weight_g.requires_grad = False
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -150,6 +152,25 @@ class SwAV(BaseMethod):
         out.update({"z": z, "p": p})
         return out
 
+    def multicrop_forward(self, X: torch.Tensor) -> Dict[str, Any]:
+        """Performs the forward pass of the backbone, the projector and the prototypes.
+
+        Args:
+            X (torch.Tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]:
+                a dict containing the outputs of the parent,
+                the projected features and the logits.
+        """
+
+        out = super().multicrop_forward(X)
+        z = self.projector(out["feats"])
+        z = F.normalize(z)
+        p = self.prototypes(z)
+        out.update({"z": z, "p": p})
+        return out
+
     @torch.no_grad()
     def get_assignments(self, preds: List[torch.Tensor]) -> List[torch.Tensor]:
         """Computes cluster assignments from logits, optionally using a queue.
@@ -186,17 +207,15 @@ class SwAV(BaseMethod):
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        z1, z2 = out["z"]
-        p1, p2 = out["p"]
+        preds = out["p"]
 
         # ------- swav loss -------
-        preds = [p1, p2]
-        assignments = self.get_assignments(preds)
+        assignments = self.get_assignments(preds[:self.num_large_crops])
         swav_loss = swav_loss_func(preds, assignments, self.temperature)
 
         # ------- update queue -------
         if self.queue_size > 0:
-            z = torch.stack((z1, z2))
+            z = torch.stack(out["z"][:self.num_large_crops])
             self.queue[:, z.size(1) :] = self.queue[:, : -z.size(1)].clone()
             self.queue[:, : z.size(1)] = z.detach()
 

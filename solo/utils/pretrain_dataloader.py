@@ -111,6 +111,11 @@ class Solarization:
         return ImageOps.solarize(img)
 
 
+class Equalization:
+    def __call__(self, img: Image) -> Image:
+        return ImageOps.equalize(img)
+
+
 class NCropAugmentation:
     def __init__(self, transform: Callable, num_crops: int):
         """Creates a pipeline that apply a transformation pipeline multiple times.
@@ -185,6 +190,7 @@ class CifarTransform(BaseTransform):
         horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        equalization_prob: float = 0.0,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
         crop_size: int = 32,
@@ -235,6 +241,7 @@ class CifarTransform(BaseTransform):
                 transforms.RandomGrayscale(p=gray_scale_prob),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
                 transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomApply([Equalization()], p=equalization_prob),
                 transforms.RandomHorizontalFlip(p=horizontal_flip_prob),
                 transforms.ToTensor(),
                 transforms.Normalize(mean, std),

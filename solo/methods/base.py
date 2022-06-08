@@ -46,6 +46,7 @@ from solo.utils.backbones import (
     vit_large,
     vit_small,
     vit_tiny,
+    wide_resnet28w8,
 )
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARSWrapper
@@ -87,6 +88,7 @@ class BaseMethod(pl.LightningModule):
         "convnext_small": convnext_small,
         "convnext_base": convnext_base,
         "convnext_large": convnext_large,
+        "wide_resnet28w8": wide_resnet28w8,
     }
 
     def __init__(
@@ -246,7 +248,7 @@ class BaseMethod(pl.LightningModule):
             self.features_dim = self.backbone.inplanes
             # remove fc layer
             self.backbone.fc = nn.Identity()
-            if cifar:
+            if cifar and "wide" not in self.backbone_name:
                 self.backbone.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
@@ -683,8 +685,7 @@ class BaseMomentumMethod(BaseMethod):
             kwargs["window_size"] = 4
 
         self.momentum_backbone = self.base_model(**kwargs)
-        if "resnet" in self.backbone_name:
-            self.features_dim = self.momentum_backbone.inplanes
+        if self.backbone_name.startswith("resnet"):
             # remove fc layer
             self.momentum_backbone.fc = nn.Identity()
             if cifar:
@@ -885,7 +886,10 @@ class BaseMomentumMethod(BaseMethod):
             cur_step = self.trainer.global_step
             if self.trainer.accumulate_grad_batches:
                 cur_step = cur_step * self.trainer.accumulate_grad_batches
-            self.momentum_updater.update_tau(cur_step=cur_step, max_steps=self.num_training_steps)
+            self.momentum_updater.update_tau(
+                cur_step=cur_step, 
+                max_steps=self.max_epochs * self.num_training_steps
+            )
         self.last_step = self.trainer.global_step
 
     def validation_step(

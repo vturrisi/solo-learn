@@ -40,9 +40,8 @@ def swav_loss_func(
     """
 
     losses = []
-    for v1 in range(len(preds)):
+    for v1, a in enumerate(assignments):
         for v2 in np.delete(np.arange(len(preds)), v1):
-            a = assignments[v1]
             p = preds[v2] / temperature
             loss = -torch.mean(torch.sum(a * torch.log_softmax(p, dim=1), dim=1))
             losses.append(loss)

@@ -75,6 +75,7 @@ def additional_setup_pretrain(args: Namespace):
             args.horizontal_flip_prob,
             args.gaussian_prob,
             args.solarization_prob,
+            args.equalization_prob,
             args.crop_size,
             args.min_scale,
             args.max_scale,
@@ -94,6 +95,7 @@ def additional_setup_pretrain(args: Namespace):
         "horizontal_flip_prob",
         "gaussian_prob",
         "solarization_prob",
+        "equalization_prob",
         "crop_size",
         "min_scale",
         "max_scale",
@@ -119,6 +121,7 @@ def additional_setup_pretrain(args: Namespace):
                 horizontal_flip_prob=horizontal_flip_prob,
                 gaussian_prob=gaussian_prob,
                 solarization_prob=solarization_prob,
+                equalization_prob=equalization_prob,
                 crop_size=crop_size,
                 min_scale=min_scale,
                 max_scale=max_scale,
@@ -133,6 +136,7 @@ def additional_setup_pretrain(args: Namespace):
                 horizontal_flip_prob,
                 gaussian_prob,
                 solarization_prob,
+                equalization_prob,
                 crop_size,
                 min_scale,
                 max_scale,
@@ -146,6 +150,7 @@ def additional_setup_pretrain(args: Namespace):
                 args.horizontal_flip_prob,
                 args.gaussian_prob,
                 args.solarization_prob,
+                args.equalization_prob,
                 args.crop_size,
                 args.min_scale,
                 args.max_scale,
@@ -173,6 +178,7 @@ def additional_setup_pretrain(args: Namespace):
             horizontal_flip_prob=args.horizontal_flip_prob[0],
             gaussian_prob=args.gaussian_prob[0],
             solarization_prob=args.solarization_prob[0],
+            equalization_prob=args.equalization_prob[0],
             crop_size=args.crop_size[0],
             min_scale=args.min_scale[0],
             max_scale=args.max_scale[0],
@@ -194,7 +200,7 @@ def additional_setup_pretrain(args: Namespace):
 
     # create backbone-specific arguments
     args.backbone_args = {"cifar": args.dataset in ["cifar10", "cifar100"]}
-    if "resnet" in args.backbone:
+    if "resnet" in args.backbone and "wide" not in args.backbone:
         args.backbone_args["zero_init_residual"] = args.zero_init_residual
     elif "convnext" not in args.backbone:
         # dataset related for all transformers
