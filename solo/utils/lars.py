@@ -17,8 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-# Copied from Pytorch Lightning (https://github.com/PyTorchLightning/pytorch-lightning/)
-# with extra documentations.
+# Copied from Pytorch Lightning Bolts
+# (https://github.com/PyTorchLightning/lightning-bolts/blob/master/pl_bolts/optimizers/lars.py)
+
 import torch
 from torch.optim.optimizer import Optimizer, required
 
@@ -76,7 +77,8 @@ class LARS(Optimizer):
         nesterov=False,
         eta=1e-3,
         eps=1e-8,
-        clip=False,
+        clip_lars_lr=False,
+        exclude_bias_n_norm=False,
     ):
         if lr is not required and lr < 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
@@ -93,7 +95,8 @@ class LARS(Optimizer):
             nesterov=nesterov,
             eta=eta,
             eps=eps,
-            clip=clip,
+            clip_lars_lr=clip_lars_lr,
+            exclude_bias_n_norm=exclude_bias_n_norm,
         )
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
@@ -134,13 +137,13 @@ class LARS(Optimizer):
                 g_norm = torch.norm(p.grad.data)
 
                 # lars scaling + weight decay part
-                if weight_decay != 0 and (p.ndim != 1 or not self.exclude_bias_n_norm):
+                if weight_decay != 0 and (p.ndim != 1 or not group["exclude_bias_n_norm"]):
                     if p_norm != 0 and g_norm != 0:
                         lars_lr = p_norm / (g_norm + p_norm * weight_decay + group["eps"])
                         lars_lr *= group["eta"]
 
                         # clip lr
-                        if self.clip:
+                        if group["clip_lars_lr"]:
                             lars_lr = min(lars_lr / group["lr"], 1)
 
                         d_p = d_p.add(p, alpha=weight_decay)

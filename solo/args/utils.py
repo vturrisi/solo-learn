@@ -212,8 +212,13 @@ def additional_setup_pretrain(args: Namespace):
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
-    if args.optimizer == "sgd":
+    if args.optimizer in "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
+    if args.optimizer == "lars":
+        args.extra_optimizer_args["momentum"] = 0.9
+        args.extra_optimizer_args["eta"] = args.eta_lars
+        args.extra_optimizer_args["clip_lars_lr"] = args.grad_clip_lars
+        args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]
@@ -267,6 +272,9 @@ def additional_setup_linear(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
+    if args.optimizer == "lars":
+        args.extra_optimizer_args["momentum"] = 0.9
+        args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]

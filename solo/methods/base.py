@@ -48,7 +48,7 @@ from solo.utils.backbones import (
     vit_tiny,
 )
 from solo.utils.knn import WeightedKNNClassifier
-from solo.utils.lars import LARSWrapper
+from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import compute_dataset_size
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
@@ -97,11 +97,9 @@ class BaseMethod(pl.LightningModule):
         max_epochs: int,
         batch_size: int,
         optimizer: str,
-        lars: bool,
         lr: float,
         weight_decay: float,
         classifier_lr: float,
-        exclude_bias_n_norm: bool,
         accumulate_grad_batches: Union[int, None],
         extra_optimizer_args: Dict,
         scheduler: str,
@@ -111,8 +109,6 @@ class BaseMethod(pl.LightningModule):
         warmup_start_lr: float = 0.00003,
         warmup_epochs: float = 10,
         scheduler_interval: str = "step",
-        eta_lars: float = 1e-3,
-        grad_clip_lars: bool = False,
         lr_decay_steps: Sequence = None,
         knn_eval: bool = False,
         knn_k: int = 20,
@@ -137,12 +133,9 @@ class BaseMethod(pl.LightningModule):
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
-            lars (bool): flag indicating if lars should be used.
             lr (float): learning rate.
             weight_decay (float): weight decay for optimizer.
             classifier_lr (float): learning rate for the online linear classifier.
-            exclude_bias_n_norm (bool): flag indicating if bias and norms should be excluded from
-                lars.
             accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
             extra_optimizer_args (Dict): extra named arguments for the optimizer.
             scheduler (str): name of the scheduler.
@@ -153,8 +146,6 @@ class BaseMethod(pl.LightningModule):
                 Defaults to 0.00003.
             warmup_epochs (float): number of warmup epochs. Defaults to 10.
             scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
-            eta_lars (float): eta parameter for lars.
-            grad_clip_lars (bool): whether to clip the gradients in lars.
             lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                 step. Defaults to None.
             knn_eval (bool): enables online knn evaluation while training.
@@ -189,11 +180,9 @@ class BaseMethod(pl.LightningModule):
         self.max_epochs = max_epochs
         self.batch_size = batch_size
         self.optimizer = optimizer
-        self.lars = lars
         self.lr = lr
         self.weight_decay = weight_decay
         self.classifier_lr = classifier_lr
-        self.exclude_bias_n_norm = exclude_bias_n_norm
         self.accumulate_grad_batches = accumulate_grad_batches
         self.extra_optimizer_args = extra_optimizer_args
         self.scheduler = scheduler
@@ -205,8 +194,6 @@ class BaseMethod(pl.LightningModule):
         self.scheduler_interval = scheduler_interval
         self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
-        self.eta_lars = eta_lars
-        self.grad_clip_lars = grad_clip_lars
         self.knn_eval = knn_eval
         self.knn_k = knn_k
         self.no_channel_last = no_channel_last
@@ -319,10 +306,9 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--offline", action="store_true")
 
         # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "adam", "adamw"]
+        SUPPORTED_OPTIMIZERS = ["sgd", "lars", "adam", "adamw"]
 
         parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
-        parser.add_argument("--lars", action="store_true")
         parser.add_argument("--grad_clip_lars", action="store_true")
         parser.add_argument("--eta_lars", default=1e-3, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
@@ -428,12 +414,14 @@ class BaseMethod(pl.LightningModule):
         # select optimizer
         if self.optimizer == "sgd":
             optimizer = torch.optim.SGD
+        elif self.optimizer == "lars":
+            optimizer = LARS
         elif self.optimizer == "adam":
             optimizer = torch.optim.Adam
         elif self.optimizer == "adamw":
             optimizer = torch.optim.AdamW
         else:
-            raise ValueError(f"{self.optimizer} not in (sgd, adam, adamw)")
+            raise ValueError(f"{self.optimizer} not in (sgd, lars, adam, adamw)")
 
         # create optimizer
         optimizer = optimizer(
@@ -442,15 +430,6 @@ class BaseMethod(pl.LightningModule):
             weight_decay=self.weight_decay,
             **self.extra_optimizer_args,
         )
-        # optionally wrap with lars
-        if self.lars:
-            assert self.optimizer == "sgd", "LARS is only compatible with SGD."
-            optimizer = LARSWrapper(
-                optimizer,
-                eta=self.eta_lars,
-                clip=self.grad_clip_lars,
-                exclude_bias_n_norm=self.exclude_bias_n_norm,
-            )
 
         if self.scheduler == "none":
             return optimizer
