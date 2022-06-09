@@ -137,7 +137,7 @@ class LARS(Optimizer):
                 g_norm = torch.norm(p.grad.data)
 
                 # lars scaling + weight decay part
-                if weight_decay != 0 and (p.ndim != 1 or not group["exclude_bias_n_norm"]):
+                if p.ndim != 1 or not group["exclude_bias_n_norm"]:
                     if p_norm != 0 and g_norm != 0:
                         lars_lr = p_norm / (g_norm + p_norm * weight_decay + group["eps"])
                         lars_lr *= group["eta"]
