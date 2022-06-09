@@ -6,7 +6,8 @@ python3 main_pretrain.py \
     --val_dir imagenet/val \
     --max_epochs 100 \
     --devices 0,1,2,3 \
-    --accelerator ddp \
+    --accelerator gpu \
+    --strategy ddp \
     --sync_batchnorm \
     --num_workers 4 \
     --precision 16 \
