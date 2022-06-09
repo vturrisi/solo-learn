@@ -8,3 +8,4 @@ tqdm
 wandb
 scipy
 timm
+scikit-learn
