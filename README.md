@@ -64,6 +64,7 @@ While the library is self-contained, it is possible to use the models outside of
 
 ### Multiple backbones
 * [ResNet](https://arxiv.org/abs/1512.03385)
+* [Wide ResNet](https://arxiv.org/abs/1605.07146)
 * [ViT](https://arxiv.org/abs/2010.11929)
 * [Swin](https://arxiv.org/abs/2103.14030)
 * [PoolFormer](https://arxiv.org/abs/2111.11418)
