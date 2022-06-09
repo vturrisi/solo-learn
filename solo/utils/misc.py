@@ -248,3 +248,13 @@ def compute_dataset_size(
     if data_fraction != -1:
         size = int(size * data_fraction)
     return size
+
+
+def make_contiguous(module):
+    """Make the model contigous in order to comply with horovod.
+    https://github.com/lucidrains/DALLE-pytorch/issues/330
+    """
+
+    with torch.no_grad():
+        for param in module.parameters():
+            param.set_(param.contiguous())

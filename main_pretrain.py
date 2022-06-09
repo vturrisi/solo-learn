@@ -45,13 +45,13 @@ else:
 
 
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
-from solo.utils.pretrain_dataloader import (
-    prepare_dataloader,
-    prepare_datasets,
-    prepare_n_crop_transform,
-    prepare_transform,
-)
+from solo.utils.classification_dataloader import \
+    prepare_data as prepare_data_classification
+from solo.utils.misc import make_contiguous
+from solo.utils.pretrain_dataloader import (prepare_dataloader,
+                                            prepare_datasets,
+                                            prepare_n_crop_transform,
+                                            prepare_transform)
 
 
 def main():
@@ -65,6 +65,7 @@ def main():
         assert args.method == "wmse"
 
     model = METHODS[args.method](**args.__dict__)
+    make_contiguous(model)
 
     # validation dataloader for when it is available
     if args.dataset == "custom" and (args.no_labels or args.val_dir is None):
