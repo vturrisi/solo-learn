@@ -5,11 +5,9 @@ python3 main_pretrain.py \
     --max_epochs 1000 \
     --devices 0 \
     --accelerator gpu \
-    --accelerator gpu \
     --precision 16 \
     --optimizer sgd \
     --lars \
-    --grad_clip_lars \
     --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
@@ -17,7 +15,7 @@ python3 main_pretrain.py \
     --classifier_lr 0.1 \
     --weight_decay 1e-6 \
     --batch_size 256 \
-    --num_workers 4 \
+    --num_workers 5 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
