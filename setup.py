@@ -49,7 +49,7 @@ setup(
         "einops",
         "pytorch-lightning==1.6.4",
         "torchmetrics==0.6.0",
-        "lightning-bolts>=0.6.0",
+        "lightning-bolts>=0.5.0",
         "tqdm",
         "wandb",
         "scipy",
