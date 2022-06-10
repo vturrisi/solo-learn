@@ -137,7 +137,7 @@ class LinearModel(pl.LightningModule):
         parser = parent_parser.add_argument_group("linear")
 
         # backbone args
-        parser.add_argument("--backbone", choices=BaseMethod._SUPPORTED_BACKBONES, type=str)
+        parser.add_argument("--backbone", choices=BaseMethod._BACKBONES, type=str)
         # for ViT
         parser.add_argument("--patch_size", type=int, default=16)
 
