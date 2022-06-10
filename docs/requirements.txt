@@ -10,3 +10,4 @@ pandas
 umap-learn
 
 setuptools==59.5.0
+protobuf==3.20.1
