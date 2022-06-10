@@ -38,12 +38,12 @@ def test_base():
     with pytest.raises(ValueError):
         model.configure_optimizers()
 
-    model.optimizer = "sgd"
+    model.optimizer = "lars"
     model.scheduler = "none"
     optimizer = model.configure_optimizers()
     assert isinstance(optimizer, torch.optim.Optimizer)
 
-    model.scheduler = "lars"
+    model.scheduler = "step"
     scheduler = model.configure_optimizers()[1][0]
     assert isinstance(scheduler, torch.optim.lr_scheduler.MultiStepLR)
 
