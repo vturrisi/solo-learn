@@ -15,6 +15,7 @@ While the library is self-contained, it is possible to use the models outside of
 ---
 
 ## News
+* **[Jun 09 2022]**: :lollipop: Added support for [WideResnet](https://arxiv.org/abs/1605.07146), multicrop for SwAV and equalization data augmentation.
 * **[May 02 2022]**: :diamond_shape_with_a_dot_inside: Wrapped Dali with a DataModule, added auto resume for linear eval and Wandb run resume.
 * **[Apr 12 2022]**: :rainbow: Improved design of models and added support to train with a fraction of data.
 * **[Apr 01 2022]**: :mag: Added the option to use [channel last conversion](https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models) which considerably decreases training times.
@@ -63,6 +64,7 @@ While the library is self-contained, it is possible to use the models outside of
 
 ### Multiple backbones
 * [ResNet](https://arxiv.org/abs/1512.03385)
+* [WideResNet](https://arxiv.org/abs/1605.07146)
 * [ViT](https://arxiv.org/abs/2010.11929)
 * [Swin](https://arxiv.org/abs/2103.14030)
 * [PoolFormer](https://arxiv.org/abs/2111.11418)

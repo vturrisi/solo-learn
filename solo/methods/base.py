@@ -46,6 +46,8 @@ from solo.utils.backbones import (
     vit_large,
     vit_small,
     vit_tiny,
+    wide_resnet28w2,
+    wide_resnet28w8,
 )
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
@@ -87,6 +89,8 @@ class BaseMethod(pl.LightningModule):
         "convnext_small": convnext_small,
         "convnext_base": convnext_base,
         "convnext_large": convnext_large,
+        "wide_resnet28w2": wide_resnet28w2,
+        "wide_resnet28w8": wide_resnet28w8,
     }
 
     def __init__(
@@ -229,7 +233,7 @@ class BaseMethod(pl.LightningModule):
             kwargs["window_size"] = 4
 
         self.backbone = self.base_model(**kwargs)
-        if "resnet" in self.backbone_name:
+        if self.backbone_name.startswith("resnet"):
             self.features_dim = self.backbone.inplanes
             # remove fc layer
             self.backbone.fc = nn.Identity()
@@ -662,8 +666,7 @@ class BaseMomentumMethod(BaseMethod):
             kwargs["window_size"] = 4
 
         self.momentum_backbone = self.base_model(**kwargs)
-        if "resnet" in self.backbone_name:
-            self.features_dim = self.momentum_backbone.inplanes
+        if self.backbone_name.startswith("resnet"):
             # remove fc layer
             self.momentum_backbone.fc = nn.Identity()
             if cifar:
