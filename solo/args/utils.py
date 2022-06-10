@@ -71,12 +71,9 @@ def additional_setup_pretrain(args: Namespace):
             "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
             "You can also manually scale your lr if you are not sure, by checking your logs."
         )
-        num_nodes = args.num_nodes_horovod
+        num_nodes = args.num_nodes_horovod or 1
     else:
         num_nodes = args.num_nodes
-
-    if num_nodes is None:
-        num_nodes = 1
 
     scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
     args.lr = args.lr * scale_factor
