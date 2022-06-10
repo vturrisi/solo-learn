@@ -239,6 +239,13 @@ def additional_setup_pretrain(args: Namespace):
         args.extra_optimizer_args["clip_lars_lr"] = args.grad_clip_lars
         args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
 
+    with suppress(AttributeError):
+        del args.eta_lars
+    with suppress(AttributeError):
+        del args.grad_clip_lars
+    with suppress(AttributeError):
+        del args.exclude_bias_n_norm
+
     if isinstance(args.devices, int):
         args.devices = [args.devices]
     elif isinstance(args.devices, str):
@@ -307,6 +314,9 @@ def additional_setup_linear(args: Namespace):
     if args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
         args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+
+    with suppress(AttributeError):
+        del args.exclude_bias_n_norm
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]
