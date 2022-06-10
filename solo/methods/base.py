@@ -341,7 +341,7 @@ class BaseMethod(pl.LightningModule):
 
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
-    
+
         # When using horovod, be aware of how the processes are divided.
         # The learning rate will only be scaled considering the number of devices in each process.
         # If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr.
