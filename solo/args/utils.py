@@ -18,11 +18,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+import warnings
 from argparse import Namespace
 from contextlib import suppress
-
-from yaml import warnings
-
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
