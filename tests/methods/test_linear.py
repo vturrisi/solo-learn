@@ -79,7 +79,7 @@ def test_linear():
     # test optimizers/scheduler
     model.optimizer = "random"
     model.scheduler = "none"
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         model.configure_optimizers()
 
     model.optimizer = "sgd"
@@ -100,7 +100,7 @@ def test_linear():
     assert isinstance(scheduler, torch.optim.lr_scheduler.ExponentialLR)
 
     model.scheduler = "random"
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         model.configure_optimizers()
 
     model.optimizer = "adam"

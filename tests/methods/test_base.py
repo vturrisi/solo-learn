@@ -35,7 +35,7 @@ def test_base():
     # test optimizers/scheduler
     model.optimizer = "random"
     model.scheduler = "none"
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         model.configure_optimizers()
 
     model.optimizer = "lars"
@@ -48,7 +48,7 @@ def test_base():
     assert isinstance(scheduler, torch.optim.lr_scheduler.MultiStepLR)
 
     model.scheduler = "random"
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         model.configure_optimizers()
 
     model.optimizer = "adam"
