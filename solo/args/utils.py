@@ -18,9 +18,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
+import warnings
 from argparse import Namespace
 from contextlib import suppress
-
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -61,7 +61,20 @@ def additional_setup_pretrain(args: Namespace):
         args.num_classes = max(
             1,
             len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+        )  # adjust lr according to batch size
+    if args.strategy == "horovod":
+        warnings.warn(
+            "When using horovod, be aware of how the processes are divided. "
+            "The learning rate will only be scaled considering the number of devices in each process. "
+            "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
+            "You can also manually scale your lr if you are not sure, by checking your logs."
         )
+        num_nodes = args.num_nodes_horovod or 1
+    else:
+        num_nodes = args.num_nodes
+
+    scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
+    args.lr = args.lr * scale_factor
 
     unique_augs = max(
         len(p)
@@ -220,6 +233,18 @@ def additional_setup_pretrain(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
+    if args.optimizer == "lars":
+        args.extra_optimizer_args["momentum"] = 0.9
+        args.extra_optimizer_args["eta"] = args.eta_lars
+        args.extra_optimizer_args["clip_lars_lr"] = args.grad_clip_lars
+        args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+
+    with suppress(AttributeError):
+        del args.eta_lars
+    with suppress(AttributeError):
+        del args.grad_clip_lars
+    with suppress(AttributeError):
+        del args.exclude_bias_n_norm
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]
@@ -227,7 +252,20 @@ def additional_setup_pretrain(args: Namespace):
         args.devices = [int(device) for device in args.devices.split(",") if device]
 
     # adjust lr according to batch size
-    args.lr = args.lr * args.batch_size * len(args.devices) / 256
+    if args.strategy == "horovod":
+        warnings.warn(
+            "When using horovod, be aware of how the processes are divided. "
+            "The learning rate will only be scaled considering the number of devices in each process. "
+            "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
+            "You can also manually scale your lr if you are not sure, by checking your logs."
+        )
+        num_nodes = args.num_nodes_horovod or 1
+    else:
+        num_nodes = args.num_nodes
+
+    scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
+    args.lr = args.lr * scale_factor
+    args.classifier_lr = args.classifier_lr * scale_factor
 
 
 def additional_setup_linear(args: Namespace):
@@ -273,8 +311,29 @@ def additional_setup_linear(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
+    if args.optimizer == "lars":
+        args.extra_optimizer_args["momentum"] = 0.9
+        args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+
+    with suppress(AttributeError):
+        del args.exclude_bias_n_norm
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]
     elif isinstance(args.devices, str):
         args.devices = [int(device) for device in args.devices.split(",") if device]
+
+    # adjust lr according to batch size
+    if args.strategy == "horovod":
+        warnings.warn(
+            "When using horovod, be aware of how the processes are divided. "
+            "The learning rate will only be scaled considering the number of devices in each process. "
+            "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
+            "You can also manually scale your lr if you are not sure, by checking your logs."
+        )
+        num_nodes = args.num_nodes_horovod or 1
+    else:
+        num_nodes = args.num_nodes
+
+    scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
+    args.lr = args.lr * scale_factor

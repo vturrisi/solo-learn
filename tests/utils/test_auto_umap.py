@@ -65,7 +65,7 @@ def test_auto_umap():
     trainer.fit(model, train_dl, val_dl)
 
     # check if checkpointer dumped the umap
-    umap_path = auto_umap.path / auto_umap.umap_placeholder.format(trainer.current_epoch)
+    umap_path = auto_umap.path / auto_umap.umap_placeholder.format(trainer.current_epoch - 1)
     assert umap_path.exists()
 
     # clean stuff

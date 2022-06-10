@@ -11,8 +11,7 @@ python3 main_pretrain.py \
     --sync_batchnorm \
     --num_workers 4 \
     --precision 16 \
-    --optimizer sgd \
-    --lars \
+    --optimizer lars \
     --eta_lars 0.001 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \

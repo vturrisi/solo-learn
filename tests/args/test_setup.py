@@ -50,8 +50,7 @@ def test_setup_pretrain():
         "--precision",
         "16",
         "--optimizer",
-        "sgd",
-        "--lars",
+        "lars",
         "--exclude_bias_n_norm",
         "--scheduler",
         "warmup_cosine",
@@ -222,8 +221,12 @@ def test_additional_setup_pretrain():
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
+        "classifier_lr": 0.2,
         "batch_size": 128,
         "zero_init_residual": False,
+        "strategy": None,
+        "num_nodes": 1,
+        "num_nodes": 1,
     }
     args = argparse.Namespace(**args)
 
@@ -256,8 +259,11 @@ def test_additional_setup_pretrain():
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
+        "classifier_lr": 0.2,
         "batch_size": 128,
         "zero_init_residual": False,
+        "strategy": None,
+        "num_nodes": 1,
     }
     args = argparse.Namespace(**args)
 
@@ -290,8 +296,11 @@ def test_additional_setup_pretrain():
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
+        "classifier_lr": 0.2,
         "batch_size": 128,
         "zero_init_residual": False,
+        "strategy": None,
+        "num_nodes": 1,
     }
     args = argparse.Namespace(**args)
 
@@ -322,10 +331,13 @@ def test_additional_setup_pretrain():
         "num_crops_per_aug": [1, 1],
         "dali": True,
         "optimizer": "sgd",
-        "devices": 0,
+        "devices": "0,",
         "lr": 0.1,
+        "classifier_lr": 0.2,
         "batch_size": 128,
         "zero_init_residual": False,
+        "strategy": None,
+        "num_nodes": 1,
     }
     args = argparse.Namespace(**args)
 
@@ -362,10 +374,13 @@ def test_additional_setup_pretrain():
             "crop_size": [224],
             "dali": True,
             "optimizer": "sgd",
-            "devices": 0,
+            "devices": "0,",
             "lr": 0.1,
+            "classifier_lr": 0.2,
             "batch_size": 128,
             "patch_size": 16,
+            "strategy": None,
+            "num_nodes": 1,
         }
         args = argparse.Namespace(**args)
 
@@ -387,6 +402,8 @@ def test_additional_setup_linear():
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
+        "strategy": None,
+        "num_nodes": 1,
     }
     args = argparse.Namespace(**args)
 
@@ -402,10 +419,12 @@ def test_additional_setup_linear():
         "dataset": "imagenet100",
         "dali": True,
         "optimizer": "sgd",
-        "devices": 0,
+        "devices": "0,",
         "lr": 0.1,
         "batch_size": 128,
         "zero_init_residual": False,
+        "strategy": None,
+        "num_nodes": 1,
     }
     args = argparse.Namespace(**args)
 
@@ -429,11 +448,13 @@ def test_additional_setup_linear():
             "dali": False,
             "num_crops_per_aug": [2],
             "optimizer": "sgd",
-            "devices": 0,
+            "devices": "0,",
             "lr": 0.1,
             "batch_size": 128,
             "zero_init_residual": False,
             "patch_size": 16,
+            "strategy": None,
+            "num_nodes": 1,
         }
         args = argparse.Namespace(**args)
 

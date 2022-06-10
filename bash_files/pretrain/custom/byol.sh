@@ -14,8 +14,7 @@ python3 main_pretrain.py \
     --strategy ddp \
     --sync_batchnorm \
     --precision 16 \
-    --optimizer sgd \
-    --lars \
+    --optimizer lars \
     --grad_clip_lars \
     --eta_lars 0.02 \
     --exclude_bias_n_norm \

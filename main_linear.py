@@ -41,6 +41,7 @@ from solo.utils.backbones import (
     vit_small,
     vit_tiny,
 )
+from solo.utils.misc import make_contiguous
 
 try:
     from solo.utils.dali_dataloader import ClassificationDALIDataModule
@@ -79,7 +80,7 @@ def main():
         kwargs["window_size"] = 4
 
     backbone = backbone_model(**kwargs)
-    if self.backbone_name.startswith("resnet"):
+    if args.backbone.startswith("resnet"):
         # remove fc layer
         backbone.fc = nn.Identity()
         if cifar:
@@ -109,6 +110,7 @@ def main():
 
     del args.backbone
     model = LinearModel(backbone, **args.__dict__)
+    make_contiguous(model)
 
     train_loader, val_loader = prepare_data(
         args.dataset,

@@ -74,8 +74,9 @@ def test_checkpointer():
     assert loaded_args == vars(args)
 
     # check if checkpointer dumped the checkpoint
-    ckpt_path = ckpt_callback.path / ckpt_callback.ckpt_placeholder.format(trainer.current_epoch)
-
+    ckpt_path = ckpt_callback.path / ckpt_callback.ckpt_placeholder.format(
+        trainer.current_epoch - 1
+    )
     assert ckpt_path.exists()
 
     # check if the checkpoint contains the correct keys

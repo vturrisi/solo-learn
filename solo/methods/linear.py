@@ -27,13 +27,27 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
-from solo.utils.lars import LARSWrapper
+from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import compute_dataset_size
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
 
 
 class LinearModel(pl.LightningModule):
+    _OPTIMIZERS = {
+        "sgd": torch.optim.SGD,
+        "lars": LARS,
+        "adam": torch.optim.Adam,
+        "adamw": torch.optim.AdamW,
+    }
+    _SCHEDULERS = [
+        "reduce",
+        "warmup_cosine",
+        "step",
+        "exponential",
+        "none",
+    ]
+
     def __init__(
         self,
         backbone: nn.Module,
@@ -41,10 +55,8 @@ class LinearModel(pl.LightningModule):
         max_epochs: int,
         batch_size: int,
         optimizer: str,
-        lars: bool,
         lr: float,
         weight_decay: float,
-        exclude_bias_n_norm: bool,
         extra_optimizer_args: dict,
         scheduler: str,
         min_lr: float,
@@ -62,11 +74,7 @@ class LinearModel(pl.LightningModule):
             max_epochs (int): total number of epochs.
             batch_size (int): batch size.
             optimizer (str): optimizer to use.
-            lars (bool): whether to use lars or not.
-            lr (float): learning rate.
             weight_decay (float): weight decay.
-            exclude_bias_n_norm (bool): whether to exclude bias and batch norm from weight decay
-                and lars adaptation.
             extra_optimizer_args (dict): extra optimizer arguments.
             scheduler (str): learning rate scheduler.
             min_lr (float): minimum learning rate for warmup scheduler.
@@ -92,10 +100,8 @@ class LinearModel(pl.LightningModule):
         self.max_epochs = max_epochs
         self.batch_size = batch_size
         self.optimizer = optimizer
-        self.lars = lars
         self.lr = lr
         self.weight_decay = weight_decay
-        self.exclude_bias_n_norm = exclude_bias_n_norm
         self.extra_optimizer_args = extra_optimizer_args
         self.scheduler = scheduler
         self.min_lr = min_lr
@@ -131,7 +137,7 @@ class LinearModel(pl.LightningModule):
         parser = parent_parser.add_argument_group("linear")
 
         # backbone args
-        parser.add_argument("--backbone", choices=BaseMethod._SUPPORTED_BACKBONES, type=str)
+        parser.add_argument("--backbone", choices=BaseMethod._BACKBONES, type=str)
         # for ViT
         parser.add_argument("--patch_size", type=int, default=16)
 
@@ -149,23 +155,14 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--wandb", action="store_true")
         parser.add_argument("--offline", action="store_true")
 
-        # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "adam"]
-
-        parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
-        parser.add_argument("--lars", action="store_true")
+        parser.add_argument(
+            "--optimizer", choices=LinearModel._OPTIMIZERS.keys(), type=str, required=True
+        )
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
-        # scheduler
-        SUPPORTED_SCHEDULERS = [
-            "reduce",
-            "warmup_cosine",
-            "step",
-            "exponential",
-            "none",
-        ]
-
-        parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
+        parser.add_argument(
+            "--scheduler", choices=LinearModel._SCHEDULERS, type=str, default="reduce"
+        )
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
@@ -246,12 +243,8 @@ class LinearModel(pl.LightningModule):
             Tuple[List, List]: two lists containing the optimizer and the scheduler.
         """
 
-        if self.optimizer == "sgd":
-            optimizer = torch.optim.SGD
-        elif self.optimizer == "adam":
-            optimizer = torch.optim.Adam
-        else:
-            raise ValueError(f"{self.optimizer} not in (sgd, adam)")
+        assert self.optimizer in self._OPTIMIZERS
+        optimizer = self._OPTIMIZERS[self.optimizer]
 
         optimizer = optimizer(
             self.classifier.parameters(),
@@ -259,9 +252,6 @@ class LinearModel(pl.LightningModule):
             weight_decay=self.weight_decay,
             **self.extra_optimizer_args,
         )
-
-        if self.lars:
-            optimizer = LARSWrapper(optimizer, exclude_bias_n_norm=self.exclude_bias_n_norm)
 
         # select scheduler
         if self.scheduler == "none":
