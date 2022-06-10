@@ -68,8 +68,7 @@ def static_lr(
 
 
 class BaseMethod(pl.LightningModule):
-
-    _SUPPORTED_BACKBONES = {
+    _BACKBONES = {
         "resnet18": resnet18,
         "resnet50": resnet50,
         "vit_tiny": vit_tiny,
@@ -92,6 +91,19 @@ class BaseMethod(pl.LightningModule):
         "wide_resnet28w2": wide_resnet28w2,
         "wide_resnet28w8": wide_resnet28w8,
     }
+    _OPTIMIZERS = {
+        "sgd": torch.optim.SGD,
+        "lars": LARS,
+        "adam": torch.optim.Adam,
+        "adamw": torch.optim.AdamW,
+    }
+    _SCHEDULERS = [
+        "reduce",
+        "warmup_cosine",
+        "step",
+        "exponential",
+        "none",
+    ]
 
     def __init__(
         self,
@@ -220,8 +232,8 @@ class BaseMethod(pl.LightningModule):
             self.min_lr = self.min_lr * self.accumulate_grad_batches
             self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        assert backbone in BaseMethod._SUPPORTED_BACKBONES
-        self.base_model = self._SUPPORTED_BACKBONES[backbone]
+        assert backbone in BaseMethod._BACKBONES
+        self.base_model = self._BACKBONES[backbone]
 
         self.backbone_name = backbone
 
@@ -287,9 +299,9 @@ class BaseMethod(pl.LightningModule):
         parser = parent_parser.add_argument_group("base")
 
         # backbone args
-        SUPPORTED_BACKBONES = BaseMethod._SUPPORTED_BACKBONES
+        BACKBONES = BaseMethod._BACKBONES
 
-        parser.add_argument("--backbone", choices=SUPPORTED_BACKBONES, type=str)
+        parser.add_argument("--backbone", choices=BACKBONES, type=str)
         # extra args for resnet
         parser.add_argument("--zero_init_residual", action="store_true")
         # extra args for ViT
@@ -309,24 +321,16 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--wandb", action="store_true")
         parser.add_argument("--offline", action="store_true")
 
-        # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "lars", "adam", "adamw"]
-
-        parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
+        parser.add_argument(
+            "--optimizer", choices=BaseMethod._OPTIMIZERS.keys(), type=str, required=True
+        )
         parser.add_argument("--grad_clip_lars", action="store_true")
         parser.add_argument("--eta_lars", default=1e-3, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
-        # scheduler
-        SUPPORTED_SCHEDULERS = [
-            "reduce",
-            "warmup_cosine",
-            "step",
-            "exponential",
-            "none",
-        ]
-
-        parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
+        parser.add_argument(
+            "--scheduler", choices=BaseMethod._SCHEDULERS, type=str, default="reduce"
+        )
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.00003, type=float)
@@ -421,17 +425,8 @@ class BaseMethod(pl.LightningModule):
             i for i, m in enumerate(self.learnable_params) if m.pop("static_lr", False)
         ]
 
-        # select optimizer
-        if self.optimizer == "sgd":
-            optimizer = torch.optim.SGD
-        elif self.optimizer == "lars":
-            optimizer = LARS
-        elif self.optimizer == "adam":
-            optimizer = torch.optim.Adam
-        elif self.optimizer == "adamw":
-            optimizer = torch.optim.AdamW
-        else:
-            raise ValueError(f"{self.optimizer} not in (sgd, lars, adam, adamw)")
+        assert self.optimizer in self._OPTIMIZERS
+        optimizer = self._OPTIMIZERS[self.optimizer]
 
         # create optimizer
         optimizer = optimizer(

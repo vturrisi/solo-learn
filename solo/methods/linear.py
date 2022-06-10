@@ -34,6 +34,20 @@ from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlate
 
 
 class LinearModel(pl.LightningModule):
+    _OPTIMIZERS = {
+        "sgd": torch.optim.SGD,
+        "lars": LARS,
+        "adam": torch.optim.Adam,
+        "adamw": torch.optim.AdamW,
+    }
+    _SCHEDULERS = [
+        "reduce",
+        "warmup_cosine",
+        "step",
+        "exponential",
+        "none",
+    ]
+
     def __init__(
         self,
         backbone: nn.Module,
@@ -141,22 +155,14 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--wandb", action="store_true")
         parser.add_argument("--offline", action="store_true")
 
-        # optimizer
-        SUPPORTED_OPTIMIZERS = ["sgd", "lars", "adam"]
-
-        parser.add_argument("--optimizer", choices=SUPPORTED_OPTIMIZERS, type=str, required=True)
+        parser.add_argument(
+            "--optimizer", choices=LinearModel._OPTIMIZERS.keys(), type=str, required=True
+        )
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
 
-        # scheduler
-        SUPPORTED_SCHEDULERS = [
-            "reduce",
-            "warmup_cosine",
-            "step",
-            "exponential",
-            "none",
-        ]
-
-        parser.add_argument("--scheduler", choices=SUPPORTED_SCHEDULERS, type=str, default="reduce")
+        parser.add_argument(
+            "--scheduler", choices=LinearModel._SCHEDULERS, type=str, default="reduce"
+        )
         parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
@@ -237,14 +243,8 @@ class LinearModel(pl.LightningModule):
             Tuple[List, List]: two lists containing the optimizer and the scheduler.
         """
 
-        if self.optimizer == "sgd":
-            optimizer = torch.optim.SGD
-        elif self.optimizer == "adam":
-            optimizer = torch.optim.Adam
-        elif self.optimizer == "lars":
-            optimizer = LARS
-        else:
-            raise ValueError(f"{self.optimizer} not in (sgd, lars, adam)")
+        assert self.optimizer in self._OPTIMIZERS
+        optimizer = self._OPTIMIZERS[self.optimizer]
 
         optimizer = optimizer(
             self.classifier.parameters(),
