@@ -218,7 +218,7 @@ def additional_setup_pretrain(args: Namespace):
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
-    if args.optimizer in "sgd":
+    if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
     if args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
