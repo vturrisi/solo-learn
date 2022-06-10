@@ -45,13 +45,14 @@ else:
 
 
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.classification_dataloader import \
-    prepare_data as prepare_data_classification
+from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
 from solo.utils.misc import make_contiguous
-from solo.utils.pretrain_dataloader import (prepare_dataloader,
-                                            prepare_datasets,
-                                            prepare_n_crop_transform,
-                                            prepare_transform)
+from solo.utils.pretrain_dataloader import (
+    prepare_dataloader,
+    prepare_datasets,
+    prepare_n_crop_transform,
+    prepare_transform,
+)
 
 
 def main():

@@ -80,7 +80,7 @@ def main():
         kwargs["window_size"] = 4
 
     backbone = backbone_model(**kwargs)
-    if self.backbone_name.startswith("resnet"):
+    if args.backbone.startswith("resnet"):
         # remove fc layer
         backbone.fc = nn.Identity()
         if cifar:
