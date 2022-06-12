@@ -17,7 +17,7 @@ python3 main_pretrain.py \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
-    --batch_size 64 \
+    --batch_size 128 \
     --num_workers 4 \
     --brightness 0.8 \
     --contrast 0.8 \
@@ -25,10 +25,10 @@ python3 main_pretrain.py \
     --hue 0.2 \
     --num_crops_per_aug 2 \
     --name simclr-400ep-imagenet100 \
-    --wandb \
     --dali \
     --project solo-learn \
     --entity unitn-mhug \
+    --wandb \
     --save_checkpoint \
     --method simclr \
     --temperature 0.2 \

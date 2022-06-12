@@ -24,7 +24,6 @@ import torch
 import torch.nn as nn
 from solo.losses.simclr import simclr_loss_func
 from solo.methods.base import BaseMethod
-from solo.utils.misc import gather
 
 
 class SimCLR(BaseMethod):
@@ -127,9 +126,6 @@ class SimCLR(BaseMethod):
         # ------- contrastive loss -------
         n_augs = self.num_large_crops + self.num_small_crops
         indexes = indexes.repeat(n_augs)
-
-        z = gather(z)
-        indexes = gather(indexes)
 
         nce_loss = simclr_loss_func(
             z,
