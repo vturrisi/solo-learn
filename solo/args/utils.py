@@ -65,8 +65,10 @@ def additional_setup_pretrain(args: Namespace):
     if args.strategy == "horovod":
         warnings.warn(
             "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
+            "The learning rate will only be scaled considering the number of "
+            "devices in each process. "
+            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
+            "N_GPUS to properly scale the lr. "
             "You can also manually scale your lr if you are not sure, by checking your logs."
         )
         num_nodes = args.num_nodes_horovod or 1
@@ -255,8 +257,10 @@ def additional_setup_pretrain(args: Namespace):
     if args.strategy == "horovod":
         warnings.warn(
             "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
+            "The learning rate will only be scaled considering the number of "
+            "devices in each process. "
+            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
+            "N_GPUS to properly scale the lr. "
             "You can also manually scale your lr if you are not sure, by checking your logs."
         )
         num_nodes = args.num_nodes_horovod or 1
@@ -327,8 +331,10 @@ def additional_setup_linear(args: Namespace):
     if args.strategy == "horovod":
         warnings.warn(
             "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod N_GPUS to properly scale the lr. "
+            "The learning rate will only be scaled considering the number of "
+            "devices in each process. "
+            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
+            "N_GPUS to properly scale the lr. "
             "You can also manually scale your lr if you are not sure, by checking your logs."
         )
         num_nodes = args.num_nodes_horovod or 1
