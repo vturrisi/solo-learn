@@ -28,6 +28,7 @@ python3 main_pretrain.py \
     --dali \
     --project solo-learn \
     --entity unitn-mhug \
+    --wandb \
     --save_checkpoint \
     --method simclr \
     --temperature 0.2 \
