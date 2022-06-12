@@ -61,22 +61,7 @@ def additional_setup_pretrain(args: Namespace):
         args.num_classes = max(
             1,
             len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
-        )  # adjust lr according to batch size
-    if args.strategy == "horovod":
-        warnings.warn(
-            "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of "
-            "devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
-            "N_GPUS to properly scale the lr. "
-            "You can also manually scale your lr if you are not sure, by checking your logs."
         )
-        num_nodes = args.num_nodes_horovod or 1
-    else:
-        num_nodes = args.num_nodes
-
-    scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
-    args.lr = args.lr * scale_factor
 
     unique_augs = max(
         len(p)
@@ -265,7 +250,7 @@ def additional_setup_pretrain(args: Namespace):
         )
         num_nodes = args.num_nodes_horovod or 1
     else:
-        num_nodes = args.num_nodes
+        num_nodes = args.num_nodes or 1
 
     scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
     args.lr = args.lr * scale_factor
@@ -339,7 +324,7 @@ def additional_setup_linear(args: Namespace):
         )
         num_nodes = args.num_nodes_horovod or 1
     else:
-        num_nodes = args.num_nodes
+        num_nodes = args.num_nodes or 1
 
     scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
     args.lr = args.lr * scale_factor
