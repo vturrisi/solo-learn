@@ -17,7 +17,7 @@ python3 main_pretrain.py \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
-    --batch_size 64 \
+    --batch_size 128 \
     --num_workers 4 \
     --brightness 0.8 \
     --contrast 0.8 \
