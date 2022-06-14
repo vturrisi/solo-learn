@@ -213,6 +213,8 @@ class CifarTransform(BaseTransform):
                 Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization.
                 Defaults to 0.0.
+            equalization_prob (float, optional): probability of applying equalization.
+                Defaults to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
             crop_size (int, optional): size of the crop. Defaults to 32.
@@ -261,6 +263,7 @@ class STLTransform(BaseTransform):
         horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        equalization_prob: float = 0.0,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
         crop_size: int = 96,
@@ -282,6 +285,8 @@ class STLTransform(BaseTransform):
                 Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization.
                 Defaults to 0.0.
+            equalization_prob (float, optional): probability of applying equalization.
+                Defaults to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
             crop_size (int, optional): size of the crop. Defaults to 96.
@@ -302,6 +307,7 @@ class STLTransform(BaseTransform):
                 transforms.RandomGrayscale(p=gray_scale_prob),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
                 transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomApply([Equalization()], p=equalization_prob),
                 transforms.RandomHorizontalFlip(p=horizontal_flip_prob),
                 transforms.ToTensor(),
                 transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
@@ -321,6 +327,7 @@ class ImagenetTransform(BaseTransform):
         horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        equalization_prob: float = 0.0,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
         crop_size: int = 224,
@@ -342,6 +349,8 @@ class ImagenetTransform(BaseTransform):
                 Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization.
                 Defaults to 0.0.
+            equalization_prob (float, optional): probability of applying equalization.
+                Defaults to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
             crop_size (int, optional): size of the crop. Defaults to 224.
@@ -361,6 +370,7 @@ class ImagenetTransform(BaseTransform):
                 transforms.RandomGrayscale(p=gray_scale_prob),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
                 transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomApply([Equalization()], p=equalization_prob),
                 transforms.RandomHorizontalFlip(p=horizontal_flip_prob),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
@@ -380,6 +390,7 @@ class CustomTransform(BaseTransform):
         horizontal_flip_prob: float = 0.5,
         gaussian_prob: float = 0.5,
         solarization_prob: float = 0.0,
+        equalization_prob: float = 0.0,
         min_scale: float = 0.08,
         max_scale: float = 1.0,
         crop_size: int = 224,
@@ -403,6 +414,8 @@ class CustomTransform(BaseTransform):
             gaussian_prob (float, optional): probability of applying gaussian blur.
                 Defaults to 0.0.
             solarization_prob (float, optional): probability of applying solarization.
+                Defaults to 0.0.
+            equalization_prob (float, optional): probability of applying equalization.
                 Defaults to 0.0.
             min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
@@ -428,6 +441,7 @@ class CustomTransform(BaseTransform):
                 transforms.RandomGrayscale(p=gray_scale_prob),
                 transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
                 transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomApply([Equalization()], p=equalization_prob),
                 transforms.RandomHorizontalFlip(p=horizontal_flip_prob),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=mean, std=std),
