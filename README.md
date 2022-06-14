@@ -88,7 +88,7 @@ While the library is self-contained, it is possible to use the models outside of
 
 ### Training tricks
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
-    * **Note**: currently, only SimCLR and BYOL supports this.
+    * **Note**: currently, only SimCLR, BYOL and SwAV support this.
 * Exclude batchnorm and biases from LARS.
 * No LR scheduler for the projection head in SimSiam.
 
