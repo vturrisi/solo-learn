@@ -379,10 +379,7 @@ class BaseMethod(pl.LightningModule):
 
             num_nodes = self.extra_args["num_nodes_horovod"] or self.trainer.num_nodes or 1
             effective_batch_size = (
-                self.batch_size
-                * self.trainer.accumulate_grad_batches
-                * num_devices
-                * num_nodes
+                self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
             )
             self._num_training_steps = dataset_size // effective_batch_size
 
