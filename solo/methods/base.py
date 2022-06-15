@@ -378,7 +378,10 @@ class BaseMethod(pl.LightningModule):
                 num_devices = len(self.trainer.devices)
 
             effective_batch_size = (
-                self.batch_size * self.trainer.accumulate_grad_batches * num_devices * self.trainer.num_nodes
+                self.batch_size
+                * self.trainer.accumulate_grad_batches
+                * num_devices
+                * self.trainer.num_nodes
             )
             self._num_training_steps = dataset_size // effective_batch_size
 
@@ -476,7 +479,6 @@ class BaseMethod(pl.LightningModule):
         except:
             optimizer.zero_grad()
 
-    
     def forward(self, X) -> Dict:
         """Basic forward method. Children methods should call this function,
         modify the ouputs (without deleting anything) and return it.
