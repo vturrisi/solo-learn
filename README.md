@@ -10,7 +10,7 @@
 
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
-While the library is self-contained, it is possible to use the models outside of solo-learn.
+The library is self-contained, but it is possible to use the models outside of solo-learn. **More details in our [paper](#bib)**.
 
 ---
 
@@ -274,7 +274,7 @@ We report the training efficiency of some methods using a ResNet18 with and with
 ---
 
 ## Citation
-If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
+<a name="bib"></a>If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
 ```
 @article{JMLR:v23:21-1155,
   author  = {Victor Guilherme Turrisi da Costa and Enrico Fini and Moin Nabi and Nicu Sebe and Elisa Ricci},
