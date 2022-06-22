@@ -129,9 +129,8 @@ class MoCoV3(BaseMomentumMethod):
         """
 
         out = super().forward(X)
-        z = self.projector(out["feats"])
-        p = self.predictor(z)
-        out.update({"z": z, "p": p})
+        q = self.predictor(self.projector(out["feats"]))
+        out.update({"q": q})
         return out
 
     @torch.no_grad()

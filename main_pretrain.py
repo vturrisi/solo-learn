@@ -187,6 +187,13 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="step")
         callbacks.append(lr_monitor)
 
+    from pytorch_lightning.profiler import AdvancedProfiler, SimpleProfiler
+
+    if args.dali:
+        profiler = SimpleProfiler(filename=f"{args.method}_dali.txt")
+    else:
+        profiler = SimpleProfiler(filename=f"{args.method}.txt")
+
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
@@ -195,6 +202,7 @@ def main():
         strategy=DDPPlugin(find_unused_parameters=False)
         if args.strategy == "ddp"
         else args.strategy,
+        profiler=profiler,
     )
 
     if args.dali:

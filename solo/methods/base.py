@@ -846,7 +846,10 @@ class BaseMomentumMethod(BaseMethod):
         return outs
 
     def on_train_batch_end(
-        self, outputs: Dict[str, Any], batch: Sequence[Any], batch_idx: int, dataloader_idx: int
+        self,
+        outputs: Dict[str, Any],
+        batch: Sequence[Any],
+        batch_idx: int,
     ):
         """Performs the momentum update of momentum pairs using exponential moving average at the
         end of the current training step if an optimizer step was performed.
@@ -856,7 +859,6 @@ class BaseMomentumMethod(BaseMethod):
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.num_crops containing batches of images.
             batch_idx (int): index of the batch.
-            dataloader_idx (int): index of the dataloader.
         """
 
         if self.trainer.global_step > self.last_step:
