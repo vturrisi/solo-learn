@@ -21,26 +21,44 @@ import torch
 import torch.nn.functional as F
 
 
-def moco_loss_func(
-    query: torch.Tensor, key: torch.Tensor, queue: torch.Tensor, temperature=0.1
-) -> torch.Tensor:
+@torch.no_grad()
+def concat_all_gather_no_grad(tensor):
+    """
+    Performs all_gather operation on the provided tensors.
+    *** Warning ***: torch.distributed.all_gather has no gradient.
+    """
+    tensors_gather = [torch.ones_like(tensor) for _ in range(torch.distributed.get_world_size())]
+    torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
+
+    output = torch.cat(tensors_gather, dim=0)
+    return output
+
+
+def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) -> torch.Tensor:
     """Computes MoCo's loss given a batch of queries from view 1, a batch of keys from view 2 and a
     queue of past elements.
 
     Args:
         query (torch.Tensor): NxD Tensor containing the queries from view 1.
         key (torch.Tensor): NxD Tensor containing the queries from view 2.
-        queue (torch.Tensor): a queue of negative samples for the contrastive loss.
         temperature (float, optional): [description]. temperature of the softmax in the contrastive
-            loss. Defaults to 0.1.
+            loss. Defaults to 0.2.
 
     Returns:
         torch.Tensor: MoCo loss.
     """
 
-    pos = torch.einsum("nc,nc->n", [query, key]).unsqueeze(-1)
-    neg = torch.einsum("nc,ck->nk", [query, queue])
-    logits = torch.cat([pos, neg], dim=1)
-    logits /= temperature
-    targets = torch.zeros(query.size(0), device=query.device, dtype=torch.long)
-    return F.cross_entropy(logits, targets)
+    n = query.size(0)
+    device = query.device
+    rank = torch.distributed.get_rank()
+
+    query = F.normalize(query, dim=1)
+    key = F.normalize(key, dim=1)
+
+    # gather all targets without gradients
+    key = concat_all_gather_no_grad(key)
+
+    logits = torch.einsum("nc,mc->nm", [query, key]) / temperature
+    labels = torch.arange(n, dtype=torch.long, device=device) + n * rank
+
+    return F.cross_entropy(logits, labels) * (2 * temperature)
