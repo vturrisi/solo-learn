@@ -46,7 +46,7 @@ def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) ->
 
     Args:
         query (torch.Tensor): NxD Tensor containing the queries from view 1.
-        key (torch.Tensor): NxD Tensor containing the queries from view 2.
+        key (torch.Tensor): NxD Tensor containing the keys from view 2.
         temperature (float, optional): temperature of the softmax in the contrastive
             loss. Defaults to 0.2.
 
