@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -18,21 +18,20 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-from solo.losses import moco_loss_func
+from solo.losses import mocov3_loss_func
 
 
-def test_moco_loss():
-    b, f, q = 32, 128, 15000
+def test_mocov3_loss():
+    b, f = 32, 128
     query = torch.randn(b, f).requires_grad_()
     key = torch.randn(b, f).requires_grad_()
-    queue = torch.randn(f, q)
 
-    loss = moco_loss_func(query, key, queue, temperature=0.1)
+    loss = mocov3_loss_func(query, key, temperature=0.1)
     initial_loss = loss.item()
     assert loss != 0
 
     for _ in range(20):
-        loss = moco_loss_func(query, key, queue, temperature=0.1)
+        loss = mocov3_loss_func(query, key, temperature=0.1)
         loss.backward()
         query.data.add_(-0.5 * query.grad)
         key.data.add_(-0.5 * key.grad)
