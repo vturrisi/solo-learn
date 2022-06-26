@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
+import torch.distributed as dist
 import torch.nn.functional as F
 
 
@@ -27,11 +28,15 @@ def concat_all_gather_no_grad(tensor):
     Performs all_gather operation on the provided tensors.
     *** Warning ***: torch.distributed.all_gather has no gradient.
     """
-    tensors_gather = [torch.ones_like(tensor) for _ in range(torch.distributed.get_world_size())]
-    torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
+    if dist.is_available() and dist.is_initialized():
+        tensors_gather = [
+            torch.ones_like(tensor) for _ in range(torch.distributed.get_world_size())
+        ]
+        torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
 
-    output = torch.cat(tensors_gather, dim=0)
-    return output
+        output = torch.cat(tensors_gather, dim=0)
+        return output
+    return tensor
 
 
 def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) -> torch.Tensor:
@@ -50,7 +55,7 @@ def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) ->
 
     n = query.size(0)
     device = query.device
-    rank = torch.distributed.get_rank()
+    rank = dist.get_rank() if dist.is_available() and dist.is_initialized() else 1
 
     query = F.normalize(query, dim=1)
     key = F.normalize(key, dim=1)

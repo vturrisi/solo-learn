@@ -63,8 +63,8 @@ def test_mocov3():
     )
     assert (
         "q" in out
-        and isinstance(out["z"], torch.Tensor)
-        and out["z"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
+        and isinstance(out["q"], torch.Tensor)
+        and out["q"].size() == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
     momentum_out = model.momentum_forward(batch[1][0])
@@ -75,8 +75,8 @@ def test_mocov3():
     )
     assert (
         "k" in momentum_out
-        and isinstance(momentum_out["z"], torch.Tensor)
-        and momentum_out["z"].size()
+        and isinstance(momentum_out["k"], torch.Tensor)
+        and momentum_out["k"].size()
         == (BASE_KWARGS["batch_size"], method_kwargs["proj_output_dim"])
     )
 
