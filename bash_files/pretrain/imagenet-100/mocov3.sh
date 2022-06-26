@@ -10,10 +10,12 @@ python3 main_pretrain.py \
     --strategy ddp \
     --sync_batchnorm \
     --precision 16 \
-    --optimizer sgd \
+    --optimizer lars \
+    --eta_lars 0.02 \
+    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 0.6 \
-    --classifier_lr 0.2 \
+    --lr 0.3 \
+    --classifier_lr 0.3 \
     --weight_decay 1e-6 \
     --batch_size 128 \
     --num_workers 4 \

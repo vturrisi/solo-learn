@@ -36,7 +36,7 @@ class MoCoV3(BaseMomentumMethod):
         temperature: float,
         **kwargs,
     ):
-        """Implements MoCoV3 (https://arxiv.org/abs/2104.02057).
+        """Implements MoCo V3 (https://arxiv.org/abs/2104.02057).
 
         Args:
             proj_output_dim (int): number of dimensions of projected features.

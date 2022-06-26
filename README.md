@@ -15,6 +15,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
 * **[Jun 10 2022]**: :bomb: Improved LARS and fixed some issues to support [Horovod](https://horovod.readthedocs.io/en/stable/pytorch.html).
 * **[Jun 09 2022]**: :lollipop: Added support for [WideResnet](https://arxiv.org/abs/1605.07146), multicrop for SwAV and equalization data augmentation.
 * **[May 02 2022]**: :diamond_shape_with_a_dot_inside: Wrapped Dali with a DataModule, added auto resume for linear eval and Wandb run resume.
@@ -222,6 +223,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
 | DINO         :sleepy:   | ViT Tiny |   400  |         :x:        |      63.04     |      TODO       |      87.72     |      TODO       | [:link:](https://drive.google.com/drive/folders/16AfsM-UpKky43kdSMlqj4XRe69pRdJLc?usp=sharing) |
 | MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
+| MoCo V3      :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.36     |      TODO       |      95.18     |      TODO       | [:link:](https://drive.google.com/drive/folders/15J0JiZsQAsrQler8mbbio-desb_nVoD1?usp=sharing) |
 | NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
 | ReSSL                   | ResNet18 |   400  | :heavy_check_mark: |      76.92     |     78.48       |      94.20     |      94.24      | [:link:](https://drive.google.com/drive/folders/1urWIFACLont4GAduis6l0jcEbl080c9U?usp=sharing) |
 | SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.64     |     TODO        |      94.06     |      TODO       | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
