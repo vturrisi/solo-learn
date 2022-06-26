@@ -4,7 +4,7 @@ python3 main_pretrain.py \
     --data_dir /datasets \
     --train_dir imagenet-100/train \
     --val_dir imagenet-100/val \
-    --max_epochs 1 \
+    --max_epochs 400 \
     --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
@@ -19,6 +19,7 @@ python3 main_pretrain.py \
     --lr 0.3 \
     --weight_decay 1e-4 \
     --batch_size 128 \
+    --dali \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \
@@ -29,7 +30,9 @@ python3 main_pretrain.py \
     --name barlow-400ep-imagenet100 \
     --entity unitn-mhug \
     --project solo-learn \
+    --wandb \
     --save_checkpoint \
+    --auto_resume \
     --scale_loss 0.1 \
     --method barlow_twins \
     --proj_hidden_dim 2048 \
