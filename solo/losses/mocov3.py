@@ -35,7 +35,7 @@ def concat_all_gather_no_grad(tensor):
 
 
 def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) -> torch.Tensor:
-    """Computes MoCo's loss given a batch of queries from view 1, a batch of keys from view 2 and a
+    """Computes MoCo V3's loss given a batch of queries from view 1, a batch of keys from view 2 and a
     queue of past elements.
 
     Args:
