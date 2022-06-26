@@ -31,7 +31,7 @@ def mocov2plus_loss_func(
         query (torch.Tensor): NxD Tensor containing the queries from view 1.
         key (torch.Tensor): NxD Tensor containing the queries from view 2.
         queue (torch.Tensor): a queue of negative samples for the contrastive loss.
-        temperature (float, optional): [description]. temperature of the softmax in the contrastive
+        temperature (float, optional): temperature of the softmax in the contrastive
             loss. Defaults to 0.1.
 
     Returns:

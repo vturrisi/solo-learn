@@ -28,6 +28,7 @@ def concat_all_gather_no_grad(tensor):
     Performs all_gather operation on the provided tensors.
     *** Warning ***: torch.distributed.all_gather has no gradient.
     """
+
     if dist.is_available() and dist.is_initialized():
         tensors_gather = [
             torch.ones_like(tensor) for _ in range(torch.distributed.get_world_size())
@@ -46,7 +47,7 @@ def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) ->
     Args:
         query (torch.Tensor): NxD Tensor containing the queries from view 1.
         key (torch.Tensor): NxD Tensor containing the queries from view 2.
-        temperature (float, optional): [description]. temperature of the softmax in the contrastive
+        temperature (float, optional): temperature of the softmax in the contrastive
             loss. Defaults to 0.2.
 
     Returns:
@@ -55,7 +56,7 @@ def mocov3_loss_func(query: torch.Tensor, key: torch.Tensor, temperature=0.2) ->
 
     n = query.size(0)
     device = query.device
-    rank = dist.get_rank() if dist.is_available() and dist.is_initialized() else 1
+    rank = dist.get_rank() if dist.is_available() and dist.is_initialized() else 0
 
     query = F.normalize(query, dim=1)
     key = F.normalize(key, dim=1)
