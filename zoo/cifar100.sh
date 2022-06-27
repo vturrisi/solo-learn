@@ -38,6 +38,13 @@ gdown https://drive.google.com/uc?id=1KNkCA2Hr70QsmOSif9_UUndFerOb7Jft
 gdown https://drive.google.com/uc?id=1T_SpFAEhZap2fvKnUvk8hzL-C7Nzad93
 cd ..
 
+# MoCo V3
+mkdir mocov3
+cd mocov3
+gdown https://drive.google.com/file/d/1QAuKJmegGCJrntAL80tfTrbi2fI4sPl-/view?usp=sharing
+gdown https://drive.google.com/file/d/1jtJEi66g5z7dBn0FDcSL7zoU4ArEEyqU/view?usp=sharing
+cd ..
+
 # NNCLR
 mkdir nnclr
 cd nnclr

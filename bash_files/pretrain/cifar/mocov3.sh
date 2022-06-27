@@ -5,8 +5,6 @@ python3 main_pretrain.py \
     --max_epochs 1000 \
     --devices 0 \
     --accelerator gpu \
-    --strategy ddp \
-    --sync_batchnorm \
     --precision 16 \
     --optimizer lars \
     --eta_lars 0.02 \
