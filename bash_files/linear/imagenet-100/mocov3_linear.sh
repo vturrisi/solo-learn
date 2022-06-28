@@ -11,17 +11,16 @@ python3 main_linear.py \
     --sync_batchnorm \
     --precision 16 \
     --optimizer sgd \
-    --scheduler step \
-    --lr 0.1 \
-    --lr_decay_steps 60 80 \
+    --scheduler warmup_cosine \
+    --warmup_epochs 0 \
+    --lr 0.3 \
     --weight_decay 0 \
     --batch_size 128 \
     --num_workers 10 \
     --dali \
-    --name method-linear-eval \
+    --name mocov3-linear-eval \
     --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
-    --save_checkpoint \
-    --auto_resume
+    --save_checkpoint

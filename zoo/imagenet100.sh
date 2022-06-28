@@ -45,6 +45,13 @@ gdown https://drive.google.com/uc?id=1aXGypKbIqV8BqtVOzpk2lRJWXb--XejO # checkpo
 gdown https://drive.google.com/uc?id=1s5rzHSqAMRKaUR4ZP3HWbCm8QLXU6JQ8 # args
 cd ..
 
+# MoCo V3
+mkdir mocov3
+cd mocov3
+gdown https://drive.google.com/file/d/1cUaAdx-6NXCkeSMo-mQtpPnYk7zA4Gg4/view?usp=sharing # checkpoint
+gdown https://drive.google.com/file/d/1mb6ZRKF1CdGP0rdJI2yjyStZ-FCFjsi4/view?usp=sharing # args
+cd ..
+
 # NNCLR
 mkdir nnclr
 cd nnclr

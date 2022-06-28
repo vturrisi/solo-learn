@@ -22,84 +22,89 @@ from typing import Any, Dict, List, Sequence, Tuple
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from solo.losses.mocov2plus import mocov2plus_loss_func
+from solo.losses.mocov3 import mocov3_loss_func
 from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
-from solo.utils.misc import gather
 
 
-class MoCoV2Plus(BaseMomentumMethod):
-    queue: torch.Tensor
-
+class MoCoV3(BaseMomentumMethod):
     def __init__(
         self,
         proj_output_dim: int,
         proj_hidden_dim: int,
+        pred_hidden_dim: int,
         temperature: float,
-        queue_size: int,
-        **kwargs
+        **kwargs,
     ):
-        """Implements MoCo V2+ (https://arxiv.org/abs/2011.10566).
+        """Implements MoCo V3 (https://arxiv.org/abs/2104.02057).
 
         Args:
             proj_output_dim (int): number of dimensions of projected features.
             proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
             temperature (float): temperature for the softmax in the contrastive loss.
-            queue_size (int): number of samples to keep in the queue.
         """
 
         super().__init__(**kwargs)
 
         self.temperature = temperature
-        self.queue_size = queue_size
 
         # projector
         self.projector = nn.Sequential(
             nn.Linear(self.features_dim, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, proj_output_dim),
+            nn.BatchNorm1d(proj_output_dim, affine=False),
         )
 
         # momentum projector
         self.momentum_projector = nn.Sequential(
             nn.Linear(self.features_dim, proj_hidden_dim),
+            nn.BatchNorm1d(proj_hidden_dim),
             nn.ReLU(),
             nn.Linear(proj_hidden_dim, proj_output_dim),
+            nn.BatchNorm1d(proj_output_dim, affine=False),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
-        # create the queue
-        self.register_buffer("queue", torch.randn(2, proj_output_dim, queue_size))
-        self.queue = nn.functional.normalize(self.queue, dim=1)
-        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+        # predictor
+        self.predictor = nn.Sequential(
+            nn.Linear(proj_output_dim, pred_hidden_dim),
+            nn.BatchNorm1d(pred_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(pred_hidden_dim, proj_output_dim),
+        )
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(MoCoV2Plus, MoCoV2Plus).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("mocov2plus")
+        parent_parser = super(MoCoV3, MoCoV3).add_model_specific_args(parent_parser)
+        parser = parent_parser.add_argument_group("mocov3")
 
         # projector
-        parser.add_argument("--proj_output_dim", type=int, default=128)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        parser.add_argument("--proj_output_dim", type=int, default=256)
+        parser.add_argument("--proj_hidden_dim", type=int, default=4096)
+
+        # predictor
+        parser.add_argument("--pred_hidden_dim", type=int, default=4096)
 
         # parameters
-        parser.add_argument("--temperature", type=float, default=0.1)
-
-        # queue settings
-        parser.add_argument("--queue_size", default=65536, type=int)
+        parser.add_argument("--temperature", type=float, default=0.2)
 
         return parent_parser
 
     @property
     def learnable_params(self) -> List[dict]:
-        """Adds projector parameters together with parent's learnable parameters.
+        """Adds projector and predictor parameters to the parent's learnable parameters.
 
         Returns:
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [
+            {"params": self.projector.parameters()},
+            {"params": self.predictor.parameters()},
+        ]
         return super().learnable_params + extra_learnable_params
 
     @property
@@ -113,37 +118,19 @@ class MoCoV2Plus(BaseMomentumMethod):
         extra_momentum_pairs = [(self.projector, self.momentum_projector)]
         return super().momentum_pairs + extra_momentum_pairs
 
-    @torch.no_grad()
-    def _dequeue_and_enqueue(self, keys: torch.Tensor):
-        """Adds new samples and removes old samples from the queue in a fifo manner.
-
-        Args:
-            keys (torch.Tensor): output features of the momentum backbone.
-        """
-
-        batch_size = keys.shape[1]
-        ptr = int(self.queue_ptr)  # type: ignore
-        assert self.queue_size % batch_size == 0  # for simplicity
-
-        # replace the keys at ptr (dequeue and enqueue)
-        keys = keys.permute(0, 2, 1)
-        self.queue[:, :, ptr : ptr + batch_size] = keys
-        ptr = (ptr + batch_size) % self.queue_size  # move pointer
-        self.queue_ptr[0] = ptr  # type: ignore
-
     def forward(self, X: torch.Tensor) -> Dict[str, Any]:
-        """Performs the forward pass of the online backbone and projector.
+        """Performs forward pass of the online backbone, projector and predictor.
 
         Args:
-            X (torch.Tensor): a batch of images in the tensor format.
+            X (torch.Tensor): batch of images in tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent and query.
+            Dict[str, Any]: a dict containing the outputs of the parent and the projected features.
         """
 
         out = super().forward(X)
-        z = F.normalize(self.projector(out["feats"]), dim=-1)
-        out.update({"z": z})
+        q = self.predictor(self.projector(out["feats"]))
+        out.update({"q": q})
         return out
 
     @torch.no_grad()
@@ -154,46 +141,37 @@ class MoCoV2Plus(BaseMomentumMethod):
             X (torch.Tensor): batch of images in tensor format.
 
         Returns:
-            Dict[str, Any]: a dict containing the outputs of the parent and the key.
+            Dict[str, Any]: a dict containing the outputs of
+                the parent and the momentum projected features.
         """
 
         out = super().momentum_forward(X)
-        z = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
-        out.update({"z": z})
+        k = self.momentum_projector(out["feats"])
+        out.update({"k": k})
         return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """
-        Training step for MoCo reusing BaseMomentumMethod training step.
+        """Training step for BYOL reusing BaseMethod training step.
 
         Args:
-            batch (Sequence[Any]): a batch of data in the
-                format of [img_indexes, [X], Y], where [X] is a list of size self.num_large_crops
-                containing batches of images.
+            batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
+                [X] is a list of size num_crops containing batches of images.
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of MOCO loss and classification loss.
-
+            torch.Tensor: total loss composed of BYOL and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
-        q1, q2 = out["z"]
-        k1, k2 = out["momentum_z"]
+        Q = out["q"]
+        K = out["momentum_k"]
 
-        # ------- contrastive loss -------
-        # symmetric
-        queue = self.queue.clone().detach()
-        nce_loss = (
-            mocov2plus_loss_func(q1, k2, queue[1], self.temperature)
-            + mocov2plus_loss_func(q2, k1, queue[0], self.temperature)
-        ) / 2
+        contrastive_loss = mocov3_loss_func(Q[0], K[1]) + mocov3_loss_func(Q[1], K[0])
 
-        # ------- update queue -------
-        keys = torch.stack((gather(k1), gather(k2)))
-        self._dequeue_and_enqueue(keys)
+        metrics = {
+            "train_contrastive_los": contrastive_loss,
+        }
+        self.log_dict(metrics, on_epoch=True, sync_dist=True)
 
-        self.log("train_nce_loss", nce_loss, on_epoch=True, sync_dist=True)
-
-        return nce_loss + class_loss
+        return contrastive_loss + class_loss

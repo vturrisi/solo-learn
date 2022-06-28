@@ -161,29 +161,6 @@ class BYOL(BaseMomentumMethod):
         out.update({"z": z})
         return out
 
-    def _shared_step(
-        self, feats: List[torch.Tensor], momentum_feats: List[torch.Tensor]
-    ) -> torch.Tensor:
-
-        Z = [self.projector(f) for f in feats]
-        P = [self.predictor(z) for z in Z]
-
-        # forward momentum backbone
-        with torch.no_grad():
-            Z_momentum = [self.momentum_projector(f) for f in momentum_feats]
-
-        # ------- negative consine similarity loss -------
-        neg_cos_sim = 0
-        for v1 in range(self.num_large_crops):
-            for v2 in np.delete(range(self.num_crops), v1):
-                neg_cos_sim += byol_loss_func(P[v2], Z_momentum[v1])
-
-        # calculate std of features
-        with torch.no_grad():
-            z_std = F.normalize(torch.stack(Z[: self.num_large_crops]), dim=-1).std(dim=1).mean()
-
-        return neg_cos_sim, z_std
-
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for BYOL reusing BaseMethod training step.
 
