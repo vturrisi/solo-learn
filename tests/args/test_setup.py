@@ -28,7 +28,6 @@ from tests.dali.utils import DummyDataset
 
 
 def test_setup_pretrain():
-
     dummy_script = """
         from solo.args.setup import parse_args_pretrain
 
@@ -124,7 +123,6 @@ def test_setup_pretrain():
 
 
 def test_setup_linear():
-
     dummy_script = """
         from solo.args.setup import parse_args_linear
 
