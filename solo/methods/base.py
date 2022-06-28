@@ -352,7 +352,9 @@ class BaseMethod(pl.LightningModule):
             try:
                 dataset = self.extra_args.get("dataset", None)
                 if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    folder = os.path.join(self.extra_args["data_dir"], self.extra_args["train_dir"])
+                    data_dir = self.extra_args.get("data_dir", ".")
+                    train_dir = self.extra_args.get("train_dir", "train")
+                    folder = os.path.join(data_dir, train_dir)
                 else:
                     folder = None
                 no_labels = self.extra_args.get("no_labels", False)
@@ -377,7 +379,7 @@ class BaseMethod(pl.LightningModule):
             if isinstance(self.trainer.devices, list):
                 num_devices = len(self.trainer.devices)
 
-            num_nodes = self.extra_args["num_nodes_horovod"] or self.trainer.num_nodes or 1
+            num_nodes = self.extra_args.get("num_nodes_horovod", 0) or self.trainer.num_nodes or 1
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
             )

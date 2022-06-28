@@ -226,7 +226,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -264,6 +264,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -301,6 +302,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -338,6 +340,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -381,6 +384,7 @@ def test_additional_setup_pretrain():
             "patch_size": 16,
             "strategy": None,
             "num_nodes": 1,
+            "num_nodes_horovod": None,
         }
         args = argparse.Namespace(**args)
 
@@ -404,6 +408,7 @@ def test_additional_setup_linear():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -425,6 +430,7 @@ def test_additional_setup_linear():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -455,6 +461,7 @@ def test_additional_setup_linear():
             "patch_size": 16,
             "strategy": None,
             "num_nodes": 1,
+            "num_nodes_horovod": None,
         }
         args = argparse.Namespace(**args)
 
