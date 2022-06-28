@@ -709,7 +709,7 @@ class WideResnetBasicBlock(nn.Module):
         self.activate_before_residual = activate_before_residual
 
     def forward(self, x):
-        if not self.equalInOut and self.activate_before_residual == True:
+        if not self.equalInOut and self.activate_before_residual:
             x = self.relu1(self.bn1(x))
         else:
             out = self.relu1(self.bn1(x))

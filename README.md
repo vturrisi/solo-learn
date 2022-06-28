@@ -10,11 +10,12 @@
 
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
-While the library is self-contained, it is possible to use the models outside of solo-learn.
+The library is self-contained, but it is possible to use the models outside of solo-learn. **More details in our [paper](#bib)**.
 
 ---
 
 ## News
+* **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
 * **[Jun 10 2022]**: :bomb: Improved LARS and fixed some issues to support [Horovod](https://horovod.readthedocs.io/en/stable/pytorch.html).
 * **[Jun 09 2022]**: :lollipop: Added support for [WideResnet](https://arxiv.org/abs/1605.07146), multicrop for SwAV and equalization data augmentation.
 * **[May 02 2022]**: :diamond_shape_with_a_dot_inside: Wrapped Dali with a DataModule, added auto resume for linear eval and Wandb run resume.
@@ -47,6 +48,7 @@ While the library is self-contained, it is possible to use the models outside of
 * [DeepCluster V2](https://arxiv.org/abs/2006.09882)
 * [DINO](https://arxiv.org/abs/2104.14294)
 * [MoCo V2+](https://arxiv.org/abs/2003.04297)
+* [MoCo V3](https://arxiv.org/abs/2104.02057)
 * [NNBYOL](https://arxiv.org/abs/2104.14548)
 * [NNCLR](https://arxiv.org/abs/2104.14548)
 * [NNSiam](https://arxiv.org/abs/2104.14548)
@@ -177,11 +179,12 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 
 | Method       | Backbone | Epochs | Dali | Acc@1 | Acc@5 | Checkpoint |
 |--------------|:--------:|:------:|:----:|:--------------:|:--------------:|:----------:|
-| Barlow Twins | ResNet18 |  1000  |  :x: |      92.10     |    99.73       | [:link:](https://drive.google.com/drive/folders/1L5RAM3lCSViD2zEqLtC-GQKVw6mxtxJ_?usp=sharing) |
+| Barlow Twins | ResNet18 |  1000  |  :x: |      92.10     |     99.73      | [:link:](https://drive.google.com/drive/folders/1L5RAM3lCSViD2zEqLtC-GQKVw6mxtxJ_?usp=sharing) |
 | BYOL         | ResNet18 |  1000  |  :x: |      92.58     |     99.79      | [:link:](https://drive.google.com/drive/folders/1KxeYAEE7Ev9kdFFhXWkPZhG-ya3_UwGP?usp=sharing) |
 |DeepCluster V2| ResNet18 |  1000  |  :x: |      88.85     |     99.58      | [:link:](https://drive.google.com/drive/folders/1tkEbiDQ38vZaQUsT6_vEpxbDxSUAGwF-?usp=sharing) |
 | DINO         | ResNet18 |  1000  |  :x: |      89.52     |     99.71      | [:link:](https://drive.google.com/drive/folders/1vyqZKUyP8sQyEyf2cqonxlGMbQC-D1Gi?usp=sharing) |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      92.94     |     99.79      | [:link:](https://drive.google.com/drive/folders/1ruNFEB3F-Otxv2Y0p62wrjA4v5Fr2cKC?usp=sharing) |
+| MoCo V3      | ResNet18 |  1000  |  :x: |      93.10     |     99.80      | [:link:](https://drive.google.com/drive/folders/1KwZTshNEpmqnYJcmyYPvfIJ_DNwqtAVj?usp=sharing) |
 | NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |     99.78      | [:link:](https://drive.google.com/drive/folders/1xdCzhvRehPmxinphuiZqFlfBwfwWDcLh?usp=sharing) |
 | ReSSL        | ResNet18 |  1000  |  :x: |      90.63     |     99.62      | [:link:](https://drive.google.com/drive/folders/1jrFcztY2eO_fG98xPshqOD15pDIhLXp-?usp=sharing) |
 | SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |     99.75      | [:link:](https://drive.google.com/drive/folders/1mcvWr8P2WNJZ7TVpdLHA_Q91q4VK3y8O?usp=sharing) |
@@ -202,6 +205,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 |DeepCluster V2| ResNet18 |  1000  |  :x: |      63.61     |     88.09      | [:link:](https://drive.google.com/drive/folders/1gAKyMz41mvGh1BBOYdc_xu6JPSkKlWqK?usp=sharing) |
 | DINO         | ResNet18 |  1000  |  :x: |      66.76     |     90.34      | [:link:](https://drive.google.com/drive/folders/1TxeZi2YLprDDtbt_y5m29t4euroWr1Fy?usp=sharing) |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      69.89     |     91.65      | [:link:](https://drive.google.com/drive/folders/15oWNM16vO6YVYmk_yOmw2XUrFivRXam4?usp=sharing) |
+| MoCo V3      | ResNet18 |  1000  |  :x: |      68.83     |     90.57      | [:link:](https://drive.google.com/drive/folders/1Hcf9kMIADKydfxvXLquY9nv7sfNaJ3v6?usp=sharing) |
 | NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |     91.52      | [:link:](https://drive.google.com/drive/folders/1Dz72o0-5hugYPW1kCCQDBb0Xi3kzMLzu?usp=sharing) |
 | ReSSL        | ResNet18 |  1000  |  :x: |      65.92     |     89.73      | [:link:](https://drive.google.com/drive/folders/1aVZs9cHAu6Ccz8ILyWkp6NhTsJGBGfjr?usp=sharing) |
 | SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |     89.04      | [:link:](https://drive.google.com/drive/folders/13pGPcOO9Y3rBoeRVWARgbMFEp8OXxZa0?usp=sharing) |
@@ -222,6 +226,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 | DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
 | DINO         :sleepy:   | ViT Tiny |   400  |         :x:        |      63.04     |      TODO       |      87.72     |      TODO       | [:link:](https://drive.google.com/drive/folders/16AfsM-UpKky43kdSMlqj4XRe69pRdJLc?usp=sharing) |
 | MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
+| MoCo V3      :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.36     |     80.36       |      95.18     |      94.96      | [:link:](https://drive.google.com/drive/folders/15J0JiZsQAsrQler8mbbio-desb_nVoD1?usp=sharing) |
 | NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
 | ReSSL                   | ResNet18 |   400  | :heavy_check_mark: |      76.92     |     78.48       |      94.20     |      94.24      | [:link:](https://drive.google.com/drive/folders/1urWIFACLont4GAduis6l0jcEbl080c9U?usp=sharing) |
 | SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.64     |     TODO        |      94.06     |      TODO       | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
@@ -245,6 +250,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 |DeepCluster V2| ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |      87.60      | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) |
+| MoCo V3      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | ReSSL        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
 | SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
@@ -274,7 +280,7 @@ We report the training efficiency of some methods using a ResNet18 with and with
 ---
 
 ## Citation
-If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
+<a name="bib"></a>If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
 ```
 @article{JMLR:v23:21-1155,
   author  = {Victor Guilherme Turrisi da Costa and Enrico Fini and Moin Nabi and Nicu Sebe and Elisa Ricci},
