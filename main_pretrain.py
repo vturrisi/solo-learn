@@ -23,7 +23,7 @@ from pprint import pprint
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.plugins import DDPPlugin
+from pytorch_lightning.strategies.ddp import DDPStrategy
 
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
@@ -192,7 +192,7 @@ def main():
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         enable_checkpointing=False,
-        strategy=DDPPlugin(find_unused_parameters=False)
+        strategy=DDPStrategy(find_unused_parameters=False)
         if args.strategy == "ddp"
         else args.strategy,
     )
