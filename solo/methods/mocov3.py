@@ -170,7 +170,7 @@ class MoCoV3(BaseMomentumMethod):
         contrastive_loss = mocov3_loss_func(Q[0], K[1]) + mocov3_loss_func(Q[1], K[0])
 
         metrics = {
-            "train_contrastive_los": contrastive_loss,
+            "train_contrastive_loss": contrastive_loss,
         }
         self.log_dict(metrics, on_epoch=True, sync_dist=True)
 

@@ -23,7 +23,7 @@ from pprint import pprint
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.plugins import DDPPlugin
+from pytorch_lightning.strategies.ddp import DDPStrategy
 
 from solo.args.setup import parse_args_pretrain
 from solo.methods import METHODS
@@ -192,10 +192,27 @@ def main():
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         enable_checkpointing=False,
-        strategy=DDPPlugin(find_unused_parameters=False)
+        strategy=DDPStrategy(find_unused_parameters=False)
         if args.strategy == "ddp"
         else args.strategy,
     )
+
+    # fix for incompatibility with nvidia-dali and pytorch lightning
+    # with dali 1.15 (this will be fixed on 1.16)
+    # https://github.com/Lightning-AI/lightning/issues/12956
+    try:
+        from pytorch_lightning.loops import FitLoop
+
+        class WorkaroundFitLoop(FitLoop):
+            @property
+            def prefetch_batches(self) -> int:
+                return 1
+
+        trainer.fit_loop = WorkaroundFitLoop(
+            trainer.fit_loop.min_epochs, trainer.fit_loop.max_epochs
+        )
+    except:
+        pass
 
     if args.dali:
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
