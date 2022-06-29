@@ -248,9 +248,11 @@ def additional_setup_pretrain(args: Namespace):
             "N_GPUS to properly scale the lr. "
             "You can also manually scale your lr if you are not sure, by checking your logs."
         )
-        num_nodes = args.num_nodes_horovod or 1
-    else:
-        num_nodes = args.num_nodes or 1
+
+    try:
+        num_nodes = args.num_nodes_horovod or args.num_nodes or 1
+    except AttributeError:
+        num_nodes = 1
 
     scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
     args.lr = args.lr * scale_factor
@@ -322,9 +324,11 @@ def additional_setup_linear(args: Namespace):
             "N_GPUS to properly scale the lr. "
             "You can also manually scale your lr if you are not sure, by checking your logs."
         )
-        num_nodes = args.num_nodes_horovod or 1
-    else:
-        num_nodes = args.num_nodes or 1
+
+    try:
+        num_nodes = args.num_nodes_horovod or args.num_nodes or 1
+    except AttributeError:
+        num_nodes = 1
 
     scale_factor = args.batch_size * len(args.devices) * num_nodes / 256
     args.lr = args.lr * scale_factor

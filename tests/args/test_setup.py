@@ -28,7 +28,6 @@ from tests.dali.utils import DummyDataset
 
 
 def test_setup_pretrain():
-
     dummy_script = """
         from solo.args.setup import parse_args_pretrain
 
@@ -124,7 +123,6 @@ def test_setup_pretrain():
 
 
 def test_setup_linear():
-
     dummy_script = """
         from solo.args.setup import parse_args_linear
 
@@ -226,7 +224,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -264,6 +262,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -301,6 +300,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -338,6 +338,7 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -381,6 +382,7 @@ def test_additional_setup_pretrain():
             "patch_size": 16,
             "strategy": None,
             "num_nodes": 1,
+            "num_nodes_horovod": None,
         }
         args = argparse.Namespace(**args)
 
@@ -404,6 +406,7 @@ def test_additional_setup_linear():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -425,6 +428,7 @@ def test_additional_setup_linear():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
+        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -455,6 +459,7 @@ def test_additional_setup_linear():
             "patch_size": 16,
             "strategy": None,
             "num_nodes": 1,
+            "num_nodes_horovod": None,
         }
         args = argparse.Namespace(**args)
 

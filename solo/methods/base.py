@@ -272,18 +272,6 @@ class BaseMethod(pl.LightningModule):
         if not no_channel_last:
             self = self.to(memory_format=torch.channels_last)
 
-    # def optimizer_zero_grad(self, epoch, batch_idx, optimizer, optimizer_idx):
-    #     """
-    #     This improves performance marginally. It should be fine
-    #     since we are not affected by any of the downsides descrited in
-    #     https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad
-
-    #     Implemented as in here
-    #     https://pytorch-lightning.readthedocs.io/en/1.5.10/guides/speed.html#set-grads-to-none
-    #     """
-
-    #     optimizer.zero_grad(set_to_none=True)
-
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds shared basic arguments that are shared for all methods.
@@ -364,7 +352,9 @@ class BaseMethod(pl.LightningModule):
             try:
                 dataset = self.extra_args.get("dataset", None)
                 if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    folder = os.path.join(self.extra_args["data_dir"], self.extra_args["train_dir"])
+                    data_dir = self.extra_args.get("data_dir", ".")
+                    train_dir = self.extra_args.get("train_dir", "train")
+                    folder = os.path.join(data_dir, train_dir)
                 else:
                     folder = None
                 no_labels = self.extra_args.get("no_labels", False)
@@ -389,8 +379,9 @@ class BaseMethod(pl.LightningModule):
             if isinstance(self.trainer.devices, list):
                 num_devices = len(self.trainer.devices)
 
+            num_nodes = self.extra_args.get("num_nodes_horovod", 0) or self.trainer.num_nodes or 1
             effective_batch_size = (
-                self.batch_size * self.trainer.accumulate_grad_batches * num_devices
+                self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
             )
             self._num_training_steps = dataset_size // effective_batch_size
 
@@ -473,6 +464,20 @@ class BaseMethod(pl.LightningModule):
                 scheduler.get_lr = partial_fn
 
         return [optimizer], [scheduler]
+
+    def optimizer_zero_grad(self, epoch, batch_idx, optimizer, optimizer_idx):
+        """
+        This improves performance marginally. It should be fine
+        since we are not affected by any of the downsides descrited in
+        https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad
+
+        Implemented as in here
+        https://pytorch-lightning.readthedocs.io/en/1.5.10/guides/speed.html#set-grads-to-none
+        """
+        try:
+            optimizer.zero_grad(set_to_none=True)
+        except:
+            optimizer.zero_grad()
 
     def forward(self, X) -> Dict:
         """Basic forward method. Children methods should call this function,
