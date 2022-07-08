@@ -46,22 +46,22 @@ from solo.backbones import (
 def test_backbones():
     # swin models
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = swin_tiny(method="none", window_size=4, img_size=32)
+    model = swin_tiny(method=None, window_size=4, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
-    model = swin_small(method="none")
+    model = swin_small(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = swin_base(method="none")
+    model = swin_base(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = swin_large(method="none")
+    model = swin_large(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     # vit models
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = vit_tiny(method="none", patch_size=8, img_size=32)
+    model = vit_tiny(method=None, patch_size=8, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 32, 32)
@@ -69,13 +69,13 @@ def test_backbones():
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
-    model = vit_small(method="none")
+    model = vit_small(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = vit_base(method="none")
+    model = vit_base(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = vit_large(method="none")
+    model = vit_large(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     model = vit_small(method="mocov3")
@@ -89,51 +89,51 @@ def test_backbones():
 
     # PoolFormer
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = poolformer_s12(method="none")
+    model = poolformer_s12(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
-    model = poolformer_s24(method="none")
+    model = poolformer_s24(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = poolformer_s36(method="none")
+    model = poolformer_s36(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = poolformer_m36(method="none")
+    model = poolformer_m36(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = poolformer_m48(method="none")
+    model = poolformer_m48(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     # ConvNeXt
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = convnext_tiny(method="none")
+    model = convnext_tiny(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
-    model = convnext_small(method="none")
+    model = convnext_small(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = convnext_base(method="none")
+    model = convnext_base(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    model = convnext_large(method="none")
+    model = convnext_large(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     # WideResnet
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = wide_resnet28w2(method="none")
+    model = wide_resnet28w2(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
-    model = wide_resnet28w8(method="none")
+    model = wide_resnet28w8(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     # Resnet
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = resnet18(method="none")
+    model = resnet18(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
-    model = resnet50(method="none")
+    model = resnet50(method=None)
     assert isinstance(model(dummy_data), torch.Tensor)

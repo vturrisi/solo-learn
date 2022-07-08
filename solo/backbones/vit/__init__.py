@@ -30,22 +30,22 @@ from .vit_mocov3 import vit_large as mocov3_vit_large
 
 def vit_tiny(method, *args, **kwargs):
     custom_backbone_constructor = {"mocov3": mocov3_vit_tiny}
-    return custom_backbone_constructor.get(method, default_vit_tiny)(*args, **kwargs)
+    return custom_backbone_constructor.get(method.lower(), default_vit_tiny)(*args, **kwargs)
 
 
 def vit_small(method, *args, **kwargs):
     custom_backbone_constructor = {"mocov3": mocov3_vit_small}
-    return custom_backbone_constructor.get(method, default_vit_small)(*args, **kwargs)
+    return custom_backbone_constructor.get(method.lower(), default_vit_small)(*args, **kwargs)
 
 
 def vit_base(method, *args, **kwargs):
     custom_backbone_constructor = {"mocov3": mocov3_vit_base}
-    return custom_backbone_constructor.get(method, default_vit_base)(*args, **kwargs)
+    return custom_backbone_constructor.get(method.lower(), default_vit_base)(*args, **kwargs)
 
 
 def vit_large(method, *args, **kwargs):
     custom_backbone_constructor = {"mocov3": mocov3_vit_large}
-    return custom_backbone_constructor.get(method, default_vit_large)(*args, **kwargs)
+    return custom_backbone_constructor.get(method.lower(), default_vit_large)(*args, **kwargs)
 
 
 __all__ = ["vit_tiny", "vit_small", "vit_base", "vit_large"]
