@@ -26,6 +26,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
+
 from solo.args.setup import parse_args_linear
 from solo.methods.base import BaseMethod
 from solo.utils.auto_resumer import AutoResumer
