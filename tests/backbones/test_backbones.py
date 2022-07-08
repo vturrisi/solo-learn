@@ -46,7 +46,7 @@ from solo.backbones import (
 def test_backbones():
     # swin models
     dummy_data = torch.randn(6, 3, 32, 32)
-    model = swin_tiny(window_size=4, img_size=32)
+    model = swin_tiny(method="none", window_size=4, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
@@ -64,7 +64,6 @@ def test_backbones():
     model = vit_tiny(method="none", patch_size=8, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    # vit models
     dummy_data = torch.randn(6, 3, 32, 32)
     model = vit_tiny(method="mocov3", patch_size=8, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)

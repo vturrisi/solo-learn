@@ -18,8 +18,8 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-from .default import wide_resnet28w2 as default_wide_resnet28w2
-from .default import wide_resnet28w8 as default_wide_resnet28w8
+from .wide_resnet import wide_resnet28w2 as default_wide_resnet28w2
+from .wide_resnet import wide_resnet28w8 as default_wide_resnet28w8
 
 
 def wide_resnet28w2(method, *args, **kwargs):

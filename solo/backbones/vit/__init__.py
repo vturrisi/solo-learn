@@ -17,22 +17,20 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from .default import vit_tiny as default_vit_tiny
-from .default import vit_small as default_vit_small
-from .default import vit_base as default_vit_base
-from .default import vit_large as default_vit_large
+from .vit import vit_tiny as default_vit_tiny
+from .vit import vit_small as default_vit_small
+from .vit import vit_base as default_vit_base
+from .vit import vit_large as default_vit_large
 
-from .mocov3 import vit_tiny as mocov3_vit_tiny
-from .mocov3 import vit_small as mocov3_vit_small
-from .mocov3 import vit_base as mocov3_vit_base
-from .mocov3 import vit_large as mocov3_vit_large
+from .vit_mocov3 import vit_tiny as mocov3_vit_tiny
+from .vit_mocov3 import vit_small as mocov3_vit_small
+from .vit_mocov3 import vit_base as mocov3_vit_base
+from .vit_mocov3 import vit_large as mocov3_vit_large
 
 
 def vit_tiny(method, *args, **kwargs):
-    if method == "mocov3":
-        return mocov3_vit_tiny(*args, **kwargs)
-
-    return default_vit_tiny(*args, **kwargs)
+    custom_backbone_constructor = {"mocov3": mocov3_vit_tiny(*args, **kwargs)}
+    return custom_backbone_constructor.get(method, default_vit_tiny(*args, **kwargs))
 
 
 def vit_small(method, *args, **kwargs):

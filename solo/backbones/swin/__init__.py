@@ -17,10 +17,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from .default import swin_tiny as default_swin_tiny
-from .default import swin_small as default_swin_small
-from .default import swin_base as default_swin_base
-from .default import swin_large as default_swin_large
+from .swin import swin_tiny as default_swin_tiny
+from .swin import swin_small as default_swin_small
+from .swin import swin_base as default_swin_base
+from .swin import swin_large as default_swin_large
 
 
 def swin_tiny(method, *args, **kwargs):

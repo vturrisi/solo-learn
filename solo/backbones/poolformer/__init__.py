@@ -17,11 +17,11 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from .default import poolformer_s12 as default_poolformer_s12
-from .default import poolformer_s24 as default_poolformer_s24
-from .default import poolformer_s36 as default_poolformer_s36
-from .default import poolformer_m36 as default_poolformer_m36
-from .default import poolformer_m48 as default_poolformer_m48
+from .poolformer import poolformer_s12 as default_poolformer_s12
+from .poolformer import poolformer_s24 as default_poolformer_s24
+from .poolformer import poolformer_s36 as default_poolformer_s36
+from .poolformer import poolformer_m36 as default_poolformer_m36
+from .poolformer import poolformer_m48 as default_poolformer_m48
 
 
 def poolformer_s12(method, *args, **kwargs):

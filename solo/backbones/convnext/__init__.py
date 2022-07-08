@@ -17,10 +17,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from .default import convnext_tiny as default_convnext_tiny
-from .default import convnext_small as default_convnext_small
-from .default import convnext_base as default_convnext_base
-from .default import convnext_large as default_convnext_large
+from .convnext import convnext_tiny as default_convnext_tiny
+from .convnext import convnext_small as default_convnext_small
+from .convnext import convnext_base as default_convnext_base
+from .convnext import convnext_large as default_convnext_large
 
 
 def convnext_tiny(method, *args, **kwargs):
