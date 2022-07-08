@@ -54,9 +54,6 @@ def dataset_args(parser: ArgumentParser):
     # dali (imagenet-100/imagenet/custom only)
     parser.add_argument("--dali", action="store_true")
 
-    # manually bypass all checks for dataset size by providing the correct size by hand
-    parser.add_argument("--total_dataset_size", default=None, type=int)
-
 
 def augmentations_args(parser: ArgumentParser):
     """Adds augmentation-related arguments to a parser.
