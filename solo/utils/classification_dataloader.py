@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
 import torchvision
+from solo.utils.h5_dataset import H5Dataset
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
@@ -146,6 +147,8 @@ def prepare_datasets(
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
     val_dir: Optional[Union[str, Path]] = None,
+    train_h5_path: Optional[str] = None,
+    val_h5_path: Optional[str] = None,
     download: bool = True,
     data_fraction: float = -1.0,
 ) -> Tuple[Dataset, Dataset]:
@@ -158,6 +161,8 @@ def prepare_datasets(
         data_dir Optional[Union[str, Path]]: path where to download/locate the dataset.
         train_dir Optional[Union[str, Path]]: subpath where the training data is located.
         val_dir Optional[Union[str, Path]]: subpath where the validation data is located.
+        train_h5_path Optional[str]: path to the train h5 dataset file, if it exists.
+        val_h5_path Optional[str]: path to the val h5 dataset file, if it exists.
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
             Defaults to -1.0.
 
@@ -214,11 +219,19 @@ def prepare_datasets(
         )
 
     elif dataset in ["imagenet", "imagenet100", "custom"]:
-        train_dir = data_dir / train_dir
-        val_dir = data_dir / val_dir
+        if train_h5_path:
+            train_h5_path = data_dir / train_h5_path
+            train_dataset = H5Dataset(dataset, train_h5_path, T_train)
+        else:
+            train_dir = data_dir / train_dir
+            train_dataset = ImageFolder(train_dir, T_train)
 
-        train_dataset = ImageFolder(train_dir, T_train)
-        val_dataset = ImageFolder(val_dir, T_val)
+        if val_h5_path:
+            val_h5_path = data_dir / val_h5_path
+            val_dataset = H5Dataset(dataset, val_h5_path, T_val)
+        else:
+            val_dir = data_dir / val_dir
+            val_dataset = ImageFolder(val_dir, T_val)
 
     if data_fraction > 0:
         assert data_fraction < 1, "Only use data_fraction for values smaller than 1."

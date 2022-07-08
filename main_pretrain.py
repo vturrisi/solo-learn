@@ -79,6 +79,8 @@ def main():
             data_dir=args.data_dir,
             train_dir=args.train_dir,
             val_dir=args.val_dir,
+            train_h5_path=args.train_h5_path,
+            val_h5_path=args.val_h5_path,
             batch_size=args.batch_size,
             num_workers=args.num_workers,
         )
@@ -123,6 +125,7 @@ def main():
             data_dir=args.data_dir,
             train_dir=args.train_dir,
             no_labels=args.no_labels,
+            train_h5_path=args.train_h5_path,
             data_fraction=args.data_fraction,
         )
         train_loader = prepare_dataloader(

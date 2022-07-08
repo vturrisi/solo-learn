@@ -30,6 +30,8 @@ from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
 
+from solo.utils.h5_dataset import H5Dataset
+
 
 def dataset_with_index(DatasetClass: Type[Dataset]) -> Type[Dataset]:
     """Factory for datasets that also returns the data index.
@@ -498,6 +500,7 @@ def prepare_datasets(
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
     no_labels: Optional[Union[str, Path]] = False,
+    train_h5_path: Optional[str] = None,
     download: bool = True,
     data_fraction: float = -1.0,
 ) -> Dataset:
@@ -506,11 +509,12 @@ def prepare_datasets(
     Args:
         dataset (str): the name of the dataset.
         transform (Callable): a transformation.
-        data_dir (Optional[Union[str, Path]], optional): the directory to load data from.
+        data_dir (Optional[Union[str, Path]]): the directory to load data from.
             Defaults to None.
-        train_dir (Optional[Union[str, Path]], optional): training data directory
+        train_dir (Optional[Union[str, Path]]): training data directory
             to be appended to data_dir. Defaults to None.
-        no_labels (Optional[bool], optional): if the custom dataset has no labels.
+        no_labels (Optional[bool]): if the custom dataset has no labels.
+        train_h5_path Optional[str]: path to the train h5 dataset file, if it exists.
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
             Defaults to -1.0.
     Returns:
@@ -544,8 +548,13 @@ def prepare_datasets(
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
-        train_dir = data_dir / train_dir
-        train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
+        if train_h5_path:
+            train_h5_path = data_dir / train_h5_path
+            train_dataset = dataset_with_index(H5Dataset)(dataset, train_h5_path, transform)
+
+        else:
+            train_dir = data_dir / train_dir
+            train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
 
     elif dataset == "custom":
         train_dir = data_dir / train_dir

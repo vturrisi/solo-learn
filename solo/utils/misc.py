@@ -26,6 +26,8 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 
+from solo.utils.h5_dataset import H5Dataset
+
 
 def _1d_filter(tensor: torch.Tensor) -> torch.Tensor:
     return tensor.isfinite()
@@ -205,9 +207,10 @@ def gather(X, dim=0):
 
 def compute_dataset_size(
     dataset: Optional[str] = None,
-    train: Optional[str] = True,
+    train: Optional[bool] = True,
     folder: Optional[str] = None,
     no_labels: Optional[bool] = False,
+    h5py_file: Optional[str] = None,
     data_fraction: Optional[float] = -1,
 ):
     """Utility function to get the dataset size. If using cifar or stl,
@@ -217,16 +220,19 @@ def compute_dataset_size(
     specify if it has labels or not with the no_labels flag.
 
     Args:
-        folder (Optional[str], optional): path to the ImageFolder. Defaults to None.
-        dataset (Optional[str], optional): dataset size for predefined datasets
+        folder (Optional[str]): path to the ImageFolder. Defaults to None.
+        dataset (Optional[str]): dataset size for predefined datasets
             [cifar10, cifar100, stl10]. Defaults to None.
-        train (Optional[str], optional): either train dataset or validation. Defaults to True.
-        no_labels (Optional[bool], optional): if the dataset has no labels. Defaults to False.
-        data_fraction (Optional[float], optional): amount of data to use. Defaults to -1.
+        train (Optional[bool]): train dataset flag. Defaults to True.
+        no_labels (Optional[bool]): if the dataset has no labels. Defaults to False.
+        h5py_file (Optional[str]): if using an h5py file, create a dummy H5Dataset to count the number of images.
+            Defaults to None.
+        data_fraction (Optional[float]): amount of data to use. Defaults to -1.
 
     Returns:
-        _type_: _description_
+        int: size of the dataset
     """
+
     DATASET_SIZES = {
         "cifar10": {"train": 50_000, "val": 10_000},
         "cifar100": {"train": 50_000, "val": 10_000},
@@ -236,6 +242,9 @@ def compute_dataset_size(
 
     if dataset is not None:
         size = DATASET_SIZES.get(dataset.lower(), {}).get("train" if train else "val", None)
+
+    if h5py_file is not None:
+        size = len(H5Dataset(dataset, h5py_file))
 
     if size is None:
         if no_labels:
@@ -247,6 +256,7 @@ def compute_dataset_size(
 
     if data_fraction != -1:
         size = int(size * data_fraction)
+
     return size
 
 
