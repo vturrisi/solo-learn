@@ -22,7 +22,7 @@ import io
 import os
 from pathlib import Path
 from typing import Callable, Optional
-
+from tqdm import tqdm
 import h5py
 from PIL import Image
 from torch.utils.data import Dataset
@@ -76,20 +76,26 @@ class H5Dataset(Dataset):
             self.classes = sorted(self.classes)
             self.class_to_idx = {cls_name: i for i, cls_name in enumerate(self.classes)}
 
-            self._data = list(filter(lambda entry: entry[0] in self.classes, self._data))
+            class_set = set(self.classes)
+            new_data = []
+            for class_name, img_name, _ in self._data:
+                if class_name in class_set:
+                    new_data.append((class_name, img_name, self.class_to_idx[class_name]))
+            self._data = new_data
 
     def _load_h5_data_info(self):
         self._data = []
         h5_data_info_file = os.path.splitext(self.h5_path)[0] + ".txt"
+
         if not os.path.isfile(h5_data_info_file):
             temp_h5_file = h5py.File(self.h5_path, "r")
 
             # collect data from the h5 file directly
-            self.classes, self.class_to_idx = self._find_classes(self.h5_file)
-            for class_name in self.classes:
+            self.classes, self.class_to_idx = self._find_classes(temp_h5_file)
+            for class_name in tqdm(self.classes, desc="Collecting information about the h5 file"):
                 y = self.class_to_idx[class_name]
                 for img_name in temp_h5_file[class_name].keys():
-                    self._data.append((class_name, img_name, y))
+                    self._data.append((class_name, img_name, int(y)))
 
             # save the info locally to speed up sequential executions
             with open(h5_data_info_file, "w") as f:
@@ -101,7 +107,7 @@ class H5Dataset(Dataset):
                 for line in f:
                     class_name_img, y = line.strip().split(" ")
                     class_name, img_name = class_name_img.split("/")
-                    self._data.append((class_name, img_name, y))
+                    self._data.append((class_name, img_name, int(y)))
 
     def _find_classes(self, h5_file: h5py.File):
         classes = sorted(h5_file.keys())

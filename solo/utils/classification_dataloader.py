@@ -286,6 +286,8 @@ def prepare_data(
     data_dir: Optional[Union[str, Path]] = None,
     train_dir: Optional[Union[str, Path]] = None,
     val_dir: Optional[Union[str, Path]] = None,
+    train_h5_path: Optional[str] = None,
+    val_h5_path: Optional[str] = None,
     batch_size: int = 64,
     num_workers: int = 4,
     download: bool = True,
@@ -301,6 +303,8 @@ def prepare_data(
             training data is located. Defaults to None.
         val_dir (Optional[Union[str, Path]], optional): subpath where the
             validation data is located. Defaults to None.
+        train_h5_path Optional[str]: path to the train h5 dataset file, if it exists.
+        val_h5_path Optional[str]: path to the val h5 dataset file, if it exists.
         batch_size (int, optional): batch size. Defaults to 64.
         num_workers (int, optional): number of parallel workers. Defaults to 4.
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
@@ -320,6 +324,8 @@ def prepare_data(
         val_dir=val_dir,
         download=download,
         data_fraction=data_fraction,
+        train_h5_path=train_h5_path,
+        val_h5_path=val_h5_path,
     )
     train_loader, val_loader = prepare_dataloaders(
         train_dataset,
