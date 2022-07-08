@@ -49,32 +49,73 @@ class MoCoV3(BaseMomentumMethod):
 
         self.temperature = temperature
 
-        # projector
-        self.projector = nn.Sequential(
-            nn.Linear(self.features_dim, proj_hidden_dim),
-            nn.BatchNorm1d(proj_hidden_dim),
-            nn.ReLU(),
-            nn.Linear(proj_hidden_dim, proj_output_dim),
-            nn.BatchNorm1d(proj_output_dim, affine=False),
-        )
+        if "resnet" in self.backbone_name:
+            # projector
+            self.projector = self._build_mlp(
+                2,
+                self.features_dim,
+                proj_hidden_dim,
+                proj_output_dim,
+            )
+            # momentum projector
+            self.momentum_projector = self._build_mlp(
+                2,
+                self.features_dim,
+                proj_hidden_dim,
+                proj_output_dim,
+            )
 
-        # momentum projector
-        self.momentum_projector = nn.Sequential(
-            nn.Linear(self.features_dim, proj_hidden_dim),
-            nn.BatchNorm1d(proj_hidden_dim),
-            nn.ReLU(),
-            nn.Linear(proj_hidden_dim, proj_output_dim),
-            nn.BatchNorm1d(proj_output_dim, affine=False),
-        )
+            # predictor
+            self.predictor = self._build_mlp(
+                2,
+                proj_output_dim,
+                pred_hidden_dim,
+                proj_output_dim,
+                last_bn=False,
+            )
+        else:
+            # specifically for ViT but allow all the other backbones
+            # projector
+            self.projector = self._build_mlp(
+                3,
+                self.features_dim,
+                proj_hidden_dim,
+                proj_output_dim,
+            )
+            # momentum projector
+            self.momentum_projector = self._build_mlp(
+                3,
+                self.features_dim,
+                proj_hidden_dim,
+                proj_output_dim,
+            )
+
+            # predictor
+            self.predictor = self._build_mlp(
+                2,
+                proj_output_dim,
+                pred_hidden_dim,
+                proj_output_dim,
+            )
+
         initialize_momentum_params(self.projector, self.momentum_projector)
 
-        # predictor
-        self.predictor = nn.Sequential(
-            nn.Linear(proj_output_dim, pred_hidden_dim),
-            nn.BatchNorm1d(pred_hidden_dim),
-            nn.ReLU(),
-            nn.Linear(pred_hidden_dim, proj_output_dim),
-        )
+    def _build_mlp(self, num_layers, input_dim, mlp_dim, output_dim, last_bn=True):
+        mlp = []
+        for l in range(num_layers):
+            dim1 = input_dim if l == 0 else mlp_dim
+            dim2 = output_dim if l == num_layers - 1 else mlp_dim
+
+            mlp.append(nn.Linear(dim1, dim2, bias=False))
+
+            if l < num_layers - 1:
+                mlp.append(nn.BatchNorm1d(dim2))
+                mlp.append(nn.ReLU(inplace=True))
+            elif last_bn:
+                # follow SimCLR's design
+                mlp.append(nn.BatchNorm1d(dim2, affine=False))
+
+        return nn.Sequential(*mlp)
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
