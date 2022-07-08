@@ -76,7 +76,7 @@ class H5Dataset(Dataset):
             self.classes = sorted(self.classes)
             self.class_to_idx = {cls_name: i for i, cls_name in enumerate(self.classes)}
 
-            self._data = filter(lambda entry: entry[0] in self.classes, self._data)
+            self._data = list(filter(lambda entry: entry[0] in self.classes, self._data))
 
     def _load_h5_data_info(self):
         self._data = []
