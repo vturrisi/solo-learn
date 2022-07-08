@@ -1,0 +1,39 @@
+ython3 main_pretrain.py \
+    --dataset imagenet100 \
+    --backbone moco_vit_small \
+    --data_dir /nfs/datasets/imagenet1k \
+    --train_h5_path train.h5 \
+    --val_h5_path val.h5 \
+    --max_epochs 400 \
+    --devices 6,7 \
+    --accelerator gpu \
+    --strategy ddp \
+    --sync_batchnorm \
+    --precision 16 \
+    --optimizer adamw \
+    --eta_lars 0.02 \
+    --exclude_bias_n_norm \
+    --scheduler warmup_cosine \
+    --lr 1.5e-4  \
+    --classifier_lr 1.5e-4 \
+    --weight_decay 0.1 \
+    --batch_size 32 \
+    --num_workers 8 \
+    --brightness 0.4 \
+    --contrast 0.4 \
+    --saturation 0.2 \
+    --hue 0.1 \
+    --gaussian_prob 1.0 0.1 \
+    --solarization_prob 0.0 0.2 \
+    --num_crops_per_aug 1 1 \
+    --name mocov3-400ep-imagenet100 \
+    --project solo-learn \
+    --wandb \
+    --save_checkpoint \
+    --auto_resume \
+    --method mocov3 \
+    --proj_hidden_dim 4096 \
+    --pred_hidden_dim 4096 \
+    --temperature 0.2 \
+    --base_tau_momentum 0.99 \
+    --final_tau_momentum 1.0
