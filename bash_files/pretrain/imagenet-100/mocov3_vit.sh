@@ -5,6 +5,7 @@ python3 main_pretrain.py \
     --train_h5_path train.h5 \
     --val_h5_path val.h5 \
     --max_epochs 400 \
+    --warmup_epochs 40 \
     --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
@@ -25,11 +26,13 @@ python3 main_pretrain.py \
     --hue 0.1 \
     --gaussian_prob 1.0 0.1 \
     --solarization_prob 0.0 0.2 \
+    --min_scale 0.08 \
     --num_crops_per_aug 1 1 \
-    --name mocov3-400ep-imagenet100 \
+    --name mocov3-vit-400ep-imagenet100 \
     --project solo-learn \
-    --wandb \
+    --entity unitn-mhug \
     --save_checkpoint \
+    --wandb \
     --auto_resume \
     --method mocov3 \
     --proj_hidden_dim 4096 \
