@@ -183,17 +183,19 @@ class LinearModel(pl.LightningModule):
                 if dataset not in ["cifar10", "cifar100", "stl10"]:
                     data_dir = self.extra_args.get("data_dir", ".")
                     train_dir = self.extra_args.get("train_dir", "train")
-                    folder = os.path.join(data_dir, train_dir)
+                    folder = os.path.join(data_dir, str(train_dir))
                 else:
                     folder = None
                 no_labels = self.extra_args.get("no_labels", False)
                 data_fraction = self.extra_args.get("data_fraction", -1.0)
+                h5py_file = self.extra_args.get("train_h5_path", None)
 
                 dataset_size = compute_dataset_size(
                     dataset=dataset,
                     folder=folder,
                     train=True,
                     no_labels=no_labels,
+                    h5py_file=h5py_file,
                     data_fraction=data_fraction,
                 )
             except:

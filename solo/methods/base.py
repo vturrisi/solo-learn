@@ -356,7 +356,7 @@ class BaseMethod(pl.LightningModule):
                 if dataset not in ["cifar10", "cifar100", "stl10"]:
                     data_dir = self.extra_args.get("data_dir", ".")
                     train_dir = self.extra_args.get("train_dir", "train")
-                    folder = os.path.join(data_dir, train_dir)
+                    folder = os.path.join(data_dir, str(train_dir))
                 else:
                     folder = None
                 no_labels = self.extra_args.get("no_labels", False)
