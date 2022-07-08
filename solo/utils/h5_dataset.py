@@ -21,11 +21,10 @@
 import io
 import os
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 import h5py
 from PIL import Image
-from pyparsing import Optional
 from torch.utils.data import Dataset
 
 
@@ -50,7 +49,7 @@ class H5Dataset(Dataset):
         Args:
             dataset (str): dataset name.
             h5_path (str): path of the h5 file.
-            transform (Optional[Callable]): pipeline of transformations. Defaults to None.
+            transform (Callable): pipeline of transformations. Defaults to None.
             pre_parsed_paths_file Optional[str]: path of the pre-parsed paths files.
                 This allows the user to specify the file names and their classes in this format:
                 {class}/{file} CLASS-ID
@@ -67,6 +66,7 @@ class H5Dataset(Dataset):
         assert dataset in ["imagenet100", "imagenet"]
 
         self._load_h5_data_info()
+
         # filter if needed to avoid having a copy of imagenet100 data
         if dataset == "imagenet100":
             script_folder = Path(os.path.dirname(__file__))
@@ -80,7 +80,7 @@ class H5Dataset(Dataset):
 
     def _load_h5_data_info(self):
         self._data = []
-        h5_data_info_file = os.path.splitext(self.h5_path + ".txt")
+        h5_data_info_file = os.path.splitext(self.h5_path)[0] + ".txt"
         if not os.path.isfile(h5_data_info_file):
             temp_h5_file = h5py.File(self.h5_path, "r")
 

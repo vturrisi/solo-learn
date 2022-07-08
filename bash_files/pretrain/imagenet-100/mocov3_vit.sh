@@ -1,11 +1,11 @@
-ython3 main_pretrain.py \
+python3 main_pretrain.py \
     --dataset imagenet100 \
-    --backbone moco_vit_small \
+    --backbone vit_small \
     --data_dir /nfs/datasets/imagenet1k \
     --train_h5_path train.h5 \
     --val_h5_path val.h5 \
     --max_epochs 400 \
-    --devices 6,7 \
+    --devices 0,1 \
     --accelerator gpu \
     --strategy ddp \
     --sync_batchnorm \
