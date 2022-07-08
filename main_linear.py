@@ -26,21 +26,10 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
-from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
 from solo.methods.base import BaseMethod
 from solo.utils.auto_resumer import AutoResumer
-from solo.utils.backbones import (
-    swin_base,
-    swin_large,
-    swin_small,
-    swin_tiny,
-    vit_base,
-    vit_large,
-    vit_small,
-    vit_tiny,
-)
 from solo.utils.misc import make_contiguous
 
 try:
@@ -59,18 +48,7 @@ def main():
     args = parse_args_linear()
 
     assert args.backbone in BaseMethod._BACKBONES
-    backbone_model = {
-        "resnet18": resnet18,
-        "resnet50": resnet50,
-        "vit_tiny": vit_tiny,
-        "vit_small": vit_small,
-        "vit_base": vit_base,
-        "vit_large": vit_large,
-        "swin_tiny": swin_tiny,
-        "swin_small": swin_small,
-        "swin_base": swin_base,
-        "swin_large": swin_large,
-    }[args.backbone]
+    backbone_model = BaseMethod._BACKBONES[args.backbone]
 
     # initialize backbone
     kwargs = args.backbone_args
