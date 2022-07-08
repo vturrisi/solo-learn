@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -18,7 +18,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 from solo.utils import (
-    backbones,
     checkpointer,
     classification_dataloader,
     knn,
@@ -31,7 +30,6 @@ from solo.utils import (
 )
 
 __all__ = [
-    "backbones",
     "classification_dataloader",
     "pretrain_dataloader",
     "checkpointer",

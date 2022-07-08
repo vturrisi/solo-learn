@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -20,4 +20,4 @@
 
 from solo import args, losses, methods, utils
 
-__all__ = ["args", "losses", "methods", "utils"]
+__all__ = ["args", "backbones", "losses", "methods", "utils"]

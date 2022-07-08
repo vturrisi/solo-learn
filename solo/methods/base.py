@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -28,7 +28,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from solo.utils.backbones import (
+from solo.backbones import (
     convnext_base,
     convnext_large,
     convnext_small,
@@ -38,6 +38,8 @@ from solo.utils.backbones import (
     poolformer_s12,
     poolformer_s24,
     poolformer_s36,
+    resnet18,
+    resnet50,
     swin_base,
     swin_large,
     swin_small,
@@ -55,7 +57,6 @@ from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import compute_dataset_size
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
-from torchvision.models import resnet18, resnet50
 
 
 def static_lr(
@@ -244,7 +245,8 @@ class BaseMethod(pl.LightningModule):
         if "swin" in self.backbone_name and cifar:
             kwargs["window_size"] = 4
 
-        self.backbone = self.base_model(**kwargs)
+        method = self.extra_args.get("method", None)
+        self.backbone = self.base_model(method, **kwargs)
         if self.backbone_name.startswith("resnet"):
             self.features_dim = self.backbone.inplanes
             # remove fc layer
@@ -426,7 +428,7 @@ class BaseMethod(pl.LightningModule):
             **self.extra_optimizer_args,
         )
 
-        if self.scheduler == "none":
+        if self.scheduler.lower() == "none":
             return optimizer
 
         if self.scheduler == "warmup_cosine":
@@ -670,7 +672,8 @@ class BaseMomentumMethod(BaseMethod):
         if "swin" in self.backbone_name and cifar:
             kwargs["window_size"] = 4
 
-        self.momentum_backbone = self.base_model(**kwargs)
+        method = self.extra_args.get("method", None)
+        self.momentum_backbone = self.base_model(method, **kwargs)
         if self.backbone_name.startswith("resnet"):
             # remove fc layer
             self.momentum_backbone.fc = nn.Identity()
