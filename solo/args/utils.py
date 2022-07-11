@@ -241,16 +241,12 @@ def additional_setup_pretrain(args: Namespace):
     # adjust lr according to batch size
     if args.strategy == "horovod":
         warnings.warn(
-            "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of "
-            "devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
-            "N_GPUS to properly scale the lr. "
-            "You can also manually scale your lr if you are not sure, by checking your logs."
+            "You should manually pass --num_nodes_horovod for everything to work properly!"
         )
 
+    # horovod+pl scales the lr by default
     try:
-        num_nodes = args.num_nodes_horovod or args.num_nodes or 1
+        num_nodes = args.num_nodes or 1
     except AttributeError:
         num_nodes = 1
 
@@ -317,16 +313,12 @@ def additional_setup_linear(args: Namespace):
     # adjust lr according to batch size
     if args.strategy == "horovod":
         warnings.warn(
-            "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of "
-            "devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
-            "N_GPUS to properly scale the lr. "
-            "You can also manually scale your lr if you are not sure, by checking your logs."
+            "You should manually pass --num_nodes_horovod for everything to work properly!"
         )
 
+    # horovod+pl scales the lr by default
     try:
-        num_nodes = args.num_nodes_horovod or args.num_nodes or 1
+        num_nodes = args.num_nodes or 1
     except AttributeError:
         num_nodes = 1
 
