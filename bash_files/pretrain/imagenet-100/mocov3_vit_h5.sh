@@ -1,9 +1,9 @@
 python3 main_pretrain.py \
     --dataset imagenet100 \
     --backbone vit_small \
-    --data_dir /datasets \
-    --train_dir imagenet-100/train \
-    --val_dir imagenet-100/val \
+    --data_dir /nfs/datasets/imagenet1k \
+    --train_h5_path train.h5 \
+    --val_h5_path val.h5 \
     --max_epochs 400 \
     --warmup_epochs 40 \
     --devices 0,1,2,3,4,5,6,7 \
@@ -19,8 +19,7 @@ python3 main_pretrain.py \
     --classifier_lr 3.0e-4 \
     --weight_decay 0.1 \
     --batch_size 64 \
-    --num_workers 4 \
-    --dali \
+    --num_workers 8 \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \

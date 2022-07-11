@@ -50,13 +50,6 @@ class H5Dataset(Dataset):
             dataset (str): dataset name.
             h5_path (str): path of the h5 file.
             transform (Callable): pipeline of transformations. Defaults to None.
-            pre_parsed_paths_file Optional[str]: path of the pre-parsed paths files.
-                This allows the user to specify the file names and their classes in this format:
-                {class}/{file} CLASS-ID
-                {class}/{file} CLASS-ID
-                {class}/{file} CLASS-ID
-                If this is None, this object will automatically find all the files,
-                but might take a while if the dataset is large. Defaults to None.
         """
 
         self.h5_path = h5_path
