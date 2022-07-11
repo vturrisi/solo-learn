@@ -184,12 +184,14 @@ class LinearModel(pl.LightningModule):
                     data_dir = self.extra_args.get("data_dir", ".")
                     train_dir = self.extra_args.get("train_dir", "train")
                     folder = os.path.join(data_dir, str(train_dir))
+                    h5py_file = self.extra_args.get("train_h5_path", None)
+                    h5py_file = os.path.join(data_dir, h5py_file)
                 else:
                     folder = None
+                    h5py_file = None
+
                 no_labels = self.extra_args.get("no_labels", False)
                 data_fraction = self.extra_args.get("data_fraction", -1.0)
-                h5py_file = self.extra_args.get("train_h5_path", None)
-                h5py_file = os.path.join(data_dir, h5py_file)
 
                 dataset_size = compute_dataset_size(
                     dataset=dataset,
