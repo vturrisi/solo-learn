@@ -33,7 +33,6 @@ python3 main_pretrain.py \
     --entity unitn-mhug \
     --save_checkpoint \
     --wandb \
-    --auto_resume \
     --method mocov3 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \
