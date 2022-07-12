@@ -239,12 +239,6 @@ def additional_setup_pretrain(args: Namespace):
         args.devices = [int(device) for device in args.devices.split(",") if device]
 
     # adjust lr according to batch size
-    if args.strategy == "horovod":
-        warnings.warn(
-            "You should manually pass --num_nodes_horovod for everything to work properly!"
-        )
-
-    # horovod+pl scales the lr by default
     try:
         num_nodes = args.num_nodes or 1
     except AttributeError:
@@ -311,12 +305,6 @@ def additional_setup_linear(args: Namespace):
         args.devices = [int(device) for device in args.devices.split(",") if device]
 
     # adjust lr according to batch size
-    if args.strategy == "horovod":
-        warnings.warn(
-            "You should manually pass --num_nodes_horovod for everything to work properly!"
-        )
-
-    # horovod+pl scales the lr by default
     try:
         num_nodes = args.num_nodes or 1
     except AttributeError:

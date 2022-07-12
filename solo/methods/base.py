@@ -336,14 +336,6 @@ class BaseMethod(pl.LightningModule):
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
 
-        # When using horovod, be aware of how the processes are divided.
-        # The learning rate will only be scaled considering the number of
-        # devices in each process.
-        # If each gpu corresponds to each process, you should pass --num_nodes_horovod
-        # N_GPUS to properly scale the lr.
-        # You can also manually scale your lr if you are not sure, by checking your logs.
-        parser.add_argument("--num_nodes_horovod", default=None, type=int)
-
         return parent_parser
 
     @property
@@ -383,7 +375,7 @@ class BaseMethod(pl.LightningModule):
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
             num_devices = self.trainer.num_devices
-            num_nodes = self.extra_args.get("num_nodes_horovod", 0) or self.trainer.num_nodes or 1
+            num_nodes = self.trainer.num_nodes or 1
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
             )

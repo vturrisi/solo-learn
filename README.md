@@ -16,7 +16,7 @@ The library is self-contained, but it is possible to use the models outside of s
 
 ## News
 * **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
-* **[Jun 10 2022]**: :bomb: Improved LARS and fixed some issues to support [Horovod](https://horovod.readthedocs.io/en/stable/pytorch.html).
+* **[Jun 10 2022]**: :bomb: Improved LARS.
 * **[Jun 09 2022]**: :lollipop: Added support for [WideResnet](https://arxiv.org/abs/1605.07146), multicrop for SwAV and equalization data augmentation.
 * **[May 02 2022]**: :diamond_shape_with_a_dot_inside: Wrapped Dali with a DataModule, added auto resume for linear eval and Wandb run resume.
 * **[Apr 12 2022]**: :rainbow: Improved design of models and added support to train with a fraction of data.

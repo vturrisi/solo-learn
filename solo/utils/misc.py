@@ -261,7 +261,7 @@ def compute_dataset_size(
 
 
 def make_contiguous(module):
-    """Make the model contigous in order to comply with horovod.
+    """Make the model contigous in order to comply with some distributed strategies.
     https://github.com/lucidrains/DALLE-pytorch/issues/330
     """
 

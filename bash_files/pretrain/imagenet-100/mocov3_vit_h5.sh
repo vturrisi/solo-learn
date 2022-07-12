@@ -1,7 +1,7 @@
 python3 main_pretrain.py \
     --dataset imagenet100 \
     --backbone vit_small \
-    --data_dir /nfs/datasets/imagenet1k \
+    --data_dir $1 \
     --train_h5_path train.h5 \
     --val_h5_path val.h5 \
     --max_epochs 400 \
