@@ -16,7 +16,7 @@ python3 main_pretrain.py \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 2.0e-4  \
-    --classifier_lr 3.0e-4 \
+    --classifier_lr 5.0e-4 \
     --weight_decay 0.1 \
     --batch_size 64 \
     --num_workers 8 \
