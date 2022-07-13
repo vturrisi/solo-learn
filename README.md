@@ -126,7 +126,7 @@ Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or U
 pip3 install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
 ```
 
-If no Dali/UMAP support is needed, the repository can be installed as:
+If no Dali/UMAP/H5 support is needed, the repository can be installed as:
 ```
 pip3 install .
 ```
