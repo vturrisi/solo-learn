@@ -20,12 +20,14 @@
 
 import io
 import os
+import warnings
 from pathlib import Path
 from typing import Callable, Optional
-from tqdm import tqdm
+
 import h5py
 from PIL import Image
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 
 class H5Dataset(Dataset):
@@ -74,12 +76,19 @@ class H5Dataset(Dataset):
             for class_name, img_name, _ in self._data:
                 if class_name in class_set:
                     new_data.append((class_name, img_name, self.class_to_idx[class_name]))
-            self._data = new_data
+            if not new_data:
+                warnings.warn(
+                    "Skipped filtering. Tried to filter classes for imagenet100, "
+                    "but wasn't able to do so. Either make sure that you do not "
+                    "rely on the filtering, i.e. your h5 file is already filtered "
+                    "or make sure the class names are the default ones."
+                )
+            else:
+                self._data = new_data
 
     def _load_h5_data_info(self):
         self._data = []
         h5_data_info_file = os.path.splitext(self.h5_path)[0] + ".txt"
-
         if not os.path.isfile(h5_data_info_file):
             temp_h5_file = h5py.File(self.h5_path, "r")
 

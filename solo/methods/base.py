@@ -17,7 +17,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import warnings
 from argparse import ArgumentParser
 from functools import partial
@@ -352,10 +351,11 @@ class BaseMethod(pl.LightningModule):
 
                 no_labels = self.extra_args.get("no_labels", False)
                 data_fraction = self.extra_args.get("data_fraction", -1.0)
-
+                data_format = self.extra_args.get("data_format", "image_folder")
                 dataset_size = compute_dataset_size(
                     dataset=dataset,
                     data_path=data_path,
+                    data_format=data_format,
                     train=True,
                     no_labels=no_labels,
                     data_fraction=data_fraction,

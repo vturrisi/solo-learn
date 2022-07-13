@@ -25,7 +25,6 @@ from typing import List, Optional, Tuple
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-
 from solo.utils.h5_dataset import H5Dataset
 
 
