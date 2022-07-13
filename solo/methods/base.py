@@ -349,7 +349,7 @@ class BaseMethod(pl.LightningModule):
                     data_path = self.extra_args.get("train_data_path", "./train")
                 else:
                     data_path = None
-                
+
                 no_labels = self.extra_args.get("no_labels", False)
                 data_fraction = self.extra_args.get("data_fraction", -1.0)
 
