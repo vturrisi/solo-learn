@@ -1,11 +1,11 @@
 # Train without labels.
 # To train with labels, simply remove --no_labels
-# --val_dir is optional and will expect a directory with subfolder (classes)
-# --dali flag is also supported
+# --val_data_path is optional and will expect a directory with subfolder (classes)
+# --data_format supports "image_folder" and "dali"
 python3 main_pretrain.py \
     --dataset custom \
     --backbone resnet18 \
-    --train_data_dir PATH_TO_TRAIN_DIR \
+    --train_data_path PATH_TO_TRAIN_DIR \
     --no_labels \
     --max_epochs 400 \
     --devices 0,1 \

@@ -56,7 +56,6 @@ setup(
         "scipy",
         "timm",
         "scikit-learn",
-        "h5py",
     ],
     extras_require=EXTRA_REQUIREMENTS,
     dependency_links=["https://developer.download.nvidia.com/compute/redist"],

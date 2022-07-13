@@ -15,6 +15,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Jul 13 2022]**: :sparkling_heart: Added support for [H5](https://docs.h5py.org/en/stable/index.html) data, improved scripts and data handling.
 * **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
 * **[Jun 10 2022]**: :bomb: Improved LARS.
 * **[Jun 09 2022]**: :lollipop: Added support for [WideResnet](https://arxiv.org/abs/1605.07146), multicrop for SwAV and equalization data augmentation.
