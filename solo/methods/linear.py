@@ -181,30 +181,23 @@ class LinearModel(pl.LightningModule):
             try:
                 dataset = self.extra_args.get("dataset", None)
                 if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    data_dir = self.extra_args.get("data_dir", ".")
-                    train_dir = self.extra_args.get("train_dir", "train")
-                    folder = os.path.join(data_dir, str(train_dir))
-                    h5py_file = self.extra_args.get("train_h5_path", None)
-                    h5py_file = os.path.join(data_dir, h5py_file)
+                    data_path = self.extra_args.get("train_data_path", "./train")
                 else:
-                    folder = None
-                    h5py_file = None
+                    data_path = None
 
                 no_labels = self.extra_args.get("no_labels", False)
                 data_fraction = self.extra_args.get("data_fraction", -1.0)
 
                 dataset_size = compute_dataset_size(
                     dataset=dataset,
-                    folder=folder,
+                    data_path=data_path,
                     train=True,
                     no_labels=no_labels,
-                    h5py_file=h5py_file,
                     data_fraction=data_fraction,
                 )
             except:
                 raise RuntimeError(
-                    "Please pass 'dataset' or 'data_dir '"
-                    "and 'train_dir' as parameters to the model."
+                    "Please pass 'dataset' or 'train_data_path' as parameters to the model."
                 )
 
             dataset_size = self.trainer.limit_train_batches * dataset_size

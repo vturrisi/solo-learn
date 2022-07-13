@@ -208,9 +208,9 @@ def gather(X, dim=0):
 def compute_dataset_size(
     dataset: Optional[str] = None,
     train: Optional[bool] = True,
-    folder: Optional[str] = None,
+    data_path: Optional[str] = None,
+    data_format: Optional[str] = "image_folder",
     no_labels: Optional[bool] = False,
-    h5py_file: Optional[str] = None,
     data_fraction: Optional[float] = -1,
 ):
     """Utility function to get the dataset size. If using cifar or stl,
@@ -220,13 +220,13 @@ def compute_dataset_size(
     specify if it has labels or not with the no_labels flag.
 
     Args:
-        folder (Optional[str]): path to the ImageFolder. Defaults to None.
         dataset (Optional[str]): dataset size for predefined datasets
             [cifar10, cifar100, stl10]. Defaults to None.
         train (Optional[bool]): train dataset flag. Defaults to True.
+        data_path (Optional[str]): path to the folder. Defaults to None.
+        data_format (Optional[str]): format of the data, either "image_folder" or "h5".
+            Defaults to "image_folder".
         no_labels (Optional[bool]): if the dataset has no labels. Defaults to False.
-        h5py_file (Optional[str]): if using an h5py file, create a dummy H5Dataset to count the number of images.
-            Defaults to None.
         data_fraction (Optional[float]): amount of data to use. Defaults to -1.
 
     Returns:
@@ -243,15 +243,15 @@ def compute_dataset_size(
     if dataset is not None:
         size = DATASET_SIZES.get(dataset.lower(), {}).get("train" if train else "val", None)
 
-    if h5py_file is not None:
-        size = len(H5Dataset(dataset, h5py_file))
+    if data_format == "h5":
+        size = len(H5Dataset(dataset, data_path))
 
     if size is None:
         if no_labels:
-            size = len(os.listdir(folder))
+            size = len(os.listdir(data_path))
         else:
             size = sum(
-                len(os.listdir(os.path.join(folder, class_))) for class_ in os.listdir(folder)
+                len(os.listdir(os.path.join(data_path, class_))) for class_ in os.listdir(data_path)
             )
 
     if data_fraction != -1:
