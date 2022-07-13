@@ -214,7 +214,7 @@ def additional_setup_pretrain(args: Namespace):
     with suppress(AttributeError):
         del args.patch_size
 
-    if args.dali:
+    if args.data_format == "dali":
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
@@ -286,7 +286,7 @@ def additional_setup_linear(args: Namespace):
     with suppress(AttributeError):
         del args.patch_size
 
-    if args.dali:
+    if args.data_format == "dali":
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
