@@ -218,7 +218,7 @@ def main():
     except:
         pass
 
-    if args.dali:
+    if args.data_format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
