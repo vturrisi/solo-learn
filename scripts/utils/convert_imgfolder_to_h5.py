@@ -35,7 +35,7 @@ def convert_imgfolder_to_h5(folder_path: str, h5_path: str):
 
     with h5py.File(h5_path, "w") as h5:
         classes = os.listdir(folder_path)
-        for class_name in tqdm(classes, desc="Processing classes:"):
+        for class_name in tqdm(classes, desc="Processing classes"):
             cur_folder = os.path.join(folder_path, class_name)
             class_group = h5.create_group(class_name)
             for i, img_name in enumerate(os.listdir(cur_folder)):
