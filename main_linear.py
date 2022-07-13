@@ -90,28 +90,28 @@ def main():
     model = LinearModel(backbone, **args.__dict__)
     make_contiguous(model)
 
+    if args.data_format == "dali":
+        val_data_format = "image_folder"
+    else:
+        val_data_format = args.data_format
     train_loader, val_loader = prepare_data(
         args.dataset,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
-        train_h5_path=args.train_h5_path,
-        val_h5_path=args.val_h5_path,
+        train_data_path=args.train_data_path,
+        val_data_path=args.val_data_path,
+        data_format=val_data_format,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        data_fraction=args.data_fraction,
     )
 
-    if args.dali:
+    if args.data_format == "dali":
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with [dali]."
 
         dali_datamodule = ClassificationDALIDataModule(
             dataset=args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
+            train_data_path=args.train_data_path,
+            val_data_path=args.val_data_path,
             num_workers=args.num_workers,
             batch_size=args.batch_size,
             data_fraction=args.data_fraction,

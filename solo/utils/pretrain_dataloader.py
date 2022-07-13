@@ -497,10 +497,9 @@ def prepare_n_crop_transform(
 def prepare_datasets(
     dataset: str,
     transform: Callable,
-    data_dir: Optional[Union[str, Path]] = None,
-    train_dir: Optional[Union[str, Path]] = None,
+    train_data_path: Optional[Union[str, Path]] = None,
+    data_format: Optional[str] = "image_folder",
     no_labels: Optional[Union[str, Path]] = False,
-    train_h5_path: Optional[str] = None,
     download: bool = True,
     data_fraction: float = -1.0,
 ) -> Dataset:
@@ -509,31 +508,24 @@ def prepare_datasets(
     Args:
         dataset (str): the name of the dataset.
         transform (Callable): a transformation.
-        data_dir (Optional[Union[str, Path]]): the directory to load data from.
-            Defaults to None.
-        train_dir (Optional[Union[str, Path]]): training data directory
-            to be appended to data_dir. Defaults to None.
+        train_dir (Optional[Union[str, Path]]): training data path. Defaults to None.
+        data_format (Optional[str]): format of the data. Defaults to "image_folder".
+            Possible values are "image_folder" and "h5".
         no_labels (Optional[bool]): if the custom dataset has no labels.
-        train_h5_path Optional[str]: path to the train h5 dataset file, if it exists.
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
             Defaults to -1.0.
     Returns:
         Dataset: the desired dataset with transformations.
     """
 
-    if data_dir is None:
+    if train_data_path is None:
         sandbox_folder = Path(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-        data_dir = sandbox_folder / "datasets"
-
-    if train_dir is None:
-        train_dir = Path(f"{dataset}/train")
-    else:
-        train_dir = Path(train_dir)
+        train_data_path = sandbox_folder / "datasets"
 
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = dataset_with_index(DatasetClass)(
-            data_dir / train_dir,
+            train_data_path,
             train=True,
             download=download,
             transform=transform,
@@ -541,30 +533,25 @@ def prepare_datasets(
 
     elif dataset == "stl10":
         train_dataset = dataset_with_index(STL10)(
-            data_dir / train_dir,
+            train_data_path,
             split="train+unlabeled",
             download=download,
             transform=transform,
         )
 
     elif dataset in ["imagenet", "imagenet100"]:
-        if train_h5_path:
-            train_h5_path = data_dir / train_h5_path
-            train_dataset = dataset_with_index(H5Dataset)(dataset, train_h5_path, transform)
-
+        if data_format == "h5":
+            train_dataset = dataset_with_index(H5Dataset)(dataset, train_data_path, transform)
         else:
-            train_dir = data_dir / train_dir
-            train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
+            train_dataset = dataset_with_index(ImageFolder)(train_data_path, transform)
 
     elif dataset == "custom":
-        train_dir = data_dir / train_dir
-
         if no_labels:
             dataset_class = CustomDatasetWithoutLabels
         else:
             dataset_class = ImageFolder
 
-        train_dataset = dataset_with_index(dataset_class)(train_dir, transform)
+        train_dataset = dataset_with_index(dataset_class)(train_data_path, transform)
 
     if data_fraction > 0:
         assert data_fraction < 1, "Only use data_fraction for values smaller than 1."

@@ -1,0 +1,39 @@
+python3 main_pretrain.py \
+    --dataset imagenet100 \
+    --backbone resnet18 \
+    --train_data_path /datasets/imagenet-100/train \
+    --val_data_path /datasets/imagenet-100/val \
+    --max_epochs 400 \
+    --devices 0,1 \
+    --accelerator gpu \
+    --strategy ddp \
+    --precision 16 \
+    --optimizer sgd \
+    --scheduler warmup_cosine \
+    --lr 0.3 \
+    --classifier_lr 0.1 \
+    --weight_decay 1e-4 \
+    --batch_size 128 \
+    --num_workers 4 \
+    --data_format dali \
+    --brightness 0.4 0.0 \
+    --contrast 0.4 0.0 \
+    --saturation 0.4 0.0 \
+    --hue 0.1 0.0 \
+    --gaussian_prob 0.5 0.0 \
+    --solarization_prob 0.0 0.0 \
+    --num_crops_per_aug 1 1 \
+    --name ressl-400ep-imagenet100 \
+    --project solo-learn \
+    --entity unitn-mhug \
+    --wandb \
+    --save_checkpoint \
+    --auto_resume \
+    --method ressl \
+    --proj_output_dim 256 \
+    --proj_hidden_dim 4096 \
+    --base_tau_momentum 0.99 \
+    --final_tau_momentum 1.0 \
+    --momentum_classifier \
+    --temperature_q 0.1 \
+    --temperature_k 0.04

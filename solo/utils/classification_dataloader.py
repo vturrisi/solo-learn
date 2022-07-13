@@ -144,11 +144,9 @@ def prepare_datasets(
     dataset: str,
     T_train: Callable,
     T_val: Callable,
-    data_dir: Optional[Union[str, Path]] = None,
-    train_dir: Optional[Union[str, Path]] = None,
-    val_dir: Optional[Union[str, Path]] = None,
-    train_h5_path: Optional[str] = None,
-    val_h5_path: Optional[str] = None,
+    train_data_path: Optional[Union[str, Path]] = None,
+    val_data_path: Optional[Union[str, Path]] = None,
+    data_format: Optional[str] = "image_folder",
     download: bool = True,
     data_fraction: float = -1.0,
 ) -> Tuple[Dataset, Dataset]:
@@ -158,11 +156,12 @@ def prepare_datasets(
         dataset (str): dataset name.
         T_train (Callable): pipeline of transformations for training dataset.
         T_val (Callable): pipeline of transformations for validation dataset.
-        data_dir Optional[Union[str, Path]]: path where to download/locate the dataset.
-        train_dir Optional[Union[str, Path]]: subpath where the training data is located.
-        val_dir Optional[Union[str, Path]]: subpath where the validation data is located.
-        train_h5_path Optional[str]: path to the train h5 dataset file, if it exists.
-        val_h5_path Optional[str]: path to the val h5 dataset file, if it exists.
+        train_data_path (Optional[Union[str, Path]], optional): path where the
+            training data is located. Defaults to None.
+        val_data_path (Optional[Union[str, Path]], optional): path where the
+            validation data is located. Defaults to None.
+        data_format (Optional[str]): format of the data. Defaults to "image_folder".
+            Possible values are "image_folder" and "h5".
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
             Defaults to -1.0.
 
@@ -170,35 +169,27 @@ def prepare_datasets(
         Tuple[Dataset, Dataset]: training dataset and validation dataset.
     """
 
-    if data_dir is None:
-        sandbox_dir = Path(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-        data_dir = sandbox_dir / "datasets"
-    else:
-        data_dir = Path(data_dir)
+    if train_data_path is None:
+        sandbox_folder = Path(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+        train_data_path = sandbox_folder / "datasets"
 
-    if train_dir is None:
-        train_dir = Path(f"{dataset}/train")
-    else:
-        train_dir = Path(train_dir)
-
-    if val_dir is None:
-        val_dir = Path(f"{dataset}/val")
-    else:
-        val_dir = Path(val_dir)
+    if val_data_path is None:
+        sandbox_folder = Path(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+        val_data_path = sandbox_folder / "datasets"
 
     assert dataset in ["cifar10", "cifar100", "stl10", "imagenet", "imagenet100", "custom"]
 
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
-            data_dir / train_dir,
+            train_data_path,
             train=True,
             download=download,
             transform=T_train,
         )
 
         val_dataset = DatasetClass(
-            data_dir / val_dir,
+            val_data_path,
             train=False,
             download=download,
             transform=T_val,
@@ -206,32 +197,25 @@ def prepare_datasets(
 
     elif dataset == "stl10":
         train_dataset = STL10(
-            data_dir / train_dir,
+            train_data_path,
             split="train",
             download=True,
             transform=T_train,
         )
         val_dataset = STL10(
-            data_dir / val_dir,
+            val_data_path,
             split="test",
             download=download,
             transform=T_val,
         )
 
     elif dataset in ["imagenet", "imagenet100", "custom"]:
-        if train_h5_path:
-            train_h5_path = data_dir / train_h5_path
-            train_dataset = H5Dataset(dataset, train_h5_path, T_train)
+        if data_format == "h5":
+            train_dataset = H5Dataset(dataset, train_data_path, T_train)
+            val_dataset = H5Dataset(dataset, val_data_path, T_val)
         else:
-            train_dir = data_dir / train_dir
-            train_dataset = ImageFolder(train_dir, T_train)
-
-        if val_h5_path:
-            val_h5_path = data_dir / val_h5_path
-            val_dataset = H5Dataset(dataset, val_h5_path, T_val)
-        else:
-            val_dir = data_dir / val_dir
-            val_dataset = ImageFolder(val_dir, T_val)
+            train_dataset = ImageFolder(train_data_path, T_train)
+            val_dataset = ImageFolder(val_data_path, T_val)
 
     if data_fraction > 0:
         assert data_fraction < 1, "Only use data_fraction for values smaller than 1."
@@ -283,11 +267,9 @@ def prepare_dataloaders(
 
 def prepare_data(
     dataset: str,
-    data_dir: Optional[Union[str, Path]] = None,
-    train_dir: Optional[Union[str, Path]] = None,
-    val_dir: Optional[Union[str, Path]] = None,
-    train_h5_path: Optional[str] = None,
-    val_h5_path: Optional[str] = None,
+    train_data_path: Optional[Union[str, Path]] = None,
+    val_data_path: Optional[Union[str, Path]] = None,
+    data_format: Optional[str] = "image_folder",
     batch_size: int = 64,
     num_workers: int = 4,
     download: bool = True,
@@ -297,14 +279,12 @@ def prepare_data(
 
     Args:
         dataset (str): dataset name.
-        data_dir (Optional[Union[str, Path]], optional): path where to download/locate the dataset.
-            Defaults to None.
-        train_dir (Optional[Union[str, Path]], optional): subpath where the
+        train_data_path (Optional[Union[str, Path]], optional): path where the
             training data is located. Defaults to None.
-        val_dir (Optional[Union[str, Path]], optional): subpath where the
+        val_data_path (Optional[Union[str, Path]], optional): path where the
             validation data is located. Defaults to None.
-        train_h5_path Optional[str]: path to the train h5 dataset file, if it exists.
-        val_h5_path Optional[str]: path to the val h5 dataset file, if it exists.
+        data_format (Optional[str]): format of the data. Defaults to "image_folder".
+            Possible values are "image_folder" and "h5".
         batch_size (int, optional): batch size. Defaults to 64.
         num_workers (int, optional): number of parallel workers. Defaults to 4.
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
@@ -319,13 +299,11 @@ def prepare_data(
         dataset,
         T_train,
         T_val,
-        data_dir=data_dir,
-        train_dir=train_dir,
-        val_dir=val_dir,
+        train_data_path=train_data_path,
+        val_data_path=val_data_path,
+        data_format=data_format,
         download=download,
         data_fraction=data_fraction,
-        train_h5_path=train_h5_path,
-        val_h5_path=val_h5_path,
     )
     train_loader, val_loader = prepare_dataloaders(
         train_dataset,

@@ -375,7 +375,7 @@ class BaseMethod(pl.LightningModule):
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
             num_devices = self.trainer.num_devices
-            num_nodes = self.trainer.num_nodes or 1
+            num_nodes = self.trainer.num_nodes
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
             )

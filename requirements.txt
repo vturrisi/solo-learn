@@ -9,4 +9,3 @@ wandb
 scipy
 timm
 scikit-learn
-h5py

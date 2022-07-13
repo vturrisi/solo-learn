@@ -123,7 +123,7 @@ First clone the repo.
 
 Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
 ```
-pip3 install .[dali,umap] --extra-index-url https://developer.download.nvidia.com/compute/redist
+pip3 install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
 ```
 
 If no Dali/UMAP support is needed, the repository can be installed as:
