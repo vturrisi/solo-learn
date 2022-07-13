@@ -65,7 +65,7 @@ The library is self-contained, but it is possible to use the models outside of s
 
 ## Extra flavor
 
-### Multiple backbones
+### Backbones
 * [ResNet](https://arxiv.org/abs/1512.03385)
 * [WideResNet](https://arxiv.org/abs/1605.07146)
 * [ViT](https://arxiv.org/abs/2010.11929)
@@ -77,22 +77,23 @@ The library is self-contained, but it is possible to use the models outside of s
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
 * Flexible augmentations.
 
-### Evaluation and logging
+### Evaluation
 * Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well).
+* Standard offline linear evaluation.
 * Online and offline K-NN evaluation.
-* Normal offline linear evaluation.
-* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
-* Easy-to-extend modular code structure.
-* Custom model logging with a simpler file organization.
 * Automatic feature space visualization with UMAP.
-* Offline UMAP.
-* Common metrics.
 
 ### Training tricks
+* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, and much more).
+* Channel last conversion
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
     * **Note**: currently, only SimCLR, BYOL and SwAV support this.
-* Exclude batchnorm and biases from LARS.
-* No LR scheduler for the projection head in SimSiam.
+* Exclude batchnorm and biases from weight decay and LARS.
+* No LR scheduler for the projection head (as in SimSiam).
+
+### Logging
+* Metric logging on the cloud with [WandB](https://wandb.ai/site)
+* Custom model checkpointing with a simple file organization.
 
 ---
 ## Requirements
