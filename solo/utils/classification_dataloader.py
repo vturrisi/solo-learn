@@ -22,11 +22,17 @@ from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
 import torchvision
-from solo.utils.h5_dataset import H5Dataset
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
+
+try:
+    from solo.utils.h5_dataset import H5Dataset
+except ImportError:
+    _h5_available = False
+else:
+    _h5_available = True
 
 
 def build_custom_pipeline():
@@ -211,6 +217,7 @@ def prepare_datasets(
 
     elif dataset in ["imagenet", "imagenet100", "custom"]:
         if data_format == "h5":
+            assert _h5_available
             train_dataset = H5Dataset(dataset, train_data_path, T_train)
             val_dataset = H5Dataset(dataset, val_data_path, T_val)
         else:

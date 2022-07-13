@@ -30,7 +30,12 @@ from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
 
-from solo.utils.h5_dataset import H5Dataset
+try:
+    from solo.utils.h5_dataset import H5Dataset
+except ImportError:
+    _h5_available = False
+else:
+    _h5_available = True
 
 
 def dataset_with_index(DatasetClass: Type[Dataset]) -> Type[Dataset]:
@@ -541,6 +546,7 @@ def prepare_datasets(
 
     elif dataset in ["imagenet", "imagenet100"]:
         if data_format == "h5":
+            assert _h5_available
             train_dataset = dataset_with_index(H5Dataset)(dataset, train_data_path, transform)
         else:
             train_dataset = dataset_with_index(ImageFolder)(train_data_path, transform)
