@@ -15,7 +15,7 @@ python3 main_pretrain.py \
     --eta_lars 0.02 \
     --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 2.0e-4  \
+    --lr 3.0e-4  \
     --classifier_lr 3.0e-4 \
     --weight_decay 0.1 \
     --batch_size 64 \
@@ -33,7 +33,6 @@ python3 main_pretrain.py \
     --entity unitn-mhug \
     --save_checkpoint \
     --wandb \
-    --auto_resume \
     --method mocov3 \
     --proj_hidden_dim 4096 \
     --pred_hidden_dim 4096 \
