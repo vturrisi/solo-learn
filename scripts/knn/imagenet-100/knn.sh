@@ -1,8 +1,7 @@
 python3 main_knn.py \
     --dataset imagenet100 \
-    --data_dir /datasets \
-    --train_dir imagenet-100/train \
-    --val_dir imagenet-100/val \
+    --train_data_path /datasets/imagenet-100/train \
+    --val_data_path /datasets/imagenet-100/val \
     --batch_size 16 \
     --num_workers 10 \
     --pretrained_checkpoint_dir PATH \
