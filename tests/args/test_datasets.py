@@ -29,7 +29,7 @@ def test_argparse_dataset():
     assert "dataset" in actions
     assert "train_data_path" in actions
     assert "val_data_path" in actions
-    assert "dali" in actions
+    assert "data_format" in actions
 
 
 def test_argparse_augmentations():
