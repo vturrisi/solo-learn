@@ -57,7 +57,7 @@ def main():
     if "swin" in args.backbone and cifar:
         kwargs["window_size"] = 4
 
-    backbone = backbone_model(**kwargs)
+    backbone = backbone_model(method=None, **kwargs)
     if args.backbone.startswith("resnet"):
         # remove fc layer
         backbone.fc = nn.Identity()
