@@ -134,8 +134,7 @@ def test_dali_pretrain():
             kwargs = {**BASE_KWARGS, **DATA_KWARGS_WRAPPED, **method_kwargs}
 
             kwargs["dali_device"] = "cpu"
-            kwargs["train_dir"] = "dummy_train"
-            kwargs["data_dir"] = "."
+            kwargs["train_data_path"] = "./dummy_train"
             kwargs["dataset"] = "custom"
 
             kwargs["transform_kwargs"] = dict(
@@ -161,8 +160,7 @@ def test_dali_pretrain():
             )
             dali_datamodule = PretrainDALIDataModule(
                 dataset=args.dataset,
-                data_dir=args.data_dir,
-                train_dir=args.train_dir,
+                train_data_path=args.train_data_path,
                 unique_augs=args.unique_augs,
                 transform_kwargs=args.transform_kwargs,
                 num_crops_per_aug=args.num_crops_per_aug,
@@ -187,9 +185,8 @@ def test_dali_linear():
         backbone.fc = nn.Identity()
 
         kwargs["dali_device"] = "cpu"
-        kwargs["data_dir"] = "."
-        kwargs["train_dir"] = "dummy_train"
-        kwargs["val_dir"] = "dummy_val"
+        kwargs["train_data_path"] = "./dummy_train"
+        kwargs["val_data_path"] = "./dummy_val"
         kwargs["dataset"] = "custom"
 
         del kwargs["backbone"]
@@ -199,9 +196,8 @@ def test_dali_linear():
         args = argparse.Namespace(**kwargs)
         dali_datamodule = ClassificationDALIDataModule(
             dataset=args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
+            train_data_path=args.train_data_path,
+            val_data_path=args.val_data_path,
             num_workers=args.num_workers,
             batch_size=args.batch_size,
             data_fraction=args.data_fraction,
