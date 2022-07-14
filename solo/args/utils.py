@@ -57,10 +57,9 @@ def additional_setup_pretrain(args: Namespace):
     else:
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
-        dir_path = args.data_dir / args.train_dir
         args.num_classes = max(
             1,
-            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+            len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
         )
 
     unique_augs = max(
@@ -214,7 +213,7 @@ def additional_setup_pretrain(args: Namespace):
     with suppress(AttributeError):
         del args.patch_size
 
-    if args.dali:
+    if args.data_format == "dali":
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
@@ -239,18 +238,8 @@ def additional_setup_pretrain(args: Namespace):
         args.devices = [int(device) for device in args.devices.split(",") if device]
 
     # adjust lr according to batch size
-    if args.strategy == "horovod":
-        warnings.warn(
-            "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of "
-            "devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
-            "N_GPUS to properly scale the lr. "
-            "You can also manually scale your lr if you are not sure, by checking your logs."
-        )
-
     try:
-        num_nodes = args.num_nodes_horovod or args.num_nodes or 1
+        num_nodes = args.num_nodes or 1
     except AttributeError:
         num_nodes = 1
 
@@ -278,10 +267,9 @@ def additional_setup_linear(args: Namespace):
     else:
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
-        dir_path = args.data_dir / args.train_dir
         args.num_classes = max(
             1,
-            len([entry.name for entry in os.scandir(dir_path) if entry.is_dir]),
+            len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
         )
 
     # create backbone-specific arguments
@@ -296,7 +284,7 @@ def additional_setup_linear(args: Namespace):
     with suppress(AttributeError):
         del args.patch_size
 
-    if args.dali:
+    if args.data_format == "dali":
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
 
     args.extra_optimizer_args = {}
@@ -315,18 +303,8 @@ def additional_setup_linear(args: Namespace):
         args.devices = [int(device) for device in args.devices.split(",") if device]
 
     # adjust lr according to batch size
-    if args.strategy == "horovod":
-        warnings.warn(
-            "When using horovod, be aware of how the processes are divided. "
-            "The learning rate will only be scaled considering the number of "
-            "devices in each process. "
-            "If each gpu corresponds to each process, you should pass --num_nodes_horovod "
-            "N_GPUS to properly scale the lr. "
-            "You can also manually scale your lr if you are not sure, by checking your logs."
-        )
-
     try:
-        num_nodes = args.num_nodes_horovod or args.num_nodes or 1
+        num_nodes = args.num_nodes or 1
     except AttributeError:
         num_nodes = 1
 

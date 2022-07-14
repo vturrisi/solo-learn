@@ -20,6 +20,7 @@
 from solo.utils import (
     checkpointer,
     classification_dataloader,
+    h5_dataset,
     knn,
     lars,
     metrics,
@@ -32,6 +33,7 @@ from solo.utils import (
 __all__ = [
     "classification_dataloader",
     "pretrain_dataloader",
+    "h5_dataset",
     "checkpointer",
     "knn",
     "misc",

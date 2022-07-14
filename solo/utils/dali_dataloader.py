@@ -779,8 +779,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
     def __init__(
         self,
         dataset: str,
-        data_dir: Union[str, Path],
-        train_dir: Union[str, Path],
+        train_data_path: Union[str, Path],
         unique_augs: int,
         transform_kwargs: Dict[str, Any],
         num_crops_per_aug: List[int],
@@ -798,8 +797,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
 
         Args:
             dataset (str): dataset name.
-            data_dir (Union[str, Path]): path where to download/locate the dataset.
-            train_dir (Union[str, Path]): subpath where the training data is located.
+            train_data_path (Union[str, Path]): path where the training data is located.
             unique_augs (int): number of unique augmentation pielines
             transform_kwargs (Dict[str, Any]): kwargs for the transformations.
             num_crops_per_aug (List[int]): number of crops per pipeline.
@@ -822,8 +820,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         self.dataset = dataset
 
         # paths
-        self.data_dir = Path(data_dir)
-        self.train_dir = Path(train_dir)
+        self.train_data_path = Path(train_data_path)
 
         # augmentation-related
         self.unique_augs = unique_augs
@@ -899,7 +896,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         train_pipeline_builder = PretrainPipelineBuilder(
-            self.data_dir / self.train_dir,
+            self.train_data_path,
             batch_size=self.batch_size,
             transforms=self.transforms,
             num_crops_per_aug=self.num_crops_per_aug,
@@ -951,9 +948,8 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
     def __init__(
         self,
         dataset: str,
-        data_dir: Union[str, Path],
-        train_dir: Union[str, Path],
-        val_dir: Union[str, Path],
+        train_data_path: Union[str, Path],
+        val_data_path: Union[str, Path],
         batch_size: int,
         num_workers: int = 4,
         data_fraction: float = -1.0,
@@ -963,9 +959,8 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
 
         Args:
             dataset (str): dataset name.
-            data_dir (Union[str, Path]): path where to download/locate the dataset.
-            train_dir (Union[str, Path]): subpath where the training data is located.
-            val_dir (Union[str, Path]): subpath where the validation data is located.
+            train_data_path (Union[str, Path]): path where the training data is located.
+            val_data_path (Union[str, Path]): path where the validation data is located.
             batch_size (int): batch size..
             num_workers (int, optional): number of parallel workers. Defaults to 4.
             data_fraction (float, optional): percentage of data to use.
@@ -979,9 +974,8 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         self.dataset = dataset
 
         # paths
-        self.data_dir = Path(data_dir)
-        self.train_dir = Path(train_dir)
-        self.val_dir = Path(val_dir)
+        self.train_data_path = Path(train_data_path)
+        self.val_data_path = Path(val_data_path)
 
         self.num_workers = num_workers
 
@@ -1022,7 +1016,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         train_pipeline_builder = self.pipeline_class(
-            self.data_dir / self.train_dir,
+            self.train_data_path,
             validation=False,
             batch_size=self.batch_size,
             device=self.dali_device,
@@ -1054,7 +1048,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
 
     def val_dataloader(self) -> DALIGenericIterator:
         val_pipeline_builder = self.pipeline_class(
-            self.data_dir / self.val_dir,
+            self.val_data_path,
             validation=True,
             batch_size=self.batch_size,
             device=self.dali_device,

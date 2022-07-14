@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -57,7 +57,7 @@ def main():
     if "swin" in args.backbone and cifar:
         kwargs["window_size"] = 4
 
-    backbone = backbone_model(**kwargs)
+    backbone = backbone_model(method=None, **kwargs)
     if args.backbone.startswith("resnet"):
         # remove fc layer
         backbone.fc = nn.Identity()
@@ -90,25 +90,28 @@ def main():
     model = LinearModel(backbone, **args.__dict__)
     make_contiguous(model)
 
+    if args.data_format == "dali":
+        val_data_format = "image_folder"
+    else:
+        val_data_format = args.data_format
     train_loader, val_loader = prepare_data(
         args.dataset,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
+        train_data_path=args.train_data_path,
+        val_data_path=args.val_data_path,
+        data_format=val_data_format,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        data_fraction=args.data_fraction,
     )
-    if args.dali:
+
+    if args.data_format == "dali":
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with [dali]."
 
         dali_datamodule = ClassificationDALIDataModule(
             dataset=args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
+            train_data_path=args.train_data_path,
+            val_data_path=args.val_data_path,
             num_workers=args.num_workers,
             batch_size=args.batch_size,
             data_fraction=args.data_fraction,
@@ -192,7 +195,7 @@ def main():
     except:
         pass
 
-    if args.dali:
+    if args.data_format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)

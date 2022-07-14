@@ -40,7 +40,9 @@ def test_setup_pretrain():
         "cifar10",
         "--backbone",
         "resnet18",
-        "--data_dir",
+        "--train_data_path",
+        "./datasets",
+        "--val_data_path",
         "./datasets",
         "--max_epochs",
         "1000",
@@ -135,12 +137,10 @@ def test_setup_linear():
         "imagenet100",
         "--backbone",
         "resnet18",
-        "--data_dir",
-        "/datasets",
-        "--train_dir",
-        "imagenet-100/train",
-        "--val_dir",
-        "imagenet-100/val",
+        "--train_data_path",
+        "./datasets",
+        "--val_data_path",
+        "./datasets",
         "--max_epochs",
         "100",
         "--devices",
@@ -166,7 +166,8 @@ def test_setup_linear():
         "128",
         "--num_workers",
         "10",
-        "--dali",
+        "--data_format",
+        "dali",
         "--name",
         "test",
         "--pretrained_feature_extractor",
@@ -215,7 +216,7 @@ def test_additional_setup_pretrain():
         "max_scale": [1.0],
         "crop_size": [224],
         "num_crops_per_aug": [1, 1],
-        "dali": True,
+        "data_format": "dali",
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
@@ -224,7 +225,6 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -253,7 +253,7 @@ def test_additional_setup_pretrain():
         "max_scale": [1.0],
         "crop_size": [224],
         "num_crops_per_aug": [2],
-        "dali": True,
+        "data_format": "dali",
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
@@ -262,7 +262,6 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -291,7 +290,7 @@ def test_additional_setup_pretrain():
         "max_scale": [1.0],
         "crop_size": [224, 96],
         "num_crops_per_aug": [2, 4],
-        "dali": False,
+        "data_format": "image_folder",
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
@@ -300,7 +299,6 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -329,7 +327,7 @@ def test_additional_setup_pretrain():
         "max_scale": [1.0],
         "crop_size": [224],
         "num_crops_per_aug": [1, 1],
-        "dali": True,
+        "data_format": "dali",
         "optimizer": "sgd",
         "devices": "0,",
         "lr": 0.1,
@@ -338,7 +336,6 @@ def test_additional_setup_pretrain():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -354,9 +351,8 @@ def test_additional_setup_pretrain():
         args = {
             "backbone": "vit_small",
             "dataset": "custom",
-            "data_dir": Path("."),
-            "train_dir": "dummy_train",
-            "val_dir": "dummy_val",
+            "train_data_path": "./dummy_train",
+            "val_data_path": "./dummy_val",
             "mean": [0.485, 0.456, 0.406],
             "std": [0.228, 0.224, 0.225],
             "brightness": [0.4],
@@ -373,7 +369,7 @@ def test_additional_setup_pretrain():
             "min_scale": [0.08],
             "max_scale": [1.0],
             "crop_size": [224],
-            "dali": True,
+            "data_format": "dali",
             "optimizer": "sgd",
             "devices": "0,",
             "lr": 0.1,
@@ -382,7 +378,6 @@ def test_additional_setup_pretrain():
             "patch_size": 16,
             "strategy": None,
             "num_nodes": 1,
-            "num_nodes_horovod": None,
         }
         args = argparse.Namespace(**args)
 
@@ -398,7 +393,7 @@ def test_additional_setup_linear():
     args = {
         "backbone": "resnet18",
         "dataset": "imagenet100",
-        "dali": True,
+        "data_format": "dali",
         "optimizer": "sgd",
         "devices": "0,1",
         "lr": 0.1,
@@ -406,7 +401,6 @@ def test_additional_setup_linear():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -420,7 +414,7 @@ def test_additional_setup_linear():
     args = {
         "backbone": "resnet18",
         "dataset": "imagenet100",
-        "dali": True,
+        "data_format": "dali",
         "optimizer": "sgd",
         "devices": "0,",
         "lr": 0.1,
@@ -428,7 +422,6 @@ def test_additional_setup_linear():
         "zero_init_residual": False,
         "strategy": None,
         "num_nodes": 1,
-        "num_nodes_horovod": None,
     }
     args = argparse.Namespace(**args)
 
@@ -443,13 +436,12 @@ def test_additional_setup_linear():
         args = {
             "backbone": "vit_small",
             "dataset": "custom",
-            "data_dir": Path("."),
-            "train_dir": "dummy_train",
-            "val_dir": "dummy_val",
+            "train_data_path": "./dummy_train",
+            "val_data_path": "./dummy_val",
             "mean": [0.485, 0.456, 0.406],
             "std": [0.228, 0.224, 0.225],
             "crop_size": [224],
-            "dali": False,
+            "data_format": "image_folder",
             "num_crops_per_aug": [2],
             "optimizer": "sgd",
             "devices": "0,",
@@ -459,7 +451,6 @@ def test_additional_setup_linear():
             "patch_size": 16,
             "strategy": None,
             "num_nodes": 1,
-            "num_nodes_horovod": None,
         }
         args = argparse.Namespace(**args)
 

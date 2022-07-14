@@ -17,7 +17,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import warnings
 from argparse import ArgumentParser
 from functools import partial
@@ -336,14 +335,6 @@ class BaseMethod(pl.LightningModule):
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
 
-        # When using horovod, be aware of how the processes are divided.
-        # The learning rate will only be scaled considering the number of
-        # devices in each process.
-        # If each gpu corresponds to each process, you should pass --num_nodes_horovod
-        # N_GPUS to properly scale the lr.
-        # You can also manually scale your lr if you are not sure, by checking your logs.
-        parser.add_argument("--num_nodes_horovod", default=None, type=int)
-
         return parent_parser
 
     @property
@@ -354,31 +345,30 @@ class BaseMethod(pl.LightningModule):
             try:
                 dataset = self.extra_args.get("dataset", None)
                 if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    data_dir = self.extra_args.get("data_dir", ".")
-                    train_dir = self.extra_args.get("train_dir", "train")
-                    folder = os.path.join(data_dir, train_dir)
+                    data_path = self.extra_args.get("train_data_path", "./train")
                 else:
-                    folder = None
+                    data_path = None
+
                 no_labels = self.extra_args.get("no_labels", False)
                 data_fraction = self.extra_args.get("data_fraction", -1.0)
-
+                data_format = self.extra_args.get("data_format", "image_folder")
                 dataset_size = compute_dataset_size(
                     dataset=dataset,
-                    folder=folder,
+                    data_path=data_path,
+                    data_format=data_format,
                     train=True,
                     no_labels=no_labels,
                     data_fraction=data_fraction,
                 )
             except:
                 raise RuntimeError(
-                    "Please pass 'dataset' or 'data_dir '"
-                    "and 'train_dir' as parameters to the model."
+                    "Please pass 'dataset' or 'train_data_path' as parameters to the model."
                 )
 
             dataset_size = self.trainer.limit_train_batches * dataset_size
 
             num_devices = self.trainer.num_devices
-            num_nodes = self.extra_args.get("num_nodes_horovod", 0) or self.trainer.num_nodes or 1
+            num_nodes = self.trainer.num_nodes
             effective_batch_size = (
                 self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
             )

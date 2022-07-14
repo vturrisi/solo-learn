@@ -27,10 +27,9 @@ def test_argparse_dataset():
     actions = [vars(action)["dest"] for action in vars(parser)["_actions"]]
 
     assert "dataset" in actions
-    assert "data_dir" in actions
-    assert "train_dir" in actions
-    assert "val_dir" in actions
-    assert "dali" in actions
+    assert "train_data_path" in actions
+    assert "val_data_path" in actions
+    assert "data_format" in actions
 
 
 def test_argparse_augmentations():

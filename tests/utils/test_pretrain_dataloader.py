@@ -91,7 +91,7 @@ def test_data():
 
     T = [prepare_transform("cifar10", **kwargs)]
     T = prepare_n_crop_transform(T, num_crops_per_aug=[2])
-    train_dataset = prepare_datasets("cifar10", T, data_dir=None)
+    train_dataset = prepare_datasets("cifar10", T, train_data_path=None)
 
     assert isinstance(train_dataset, CIFAR10)
     assert len(train_dataset[0]) == 3

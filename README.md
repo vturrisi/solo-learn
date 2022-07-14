@@ -15,8 +15,9 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Jul 13 2022]**: :sparkling_heart: Added support for [H5](https://docs.h5py.org/en/stable/index.html) data, improved scripts and data handling.
 * **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
-* **[Jun 10 2022]**: :bomb: Improved LARS and fixed some issues to support [Horovod](https://horovod.readthedocs.io/en/stable/pytorch.html).
+* **[Jun 10 2022]**: :bomb: Improved LARS.
 * **[Jun 09 2022]**: :lollipop: Added support for [WideResnet](https://arxiv.org/abs/1605.07146), multicrop for SwAV and equalization data augmentation.
 * **[May 02 2022]**: :diamond_shape_with_a_dot_inside: Wrapped Dali with a DataModule, added auto resume for linear eval and Wandb run resume.
 * **[Apr 12 2022]**: :rainbow: Improved design of models and added support to train with a fraction of data.
@@ -65,7 +66,7 @@ The library is self-contained, but it is possible to use the models outside of s
 
 ## Extra flavor
 
-### Multiple backbones
+### Backbones
 * [ResNet](https://arxiv.org/abs/1512.03385)
 * [WideResNet](https://arxiv.org/abs/1605.07146)
 * [ViT](https://arxiv.org/abs/2010.11929)
@@ -77,22 +78,23 @@ The library is self-contained, but it is possible to use the models outside of s
 * Increased data processing speed by up to 100% using [Nvidia Dali](https://github.com/NVIDIA/DALI).
 * Flexible augmentations.
 
-### Evaluation and logging
+### Evaluation
 * Online linear evaluation via stop-gradient for easier debugging and prototyping (optionally available for the momentum backbone as well).
+* Standard offline linear evaluation.
 * Online and offline K-NN evaluation.
-* Normal offline linear evaluation.
-* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, automatic logging and much more).
-* Easy-to-extend modular code structure.
-* Custom model logging with a simpler file organization.
 * Automatic feature space visualization with UMAP.
-* Offline UMAP.
-* Common metrics.
 
 ### Training tricks
+* All the perks of PyTorch Lightning (mixed precision, gradient accumulation, clipping, and much more).
+* Channel last conversion
 * Multi-cropping dataloading following [SwAV](https://arxiv.org/abs/2006.09882):
     * **Note**: currently, only SimCLR, BYOL and SwAV support this.
-* Exclude batchnorm and biases from LARS.
-* No LR scheduler for the projection head in SimSiam.
+* Exclude batchnorm and biases from weight decay and LARS.
+* No LR scheduler for the projection head (as in SimSiam).
+
+### Logging
+* Metric logging on the cloud with [WandB](https://wandb.ai/site)
+* Custom model checkpointing with a simple file organization.
 
 ---
 ## Requirements
@@ -122,10 +124,10 @@ First clone the repo.
 
 Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
 ```
-pip3 install .[dali,umap] --extra-index-url https://developer.download.nvidia.com/compute/redist
+pip3 install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
 ```
 
-If no Dali/UMAP support is needed, the repository can be installed as:
+If no Dali/UMAP/H5 support is needed, the repository can be installed as:
 ```
 pip3 install .
 ```

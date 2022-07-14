@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -69,28 +69,32 @@ def main():
     make_contiguous(model)
 
     # validation dataloader for when it is available
-    if args.dataset == "custom" and (args.no_labels or args.val_dir is None):
+    if args.dataset == "custom" and (args.no_labels or args.val_data_path is None):
         val_loader = None
-    elif args.dataset in ["imagenet100", "imagenet"] and args.val_dir is None:
+    elif args.dataset in ["imagenet100", "imagenet"] and (args.val_data_path is None):
         val_loader = None
     else:
+        if args.data_format == "dali":
+            val_data_format = "image_folder"
+        else:
+            val_data_format = args.data_format
+
         _, val_loader = prepare_data_classification(
             args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
+            train_data_path=args.train_data_path,
+            val_data_path=args.val_data_path,
+            data_format=val_data_format,
             batch_size=args.batch_size,
             num_workers=args.num_workers,
         )
 
     # pretrain dataloader
-    if args.dali:
+    if args.data_format == "dali":
         assert _dali_avaliable, "Dali is not avaiable, please install it first with [dali]."
 
         dali_datamodule = PretrainDALIDataModule(
             dataset=args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
+            train_data_path=args.train_data_path,
             unique_augs=args.unique_augs,
             transform_kwargs=args.transform_kwargs,
             num_crops_per_aug=args.num_crops_per_aug,
@@ -120,8 +124,8 @@ def main():
         train_dataset = prepare_datasets(
             args.dataset,
             transform,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
+            train_data_path=args.train_data_path,
+            data_format=args.data_format,
             no_labels=args.no_labels,
             data_fraction=args.data_fraction,
         )
@@ -214,7 +218,7 @@ def main():
     except:
         pass
 
-    if args.dali:
+    if args.data_format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)

@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,7 @@ KW = ["artificial intelligence", "deep learning", "unsupervised learning", "cont
 EXTRA_REQUIREMENTS = {
     "dali": ["nvidia-dali-cuda110"],
     "umap": ["matplotlib", "seaborn", "pandas", "umap-learn"],
+    "h5": ["h5py"],
 }
 
 

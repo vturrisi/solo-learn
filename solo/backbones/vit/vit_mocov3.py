@@ -73,7 +73,7 @@ class VisionTransformerMoCo(VisionTransformer):
             [torch.sin(out_w), torch.cos(out_w), torch.sin(out_h), torch.cos(out_h)], dim=1
         )[None, :, :]
 
-        assert self.num_tokens == 1, "Assuming one and only one token, [cls]"
+        assert self.num_prefix_tokens == 1, "Assuming one and only one token, [cls]"
         pe_token = torch.zeros([1, 1, self.embed_dim], dtype=torch.float32)
         self.pos_embed = nn.Parameter(torch.cat([pe_token, pos_emb], dim=1))
         self.pos_embed.requires_grad = False
