@@ -211,24 +211,6 @@ class LinearModel(pl.LightningModule):
 
         return self._num_training_steps
 
-    def forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
-
-        Args:
-            X (torch.tensor): a batch of images in the tensor format.
-
-        Returns:
-            Dict[str, Any]: a dict containing features and logits.
-        """
-
-        if not self.no_channel_last:
-            X = X.to(memory_format=torch.channels_last)
-
-        with torch.no_grad():
-            feats = self.backbone(X)
-        logits = self.classifier(feats)
-        return {"logits": logits, "feats": feats}
-
     def configure_optimizers(self) -> Tuple[List, List]:
         """Configures the optimizer for the linear layer.
 
@@ -256,15 +238,25 @@ class LinearModel(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
+            max_warmup_steps = (
+                self.warmup_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.warmup_epochs
+            )
+            max_scheduler_steps = (
+                self.max_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.max_epochs
+            )
             scheduler = {
                 "scheduler": LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
-                    max_epochs=self.max_epochs * self.num_training_steps,
+                    warmup_epochs=max_warmup_steps,
+                    max_epochs=max_scheduler_steps,
                     warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
-                "interval": "step",
+                "interval": self.scheduler_interval,
                 "frequency": 1,
             }
         elif self.scheduler == "reduce":
@@ -279,6 +271,24 @@ class LinearModel(pl.LightningModule):
             )
 
         return [optimizer], [scheduler]
+
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
+
+        Args:
+            X (torch.tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing features and logits.
+        """
+
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
+
+        with torch.no_grad():
+            feats = self.backbone(X)
+        logits = self.classifier(feats)
+        return {"logits": logits, "feats": feats}
 
     def shared_step(
         self, batch: Tuple, batch_idx: int

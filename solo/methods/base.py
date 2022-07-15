@@ -422,6 +422,11 @@ class BaseMethod(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
+            max_warmup_steps = (
+                self.warmup_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.warmup_epochs
+            )
             max_scheduler_steps = (
                 self.max_epochs * self.num_training_steps
                 if self.scheduler_interval == "step"
@@ -430,7 +435,7 @@ class BaseMethod(pl.LightningModule):
             scheduler = {
                 "scheduler": LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
+                    warmup_epochs=max_warmup_steps,
                     max_epochs=max_scheduler_steps,
                     warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
