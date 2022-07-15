@@ -17,6 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import warnings
 from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -61,6 +62,7 @@ class LinearModel(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
+        scheduler_interval: str = "step",
         lr_decay_steps: Optional[Sequence[int]] = None,
         no_channel_last: bool = False,
         **kwargs,
@@ -79,6 +81,7 @@ class LinearModel(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
+            scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
             no_channel_last (bool). Disables channel last conversion operation which
@@ -106,6 +109,8 @@ class LinearModel(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
+        assert scheduler_interval in ["step", "epoch"]
+        self.scheduler_interval = scheduler_interval
         self.lr_decay_steps = lr_decay_steps
         self.no_channel_last = no_channel_last
 
@@ -116,6 +121,12 @@ class LinearModel(pl.LightningModule):
 
         for param in self.backbone.parameters():
             param.requires_grad = False
+
+        if scheduler_interval == "step":
+            warnings.warn(
+                f"Using scheduler_interval={scheduler_interval} might generate "
+                "issues when resuming a checkpoint."
+            )
 
         # can provide up to ~20% speed up
         if not no_channel_last:
@@ -166,6 +177,9 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
+        parser.add_argument(
+            "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
+        )
 
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
