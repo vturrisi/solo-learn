@@ -865,7 +865,8 @@ class BaseMomentumMethod(BaseMethod):
             self.log("tau", self.momentum_updater.cur_tau)
             # update tau
             self.momentum_updater.update_tau(
-                cur_step=self.trainer.global_step, max_steps=self.max_epochs * self.num_training_steps
+                cur_step=self.trainer.global_step,
+                max_steps=self.max_epochs * self.num_training_steps,
             )
         self.last_step = self.trainer.global_step
 
