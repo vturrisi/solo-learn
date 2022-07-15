@@ -83,7 +83,7 @@ class VisionTransformerMoCo(VisionTransformer):
 def vit_tiny(**kwargs):
     # patch_size is 16 by default
     model = VisionTransformerMoCo(
-        embed_dim=384,
+        embed_dim=192,
         depth=12,
         num_heads=12,
         mlp_ratio=4,
@@ -99,7 +99,7 @@ def vit_tiny(**kwargs):
 def vit_small(**kwargs):
     # patch_size is 16 by default
     model = VisionTransformerMoCo(
-        embed_dim=192,
+        embed_dim=384,
         depth=12,
         num_heads=12,
         mlp_ratio=4,
