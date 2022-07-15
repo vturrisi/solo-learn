@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -74,9 +74,8 @@ def gen_base_kwargs(
         "dali_device": "gpu",
         "batch_size": batch_size,
         "num_workers": 4,
-        "data_dir": "/data/datasets",
-        "train_dir": "cifar10/train",
-        "val_dir": "cifar10/val",
+        "train_data_path": "./cifar10/train",
+        "val_data_path": "./cifar10/val",
         "dataset": "cifar10",
     }
     if momentum:

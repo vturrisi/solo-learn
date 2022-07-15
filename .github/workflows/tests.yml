@@ -34,7 +34,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[umap] codecov mypy pytest-cov black
+          pip install -e .[umap,h5] codecov mypy pytest-cov black
 
       - name: Cache datasets
         uses: actions/cache@v2
@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}
 
       - name: pytest
-        run: pytest --cov=solo tests/args tests/losses tests/methods tests/utils
+        run: pytest --cov=solo tests/args tests/backbones tests/losses tests/methods tests/utils
 
       - name: Statistics
         if: success()

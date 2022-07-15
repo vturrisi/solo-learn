@@ -18,9 +18,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 from solo.utils import (
-    backbones,
     checkpointer,
     classification_dataloader,
+    h5_dataset,
     knn,
     lars,
     metrics,
@@ -31,9 +31,9 @@ from solo.utils import (
 )
 
 __all__ = [
-    "backbones",
     "classification_dataloader",
     "pretrain_dataloader",
+    "h5_dataset",
     "checkpointer",
     "knn",
     "misc",

@@ -92,7 +92,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     if temp_args.auto_resume:
         parser = AutoResumer.add_autoresumer_args(parser)
 
-    if _dali_available and temp_args.dali:
+    if _dali_available and temp_args.data_format == "dali":
         parser = PretrainDALIDataModule.add_dali_args(parser)
 
     # parse args
@@ -142,7 +142,7 @@ def parse_args_linear() -> argparse.Namespace:
     if temp_args.auto_resume:
         parser = AutoResumer.add_autoresumer_args(parser)
 
-    if _dali_available and temp_args.dali:
+    if _dali_available and temp_args.data_format == "dali":
         parser = ClassificationDALIDataModule.add_dali_args(parser)
 
     # parse args

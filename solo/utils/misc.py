@@ -26,6 +26,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+from solo.utils.h5_dataset import H5Dataset
 
 
 def _1d_filter(tensor: torch.Tensor) -> torch.Tensor:
@@ -206,8 +207,9 @@ def gather(X, dim=0):
 
 def compute_dataset_size(
     dataset: Optional[str] = None,
-    train: Optional[str] = True,
-    folder: Optional[str] = None,
+    train: Optional[bool] = True,
+    data_path: Optional[str] = None,
+    data_format: Optional[str] = "image_folder",
     no_labels: Optional[bool] = False,
     data_fraction: Optional[float] = -1,
 ):
@@ -218,16 +220,19 @@ def compute_dataset_size(
     specify if it has labels or not with the no_labels flag.
 
     Args:
-        folder (Optional[str], optional): path to the ImageFolder. Defaults to None.
-        dataset (Optional[str], optional): dataset size for predefined datasets
+        dataset (Optional[str]): dataset size for predefined datasets
             [cifar10, cifar100, stl10]. Defaults to None.
-        train (Optional[str], optional): either train dataset or validation. Defaults to True.
-        no_labels (Optional[bool], optional): if the dataset has no labels. Defaults to False.
-        data_fraction (Optional[float], optional): amount of data to use. Defaults to -1.
+        train (Optional[bool]): train dataset flag. Defaults to True.
+        data_path (Optional[str]): path to the folder. Defaults to None.
+        data_format (Optional[str]): format of the data, either "image_folder" or "h5".
+            Defaults to "image_folder".
+        no_labels (Optional[bool]): if the dataset has no labels. Defaults to False.
+        data_fraction (Optional[float]): amount of data to use. Defaults to -1.
 
     Returns:
-        _type_: _description_
+        int: size of the dataset
     """
+
     DATASET_SIZES = {
         "cifar10": {"train": 50_000, "val": 10_000},
         "cifar100": {"train": 50_000, "val": 10_000},
@@ -238,21 +243,25 @@ def compute_dataset_size(
     if dataset is not None:
         size = DATASET_SIZES.get(dataset.lower(), {}).get("train" if train else "val", None)
 
+    if data_format == "h5":
+        size = len(H5Dataset(dataset, data_path))
+
     if size is None:
         if no_labels:
-            size = len(os.listdir(folder))
+            size = len(os.listdir(data_path))
         else:
             size = sum(
-                len(os.listdir(os.path.join(folder, class_))) for class_ in os.listdir(folder)
+                len(os.listdir(os.path.join(data_path, class_))) for class_ in os.listdir(data_path)
             )
 
     if data_fraction != -1:
         size = int(size * data_fraction)
+
     return size
 
 
 def make_contiguous(module):
-    """Make the model contigous in order to comply with horovod.
+    """Make the model contigous in order to comply with some distributed strategies.
     https://github.com/lucidrains/DALLE-pytorch/issues/330
     """
 

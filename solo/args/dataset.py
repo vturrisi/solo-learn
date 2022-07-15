@@ -40,15 +40,16 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--dataset", choices=SUPPORTED_DATASETS, type=str, required=True)
 
     # dataset path
-    parser.add_argument("--data_dir", type=Path, required=True)
-    parser.add_argument("--train_dir", type=Path, default=None)
-    parser.add_argument("--val_dir", type=Path, default=None)
+    parser.add_argument("--train_data_path", type=Path, required=True)
+    parser.add_argument("--val_data_path", type=Path, default=None)
+    parser.add_argument(
+        "--data_format",
+        default="image_folder",
+        choices=["image_folder", "dali", "h5"],
+    )
 
     # percentage of data used from training, leave -1.0 to use all data available
     parser.add_argument("--data_fraction", default=-1.0, type=float)
-
-    # dali (imagenet-100/imagenet/custom only)
-    parser.add_argument("--dali", action="store_true")
 
 
 def augmentations_args(parser: ArgumentParser):

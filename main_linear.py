@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -26,21 +26,10 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
-from torchvision.models import resnet18, resnet50
 
 from solo.args.setup import parse_args_linear
 from solo.methods.base import BaseMethod
 from solo.utils.auto_resumer import AutoResumer
-from solo.utils.backbones import (
-    swin_base,
-    swin_large,
-    swin_small,
-    swin_tiny,
-    vit_base,
-    vit_large,
-    vit_small,
-    vit_tiny,
-)
 from solo.utils.misc import make_contiguous
 
 try:
@@ -59,18 +48,7 @@ def main():
     args = parse_args_linear()
 
     assert args.backbone in BaseMethod._BACKBONES
-    backbone_model = {
-        "resnet18": resnet18,
-        "resnet50": resnet50,
-        "vit_tiny": vit_tiny,
-        "vit_small": vit_small,
-        "vit_base": vit_base,
-        "vit_large": vit_large,
-        "swin_tiny": swin_tiny,
-        "swin_small": swin_small,
-        "swin_base": swin_base,
-        "swin_large": swin_large,
-    }[args.backbone]
+    backbone_model = BaseMethod._BACKBONES[args.backbone]
 
     # initialize backbone
     kwargs = args.backbone_args
@@ -79,7 +57,7 @@ def main():
     if "swin" in args.backbone and cifar:
         kwargs["window_size"] = 4
 
-    backbone = backbone_model(**kwargs)
+    backbone = backbone_model(method=None, **kwargs)
     if args.backbone.startswith("resnet"):
         # remove fc layer
         backbone.fc = nn.Identity()
@@ -112,25 +90,28 @@ def main():
     model = LinearModel(backbone, **args.__dict__)
     make_contiguous(model)
 
+    if args.data_format == "dali":
+        val_data_format = "image_folder"
+    else:
+        val_data_format = args.data_format
     train_loader, val_loader = prepare_data(
         args.dataset,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
+        train_data_path=args.train_data_path,
+        val_data_path=args.val_data_path,
+        data_format=val_data_format,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        data_fraction=args.data_fraction,
     )
-    if args.dali:
+
+    if args.data_format == "dali":
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with [dali]."
 
         dali_datamodule = ClassificationDALIDataModule(
             dataset=args.dataset,
-            data_dir=args.data_dir,
-            train_dir=args.train_dir,
-            val_dir=args.val_dir,
+            train_data_path=args.train_data_path,
+            val_data_path=args.val_data_path,
             num_workers=args.num_workers,
             batch_size=args.batch_size,
             data_fraction=args.data_fraction,
@@ -214,7 +195,7 @@ def main():
     except:
         pass
 
-    if args.dali:
+    if args.data_format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)

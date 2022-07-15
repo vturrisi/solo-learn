@@ -1,4 +1,4 @@
-# Copyright 2021 solo-learn development team.
+# Copyright 2022 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -27,10 +27,9 @@ def test_argparse_dataset():
     actions = [vars(action)["dest"] for action in vars(parser)["_actions"]]
 
     assert "dataset" in actions
-    assert "data_dir" in actions
-    assert "train_dir" in actions
-    assert "val_dir" in actions
-    assert "dali" in actions
+    assert "train_data_path" in actions
+    assert "val_data_path" in actions
+    assert "data_format" in actions
 
 
 def test_argparse_augmentations():
