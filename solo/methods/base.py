@@ -422,11 +422,21 @@ class BaseMethod(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
+            max_warmup_steps = (
+                self.warmup_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.warmup_epochs
+            )
+            max_scheduler_steps = (
+                self.max_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.max_epochs
+            )
             scheduler = {
                 "scheduler": LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
-                    max_epochs=self.max_epochs * self.num_training_steps,
+                    warmup_epochs=max_warmup_steps,
+                    max_epochs=max_scheduler_steps,
                     warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
@@ -859,11 +869,9 @@ class BaseMomentumMethod(BaseMethod):
             # log tau momentum
             self.log("tau", self.momentum_updater.cur_tau)
             # update tau
-            cur_step = self.trainer.global_step
-            if self.trainer.accumulate_grad_batches:
-                cur_step = cur_step * self.trainer.accumulate_grad_batches
             self.momentum_updater.update_tau(
-                cur_step=cur_step, max_steps=self.max_epochs * self.num_training_steps
+                cur_step=self.trainer.global_step,
+                max_steps=self.max_epochs * self.num_training_steps,
             )
         self.last_step = self.trainer.global_step
 

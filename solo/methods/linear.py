@@ -17,6 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import warnings
 from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -61,6 +62,7 @@ class LinearModel(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
+        scheduler_interval: str = "step",
         lr_decay_steps: Optional[Sequence[int]] = None,
         no_channel_last: bool = False,
         **kwargs,
@@ -79,6 +81,7 @@ class LinearModel(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
+            scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
             no_channel_last (bool). Disables channel last conversion operation which
@@ -106,6 +109,8 @@ class LinearModel(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
+        assert scheduler_interval in ["step", "epoch"]
+        self.scheduler_interval = scheduler_interval
         self.lr_decay_steps = lr_decay_steps
         self.no_channel_last = no_channel_last
 
@@ -116,6 +121,12 @@ class LinearModel(pl.LightningModule):
 
         for param in self.backbone.parameters():
             param.requires_grad = False
+
+        if scheduler_interval == "step":
+            warnings.warn(
+                f"Using scheduler_interval={scheduler_interval} might generate "
+                "issues when resuming a checkpoint."
+            )
 
         # can provide up to ~20% speed up
         if not no_channel_last:
@@ -166,6 +177,9 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
+        parser.add_argument(
+            "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
+        )
 
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
@@ -211,24 +225,6 @@ class LinearModel(pl.LightningModule):
 
         return self._num_training_steps
 
-    def forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
-
-        Args:
-            X (torch.tensor): a batch of images in the tensor format.
-
-        Returns:
-            Dict[str, Any]: a dict containing features and logits.
-        """
-
-        if not self.no_channel_last:
-            X = X.to(memory_format=torch.channels_last)
-
-        with torch.no_grad():
-            feats = self.backbone(X)
-        logits = self.classifier(feats)
-        return {"logits": logits, "feats": feats}
-
     def configure_optimizers(self) -> Tuple[List, List]:
         """Configures the optimizer for the linear layer.
 
@@ -256,15 +252,25 @@ class LinearModel(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
+            max_warmup_steps = (
+                self.warmup_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.warmup_epochs
+            )
+            max_scheduler_steps = (
+                self.max_epochs * self.num_training_steps
+                if self.scheduler_interval == "step"
+                else self.max_epochs
+            )
             scheduler = {
                 "scheduler": LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
-                    max_epochs=self.max_epochs * self.num_training_steps,
+                    warmup_epochs=max_warmup_steps,
+                    max_epochs=max_scheduler_steps,
                     warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
-                "interval": "step",
+                "interval": self.scheduler_interval,
                 "frequency": 1,
             }
         elif self.scheduler == "reduce":
@@ -279,6 +285,24 @@ class LinearModel(pl.LightningModule):
             )
 
         return [optimizer], [scheduler]
+
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
+
+        Args:
+            X (torch.tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing features and logits.
+        """
+
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
+
+        with torch.no_grad():
+            feats = self.backbone(X)
+        logits = self.classifier(feats)
+        return {"logits": logits, "feats": feats}
 
     def shared_step(
         self, batch: Tuple, batch_idx: int
