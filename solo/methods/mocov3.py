@@ -89,7 +89,7 @@ class MoCoV3(BaseMomentumMethod):
                 proj_hidden_dim,
                 proj_output_dim,
             )
-Google’s TPU Research Cloud 
+
             # predictor
             self.predictor = self._build_mlp(
                 2,
