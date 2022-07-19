@@ -192,7 +192,7 @@ class MoCoV3(BaseMomentumMethod):
         return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for BYOL reusing BaseMethod training step.
+        """Training step for MoCoV3 reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
