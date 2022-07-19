@@ -41,8 +41,8 @@ cd ..
 # MoCo V3
 mkdir mocov3
 cd mocov3
-gdown https://drive.google.com/file/d/1QAuKJmegGCJrntAL80tfTrbi2fI4sPl-/view?usp=sharing
-gdown https://drive.google.com/file/d/1jtJEi66g5z7dBn0FDcSL7zoU4ArEEyqU/view?usp=sharing
+gdown https://drive.google.com/uc?id=1QAuKJmegGCJrntAL80tfTrbi2fI4sPl-
+gdown https://drive.google.com/uc?id=1jtJEi66g5z7dBn0FDcSL7zoU4ArEEyqU
 cd ..
 
 # NNCLR
