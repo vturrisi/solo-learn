@@ -52,6 +52,13 @@ gdown https://drive.google.com/uc?id=1cUaAdx-6NXCkeSMo-mQtpPnYk7zA4Gg4 # checkpo
 gdown https://drive.google.com/uc?id=1mb6ZRKF1CdGP0rdJI2yjyStZ-FCFjsi4 # args
 cd ..
 
+# MoCo V3 R50
+mkdir mocov3-r50
+cd mocov3-r50
+gdown https://drive.google.com/uc?id=1KiwHisYRmzYjLYDm1zQxZlUKe8BkI2i8 # checkpoint
+gdown https://drive.google.com/uc?id=16pix6gNybXnssMpXlzjKnMWl9lRfdv20 # args
+cd ..
+
 # NNCLR
 mkdir nnclr
 cd nnclr
