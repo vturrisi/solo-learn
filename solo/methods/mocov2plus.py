@@ -173,7 +173,7 @@ class MoCoV2Plus(BaseMomentumMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of MOCO loss and classification loss.
+            torch.Tensor: total loss composed of MoCo loss and classification loss.
 
         """
 

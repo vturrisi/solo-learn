@@ -17,36 +17,38 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from solo.losses.barlow import barlow_loss_func
-from solo.losses.byol import byol_loss_func
-from solo.losses.deepclusterv2 import deepclusterv2_loss_func
-from solo.losses.dino import DINOLoss
-from solo.losses.mae import mae_loss_func
-from solo.losses.mocov2plus import mocov2plus_loss_func
-from solo.losses.mocov3 import mocov3_loss_func
-from solo.losses.nnclr import nnclr_loss_func
-from solo.losses.ressl import ressl_loss_func
-from solo.losses.simclr import simclr_loss_func
-from solo.losses.simsiam import simsiam_loss_func
-from solo.losses.swav import swav_loss_func
-from solo.losses.vibcreg import vibcreg_loss_func
-from solo.losses.vicreg import vicreg_loss_func
-from solo.losses.wmse import wmse_loss_func
+import torch
+import torch.nn.functional as F
 
-__all__ = [
-    "barlow_loss_func",
-    "byol_loss_func",
-    "deepclusterv2_loss_func",
-    "DINOLoss",
-    "mae_loss_func",
-    "mocov2plus_loss_func",
-    "mocov3_loss_func",
-    "nnclr_loss_func",
-    "ressl_loss_func",
-    "simclr_loss_func",
-    "simsiam_loss_func",
-    "swav_loss_func",
-    "vibcreg_loss_func",
-    "vicreg_loss_func",
-    "wmse_loss_func",
-]
+
+def patchify(imgs, p):
+    """
+    imgs: (N, 3, H, W)
+    x: (N, L, patch_size**2 *3)
+    """
+    assert imgs.size(2) == imgs.size(3) and imgs.size(2) % p == 0
+
+    h = w = imgs.size(2) // p
+    x = imgs.reshape(shape=(imgs.size(0), 3, h, p, w, p))
+    x = torch.einsum("nchpwq->nhwpqc", x)
+    x = x.reshape(shape=(imgs.size(0), h * w, p**2 * 3))
+    return x
+
+
+def mae_loss_func(imgs, pred, mask, patch_size, norm_pix_loss=False):
+    """
+    imgs: [N, 3, H, W]
+    pred: [N, L, p*p*3]
+    mask: [N, L], 0 is keep, 1 is remove,
+    """
+    target = patchify(imgs, patch_size)
+    if norm_pix_loss:
+        mean = target.mean(dim=-1, keepdim=True)
+        var = target.var(dim=-1, keepdim=True)
+        target = (target - mean) / (var + 1.0e-6) ** 0.5
+
+    loss = (pred - target) ** 2
+    loss = loss.mean(dim=-1)  # [N, L], mean loss per patch
+
+    loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
+    return loss

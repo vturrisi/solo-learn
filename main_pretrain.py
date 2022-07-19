@@ -63,7 +63,7 @@ def main():
     assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
     if args.num_large_crops != 2:
-        assert args.method == "wmse"
+        assert args.method in ["wmse", "mae"]
 
     model = METHODS[args.method](**args.__dict__)
     make_contiguous(model)
