@@ -167,7 +167,7 @@ def prepare_dummy_dataloaders(
                 [0.1, 0.1],
                 [1.0, 0.1],
                 [0.0, 0.2],
-                [224, 96] if dataset == "imagenet100" else [32, 24][0.14, 0.08],
+                [224, 96] if dataset == "imagenet100" else [32, 24],
                 [0.14, 0.08],
                 [1.0, 0.14],
             )
