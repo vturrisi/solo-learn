@@ -17,8 +17,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import os
-from pprint import pprint
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -118,8 +118,8 @@ def main():
         )
 
         if args.debug_augmentations:
-            print("Transforms:")
-            pprint(transform)
+            logging.info("Transforms:")
+            logging.info(transform)
 
         train_dataset = prepare_datasets(
             args.dataset,
@@ -143,7 +143,7 @@ def main():
         )
         resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
         if resume_from_checkpoint is not None:
-            print(
+            logging.info(
                 "Resuming from previous checkpoint that matches specifications:",
                 f"'{resume_from_checkpoint}'",
             )

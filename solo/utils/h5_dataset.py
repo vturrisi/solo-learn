@@ -19,8 +19,8 @@
 
 
 import io
+import logging
 import os
-import warnings
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -77,7 +77,7 @@ class H5Dataset(Dataset):
                 if class_name in class_set:
                     new_data.append((class_name, img_name, self.class_to_idx[class_name]))
             if not new_data:
-                warnings.warn(
+                logging.warning(
                     "Skipped filtering. Tried to filter classes for imagenet100, "
                     "but wasn't able to do so. Either make sure that you do not "
                     "rely on the filtering, i.e. your h5 file is already filtered "

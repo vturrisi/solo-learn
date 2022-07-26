@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Tuple
@@ -161,13 +162,14 @@ def main():
 
     # run k-nn for all possible combinations of parameters
     for feat_type in args.feature_type:
-        print(f"\n### {feat_type.upper()} ###")
+        logging.info(f"\n### {feat_type.upper()} ###")
         for k in args.k:
             for distance_fx in args.distance_function:
                 temperatures = args.temperature if distance_fx == "cosine" else [None]
                 for T in temperatures:
-                    print("---")
-                    print(f"Running k-NN with params: distance_fx={distance_fx}, k={k}, T={T}...")
+                    logging.info(
+                        f"Running k-NN with params: distance_fx={distance_fx}, k={k}, T={T}..."
+                    )
                     acc1, acc5 = run_knn(
                         train_features=train_features[feat_type],
                         train_targets=train_targets,
@@ -177,7 +179,7 @@ def main():
                         T=T,
                         distance_fx=distance_fx,
                     )
-                    print(f"Result: acc@1={acc1}, acc@5={acc5}")
+                    logging.info(f"Result: acc@1={acc1}, acc@5={acc5}")
 
 
 if __name__ == "__main__":

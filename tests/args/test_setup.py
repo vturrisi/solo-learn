@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import argparse
+import logging
 import os
 import subprocess
 import textwrap
@@ -113,7 +114,7 @@ def test_setup_pretrain():
         subprocess.check_output(script)
         worked = True
     except subprocess.CalledProcessError as e:
-        print("error code", e.returncode, e.output)
+        logging.error("error code", e.returncode, e.output)
         worked = False
     assert worked
 
@@ -186,7 +187,7 @@ def test_setup_linear():
         subprocess.check_output(script)
         worked = True
     except subprocess.CalledProcessError as e:
-        print("error code", e.returncode, e.output)
+        logging.error("error code", e.returncode, e.output)
         worked = False
     assert worked
 

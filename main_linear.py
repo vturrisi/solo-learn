@@ -17,6 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import os
 import warnings
 
@@ -85,7 +86,7 @@ def main():
         del state[k]
     backbone.load_state_dict(state, strict=False)
 
-    print(f"loaded {ckpt_path}")
+    logging.info(f"loaded {ckpt_path}")
 
     del args.backbone
     model = LinearModel(backbone, **args.__dict__)
@@ -132,7 +133,7 @@ def main():
         )
         resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
         if resume_from_checkpoint is not None:
-            print(
+            logging.info(
                 "Resuming from previous checkpoint that matches specifications:",
                 f"'{resume_from_checkpoint}'",
             )

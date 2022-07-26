@@ -18,7 +18,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import warnings
 from argparse import Namespace
 from contextlib import suppress
 

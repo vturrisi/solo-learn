@@ -17,8 +17,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from argparse import ArgumentParser
+import logging
 import pickle as pkl
+from argparse import ArgumentParser
+
 import torch
 
 if __name__ == "__main__":
@@ -46,7 +48,7 @@ if __name__ == "__main__":
             k = k.replace("bn{}".format(t), "conv{}.norm".format(t))
         k = k.replace("downsample.0", "shortcut")
         k = k.replace("downsample.1", "shortcut.norm")
-        print(old_k, "->", k)
+        logging.info(old_k, "->", k)
         newmodel[k] = v.numpy()
 
     res = {"model": newmodel, "__author__": "solo-learn", "matching_heuristics": True}

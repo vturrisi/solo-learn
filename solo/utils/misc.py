@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import math
 import os
-import warnings
 from typing import List, Optional, Tuple
 
 import torch
@@ -129,7 +129,7 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
 
     if (mean < a - 2 * std) or (mean > b + 2 * std):
-        warnings.warn(
+        logging.warning(
             "mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
             "The distribution of values may be incorrect.",
             stacklevel=2,

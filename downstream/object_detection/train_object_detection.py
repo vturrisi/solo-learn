@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 # Copied from https://github.com/facebookresearch/moco/blob/main/detection/train_net.py
 
+import logging
 import os
 
 from detectron2.checkpoint import DetectionCheckpointer
@@ -65,7 +66,7 @@ def main(args):
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
-    print("Command Line Args:", args)
+    logging.info("Command Line Args:", args)
     launch(
         main,
         args.num_gpus,

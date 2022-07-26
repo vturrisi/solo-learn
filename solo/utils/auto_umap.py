@@ -17,6 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import math
 import os
 import random
@@ -266,7 +267,7 @@ class OfflineUMAP:
         num_classes = len(torch.unique(Y))
         Y = Y.numpy()
 
-        print("Creating UMAP")
+        logging.info("Creating UMAP")
         data = umap.UMAP(n_components=2).fit_transform(data)
 
         # passing to dataframe

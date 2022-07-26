@@ -17,7 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import warnings
+import logging
 from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
@@ -27,29 +27,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-from solo.backbones import (
-    convnext_base,
-    convnext_large,
-    convnext_small,
-    convnext_tiny,
-    poolformer_m36,
-    poolformer_m48,
-    poolformer_s12,
-    poolformer_s24,
-    poolformer_s36,
-    resnet18,
-    resnet50,
-    swin_base,
-    swin_large,
-    swin_small,
-    swin_tiny,
-    vit_base,
-    vit_large,
-    vit_small,
-    vit_tiny,
-    wide_resnet28w2,
-    wide_resnet28w8,
-)
+from solo.backbones import (convnext_base, convnext_large, convnext_small,
+                            convnext_tiny, poolformer_m36, poolformer_m48,
+                            poolformer_s12, poolformer_s24, poolformer_s36,
+                            resnet18, resnet50, swin_base, swin_large,
+                            swin_small, swin_tiny, vit_base, vit_large,
+                            vit_small, vit_tiny, wide_resnet28w2,
+                            wide_resnet28w8)
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
@@ -264,7 +248,7 @@ class BaseMethod(pl.LightningModule):
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
         if scheduler_interval == "step":
-            warnings.warn(
+            logging.warning(
                 f"Using scheduler_interval={scheduler_interval} might generate "
                 "issues when resuming a checkpoint."
             )

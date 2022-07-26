@@ -17,7 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import warnings
+import logging
 from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -123,7 +123,7 @@ class LinearModel(pl.LightningModule):
             param.requires_grad = False
 
         if scheduler_interval == "step":
-            warnings.warn(
+            logging.warning(
                 f"Using scheduler_interval={scheduler_interval} might generate "
                 "issues when resuming a checkpoint."
             )
