@@ -820,7 +820,6 @@ class BaseMomentumMethod(BaseMethod):
         """
 
         if self.trainer.global_step > self.last_step:
-            print(self.trainer.global_step, self.trainer.estimated_stepping_batches)
             # update momentum backbone and projector
             momentum_pairs = self.momentum_pairs
             for mp in momentum_pairs:
