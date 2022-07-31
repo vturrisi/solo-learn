@@ -29,7 +29,6 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from solo.utils.misc import compute_dataset_size
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
 
 
@@ -114,8 +113,6 @@ class LinearModel(pl.LightningModule):
         self.lr_decay_steps = lr_decay_steps
         self.no_channel_last = no_channel_last
 
-        self._num_training_steps = None
-
         # all the other parameters
         self.extra_args = kwargs
 
@@ -186,45 +183,6 @@ class LinearModel(pl.LightningModule):
 
         return parent_parser
 
-    @property
-    def num_training_steps(self) -> int:
-        """Compute the number of training steps for each epoch."""
-
-        if self._num_training_steps is None:
-            try:
-                dataset = self.extra_args.get("dataset", None)
-                if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    data_path = self.extra_args.get("train_data_path", "./train")
-                else:
-                    data_path = None
-
-                no_labels = self.extra_args.get("no_labels", False)
-                data_fraction = self.extra_args.get("data_fraction", -1.0)
-                data_format = self.extra_args.get("data_format", "image_folder")
-                dataset_size = compute_dataset_size(
-                    dataset=dataset,
-                    data_path=data_path,
-                    data_format=data_format,
-                    train=True,
-                    no_labels=no_labels,
-                    data_fraction=data_fraction,
-                )
-            except:
-                raise RuntimeError(
-                    "Please pass 'dataset' or 'train_data_path' as parameters to the model."
-                )
-
-            dataset_size = self.trainer.limit_train_batches * dataset_size
-
-            num_devices = self.trainer.num_devices
-            num_nodes = self.trainer.num_nodes
-            effective_batch_size = (
-                self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
-            )
-            self._num_training_steps = dataset_size // effective_batch_size
-
-        return self._num_training_steps
-
     def configure_optimizers(self) -> Tuple[List, List]:
         """Configures the optimizer for the linear layer.
 
@@ -253,12 +211,12 @@ class LinearModel(pl.LightningModule):
 
         if self.scheduler == "warmup_cosine":
             max_warmup_steps = (
-                self.warmup_epochs * self.num_training_steps
+                self.warmup_epochs * (self.trainer.estimated_stepping_batches / self.max_epochs)
                 if self.scheduler_interval == "step"
                 else self.warmup_epochs
             )
             max_scheduler_steps = (
-                self.max_epochs * self.num_training_steps
+                self.trainer.estimated_stepping_batches
                 if self.scheduler_interval == "step"
                 else self.max_epochs
             )
