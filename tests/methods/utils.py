@@ -41,7 +41,11 @@ DATA_KWARGS = {
 
 
 def gen_base_kwargs(
-    cifar=False, momentum=False, num_large_crops=2, num_small_crops=0, batch_size=32,
+    cifar=False,
+    momentum=False,
+    num_large_crops=2,
+    num_small_crops=0,
+    batch_size=32,
 ):
     BASE_KWARGS = {
         "backbone": "resnet18",
@@ -191,7 +195,10 @@ def prepare_dummy_dataloaders(
 
     transform = prepare_n_crop_transform(transform, num_crops_per_aug=num_crops_per_aug)
     dataset = dataset_with_index(FakeData)(
-        image_size=(3, 224, 224), num_classes=num_classes, transform=transform, size=1024,
+        image_size=(3, 224, 224),
+        num_classes=num_classes,
+        transform=transform,
+        size=1024,
     )
     train_dl = prepare_dataloader(dataset, batch_size=batch_size, num_workers=0)
 
