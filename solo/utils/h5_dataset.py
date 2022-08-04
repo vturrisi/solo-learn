@@ -32,7 +32,10 @@ from tqdm import tqdm
 
 class H5Dataset(Dataset):
     def __init__(
-        self, dataset: str, h5_path: str, transform: Optional[Callable] = None,
+        self,
+        dataset: str,
+        h5_path: str,
+        transform: Optional[Callable] = None,
     ):
         """H5 Dataset.
         The dataset assumes that data is organized as:

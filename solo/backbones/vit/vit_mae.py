@@ -225,4 +225,3 @@ def vit_huge(**kwargs):
         **kwargs
     )
     return model
-
