@@ -49,6 +49,7 @@ The library is self-contained, but it is possible to use the models outside of s
 * [BYOL](https://arxiv.org/abs/2006.07733)
 * [DeepCluster V2](https://arxiv.org/abs/2006.09882)
 * [DINO](https://arxiv.org/abs/2104.14294)
+* [MAE](https://arxiv.org/abs/2111.06377)
 * [MoCo V2+](https://arxiv.org/abs/2003.04297)
 * [MoCo V3](https://arxiv.org/abs/2104.02057)
 * [NNBYOL](https://arxiv.org/abs/2104.14548)
