@@ -13,8 +13,8 @@ python3 main_pretrain.py \
     --precision 16 \
     --optimizer adamw \
     --scheduler warmup_cosine \
-    --lr 3.0e-4 \
-    --classifier_lr 3.0e-4 \
+    --lr 2.0e-4 \
+    --classifier_lr 2.0e-4 \
     --weight_decay 0.05 \
     --batch_size 64 \
     --num_workers 8 \
@@ -37,5 +37,4 @@ python3 main_pretrain.py \
     --decoder_depth 8 \
     --decoder_num_heads 16 \
     --mask_ratio 0.75 \
-    --norm_pix_loss \
-    --auto_resume
+    --norm_pix_loss

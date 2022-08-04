@@ -41,11 +41,7 @@ DATA_KWARGS = {
 
 
 def gen_base_kwargs(
-    cifar=False,
-    momentum=False,
-    num_large_crops=2,
-    num_small_crops=0,
-    batch_size=32,
+    cifar=False, momentum=False, num_large_crops=2, num_small_crops=0, batch_size=32,
 ):
     BASE_KWARGS = {
         "backbone": "resnet18",
@@ -181,7 +177,7 @@ def prepare_dummy_dataloaders(
             hue=0.1,
             gaussian_prob=1.0,
             solarization_prob=0.1,
-            crop_size=224,
+            crop_size=224 if dataset == "imagenet100" else 32,
             min_scale=0.14,
             max_scale=1.0,
         )
@@ -195,16 +191,14 @@ def prepare_dummy_dataloaders(
 
     transform = prepare_n_crop_transform(transform, num_crops_per_aug=num_crops_per_aug)
     dataset = dataset_with_index(FakeData)(
-        image_size=(3, 224, 224),
-        num_classes=num_classes,
-        transform=transform,
-        size=1024,
+        image_size=(3, 224, 224), num_classes=num_classes, transform=transform, size=1024,
     )
     train_dl = prepare_dataloader(dataset, batch_size=batch_size, num_workers=0)
 
     # normal dataloader
     T_val = transforms.Compose(
         [
+            transforms.Resize(224) if dataset == "imagenet100" else transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]
@@ -219,6 +213,7 @@ def prepare_classification_dummy_dataloaders(dataset, num_classes):
     # normal dataloader
     T_val = transforms.Compose(
         [
+            transforms.Resize(224) if dataset == "imagenet100" else transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]
