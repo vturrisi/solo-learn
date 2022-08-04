@@ -119,8 +119,9 @@ class LinearModel(pl.LightningModule):
         # all the other parameters
         self.extra_args = kwargs
 
-        for param in self.backbone.parameters():
-            param.requires_grad = finetune
+        if not finetune:
+            for param in self.backbone.parameters():
+                param.requires_grad = True
 
         if scheduler_interval == "step":
             logging.warn(
@@ -214,10 +215,7 @@ class LinearModel(pl.LightningModule):
         )
 
         optimizer = optimizer(
-            parameters,
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-            **self.extra_optimizer_args,
+            parameters, lr=self.lr, weight_decay=self.weight_decay, **self.extra_optimizer_args,
         )
 
         # select scheduler

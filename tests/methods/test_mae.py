@@ -37,66 +37,66 @@ def test_mae():
         "norm_pix_loss": True,
     }
 
-    # BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
-    # BASE_KWARGS["method"] = "mae"
-    # BASE_KWARGS["backbone"] = "vit_small"
-    # BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
+    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
+    BASE_KWARGS["method"] = "mae"
+    BASE_KWARGS["backbone"] = "vit_small"
+    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
 
-    # kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    # model = MAE(**kwargs)
+    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = MAE(**kwargs)
 
-    # # test arguments
-    # parser = argparse.ArgumentParser()
-    # parser = pl.Trainer.add_argparse_args(parser)
-    # assert model.add_model_specific_args(parser) is not None
+    # test arguments
+    parser = argparse.ArgumentParser()
+    parser = pl.Trainer.add_argparse_args(parser)
+    assert model.add_model_specific_args(parser) is not None
 
-    # # test parameters
-    # assert model.learnable_params is not None
+    # test parameters
+    assert model.learnable_params is not None
 
-    # # test forward
-    # batch, _ = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100")
-    # out = model(batch[1][0])
-    # assert (
-    #     "logits" in out
-    #     and isinstance(out["logits"], torch.Tensor)
-    #     and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
-    # )
-    # assert (
-    #     "feats" in out
-    #     and isinstance(out["feats"], torch.Tensor)
-    #     and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
-    # )
-    # assert (
-    #     "pred" in out
-    #     and isinstance(out["pred"], torch.Tensor)
-    #     and out["pred"].size() == (BASE_KWARGS["batch_size"], 14 * 14, 16 * 16 * 3)
-    # )
-    # assert (
-    #     "mask" in out
-    #     and isinstance(out["mask"], torch.Tensor)
-    #     and out["mask"].size() == (BASE_KWARGS["batch_size"], 14 * 14)
-    # )
+    # test forward
+    batch, _ = gen_batch(BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100")
+    out = model(batch[1][0])
+    assert (
+        "logits" in out
+        and isinstance(out["logits"], torch.Tensor)
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
+    )
+    assert (
+        "feats" in out
+        and isinstance(out["feats"], torch.Tensor)
+        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.features_dim)
+    )
+    assert (
+        "pred" in out
+        and isinstance(out["pred"], torch.Tensor)
+        and out["pred"].size() == (BASE_KWARGS["batch_size"], 14 * 14, 16 * 16 * 3)
+    )
+    assert (
+        "mask" in out
+        and isinstance(out["mask"], torch.Tensor)
+        and out["mask"].size() == (BASE_KWARGS["batch_size"], 14 * 14)
+    )
 
-    # # imagenet
-    # BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
-    # BASE_KWARGS["method"] = "mae"
-    # BASE_KWARGS["backbone"] = "vit_small"
-    # BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
+    # imagenet
+    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
+    BASE_KWARGS["method"] = "mae"
+    BASE_KWARGS["backbone"] = "vit_small"
+    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
 
-    # kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    # model = MAE(**kwargs)
+    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
+    model = MAE(**kwargs)
 
-    # args = argparse.Namespace(**kwargs)
-    # trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
-    # train_dl, val_dl = prepare_dummy_dataloaders(
-    #     "imagenet100",
-    #     num_large_crops=BASE_KWARGS["num_large_crops"],
-    #     num_small_crops=0,
-    #     num_classes=BASE_KWARGS["num_classes"],
-    #     multicrop=False,
-    #     batch_size=BASE_KWARGS["batch_size"],
-    # )
-    # trainer.fit(model, train_dl, val_dl)
+    args = argparse.Namespace(**kwargs)
+    trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
+    train_dl, val_dl = prepare_dummy_dataloaders(
+        "imagenet100",
+        num_large_crops=BASE_KWARGS["num_large_crops"],
+        num_small_crops=0,
+        num_classes=BASE_KWARGS["num_classes"],
+        multicrop=False,
+        batch_size=BASE_KWARGS["batch_size"],
+    )
+    trainer.fit(model, train_dl, val_dl)
 
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=True, momentum=True, batch_size=2)
