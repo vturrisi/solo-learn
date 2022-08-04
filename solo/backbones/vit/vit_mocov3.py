@@ -60,13 +60,19 @@ class VisionTransformerMoCo(VisionTransformer):
         h, w = self.patch_embed.grid_size
         grid_w = torch.arange(w, dtype=torch.float32)
         grid_h = torch.arange(h, dtype=torch.float32)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h)
+        # https://pytorch.org/docs/stable/generated/torch.meshgrid.html
+        # indexing –
+        # (str, optional): the indexing mode, either “xy” or “ij”, defaults to “ij”.
+        # If “xy” is selected, the first dimension corresponds to the cardinality of
+        # the second input and the second dimension corresponds to the cardinality of the first input.
+        # If “ij” is selected, the dimensions are in the same order as the cardinality of the inputs.
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
         assert (
             self.embed_dim % 4 == 0
         ), "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
         pos_dim = self.embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
-        omega = 1.0 / (temperature**omega)
+        omega = 1.0 / (temperature ** omega)
         out_w = torch.einsum("m,d->md", [grid_w.flatten(), omega])
         out_h = torch.einsum("m,d->md", [grid_h.flatten(), omega])
         pos_emb = torch.cat(

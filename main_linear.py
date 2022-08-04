@@ -18,7 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import warnings
+import logging
 
 import torch
 import torch.nn as nn
@@ -57,7 +57,8 @@ def main():
     if "swin" in args.backbone and cifar:
         kwargs["window_size"] = 4
 
-    backbone = backbone_model(method=None, **kwargs)
+    method = args.pretrain_method
+    backbone = backbone_model(method=method, **kwargs)
     if args.backbone.startswith("resnet"):
         # remove fc layer
         backbone.fc = nn.Identity()
@@ -76,7 +77,7 @@ def main():
     for k in list(state.keys()):
         if "encoder" in k:
             state[k.replace("encoder", "backbone")] = state[k]
-            warnings.warn(
+            logging.warn(
                 "You are using an older checkpoint. Use a new one as some issues might arrise."
             )
         if "backbone" in k:

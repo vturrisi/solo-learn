@@ -17,6 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -28,7 +29,6 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from solo.utils.misc import compute_dataset_size
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
 
 
@@ -61,6 +61,8 @@ class LinearModel(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
+        finetune: bool = False,
+        scheduler_interval: str = "step",
         lr_decay_steps: Optional[Sequence[int]] = None,
         no_channel_last: bool = False,
         **kwargs,
@@ -79,6 +81,8 @@ class LinearModel(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
+            finetune (bool): whether or not to finetune the backbone. Defaults to False.
+            scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
             no_channel_last (bool). Disables channel last conversion operation which
@@ -106,16 +110,23 @@ class LinearModel(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
+        self.finetune = finetune
+        assert scheduler_interval in ["step", "epoch"]
+        self.scheduler_interval = scheduler_interval
         self.lr_decay_steps = lr_decay_steps
         self.no_channel_last = no_channel_last
-
-        self._num_training_steps = None
 
         # all the other parameters
         self.extra_args = kwargs
 
         for param in self.backbone.parameters():
-            param.requires_grad = False
+            param.requires_grad = finetune
+
+        if scheduler_interval == "step":
+            logging.warn(
+                f"Using scheduler_interval={scheduler_interval} might generate "
+                "issues when resuming a checkpoint."
+            )
 
         # can provide up to ~20% speed up
         if not no_channel_last:
@@ -139,6 +150,9 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--backbone", choices=BaseMethod._BACKBONES, type=str)
         # for ViT
         parser.add_argument("--patch_size", type=int, default=16)
+
+        # if we want to finetune the backbone
+        parser.add_argument("--finetune", action="store_true")
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)
@@ -166,68 +180,14 @@ class LinearModel(pl.LightningModule):
         parser.add_argument("--min_lr", default=0.0, type=float)
         parser.add_argument("--warmup_start_lr", default=0.003, type=float)
         parser.add_argument("--warmup_epochs", default=10, type=int)
+        parser.add_argument(
+            "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
+        )
 
         # disables channel last optimization
         parser.add_argument("--no_channel_last", action="store_true")
 
         return parent_parser
-
-    @property
-    def num_training_steps(self) -> int:
-        """Compute the number of training steps for each epoch."""
-
-        if self._num_training_steps is None:
-            try:
-                dataset = self.extra_args.get("dataset", None)
-                if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    data_path = self.extra_args.get("train_data_path", "./train")
-                else:
-                    data_path = None
-
-                no_labels = self.extra_args.get("no_labels", False)
-                data_fraction = self.extra_args.get("data_fraction", -1.0)
-                data_format = self.extra_args.get("data_format", "image_folder")
-                dataset_size = compute_dataset_size(
-                    dataset=dataset,
-                    data_path=data_path,
-                    data_format=data_format,
-                    train=True,
-                    no_labels=no_labels,
-                    data_fraction=data_fraction,
-                )
-            except:
-                raise RuntimeError(
-                    "Please pass 'dataset' or 'train_data_path' as parameters to the model."
-                )
-
-            dataset_size = self.trainer.limit_train_batches * dataset_size
-
-            num_devices = self.trainer.num_devices
-            num_nodes = self.trainer.num_nodes
-            effective_batch_size = (
-                self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
-            )
-            self._num_training_steps = dataset_size // effective_batch_size
-
-        return self._num_training_steps
-
-    def forward(self, X: torch.tensor) -> Dict[str, Any]:
-        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
-
-        Args:
-            X (torch.tensor): a batch of images in the tensor format.
-
-        Returns:
-            Dict[str, Any]: a dict containing features and logits.
-        """
-
-        if not self.no_channel_last:
-            X = X.to(memory_format=torch.channels_last)
-
-        with torch.no_grad():
-            feats = self.backbone(X)
-        logits = self.classifier(feats)
-        return {"logits": logits, "feats": feats}
 
     def configure_optimizers(self) -> Tuple[List, List]:
         """Configures the optimizer for the linear layer.
@@ -244,11 +204,17 @@ class LinearModel(pl.LightningModule):
         assert self.optimizer in self._OPTIMIZERS
         optimizer = self._OPTIMIZERS[self.optimizer]
 
+        parameters = (
+            self.classifier.parameters()
+            if not self.finetune
+            else [
+                {"name": "backbone", "params": self.backbone.parameters()},
+                {"name": "classifier", "params": self.classifier.parameters()},
+            ]
+        )
+
         optimizer = optimizer(
-            self.classifier.parameters(),
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-            **self.extra_optimizer_args,
+            parameters, lr=self.lr, weight_decay=self.weight_decay, **self.extra_optimizer_args,
         )
 
         # select scheduler
@@ -256,15 +222,25 @@ class LinearModel(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
+            max_warmup_steps = (
+                self.warmup_epochs * (self.trainer.estimated_stepping_batches / self.max_epochs)
+                if self.scheduler_interval == "step"
+                else self.warmup_epochs
+            )
+            max_scheduler_steps = (
+                self.trainer.estimated_stepping_batches
+                if self.scheduler_interval == "step"
+                else self.max_epochs
+            )
             scheduler = {
                 "scheduler": LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
-                    max_epochs=self.max_epochs * self.num_training_steps,
+                    warmup_epochs=max_warmup_steps,
+                    max_epochs=max_scheduler_steps,
                     warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
-                "interval": "step",
+                "interval": self.scheduler_interval,
                 "frequency": 1,
             }
         elif self.scheduler == "reduce":
@@ -279,6 +255,25 @@ class LinearModel(pl.LightningModule):
             )
 
         return [optimizer], [scheduler]
+
+    def forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs forward pass of the frozen backbone and the linear layer for evaluation.
+
+        Args:
+            X (torch.tensor): a batch of images in the tensor format.
+
+        Returns:
+            Dict[str, Any]: a dict containing features and logits.
+        """
+
+        if not self.no_channel_last:
+            X = X.to(memory_format=torch.channels_last)
+
+        with torch.set_grad_enabled(self.finetune):
+            feats = self.backbone(X)
+
+        logits = self.classifier(feats)
+        return {"logits": logits, "feats": feats}
 
     def shared_step(
         self, batch: Tuple, batch_idx: int
@@ -316,7 +311,8 @@ class LinearModel(pl.LightningModule):
         """
 
         # set backbone to eval mode
-        self.backbone.eval()
+        if not self.finetune:
+            self.backbone.eval()
 
         _, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
 

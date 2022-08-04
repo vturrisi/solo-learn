@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import math
 import os
-import warnings
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -130,7 +130,7 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
 
     if (mean < a - 2 * std) or (mean > b + 2 * std):
-        warnings.warn(
+        logging.warn(
             "mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
             "The distribution of values may be incorrect.",
             stacklevel=2,
@@ -308,7 +308,7 @@ def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
     assert embed_dim % 2 == 0
     omega = np.arange(embed_dim // 2, dtype=np.float)
     omega /= embed_dim / 2.0
-    omega = 1.0 / 10000**omega  # (D/2,)
+    omega = 1.0 / 10000 ** omega  # (D/2,)
 
     pos = pos.reshape(-1)  # (M,)
     out = np.einsum("m,d->md", pos, omega)  # (M, D/2), outer product

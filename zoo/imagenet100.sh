@@ -7,7 +7,7 @@ cd imagenet100
 mkdir barlow_twins
 cd barlow_twins
 gdown https://drive.google.com/uc?id=1C2qQSqp8cXvfrwHVG9MuGTPT2TOTsGla # checkpoint
-gdown https://drive.google.com/uc?id=1TY10aa97P4Fl7EgSjTy_u_QME9tkcU4r
+gdown https://drive.google.com/uc?id=1TY10aa97P4Fl7EgSjTy_u_QME9tkcU4r # args
 cd ..
 
 # BYOL
@@ -48,8 +48,15 @@ cd ..
 # MoCo V3
 mkdir mocov3
 cd mocov3
-gdown https://drive.google.com/file/d/1cUaAdx-6NXCkeSMo-mQtpPnYk7zA4Gg4/view?usp=sharing # checkpoint
-gdown https://drive.google.com/file/d/1mb6ZRKF1CdGP0rdJI2yjyStZ-FCFjsi4/view?usp=sharing # args
+gdown https://drive.google.com/uc?id=1cUaAdx-6NXCkeSMo-mQtpPnYk7zA4Gg4 # checkpoint
+gdown https://drive.google.com/uc?id=1mb6ZRKF1CdGP0rdJI2yjyStZ-FCFjsi4 # args
+cd ..
+
+# MoCo V3 R50
+mkdir mocov3-r50
+cd mocov3-r50
+gdown https://drive.google.com/uc?id=1KiwHisYRmzYjLYDm1zQxZlUKe8BkI2i8 # checkpoint
+gdown https://drive.google.com/uc?id=16pix6gNybXnssMpXlzjKnMWl9lRfdv20 # args
 cd ..
 
 # NNCLR

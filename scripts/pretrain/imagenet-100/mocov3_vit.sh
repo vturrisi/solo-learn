@@ -3,6 +3,7 @@ python3 main_pretrain.py \
     --backbone vit_small \
     --train_data_path /datasets/imagenet-100/train \
     --val_data_path /datasets/imagenet-100/val \
+    --data_format dali \
     --max_epochs 400 \
     --warmup_epochs 40 \
     --devices 0,1,2,3,4,5,6,7 \
@@ -11,15 +12,12 @@ python3 main_pretrain.py \
     --sync_batchnorm \
     --precision 16 \
     --optimizer adamw \
-    --eta_lars 0.02 \
-    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
-    --lr 2.0e-4  \
+    --lr 3.0e-4 \
     --classifier_lr 3.0e-4 \
     --weight_decay 0.1 \
-    --batch_size 64 \
+    --batch_size 48 \
     --num_workers 4 \
-    --data_format dali \
     --brightness 0.4 \
     --contrast 0.4 \
     --saturation 0.2 \

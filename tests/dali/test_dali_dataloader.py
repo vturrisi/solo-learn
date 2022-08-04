@@ -146,6 +146,7 @@ def test_dali_pretrain():
                 solarization_prob=0.2,
                 min_scale=0.08,
                 max_scale=1.0,
+                equalization_prob=0.0,
             )
             kwargs["unique_augs"] = 1
 

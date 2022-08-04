@@ -30,63 +30,13 @@ from timm.models.vision_transformer import Block
 import types
 
 
-def random_masking(x, mask_ratio):
-    """
-    Perform per-sample random masking by per-sample shuffling.
-    Per-sample shuffling is done by argsort random noise.
-    x: [N, L, D], sequence
-    """
-    N, L, D = x.shape  # batch, length, dim
-    len_keep = int(L * (1 - mask_ratio))
-
-    noise = torch.rand(N, L, device=x.device)  # noise in [0, 1]
-
-    # sort noise for each sample
-    ids_shuffle = torch.argsort(noise, dim=1)  # ascend: small is keep, large is remove
-    ids_restore = torch.argsort(ids_shuffle, dim=1)
-
-    # keep the first subset
-    ids_keep = ids_shuffle[:, :len_keep]
-    x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
-
-    # generate the binary mask: 0 is keep, 1 is remove
-    mask = torch.ones([N, L], device=x.device)
-    mask[:, :len_keep] = 0
-    # unshuffle to get the binary mask
-    mask = torch.gather(mask, dim=1, index=ids_restore)
-
-    return x_masked, mask, ids_restore
-
-
-def modified_mae_vit_forward(self, x, mask_ratio):
-    # embed patches
-    x = self.patch_embed(x)
-
-    # add pos embed w/o cls token
-    x = x + self.pos_embed[:, 1:, :]
-
-    # masking: length -> length * mask_ratio
-    x, mask, ids_restore = random_masking(x, mask_ratio)
-
-    # append cls token
-    cls_token = self.cls_token + self.pos_embed[:, :1, :]
-    cls_tokens = cls_token.expand(x.shape[0], -1, -1)
-    x = torch.cat((cls_tokens, x), dim=1)
-
-    # apply Transformer blocks
-    x = self.blocks(x)
-    x = self.norm(x)
-
-    cls_feats = x[:, 0]
-
-    return cls_feats, x, mask, ids_restore
-
-
-class Decoder(nn.Module):
+class MAEDecoder(nn.Module):
     def __init__(
         self, in_dim, embed_dim, depth, num_heads, num_patches, patch_size, mlp_ratio=4.0
     ) -> None:
         super().__init__()
+
+        self.num_patches = num_patches
 
         self.decoder_embed = nn.Linear(in_dim, embed_dim, bias=True)
 
@@ -99,19 +49,41 @@ class Decoder(nn.Module):
 
         self.decoder_blocks = nn.Sequential(
             *[
-                Block(
-                    embed_dim,
-                    num_heads,
-                    mlp_ratio,
-                    qkv_bias=True,
-                    norm_layer=nn.LayerNorm,
-                )
+                Block(embed_dim, num_heads, mlp_ratio, qkv_bias=True, norm_layer=nn.LayerNorm,)
                 for _ in range(depth)
             ]
         )
 
         self.decoder_norm = nn.LayerNorm(embed_dim)
-        self.decoder_pred = nn.Linear(embed_dim, patch_size**2 * 3, bias=True)
+        self.decoder_pred = nn.Linear(embed_dim, patch_size ** 2 * 3, bias=True)
+
+        # init all weights according to MAE's repo
+        self.initialize_weights()
+
+    def initialize_weights(self):
+        # initialization
+        # initialize (and freeze) pos_embed by sin-cos embedding
+
+        decoder_pos_embed = generate_2d_sincos_pos_embed(
+            self.decoder_pos_embed.shape[-1], int(self.num_patches ** 0.5), cls_token=True,
+        )
+        self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
+
+        # timm's trunc_normal_(std=.02) is effectively normal_(std=0.02) as cutoff is too big (2.)
+        nn.init.normal_(self.mask_token, std=0.02)
+
+        # initialize nn.Linear and nn.LayerNorm
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            # we use xavier_uniform following official JAX ViT:
+            nn.init.xavier_uniform_(m.weight)
+            if isinstance(m, nn.Linear) and m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x, ids_restore):
         # embed tokens
@@ -172,16 +144,8 @@ class MAE(BaseMethod):
         self._vit_patch_size = self.backbone_args["patch_size"]
         self._vit_num_patches = self.backbone.patch_embed.num_patches
 
-        # adjust backbone
-        # fixed sin-cos embedding
-        self.backbone.pos_embed = nn.Parameter(
-            torch.zeros(1, self._vit_num_patches + 1, self._vit_embed_dim), requires_grad=False
-        )
-        # change forward behavior
-        self.backbone.forward = types.MethodType(modified_mae_vit_forward, self.backbone)
-
         # decoder
-        self.decoder = Decoder(
+        self.decoder = MAEDecoder(
             in_dim=self.features_dim,
             embed_dim=decoder_embed_dim,
             depth=decoder_depth,
@@ -190,49 +154,6 @@ class MAE(BaseMethod):
             patch_size=self._vit_patch_size,
             mlp_ratio=4.0,
         )
-
-        # init all weights according to MAE's repo
-        self.initialize_weights()
-
-    def initialize_weights(self):
-        # initialization
-        # initialize (and freeze) pos_embed by sin-cos embedding
-        pos_embed = generate_2d_sincos_pos_embed(
-            self.backbone.pos_embed.shape[-1],
-            int(self.backbone.patch_embed.num_patches**0.5),
-            cls_token=True,
-        )
-        self.backbone.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
-
-        decoder_pos_embed = generate_2d_sincos_pos_embed(
-            self.decoder.decoder_pos_embed.shape[-1],
-            int(self.backbone.patch_embed.num_patches**0.5),
-            cls_token=True,
-        )
-        self.decoder.decoder_pos_embed.data.copy_(
-            torch.from_numpy(decoder_pos_embed).float().unsqueeze(0)
-        )
-
-        # initialize patch_embed like nn.Linear (instead of nn.Conv2d)
-        w = self.backbone.patch_embed.proj.weight.data
-        nn.init.xavier_uniform_(w.contiguous().view([w.shape[0], -1]))
-
-        # timm's trunc_normal_(std=.02) is effectively normal_(std=0.02) as cutoff is too big (2.)
-        nn.init.normal_(self.backbone.cls_token, std=0.02)
-        nn.init.normal_(self.decoder.mask_token, std=0.02)
-
-        # initialize nn.Linear and nn.LayerNorm
-        self.apply(self._init_weights)
-
-    def _init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            # we use xavier_uniform following official JAX ViT:
-            nn.init.xavier_uniform_(m.weight)
-            if isinstance(m, nn.Linear) and m.bias is not None:
-                nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.LayerNorm):
-            nn.init.constant_(m.bias, 0)
-            nn.init.constant_(m.weight, 1.0)
 
     @staticmethod
     def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -276,12 +197,18 @@ class MAE(BaseMethod):
         # modified base forward
         if not self.no_channel_last:
             X = X.to(memory_format=torch.channels_last)
-        feats, X, mask, ids_restore = self.backbone(X, self.mask_ratio)
+
+        out = {}
+        if self.training:
+            feats, patch_feats, mask, ids_restore = self.backbone(X, self.mask_ratio)
+            pred = self.decoder(patch_feats, ids_restore)
+            out.update({"mask": mask, "pred": pred})
+        else:
+            feats = self.backbone(X)
+
         logits = self.classifier(feats.detach())
-
-        pred = self.decoder(X, ids_restore)
-
-        return {"logits": logits, "feats": feats, "X": X, "mask": mask, "pred": pred}
+        out.update({"logits": logits, "feats": feats})
+        return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for MAE reusing BaseMethod training step.

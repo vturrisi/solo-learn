@@ -17,6 +17,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
+
 from .vit import vit_tiny as default_vit_tiny
 from .vit import vit_small as default_vit_small
 from .vit import vit_base as default_vit_base
@@ -27,25 +29,39 @@ from .vit_mocov3 import vit_small as mocov3_vit_small
 from .vit_mocov3 import vit_base as mocov3_vit_base
 from .vit_mocov3 import vit_large as mocov3_vit_large
 
+from .vit_mae import vit_tiny as mae_vit_tiny
+from .vit_mae import vit_small as mae_vit_small
+from .vit_mae import vit_base as mae_vit_base
+from .vit_mae import vit_large as mae_vit_large
+
+
+def get_constructor(method, options, default):
+    if str(method).lower() in options:
+        logging.info(f"Using custom backbone for {method}")
+        return options[method]
+
+    logging.info(f"No custom backbone found for {method}, defaulting to default")
+    return default
+
 
 def vit_tiny(method, *args, **kwargs):
-    custom_backbone_constructor = {"mocov3": mocov3_vit_tiny}
-    return custom_backbone_constructor.get(str(method).lower(), default_vit_tiny)(*args, **kwargs)
+    custom_backbone_constructor = {"mocov3": mocov3_vit_tiny, "mae": mae_vit_tiny}
+    return get_constructor(method, custom_backbone_constructor, default_vit_tiny)(*args, **kwargs)
 
 
 def vit_small(method, *args, **kwargs):
-    custom_backbone_constructor = {"mocov3": mocov3_vit_small}
-    return custom_backbone_constructor.get(str(method).lower(), default_vit_small)(*args, **kwargs)
+    custom_backbone_constructor = {"mocov3": mocov3_vit_small, "mae": mae_vit_small}
+    return get_constructor(method, custom_backbone_constructor, default_vit_small)(*args, **kwargs)
 
 
 def vit_base(method, *args, **kwargs):
-    custom_backbone_constructor = {"mocov3": mocov3_vit_base}
-    return custom_backbone_constructor.get(str(method).lower(), default_vit_base)(*args, **kwargs)
+    custom_backbone_constructor = {"mocov3": mocov3_vit_base, "mae": mae_vit_base}
+    return get_constructor(method, custom_backbone_constructor, default_vit_base)(*args, **kwargs)
 
 
 def vit_large(method, *args, **kwargs):
-    custom_backbone_constructor = {"mocov3": mocov3_vit_large}
-    return custom_backbone_constructor.get(str(method).lower(), default_vit_large)(*args, **kwargs)
+    custom_backbone_constructor = {"mocov3": mocov3_vit_large, "mae": mae_vit_large}
+    return get_constructor(method, custom_backbone_constructor, default_vit_large)(*args, **kwargs)
 
 
 __all__ = ["vit_tiny", "vit_small", "vit_base", "vit_large"]

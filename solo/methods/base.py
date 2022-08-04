@@ -17,7 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import warnings
+import logging
 from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
@@ -53,7 +53,6 @@ from solo.backbones import (
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from solo.utils.misc import compute_dataset_size
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
 
@@ -214,8 +213,6 @@ class BaseMethod(pl.LightningModule):
         self.knn_k = knn_k
         self.no_channel_last = no_channel_last
 
-        self._num_training_steps = None
-
         # multicrop
         self.num_crops = self.num_large_crops + self.num_small_crops
 
@@ -264,7 +261,7 @@ class BaseMethod(pl.LightningModule):
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
         if scheduler_interval == "step":
-            warnings.warn(
+            logging.warn(
                 f"Using scheduler_interval={scheduler_interval} might generate "
                 "issues when resuming a checkpoint."
             )
@@ -338,45 +335,6 @@ class BaseMethod(pl.LightningModule):
         return parent_parser
 
     @property
-    def num_training_steps(self) -> int:
-        """Compute the number of training steps for each epoch."""
-
-        if self._num_training_steps is None:
-            try:
-                dataset = self.extra_args.get("dataset", None)
-                if dataset not in ["cifar10", "cifar100", "stl10"]:
-                    data_path = self.extra_args.get("train_data_path", "./train")
-                else:
-                    data_path = None
-
-                no_labels = self.extra_args.get("no_labels", False)
-                data_fraction = self.extra_args.get("data_fraction", -1.0)
-                data_format = self.extra_args.get("data_format", "image_folder")
-                dataset_size = compute_dataset_size(
-                    dataset=dataset,
-                    data_path=data_path,
-                    data_format=data_format,
-                    train=True,
-                    no_labels=no_labels,
-                    data_fraction=data_fraction,
-                )
-            except:
-                raise RuntimeError(
-                    "Please pass 'dataset' or 'train_data_path' as parameters to the model."
-                )
-
-            dataset_size = self.trainer.limit_train_batches * dataset_size
-
-            num_devices = self.trainer.num_devices
-            num_nodes = self.trainer.num_nodes
-            effective_batch_size = (
-                self.batch_size * self.trainer.accumulate_grad_batches * num_devices * num_nodes
-            )
-            self._num_training_steps = dataset_size // effective_batch_size
-
-        return self._num_training_steps
-
-    @property
     def learnable_params(self) -> List[Dict[str, Any]]:
         """Defines learnable parameters for the base class.
 
@@ -422,11 +380,21 @@ class BaseMethod(pl.LightningModule):
             return optimizer
 
         if self.scheduler == "warmup_cosine":
+            max_warmup_steps = (
+                self.warmup_epochs * (self.trainer.estimated_stepping_batches / self.max_epochs)
+                if self.scheduler_interval == "step"
+                else self.warmup_epochs
+            )
+            max_scheduler_steps = (
+                self.trainer.estimated_stepping_batches
+                if self.scheduler_interval == "step"
+                else self.max_epochs
+            )
             scheduler = {
                 "scheduler": LinearWarmupCosineAnnealingLR(
                     optimizer,
-                    warmup_epochs=self.warmup_epochs * self.num_training_steps,
-                    max_epochs=self.max_epochs * self.num_training_steps,
+                    warmup_epochs=max_warmup_steps,
+                    max_epochs=max_scheduler_steps,
                     warmup_start_lr=self.warmup_start_lr if self.warmup_epochs > 0 else self.lr,
                     eta_min=self.min_lr,
                 ),
@@ -526,6 +494,21 @@ class BaseMethod(pl.LightningModule):
         out.update({"loss": loss, "acc1": acc1, "acc5": acc5})
         return out
 
+    def base_training_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+        """Allows user to re-write how the forward step behaves for the training_step.
+        Should always return a dict containing, at least, "loss", "acc1" and "acc5".
+        Defaults to _base_shared_step
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
+
+        Returns:
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
+        """
+
+        return self._base_shared_step(X, targets)
+
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
         forwarding the crops, computing logits and computing statistics.
@@ -546,7 +529,7 @@ class BaseMethod(pl.LightningModule):
         # check that we received the desired number of crops
         assert len(X) == self.num_crops
 
-        outs = [self._base_shared_step(x, targets) for x in X[: self.num_large_crops]]
+        outs = [self.base_training_step(x, targets) for x in X[: self.num_large_crops]]
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
@@ -577,6 +560,21 @@ class BaseMethod(pl.LightningModule):
 
         return outs
 
+    def base_validation_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+        """Allows user to re-write how the forward step behaves for the validation_step.
+        Should always return a dict containing, at least, "loss", "acc1" and "acc5".
+        Defaults to _base_shared_step
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
+
+        Returns:
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
+        """
+
+        return self._base_shared_step(X, targets)
+
     def validation_step(
         self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
     ) -> Dict[str, Any]:
@@ -595,7 +593,7 @@ class BaseMethod(pl.LightningModule):
         X, targets = batch
         batch_size = targets.size(0)
 
-        out = self._base_shared_step(X, targets)
+        out = self.base_validation_step(X, targets)
 
         if self.knn_eval and not self.trainer.sanity_checking:
             self.knn(test_features=out.pop("feats").detach(), test_targets=targets.detach())
@@ -859,11 +857,9 @@ class BaseMomentumMethod(BaseMethod):
             # log tau momentum
             self.log("tau", self.momentum_updater.cur_tau)
             # update tau
-            cur_step = self.trainer.global_step
-            if self.trainer.accumulate_grad_batches:
-                cur_step = cur_step * self.trainer.accumulate_grad_batches
             self.momentum_updater.update_tau(
-                cur_step=cur_step, max_steps=self.max_epochs * self.num_training_steps
+                cur_step=self.trainer.global_step,
+                max_steps=self.trainer.estimated_stepping_batches,
             )
         self.last_step = self.trainer.global_step
 
