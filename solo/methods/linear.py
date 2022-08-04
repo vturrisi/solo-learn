@@ -121,7 +121,7 @@ class LinearModel(pl.LightningModule):
 
         if not finetune:
             for param in self.backbone.parameters():
-                param.requires_grad = True
+                param.requires_grad = False
 
         if scheduler_interval == "step":
             logging.warn(
