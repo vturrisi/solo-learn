@@ -205,6 +205,24 @@ def gather(X, dim=0):
     return torch.cat(GatherLayer.apply(X), dim=dim)
 
 
+@torch.no_grad()
+def concat_all_gather_no_grad(tensor: torch.Tensor) -> torch.Tensor:
+    """
+    Performs all_gather operation on the provided tensors.
+    *** Warning ***: torch.distributed.all_gather has no gradient.
+    """
+
+    if dist.is_available() and dist.is_initialized():
+        tensors_gather = [
+            torch.ones_like(tensor) for _ in range(torch.distributed.get_world_size())
+        ]
+        torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
+
+        output = torch.cat(tensors_gather, dim=0)
+        return output
+    return tensor
+
+
 def compute_dataset_size(
     dataset: Optional[str] = None,
     train: Optional[bool] = True,
@@ -271,11 +289,12 @@ def make_contiguous(module):
 
 
 def generate_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
-    """
+    """ Adapted from https://github.com/facebookresearch/mae.
     grid_size: int of the grid height and width
     return:
     pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
     """
+
     grid_h = np.arange(grid_size, dtype=np.float32)
     grid_w = np.arange(grid_size, dtype=np.float32)
     grid = np.meshgrid(grid_w, grid_h)  # here w goes first
@@ -289,6 +308,8 @@ def generate_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
 
 
 def generate_2d_sincos_pos_embed_from_grid(embed_dim, grid):
+    # Adapted from https://github.com/facebookresearch/mae.
+
     assert embed_dim % 2 == 0
 
     # use half of dimensions to encode grid_h
@@ -300,11 +321,12 @@ def generate_2d_sincos_pos_embed_from_grid(embed_dim, grid):
 
 
 def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
-    """
+    """ Adapted from https://github.com/facebookresearch/mae.
     embed_dim: output dimension for each position
     pos: a list of positions to be encoded: size (M,)
     out: (M, D)
     """
+
     assert embed_dim % 2 == 0
     omega = np.arange(embed_dim // 2, dtype=np.float)
     omega /= embed_dim / 2.0

@@ -18,30 +18,52 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-import torch.nn.functional as F
 
 
-def patchify(imgs, p):
+def patchify(imgs: torch.Tensor, patch_size: int) -> torch.Tensor:
+    """Patchifies an image according to some patch size.
+    Adapted from https://github.com/facebookresearch/mae.
+
+    Args:
+        imgs (torch.Tensor): [N, 3, H, W] Tensor containing the original images.
+        patch_size (int): size of each patch.
+
+    Returns:
+        torch.Tensor: [N, Tokens, pixels * pixels * 3] Tensor containing the patchified images.
     """
-    imgs: (N, 3, H, W)
-    x: (N, L, patch_size**2 *3)
-    """
-    assert imgs.size(2) == imgs.size(3) and imgs.size(2) % p == 0
 
-    h = w = imgs.size(2) // p
-    x = imgs.reshape(shape=(imgs.size(0), 3, h, p, w, p))
+    assert imgs.size(2) == imgs.size(3) and imgs.size(2) % patch_size == 0
+
+    h = w = imgs.size(2) // patch_size
+    x = imgs.reshape(shape=(imgs.size(0), 3, h, patch_size, w, patch_size))
     x = torch.einsum("nchpwq->nhwpqc", x)
-    x = x.reshape(shape=(imgs.size(0), h * w, p**2 * 3))
+    x = x.reshape(shape=(imgs.size(0), h * w, patch_size ** 2 * 3))
     return x
 
 
-def mae_loss_func(imgs, pred, mask, patch_size, norm_pix_loss=False):
+def mae_loss_func(
+    imgs: torch.Tensor,
+    pred: torch.Tensor,
+    mask: torch.Tensor,
+    patch_size: int,
+    norm_pix_loss: bool = True,
+) -> torch.Tensor:
+    """Computes MAE's loss given batch of images, the decoder predictions, the input mask and respective patch size.
+    Adapted from https://github.com/facebookresearch/mae.
+
+    Args:
+        imgs (torch.Tensor): [N, 3, H, W] Tensor containing the original images.
+        pred (torch.Tensor): [N, Tokens, pixels * pixels * 3] Tensor containing the predicted patches.
+        mask (torch.Tensor): [N, Tokens] Tensor representing a binary mask, where value 1 means masked.
+        patch_size (int): size of each patch.
+        norm_pix_loss (bool): whether to normalize the pixels of each patch with their respective mean and std.
+
+    Returns:
+        torch.Tensor: MAE's loss.
     """
-    imgs: [N, 3, H, W]
-    pred: [N, L, p*p*3]
-    mask: [N, L], 0 is keep, 1 is remove,
-    """
+
     target = patchify(imgs, patch_size)
+
     if norm_pix_loss:
         mean = target.mean(dim=-1, keepdim=True)
         var = target.var(dim=-1, keepdim=True)

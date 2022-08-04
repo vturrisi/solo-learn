@@ -164,7 +164,7 @@ class MoCoV2Plus(BaseMomentumMethod):
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """
-        Training step for MoCo reusing BaseMomentumMethod training step.
+        Training step for MoCo V2+ reusing BaseMomentumMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the

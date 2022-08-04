@@ -37,10 +37,10 @@ from .vit_mae import vit_large as mae_vit_large
 
 def get_constructor(method, options, default):
     if str(method).lower() in options:
-        logging.info(f"Using custom backbone for {method}")
+        logging.warn(f"Using custom backbone for {method}")
         return options[method]
 
-    logging.info(f"No custom backbone found for {method}, defaulting to default")
+    logging.warn(f"No custom backbone found for {method}, defaulting to default")
     return default
 
 
