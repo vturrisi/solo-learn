@@ -289,7 +289,7 @@ def make_contiguous(module):
 
 
 def generate_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
-    """ Adapted from https://github.com/facebookresearch/mae.
+    """Adapted from https://github.com/facebookresearch/mae.
     grid_size: int of the grid height and width
     return:
     pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
@@ -321,7 +321,7 @@ def generate_2d_sincos_pos_embed_from_grid(embed_dim, grid):
 
 
 def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
-    """ Adapted from https://github.com/facebookresearch/mae.
+    """Adapted from https://github.com/facebookresearch/mae.
     embed_dim: output dimension for each position
     pos: a list of positions to be encoded: size (M,)
     out: (M, D)

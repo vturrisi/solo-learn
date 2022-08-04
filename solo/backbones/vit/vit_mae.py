@@ -28,7 +28,7 @@ from timm.models.vision_transformer import Block, PatchEmbed
 
 
 class MaskedAutoencoderViT(nn.Module):
-    """ Masked Autoencoder with VisionTransformer backbone
+    """Masked Autoencoder with VisionTransformer backbone
     Adapted from https://github.com/facebookresearch/mae.
     """
 
@@ -80,7 +80,7 @@ class MaskedAutoencoderViT(nn.Module):
         # initialization
         # initialize (and freeze) pos_embed by sin-cos embedding
         pos_embed = generate_2d_sincos_pos_embed(
-            self.pos_embed.shape[-1], int(self.patch_embed.num_patches ** 0.5), cls_token=True
+            self.pos_embed.shape[-1], int(self.patch_embed.num_patches**0.5), cls_token=True
         )
         self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
 
