@@ -137,7 +137,7 @@ class MAE(BaseMethod):
             decoder_embed_dim (int): number of dimensions for the embedding in the decoder
             decoder_depth (int) depth of the decoder
             decoder_num_heads (int) number of heads for the decoder
-            norm_pix_loss (bool): whether to normalize the pixels of each patch with their 
+            norm_pix_loss (bool): whether to normalize the pixels of each patch with their
                 respective mean and std for the loss. Defaults to False.
         """
 
