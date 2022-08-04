@@ -215,7 +215,10 @@ class LinearModel(pl.LightningModule):
         )
 
         optimizer = optimizer(
-            parameters, lr=self.lr, weight_decay=self.weight_decay, **self.extra_optimizer_args,
+            parameters,
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+            **self.extra_optimizer_args,
         )
 
         # select scheduler
