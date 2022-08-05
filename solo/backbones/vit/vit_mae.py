@@ -87,7 +87,7 @@ class MaskedAutoencoderViT(VisionTransformer):
         # initialization
         # initialize (and freeze) pos_embed by sin-cos embedding
         pos_embed = generate_2d_sincos_pos_embed(
-            self.pos_embed.shape[-1], int(self.patch_embed.num_patches**0.5), cls_token=True
+            self.pos_embed.shape[-1], int(self.patch_embed.num_patches ** 0.5), cls_token=True
         )
         self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
 
@@ -158,12 +158,6 @@ class MaskedAutoencoderViT(VisionTransformer):
         x = self.norm(x)
 
         return x, mask, ids_restore
-
-    def forward_head(self, x, pre_logits: bool = False):
-        if self.global_pool:
-            x = x[:, self.num_prefix_tokens :].mean(dim=1) if self.global_pool == "avg" else x[:, 0]
-        x = self.fc_norm(x)
-        return x if pre_logits else self.head(x)
 
     def forward(self, imgs, mask_ratio=0):
         feats, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
