@@ -235,10 +235,7 @@ class LinearModel(pl.LightningModule):
             )
 
         optimizer = optimizer(
-            parameters,
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-            **self.extra_optimizer_args,
+            parameters, lr=self.lr, weight_decay=self.weight_decay, **self.extra_optimizer_args,
         )
 
         # select scheduler
@@ -315,18 +312,19 @@ class LinearModel(pl.LightningModule):
 
         X, target = batch
 
+        out = {"batch_size": X.size(0)}
         if self.training and self.mixup_func is not None:
-            X, processed_target = self.mixup_func(X, target)
+            X, target = self.mixup_func(X, target)
             out = self(X)["logits"]
-            loss = self.loss_func(out, processed_target)
+            loss = self.loss_func(out, target)
+            out.update({"loss": loss})
         else:
             out = self(X)["logits"]
             loss = F.cross_entropy(out, target)
+            acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
+            out.update({"loss": loss, "acc1": acc1, "acc5": acc5})
 
-        acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
-
-        batch_size = X.size(0)
-        return batch_size, loss, acc1, acc5
+        return out
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """Performs the training step for the linear eval.
@@ -343,11 +341,14 @@ class LinearModel(pl.LightningModule):
         if not self.finetune:
             self.backbone.eval()
 
-        _, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
+        out = self.shared_step(batch, batch_idx)
 
-        log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": acc5}
+        log = {"train_loss": out["loss"]}
+        if self.mixup_func is None:
+            log.update({"train_acc1": out["acc1"], "train_acc5": out["acc5"]})
+
         self.log_dict(log, on_epoch=True, sync_dist=True)
-        return loss
+        return out["loss"]
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
@@ -362,13 +363,13 @@ class LinearModel(pl.LightningModule):
                 the classification loss and accuracies.
         """
 
-        batch_size, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
+        out = self.shared_step(batch, batch_idx)
 
         results = {
-            "batch_size": batch_size,
-            "val_loss": loss,
-            "val_acc1": acc1,
-            "val_acc5": acc5,
+            "batch_size": out["batch_size"],
+            "val_loss": out["loss"],
+            "val_acc1": out["acc1"],
+            "val_acc5": out["acc5"],
         }
         return results
 
