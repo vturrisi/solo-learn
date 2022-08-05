@@ -219,13 +219,14 @@ class LinearModel(pl.LightningModule):
         assert self.optimizer in self._OPTIMIZERS
         optimizer = self._OPTIMIZERS[self.optimizer]
 
-        if self.extra_args["layer_decay"] > 0:
+        layer_decay = self.extra_args.get("layer_decay", 0)
+        if layer_decay > 0:
             assert self.finetune, "Only with use layer weight decay with finetune on."
             parameters = param_groups_layer_decay(
                 self.backbone,
                 self.weight_decay,
                 no_weight_decay_list=self.backbone.no_weight_decay(),
-                layer_decay=self.extra_args["layer_decay"],
+                layer_decay=layer_decay,
             )
             parameters.append({"name": "classifier", "params": self.classifier.parameters()})
         else:
