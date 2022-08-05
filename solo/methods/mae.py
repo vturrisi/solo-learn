@@ -48,13 +48,19 @@ class MAEDecoder(nn.Module):
 
         self.decoder_blocks = nn.Sequential(
             *[
-                Block(embed_dim, num_heads, mlp_ratio, qkv_bias=True, norm_layer=nn.LayerNorm,)
+                Block(
+                    embed_dim,
+                    num_heads,
+                    mlp_ratio,
+                    qkv_bias=True,
+                    norm_layer=nn.LayerNorm,
+                )
                 for _ in range(depth)
             ]
         )
 
         self.decoder_norm = nn.LayerNorm(embed_dim)
-        self.decoder_pred = nn.Linear(embed_dim, patch_size ** 2 * 3, bias=True)
+        self.decoder_pred = nn.Linear(embed_dim, patch_size**2 * 3, bias=True)
 
         # init all weights according to MAE's repo
         self.initialize_weights()
@@ -64,7 +70,9 @@ class MAEDecoder(nn.Module):
         # initialize (and freeze) pos_embed by sin-cos embedding
 
         decoder_pos_embed = generate_2d_sincos_pos_embed(
-            self.decoder_pos_embed.shape[-1], int(self.num_patches ** 0.5), cls_token=True,
+            self.decoder_pos_embed.shape[-1],
+            int(self.num_patches**0.5),
+            cls_token=True,
         )
         self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
 
