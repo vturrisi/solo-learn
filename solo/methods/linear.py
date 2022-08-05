@@ -235,10 +235,7 @@ class LinearModel(pl.LightningModule):
             )
 
         optimizer = optimizer(
-            parameters,
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-            **self.extra_optimizer_args,
+            parameters, lr=self.lr, weight_decay=self.weight_decay, **self.extra_optimizer_args,
         )
 
         # select scheduler
@@ -315,19 +312,19 @@ class LinearModel(pl.LightningModule):
 
         X, target = batch
 
-        out = {"batch_size": X.size(0)}
+        metrics = {"batch_size": X.size(0)}
         if self.training and self.mixup_func is not None:
             X, target = self.mixup_func(X, target)
             out = self(X)["logits"]
             loss = self.loss_func(out, target)
-            out.update({"loss": loss})
+            metrics.update({"loss": loss})
         else:
             out = self(X)["logits"]
             loss = F.cross_entropy(out, target)
             acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
-            out.update({"loss": loss, "acc1": acc1, "acc5": acc5})
+            metrics.update({"loss": loss, "acc1": acc1, "acc5": acc5})
 
-        return out
+        return metrics
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """Performs the training step for the linear eval.
