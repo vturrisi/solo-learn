@@ -18,7 +18,7 @@ python3 main_linear.py \
     --num_workers 10 \
     --data_format h5 \
     --name mae-finetune-eval-imagenet100 \
-    --pretrained_feature_extractor trained_models/mae/29tmv07s/mae-vit-400ep-imagenet100-29tmv07s-ep=399.ckpt \
+    --pretrained_feature_extractor PATH \
     --project solo-learn \
     --entity unitn-mhug \
     --save_checkpoint \
