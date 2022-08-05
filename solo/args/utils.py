@@ -57,7 +57,8 @@ def additional_setup_pretrain(args: Namespace):
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
         args.num_classes = max(
-            1, len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
+            1,
+            len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
         )
 
     unique_augs = max(
@@ -268,7 +269,8 @@ def additional_setup_linear(args: Namespace):
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
         args.num_classes = max(
-            1, len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
+            1,
+            len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
         )
 
     # create backbone-specific arguments
