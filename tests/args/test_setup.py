@@ -24,6 +24,7 @@ import textwrap
 
 from solo.args.utils import additional_setup_linear, additional_setup_pretrain
 from tests.dali.utils import DummyDataset
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 
 def test_setup_pretrain():
@@ -352,8 +353,8 @@ def test_additional_setup_pretrain():
             "dataset": "custom",
             "train_data_path": "./dummy_train",
             "val_data_path": "./dummy_val",
-            "mean": [0.485, 0.456, 0.406],
-            "std": [0.228, 0.224, 0.225],
+            "mean": IMAGENET_DEFAULT_MEAN,
+            "std": IMAGENET_DEFAULT_STD,
             "brightness": [0.4],
             "contrast": [0.4],
             "saturation": [0.2],
@@ -437,8 +438,8 @@ def test_additional_setup_linear():
             "dataset": "custom",
             "train_data_path": "./dummy_train",
             "val_data_path": "./dummy_val",
-            "mean": [0.485, 0.456, 0.406],
-            "std": [0.228, 0.224, 0.225],
+            "mean": IMAGENET_DEFAULT_MEAN,
+            "std": IMAGENET_DEFAULT_STD,
             "crop_size": [224],
             "data_format": "image_folder",
             "num_crops_per_aug": [2],

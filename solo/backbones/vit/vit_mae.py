@@ -24,10 +24,10 @@ from functools import partial
 import torch
 import torch.nn as nn
 from solo.utils.misc import generate_2d_sincos_pos_embed
-from timm.models.vision_transformer import Block, PatchEmbed
+from timm.models.vision_transformer import Block, PatchEmbed, VisionTransformer
 
 
-class MaskedAutoencoderViT(nn.Module):
+class MaskedAutoencoderViT(VisionTransformer):
     """Masked Autoencoder with VisionTransformer backbone
     Adapted from https://github.com/facebookresearch/mae.
     """
@@ -45,11 +45,22 @@ class MaskedAutoencoderViT(nn.Module):
         fc_norm=None,
         num_classes=0,
         norm_layer=nn.LayerNorm,
+        **kwargs,
     ):
-        super().__init__()
-
-        self.num_features = embed_dim
-        self.global_pool = global_pool
+        super().__init__(
+            img_size=img_size,
+            patch_size=patch_size,
+            in_chans=in_chans,
+            embed_dim=embed_dim,
+            depth=depth,
+            num_heads=num_heads,
+            mlp_ratio=mlp_ratio,
+            global_pool=global_pool,
+            fc_norm=fc_norm,
+            num_classes=num_classes,
+            norm_layer=norm_layer,
+            **kwargs,
+        )
 
         use_fc_norm = global_pool == "avg" if fc_norm is None else fc_norm
         self.fc_norm = norm_layer(embed_dim) if use_fc_norm else nn.Identity()
@@ -80,7 +91,7 @@ class MaskedAutoencoderViT(nn.Module):
         # initialization
         # initialize (and freeze) pos_embed by sin-cos embedding
         pos_embed = generate_2d_sincos_pos_embed(
-            self.pos_embed.shape[-1], int(self.patch_embed.num_patches**0.5), cls_token=True
+            self.pos_embed.shape[-1], int(self.patch_embed.num_patches ** 0.5), cls_token=True
         )
         self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
 
@@ -173,7 +184,7 @@ def vit_tiny(**kwargs):
         num_heads=12,
         mlp_ratio=4,
         norm_layer=partial(nn.LayerNorm, eps=1e-6),
-        **kwargs
+        **kwargs,
     )
     return model
 
@@ -185,7 +196,7 @@ def vit_small(**kwargs):
         num_heads=12,
         mlp_ratio=4,
         norm_layer=partial(nn.LayerNorm, eps=1e-6),
-        **kwargs
+        **kwargs,
     )
     return model
 
@@ -197,7 +208,7 @@ def vit_base(**kwargs):
         num_heads=12,
         mlp_ratio=4,
         norm_layer=partial(nn.LayerNorm, eps=1e-6),
-        **kwargs
+        **kwargs,
     )
     return model
 
@@ -209,7 +220,7 @@ def vit_large(**kwargs):
         num_heads=16,
         mlp_ratio=4,
         norm_layer=partial(nn.LayerNorm, eps=1e-6),
-        **kwargs
+        **kwargs,
     )
     return model
 
@@ -222,6 +233,7 @@ def vit_huge(**kwargs):
         num_heads=16,
         mlp_ratio=4,
         norm_layer=partial(nn.LayerNorm, eps=1e-6),
-        **kwargs
+        **kwargs,
     )
     return model
+

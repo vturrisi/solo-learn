@@ -26,7 +26,9 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-from solo.utils.h5_dataset import H5Dataset
+from solo.data.h5_dataset import H5Dataset
+from timm.models.helpers import group_parameters
+from timm.optim.optim_factory import _layer_map
 
 
 def _1d_filter(tensor: torch.Tensor) -> torch.Tensor:
@@ -330,7 +332,7 @@ def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
     assert embed_dim % 2 == 0
     omega = np.arange(embed_dim // 2, dtype=np.float)
     omega /= embed_dim / 2.0
-    omega = 1.0 / 10000**omega  # (D/2,)
+    omega = 1.0 / 10000 ** omega  # (D/2,)
 
     pos = pos.reshape(-1)  # (M,)
     out = np.einsum("m,d->md", pos, omega)  # (M, D/2), outer product
@@ -340,3 +342,62 @@ def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
 
     emb = np.concatenate([emb_sin, emb_cos], axis=1)  # (M, D)
     return emb
+
+
+def param_groups_layer_decay(
+    model: nn.Module,
+    weight_decay: float = 0.05,
+    no_weight_decay_list: Tuple[str] = (),
+    layer_decay: float = 0.75,
+):
+    """
+    Parameter groups for layer-wise lr decay & weight decay
+    Based on BEiT: https://github.com/microsoft/unilm/blob/master/beit/optim_factory.py#L58
+    """
+
+    no_weight_decay_list = set(no_weight_decay_list)
+    param_group_names = {}  # NOTE for debugging
+    param_groups = {}
+
+    if hasattr(model, "group_matcher"):
+        # FIXME interface needs more work
+        layer_map = group_parameters(model, model.group_matcher(coarse=False), reverse=True)
+    else:
+        # fallback
+        layer_map = _layer_map(model)
+    num_layers = max(layer_map.values()) + 1
+    layer_max = num_layers - 1
+    layer_scales = list(layer_decay ** (layer_max - i) for i in range(num_layers))
+
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+
+        # no decay: all 1D parameters and model specific ones
+        if param.ndim == 1 or name in no_weight_decay_list:
+            g_decay = "no_decay"
+            this_decay = 0.0
+        else:
+            g_decay = "decay"
+            this_decay = weight_decay
+
+        layer_id = layer_map.get(name, layer_max)
+        group_name = "layer_%d_%s" % (layer_id, g_decay)
+
+        if group_name not in param_groups:
+            this_scale = layer_scales[layer_id]
+            param_group_names[group_name] = {
+                "lr_scale": this_scale,
+                "weight_decay": this_decay,
+                "param_names": [],
+            }
+            param_groups[group_name] = {
+                "lr_scale": this_scale,
+                "weight_decay": this_decay,
+                "params": [],
+            }
+
+        param_group_names[group_name]["param_names"].append(name)
+        param_groups[group_name]["params"].append(param)
+
+    return list(param_groups.values())

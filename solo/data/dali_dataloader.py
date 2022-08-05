@@ -31,7 +31,12 @@ import torch
 import torch.nn as nn
 from nvidia.dali.pipeline import pipeline_def
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
-from solo.utils.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
+from solo.data.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+
+# Dali uses the values in [0, 255]
+IMAGENET_DEFAULT_MEAN = [v * 255 for v in IMAGENET_DEFAULT_MEAN]
+IMAGENET_DEFAULT_STD = [v * 255 for v in IMAGENET_DEFAULT_STD]
 
 
 class Mux:
@@ -264,9 +269,7 @@ class NormalPipelineBuilder:
         # crop operations
         if self.validation:
             self.resize = ops.Resize(
-                device=self.device,
-                resize_shorter=256,
-                interp_type=types.INTERP_CUBIC,
+                device=self.device, resize_shorter=256, interp_type=types.INTERP_CUBIC,
             )
             # center crop and normalize
             self.cmn = ops.CropMirrorNormalize(
@@ -274,8 +277,8 @@ class NormalPipelineBuilder:
                 dtype=types.FLOAT,
                 output_layout=types.NCHW,
                 crop=(224, 224),
-                mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
-                std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
+                mean=IMAGENET_DEFAULT_MEAN,
+                std=IMAGENET_DEFAULT_STD,
             )
         else:
             self.resize = ops.RandomResizedCrop(
@@ -289,8 +292,8 @@ class NormalPipelineBuilder:
                 device=self.device,
                 dtype=types.FLOAT,
                 output_layout=types.NCHW,
-                mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
-                std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
+                mean=IMAGENET_DEFAULT_MEAN,
+                std=IMAGENET_DEFAULT_STD,
             )
 
         self.coin05 = ops.random.CoinFlip(probability=0.5)
@@ -403,8 +406,8 @@ class ImagenetTransform:
             device=device,
             dtype=types.FLOAT,
             output_layout=types.NCHW,
-            mean=[0.485 * 255, 0.456 * 255, 0.406 * 255],
-            std=[0.228 * 255, 0.224 * 255, 0.225 * 255],
+            mean=IMAGENET_DEFAULT_MEAN,
+            std=IMAGENET_DEFAULT_STD,
         )
         self.coin05 = ops.random.CoinFlip(probability=horizontal_flip_prob)
 
@@ -864,11 +867,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
 
         if unique_augs > 1:
             self.transforms = [
-                transform_pipeline(
-                    device=dali_device,
-                    **kwargs,
-                )
-                for kwargs in transform_kwargs
+                transform_pipeline(device=dali_device, **kwargs,) for kwargs in transform_kwargs
             ]
         else:
             self.transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]

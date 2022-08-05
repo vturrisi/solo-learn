@@ -30,7 +30,7 @@ from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 
 try:
-    from solo.utils.dali_dataloader import PretrainDALIDataModule
+    from solo.data.dali_dataloader import PretrainDALIDataModule
 except ImportError:
     _dali_avaliable = False
 else:
@@ -44,15 +44,15 @@ else:
     _umap_available = True
 
 
-from solo.utils.checkpointer import Checkpointer
-from solo.utils.classification_dataloader import prepare_data as prepare_data_classification
-from solo.utils.misc import make_contiguous
-from solo.utils.pretrain_dataloader import (
+from solo.data.classification_dataloader import prepare_data as prepare_data_classification
+from solo.data.pretrain_dataloader import (
     prepare_dataloader,
     prepare_datasets,
     prepare_n_crop_transform,
     prepare_transform,
 )
+from solo.utils.checkpointer import Checkpointer
+from solo.utils.misc import make_contiguous
 
 
 def main():
@@ -90,7 +90,9 @@ def main():
 
     # pretrain dataloader
     if args.data_format == "dali":
-        assert _dali_avaliable, "Dali is not avaiable, please install it first with [dali]."
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with pip3 install .[dali]."
 
         dali_datamodule = PretrainDALIDataModule(
             dataset=args.dataset,

@@ -22,7 +22,7 @@ import argparse
 from pytorch_lightning import Trainer
 from solo.methods import BarlowTwins
 from solo.methods.linear import LinearModel
-from solo.utils.dali_dataloader import (
+from solo.data.dali_dataloader import (
     ClassificationDALIDataModule,
     ImagenetTransform,
     NormalPipelineBuilder,
@@ -154,10 +154,7 @@ def test_dali_pretrain():
 
             args = argparse.Namespace(**kwargs)
             trainer = Trainer.from_argparse_args(
-                args,
-                checkpoint_callback=False,
-                limit_train_batches=2,
-                limit_val_batches=2,
+                args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
             )
             dali_datamodule = PretrainDALIDataModule(
                 dataset=args.dataset,
@@ -206,9 +203,6 @@ def test_dali_linear():
         )
 
         trainer = Trainer.from_argparse_args(
-            args,
-            checkpoint_callback=False,
-            limit_train_batches=2,
-            limit_val_batches=2,
+            args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
         )
         trainer.fit(model, datamodule=dali_datamodule)

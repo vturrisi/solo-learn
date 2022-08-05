@@ -22,13 +22,15 @@ from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
 import torchvision
+from timm.data import create_transform
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
 
 try:
-    from solo.utils.h5_dataset import H5Dataset
+    from solo.data.h5_dataset import H5Dataset
 except ImportError:
     _h5_available = False
 else:
@@ -47,7 +49,7 @@ def build_custom_pipeline():
                 transforms.RandomResizedCrop(size=224, scale=(0.08, 1.0)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+                transforms.Normalize(mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD),
             ]
         ),
         "T_val": transforms.Compose(
@@ -55,7 +57,7 @@ def build_custom_pipeline():
                 transforms.Resize(256),  # resize shorter
                 transforms.CenterCrop(224),  # take center crop
                 transforms.ToTensor(),
-                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+                transforms.Normalize(mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD),
             ]
         ),
     }
@@ -113,7 +115,7 @@ def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
                 transforms.RandomResizedCrop(size=224, scale=(0.08, 1.0)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+                transforms.Normalize(mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD),
             ]
         ),
         "T_val": transforms.Compose(
@@ -121,7 +123,7 @@ def prepare_transforms(dataset: str) -> Tuple[nn.Module, nn.Module]:
                 transforms.Resize(256),  # resize shorter
                 transforms.CenterCrop(224),  # take center crop
                 transforms.ToTensor(),
-                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+                transforms.Normalize(mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD),
             ]
         ),
     }
@@ -188,32 +190,14 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
-            train_data_path,
-            train=True,
-            download=download,
-            transform=T_train,
+            train_data_path, train=True, download=download, transform=T_train,
         )
 
-        val_dataset = DatasetClass(
-            val_data_path,
-            train=False,
-            download=download,
-            transform=T_val,
-        )
+        val_dataset = DatasetClass(val_data_path, train=False, download=download, transform=T_val,)
 
     elif dataset == "stl10":
-        train_dataset = STL10(
-            train_data_path,
-            split="train",
-            download=True,
-            transform=T_train,
-        )
-        val_dataset = STL10(
-            val_data_path,
-            split="test",
-            download=download,
-            transform=T_val,
-        )
+        train_dataset = STL10(train_data_path, split="train", download=True, transform=T_train,)
+        val_dataset = STL10(val_data_path, split="test", download=download, transform=T_val,)
 
     elif dataset in ["imagenet", "imagenet100", "custom"]:
         if data_format == "h5":
@@ -281,6 +265,7 @@ def prepare_data(
     num_workers: int = 4,
     download: bool = True,
     data_fraction: float = -1.0,
+    auto_augment: bool = False,
 ) -> Tuple[DataLoader, DataLoader]:
     """Prepares transformations, creates dataset objects and wraps them in dataloaders.
 
@@ -296,12 +281,28 @@ def prepare_data(
         num_workers (int, optional): number of parallel workers. Defaults to 4.
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
             Defaults to -1.0.
+        auto_augment (bool, optional): use auto augment following timm.data.create_transform.
+            Defaults to None.
 
     Returns:
         Tuple[DataLoader, DataLoader]: prepared training and validation dataloader.
     """
 
     T_train, T_val = prepare_transforms(dataset)
+    if auto_augment:
+        T_train = create_transform(
+            input_size=224,
+            is_training=True,
+            color_jitter=None,  # don't use color jitter when doing random aug
+            auto_augment="rand-m9-mstd0.5-inc1",  # auto augment string
+            interpolation="bicubic",
+            re_prob=0.25,  # random erase probability
+            re_mode="pixel",
+            re_count=1,
+            mean=IMAGENET_DEFAULT_MEAN,
+            std=IMAGENET_DEFAULT_STD,
+        )
+
     train_dataset, val_dataset = prepare_datasets(
         dataset,
         T_train,
@@ -313,9 +314,6 @@ def prepare_data(
         data_fraction=data_fraction,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset,
-        val_dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
+        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
     )
     return train_loader, val_loader

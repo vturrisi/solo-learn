@@ -20,7 +20,7 @@
 import numpy as np
 import torch
 from PIL import Image
-from solo.utils.pretrain_dataloader import (
+from solo.data.pretrain_dataloader import (
     dataset_with_index,
     prepare_dataloader,
     prepare_n_crop_transform,

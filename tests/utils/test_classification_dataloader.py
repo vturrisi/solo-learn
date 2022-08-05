@@ -21,7 +21,7 @@ import math
 
 import numpy as np
 from PIL import Image
-from solo.utils.classification_dataloader import prepare_data, prepare_datasets, prepare_transforms
+from solo.data.classification_dataloader import prepare_data, prepare_datasets, prepare_transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 

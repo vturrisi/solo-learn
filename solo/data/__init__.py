@@ -17,30 +17,19 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from solo.utils import (
-    checkpointer,
-    knn,
-    lars,
-    metrics,
-    misc,
-    momentum,
-    sinkhorn_knopp,
-)
+
+from solo.data import classification_dataloader, h5_dataset, pretrain_dataloader
 
 __all__ = [
-    "checkpointer",
-    "knn",
-    "misc",
-    "lars",
-    "metrics",
-    "momentum",
-    "sinkhorn_knopp",
+    "classification_dataloader",
+    "h5_dataset",
+    "pretrain_dataloader",
 ]
 
 
 try:
-    from solo.utils import auto_umap  # noqa: F401
+    from solo.data import dali_dataloader  # noqa: F401
 except ImportError:
     pass
 else:
-    __all__.append("auto_umap")
+    __all__.append("dali_dataloader")
