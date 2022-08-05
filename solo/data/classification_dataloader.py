@@ -282,7 +282,7 @@ def prepare_data(
         data_fraction (Optional[float]): percentage of data to use. Use all data when set to -1.0.
             Defaults to -1.0.
         auto_augment (bool, optional): use auto augment following timm.data.create_transform.
-            Defaults to None.
+            Defaults to False.
 
     Returns:
         Tuple[DataLoader, DataLoader]: prepared training and validation dataloader.

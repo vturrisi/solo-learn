@@ -62,10 +62,6 @@ class MaskedAutoencoderViT(VisionTransformer):
             **kwargs,
         )
 
-        use_fc_norm = global_pool == "avg" if fc_norm is None else fc_norm
-        self.fc_norm = norm_layer(embed_dim) if use_fc_norm else nn.Identity()
-        self.head = nn.Linear(self.embed_dim, num_classes) if num_classes > 0 else nn.Identity()
-
         # --------------------------------------------------------------------------
         # MAE encoder specifics
         self.patch_embed = PatchEmbed(img_size, patch_size, in_chans, embed_dim)

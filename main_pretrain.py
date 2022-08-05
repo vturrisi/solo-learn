@@ -26,8 +26,17 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
 
 from solo.args.setup import parse_args_pretrain
+from solo.data.classification_dataloader import prepare_data as prepare_data_classification
+from solo.data.pretrain_dataloader import (
+    prepare_dataloader,
+    prepare_datasets,
+    prepare_n_crop_transform,
+    prepare_transform,
+)
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
+from solo.utils.checkpointer import Checkpointer
+from solo.utils.misc import make_contiguous
 
 try:
     from solo.data.dali_dataloader import PretrainDALIDataModule
@@ -42,17 +51,6 @@ except ImportError:
     _umap_available = False
 else:
     _umap_available = True
-
-
-from solo.data.classification_dataloader import prepare_data as prepare_data_classification
-from solo.data.pretrain_dataloader import (
-    prepare_dataloader,
-    prepare_datasets,
-    prepare_n_crop_transform,
-    prepare_transform,
-)
-from solo.utils.checkpointer import Checkpointer
-from solo.utils.misc import make_contiguous
 
 
 def main():

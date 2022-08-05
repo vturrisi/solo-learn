@@ -63,8 +63,8 @@ class LinearModel(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
-        mixup_func: Callable = None,
         finetune: bool = False,
+        mixup_func: Callable = None,
         scheduler_interval: str = "step",
         lr_decay_steps: Optional[Sequence[int]] = None,
         no_channel_last: bool = False,
@@ -85,6 +85,7 @@ class LinearModel(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
+            mixup_func (Callable, optional). function to convert data and targets with mixup/cutmix. Defaults to None.
             finetune (bool): whether or not to finetune the backbone. Defaults to False.
             scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
@@ -215,7 +216,7 @@ class LinearModel(pl.LightningModule):
         optimizer = self._OPTIMIZERS[self.optimizer]
 
         if self.extra_args["layer_decay"] > 0:
-            assert self.finetune, "Only with use layer decay with finetune on."
+            assert self.finetune, "Only with use layer weight decay with finetune on."
             parameters = param_groups_layer_decay(
                 self.backbone,
                 self.weight_decay,

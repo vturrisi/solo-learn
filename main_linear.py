@@ -27,10 +27,14 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
 from timm.data.mixup import Mixup
+from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
 from solo.args.setup import parse_args_linear
+from solo.data.classification_dataloader import prepare_data
 from solo.methods.base import BaseMethod
+from solo.methods.linear import LinearModel
 from solo.utils.auto_resumer import AutoResumer
+from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous
 
 try:
@@ -39,12 +43,6 @@ except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
-
-from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
-
-from solo.data.classification_dataloader import prepare_data
-from solo.methods.linear import LinearModel
-from solo.utils.checkpointer import Checkpointer
 
 
 def main():
