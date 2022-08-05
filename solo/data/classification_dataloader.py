@@ -190,14 +190,32 @@ def prepare_datasets(
     if dataset in ["cifar10", "cifar100"]:
         DatasetClass = vars(torchvision.datasets)[dataset.upper()]
         train_dataset = DatasetClass(
-            train_data_path, train=True, download=download, transform=T_train,
+            train_data_path,
+            train=True,
+            download=download,
+            transform=T_train,
         )
 
-        val_dataset = DatasetClass(val_data_path, train=False, download=download, transform=T_val,)
+        val_dataset = DatasetClass(
+            val_data_path,
+            train=False,
+            download=download,
+            transform=T_val,
+        )
 
     elif dataset == "stl10":
-        train_dataset = STL10(train_data_path, split="train", download=True, transform=T_train,)
-        val_dataset = STL10(val_data_path, split="test", download=download, transform=T_val,)
+        train_dataset = STL10(
+            train_data_path,
+            split="train",
+            download=True,
+            transform=T_train,
+        )
+        val_dataset = STL10(
+            val_data_path,
+            split="test",
+            download=download,
+            transform=T_val,
+        )
 
     elif dataset in ["imagenet", "imagenet100", "custom"]:
         if data_format == "h5":
@@ -314,6 +332,9 @@ def prepare_data(
         data_fraction=data_fraction,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset, val_dataset, batch_size=batch_size, num_workers=num_workers,
+        train_dataset,
+        val_dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
     )
     return train_loader, val_loader

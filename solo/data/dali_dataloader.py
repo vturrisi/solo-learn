@@ -269,7 +269,9 @@ class NormalPipelineBuilder:
         # crop operations
         if self.validation:
             self.resize = ops.Resize(
-                device=self.device, resize_shorter=256, interp_type=types.INTERP_CUBIC,
+                device=self.device,
+                resize_shorter=256,
+                interp_type=types.INTERP_CUBIC,
             )
             # center crop and normalize
             self.cmn = ops.CropMirrorNormalize(
@@ -867,7 +869,11 @@ class PretrainDALIDataModule(pl.LightningDataModule):
 
         if unique_augs > 1:
             self.transforms = [
-                transform_pipeline(device=dali_device, **kwargs,) for kwargs in transform_kwargs
+                transform_pipeline(
+                    device=dali_device,
+                    **kwargs,
+                )
+                for kwargs in transform_kwargs
             ]
         else:
             self.transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]
