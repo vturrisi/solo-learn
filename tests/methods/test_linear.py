@@ -40,7 +40,7 @@ def test_linear():
     backbone = resnet18()
     backbone.fc = nn.Identity()
     kwargs.pop("backbone")
-    model = LinearModel(backbone, **kwargs)
+    model = LinearModel(backbone, nn.CrossEntropyLoss(), **kwargs)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -65,14 +65,10 @@ def test_linear():
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(
-        args,
-        checkpoint_callback=False,
-        limit_train_batches=2,
-        limit_val_batches=2,
+        args, checkpoint_callback=False, limit_train_batches=2, limit_val_batches=2,
     )
     train_dl, val_dl = prepare_classification_dummy_dataloaders(
-        "imagenet100",
-        num_classes=BASE_KWARGS["num_classes"],
+        "imagenet100", num_classes=BASE_KWARGS["num_classes"],
     )
     trainer.fit(model, train_dl, val_dl)
 
