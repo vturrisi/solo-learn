@@ -57,8 +57,7 @@ def additional_setup_pretrain(args: Namespace):
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
         args.num_classes = max(
-            1,
-            len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
+            1, len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
         )
 
     unique_augs = max(
@@ -218,11 +217,13 @@ def additional_setup_pretrain(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-    if args.optimizer == "lars":
+    elif args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
         args.extra_optimizer_args["eta"] = args.eta_lars
         args.extra_optimizer_args["clip_lars_lr"] = args.grad_clip_lars
         args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+    elif args.optimizer == "adamw":
+        args.extra_optimizer_args["betas"] = [args.adamw_beta1, args.adamw_beta2]
 
     with suppress(AttributeError):
         del args.eta_lars
@@ -267,8 +268,7 @@ def additional_setup_linear(args: Namespace):
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
         args.num_classes = max(
-            1,
-            len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
+            1, len([entry.name for entry in os.scandir(args.train_data_path) if entry.is_dir]),
         )
 
     # create backbone-specific arguments
@@ -289,9 +289,11 @@ def additional_setup_linear(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-    if args.optimizer == "lars":
+    elif args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
         args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+    elif args.optimizer == "adamw":
+        args.extra_optimizer_args["betas"] = [args.adamw_beta1, args.adamw_beta2]
 
     with suppress(AttributeError):
         del args.exclude_bias_n_norm

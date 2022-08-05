@@ -1,10 +1,10 @@
 python3 main_pretrain.py \
-    --dataset imagenet100 \
+    --dataset imagenet \
     --backbone vit_base \
     --train_data_path $1/train.h5 \
     --val_data_path $1/val.h5 \
     --data_format h5 \
-    --max_epochs 400 \
+    --max_epochs 100 \
     --warmup_epochs 40 \
     --devices 0,1,2,3,4,5,6,7 \
     --accelerator gpu \
@@ -29,7 +29,7 @@ python3 main_pretrain.py \
     --solarization_prob 0 \
     --min_scale 0.08 \
     --num_crops_per_aug 1 \
-    --name mae-vit-400ep-imagenet100 \
+    --name mae-vit-100ep-imagenet \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \

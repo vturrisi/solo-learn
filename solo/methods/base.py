@@ -310,9 +310,13 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument(
             "--optimizer", choices=BaseMethod._OPTIMIZERS.keys(), type=str, required=True
         )
+        # lars args
         parser.add_argument("--grad_clip_lars", action="store_true")
         parser.add_argument("--eta_lars", default=1e-3, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
+        # adamw args
+        parser.add_argument("--adamw_beta1", default=0.9, type=float)
+        parser.add_argument("--adamw_beta2", default=0.999, type=float)
 
         parser.add_argument(
             "--scheduler", choices=BaseMethod._SCHEDULERS, type=str, default="reduce"

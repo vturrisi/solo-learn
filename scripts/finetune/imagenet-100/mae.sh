@@ -24,6 +24,7 @@ python3 main_linear.py \
     --save_checkpoint \
     --wandb \
     --pretrain_method mae \
+    --label_smoothing 0.1 \
     --layer_decay 0.75 \
     --drop_path 0.1 \
     --mixup 0.8 \

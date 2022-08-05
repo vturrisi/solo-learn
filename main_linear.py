@@ -89,13 +89,13 @@ def main():
             state[k.replace("backbone.", "")] = state[k]
         del state[k]
     backbone.load_state_dict(state, strict=False)
-    print(f"Loaded {ckpt_path}")
+    logging.info(f"Loaded {ckpt_path}")
 
     # check if mixup or cutmix is enabled
     mixup_func = None
     mixup_active = args.mixup > 0 or args.cutmix > 0
     if mixup_active:
-        print("Mixup activated")
+        logging.info("Mixup activated")
         mixup_func = Mixup(
             mixup_alpha=args.mixup,
             cutmix_alpha=args.cutmix,

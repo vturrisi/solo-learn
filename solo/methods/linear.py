@@ -182,7 +182,11 @@ class LinearModel(pl.LightningModule):
         parser.add_argument(
             "--optimizer", choices=LinearModel._OPTIMIZERS.keys(), type=str, required=True
         )
+        # lars args
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
+        # adamw args
+        parser.add_argument("--adamw_beta1", default=0.9, type=float)
+        parser.add_argument("--adamw_beta2", default=0.999, type=float)
 
         parser.add_argument(
             "--scheduler", choices=LinearModel._SCHEDULERS, type=str, default="reduce"
@@ -235,10 +239,7 @@ class LinearModel(pl.LightningModule):
             )
 
         optimizer = optimizer(
-            parameters,
-            lr=self.lr,
-            weight_decay=self.weight_decay,
-            **self.extra_optimizer_args,
+            parameters, lr=self.lr, weight_decay=self.weight_decay, **self.extra_optimizer_args,
         )
 
         # select scheduler
