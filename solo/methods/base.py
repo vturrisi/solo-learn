@@ -17,7 +17,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import warnings
+import logging
 from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
@@ -261,7 +261,7 @@ class BaseMethod(pl.LightningModule):
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
         if scheduler_interval == "step":
-            warnings.warn(
+            logging.warn(
                 f"Using scheduler_interval={scheduler_interval} might generate "
                 "issues when resuming a checkpoint."
             )
@@ -310,9 +310,13 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument(
             "--optimizer", choices=BaseMethod._OPTIMIZERS.keys(), type=str, required=True
         )
+        # lars args
         parser.add_argument("--grad_clip_lars", action="store_true")
         parser.add_argument("--eta_lars", default=1e-3, type=float)
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
+        # adamw args
+        parser.add_argument("--adamw_beta1", default=0.9, type=float)
+        parser.add_argument("--adamw_beta2", default=0.999, type=float)
 
         parser.add_argument(
             "--scheduler", choices=BaseMethod._SCHEDULERS, type=str, default="reduce"
@@ -494,6 +498,21 @@ class BaseMethod(pl.LightningModule):
         out.update({"loss": loss, "acc1": acc1, "acc5": acc5})
         return out
 
+    def base_training_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+        """Allows user to re-write how the forward step behaves for the training_step.
+        Should always return a dict containing, at least, "loss", "acc1" and "acc5".
+        Defaults to _base_shared_step
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
+
+        Returns:
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
+        """
+
+        return self._base_shared_step(X, targets)
+
     def training_step(self, batch: List[Any], batch_idx: int) -> Dict[str, Any]:
         """Training step for pytorch lightning. It does all the shared operations, such as
         forwarding the crops, computing logits and computing statistics.
@@ -514,7 +533,7 @@ class BaseMethod(pl.LightningModule):
         # check that we received the desired number of crops
         assert len(X) == self.num_crops
 
-        outs = [self._base_shared_step(x, targets) for x in X[: self.num_large_crops]]
+        outs = [self.base_training_step(x, targets) for x in X[: self.num_large_crops]]
         outs = {k: [out[k] for out in outs] for k in outs[0].keys()}
 
         if self.multicrop:
@@ -545,6 +564,21 @@ class BaseMethod(pl.LightningModule):
 
         return outs
 
+    def base_validation_step(self, X: torch.Tensor, targets: torch.Tensor) -> Dict:
+        """Allows user to re-write how the forward step behaves for the validation_step.
+        Should always return a dict containing, at least, "loss", "acc1" and "acc5".
+        Defaults to _base_shared_step
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+            targets (torch.Tensor): batch of labels for X.
+
+        Returns:
+            Dict: dict containing the classification loss, logits, features, acc@1 and acc@5.
+        """
+
+        return self._base_shared_step(X, targets)
+
     def validation_step(
         self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
     ) -> Dict[str, Any]:
@@ -563,7 +597,7 @@ class BaseMethod(pl.LightningModule):
         X, targets = batch
         batch_size = targets.size(0)
 
-        out = self._base_shared_step(X, targets)
+        out = self.base_validation_step(X, targets)
 
         if self.knn_eval and not self.trainer.sanity_checking:
             self.knn(test_features=out.pop("feats").detach(), test_targets=targets.detach())

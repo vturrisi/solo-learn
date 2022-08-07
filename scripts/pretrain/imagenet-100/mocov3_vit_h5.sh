@@ -12,8 +12,6 @@ python3 main_pretrain.py \
     --sync_batchnorm \
     --precision 16 \
     --optimizer adamw \
-    --eta_lars 0.02 \
-    --exclude_bias_n_norm \
     --scheduler warmup_cosine \
     --lr 3.0e-4 \
     --classifier_lr 3.0e-4 \

@@ -17,8 +17,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import os
-import warnings
 
 import torch
 import torch.nn as nn
@@ -26,22 +26,23 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
+from timm.data.mixup import Mixup
+from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
 from solo.args.setup import parse_args_linear
+from solo.data.classification_dataloader import prepare_data
 from solo.methods.base import BaseMethod
+from solo.methods.linear import LinearModel
 from solo.utils.auto_resumer import AutoResumer
+from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous
 
 try:
-    from solo.utils.dali_dataloader import ClassificationDALIDataModule
+    from solo.data.dali_dataloader import ClassificationDALIDataModule
 except ImportError:
     _dali_avaliable = False
 else:
     _dali_avaliable = True
-
-from solo.methods.linear import LinearModel
-from solo.utils.checkpointer import Checkpointer
-from solo.utils.classification_dataloader import prepare_data
 
 
 def main():
@@ -56,6 +57,10 @@ def main():
     # swin specific
     if "swin" in args.backbone and cifar:
         kwargs["window_size"] = 4
+
+    if "vit" in args.backbone:
+        kwargs["drop_path_rate"] = args.drop_path
+        kwargs["global_pool"] = args.global_pool
 
     method = args.pretrain_method
     backbone = backbone_model(method=method, **kwargs)
@@ -77,24 +82,46 @@ def main():
     for k in list(state.keys()):
         if "encoder" in k:
             state[k.replace("encoder", "backbone")] = state[k]
-            warnings.warn(
+            logging.warn(
                 "You are using an older checkpoint. Use a new one as some issues might arrise."
             )
         if "backbone" in k:
             state[k.replace("backbone.", "")] = state[k]
         del state[k]
     backbone.load_state_dict(state, strict=False)
+    logging.info(f"Loaded {ckpt_path}")
 
-    print(f"loaded {ckpt_path}")
+    # check if mixup or cutmix is enabled
+    mixup_func = None
+    mixup_active = args.mixup > 0 or args.cutmix > 0
+    if mixup_active:
+        logging.info("Mixup activated")
+        mixup_func = Mixup(
+            mixup_alpha=args.mixup,
+            cutmix_alpha=args.cutmix,
+            cutmix_minmax=None,
+            prob=1.0,
+            switch_prob=0.5,
+            mode="batch",
+            label_smoothing=args.label_smoothing,
+            num_classes=args.num_classes,
+        )
+        # smoothing is handled with mixup label transform
+        loss_func = SoftTargetCrossEntropy()
+    elif args.label_smoothing > 0:
+        loss_func = LabelSmoothingCrossEntropy(smoothing=args.label_smoothing)
+    else:
+        loss_func = torch.nn.CrossEntropyLoss()
 
     del args.backbone
-    model = LinearModel(backbone, **args.__dict__)
+    model = LinearModel(backbone, loss_func=loss_func, mixup_func=mixup_func, **args.__dict__)
     make_contiguous(model)
 
     if args.data_format == "dali":
         val_data_format = "image_folder"
     else:
         val_data_format = args.data_format
+
     train_loader, val_loader = prepare_data(
         args.dataset,
         train_data_path=args.train_data_path,
@@ -102,12 +129,15 @@ def main():
         data_format=val_data_format,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
+        auto_augment=args.auto_augment,
     )
 
     if args.data_format == "dali":
         assert (
             _dali_avaliable
-        ), "Dali is not currently avaiable, please install it first with [dali]."
+        ), "Dali is not currently avaiable, please install it first with pip3 install .[dali]."
+
+        assert not args.auto_augment, "Auto augmentation is not supported with Dali."
 
         dali_datamodule = ClassificationDALIDataModule(
             dataset=args.dataset,

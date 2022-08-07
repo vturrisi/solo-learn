@@ -25,13 +25,14 @@ from typing import Any, Callable, List, Optional, Sequence, Type, Union
 import torch
 import torchvision
 from PIL import Image, ImageFilter, ImageOps
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 from torchvision.datasets import STL10, ImageFolder
 
 try:
-    from solo.utils.h5_dataset import H5Dataset
+    from solo.data.h5_dataset import H5Dataset
 except ImportError:
     _h5_available = False
 else:
@@ -380,7 +381,7 @@ class ImagenetTransform(BaseTransform):
                 transforms.RandomApply([Equalization()], p=equalization_prob),
                 transforms.RandomHorizontalFlip(p=horizontal_flip_prob),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.228, 0.224, 0.225)),
+                transforms.Normalize(mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD),
             ]
         )
 
@@ -401,8 +402,8 @@ class CustomTransform(BaseTransform):
         min_scale: float = 0.08,
         max_scale: float = 1.0,
         crop_size: int = 224,
-        mean: Sequence[float] = (0.485, 0.456, 0.406),
-        std: Sequence[float] = (0.228, 0.224, 0.225),
+        mean: Sequence[float] = IMAGENET_DEFAULT_MEAN,
+        std: Sequence[float] = IMAGENET_DEFAULT_STD,
     ):
         """Class that applies Custom transformations.
         If you want to do exoteric augmentations, you can just re-write this class.
@@ -428,9 +429,9 @@ class CustomTransform(BaseTransform):
             max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
             crop_size (int, optional): size of the crop. Defaults to 224.
             mean (Sequence[float], optional): mean values for normalization.
-                Defaults to (0.485, 0.456, 0.406).
+                Defaults to IMAGENET_DEFAULT_MEAN.
             std (Sequence[float], optional): std values for normalization.
-                Defaults to (0.228, 0.224, 0.225).
+                Defaults to IMAGENET_DEFAULT_STD.
         """
 
         super().__init__()

@@ -20,7 +20,7 @@
 import numpy as np
 import torch
 from PIL import Image
-from solo.utils.pretrain_dataloader import (
+from solo.data.pretrain_dataloader import (
     dataset_with_index,
     prepare_dataloader,
     prepare_n_crop_transform,
@@ -137,6 +137,8 @@ def gen_classification_batch(b, num_classes, dataset):
 def prepare_dummy_dataloaders(
     dataset, num_large_crops, num_classes, multicrop=False, num_small_crops=0, batch_size=2
 ):
+    is_cifar = "cifar" in dataset
+
     if multicrop:
         transform_kwargs = [
             dict(
@@ -167,7 +169,7 @@ def prepare_dummy_dataloaders(
                 [0.1, 0.1],
                 [1.0, 0.1],
                 [0.0, 0.2],
-                [224, 96] if dataset == "imagenet100" else [32, 24],
+                [224, 96] if not is_cifar else [32, 24],
                 [0.14, 0.08],
                 [1.0, 0.14],
             )
@@ -181,7 +183,7 @@ def prepare_dummy_dataloaders(
             hue=0.1,
             gaussian_prob=1.0,
             solarization_prob=0.1,
-            crop_size=224,
+            crop_size=224 if not is_cifar else 32,
             min_scale=0.14,
             max_scale=1.0,
         )
@@ -205,6 +207,7 @@ def prepare_dummy_dataloaders(
     # normal dataloader
     T_val = transforms.Compose(
         [
+            transforms.Resize(224) if not is_cifar else transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]
@@ -216,9 +219,11 @@ def prepare_dummy_dataloaders(
 
 
 def prepare_classification_dummy_dataloaders(dataset, num_classes):
+    is_cifar = "cifar" in dataset
     # normal dataloader
     T_val = transforms.Compose(
         [
+            transforms.Resize(224) if not is_cifar else transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]

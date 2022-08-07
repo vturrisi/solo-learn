@@ -64,8 +64,10 @@ def test_backbones():
     model = vit_tiny(method=None, patch_size=8, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)
 
-    dummy_data = torch.randn(6, 3, 32, 32)
     model = vit_tiny(method="mocov3", patch_size=8, img_size=32)
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    model = vit_tiny(method="mae", patch_size=8, img_size=32)
     assert isinstance(model(dummy_data), torch.Tensor)
 
     dummy_data = torch.randn(6, 3, 224, 224)
@@ -85,6 +87,15 @@ def test_backbones():
     assert isinstance(model(dummy_data), torch.Tensor)
 
     model = vit_large(method="mocov3")
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    model = vit_small(method="mae")
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    model = vit_base(method="mae")
+    assert isinstance(model(dummy_data), torch.Tensor)
+
+    model = vit_large(method="mae")
     assert isinstance(model(dummy_data), torch.Tensor)
 
     # PoolFormer

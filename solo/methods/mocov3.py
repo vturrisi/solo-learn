@@ -192,7 +192,7 @@ class MoCoV3(BaseMomentumMethod):
         return out
 
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
-        """Training step for MoCoV3 reusing BaseMethod training step.
+        """Training step for MoCo V3 reusing BaseMethod training step.
 
         Args:
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
@@ -200,7 +200,7 @@ class MoCoV3(BaseMomentumMethod):
             batch_idx (int): index of the batch.
 
         Returns:
-            torch.Tensor: total loss composed of MoCov3 and classification loss.
+            torch.Tensor: total loss composed of MoCo V3 and classification loss.
         """
 
         out = super().training_step(batch, batch_idx)

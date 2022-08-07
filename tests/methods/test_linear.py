@@ -40,7 +40,7 @@ def test_linear():
     backbone = resnet18()
     backbone.fc = nn.Identity()
     kwargs.pop("backbone")
-    model = LinearModel(backbone, **kwargs)
+    model = LinearModel(backbone, nn.CrossEntropyLoss(), **kwargs)
 
     # test arguments
     parser = argparse.ArgumentParser()

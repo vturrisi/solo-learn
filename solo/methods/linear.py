@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import warnings
+import logging
 from argparse import ArgumentParser
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -29,6 +29,7 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
+from solo.utils.misc import param_groups_layer_decay
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
 
 
@@ -50,6 +51,7 @@ class LinearModel(pl.LightningModule):
     def __init__(
         self,
         backbone: nn.Module,
+        loss_func: Callable,
         num_classes: int,
         max_epochs: int,
         batch_size: int,
@@ -61,6 +63,8 @@ class LinearModel(pl.LightningModule):
         min_lr: float,
         warmup_start_lr: float,
         warmup_epochs: float,
+        finetune: bool = False,
+        mixup_func: Callable = None,
         scheduler_interval: str = "step",
         lr_decay_steps: Optional[Sequence[int]] = None,
         no_channel_last: bool = False,
@@ -70,6 +74,7 @@ class LinearModel(pl.LightningModule):
 
         Args:
             backbone (nn.Module): backbone architecture for feature extraction.
+            loss_func (Callable): loss function to use (for mixup, label smoothing or default).
             num_classes (int): number of classes in the dataset.
             max_epochs (int): total number of epochs.
             batch_size (int): batch size.
@@ -80,6 +85,8 @@ class LinearModel(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
+            mixup_func (Callable, optional). function to convert data and targets with mixup/cutmix. Defaults to None.
+            finetune (bool): whether or not to finetune the backbone. Defaults to False.
             scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
                 rate will be decreased. Defaults to None.
@@ -97,6 +104,10 @@ class LinearModel(pl.LightningModule):
             features_dim = self.backbone.num_features
         self.classifier = nn.Linear(features_dim, num_classes)  # type: ignore
 
+        if loss_func is None:
+            loss_func = nn.CrossEntropyLoss()
+        self.loss_func = loss_func
+
         # training related
         self.max_epochs = max_epochs
         self.batch_size = batch_size
@@ -108,6 +119,8 @@ class LinearModel(pl.LightningModule):
         self.min_lr = min_lr
         self.warmup_start_lr = warmup_start_lr
         self.warmup_epochs = warmup_epochs
+        self.finetune = finetune
+        self.mixup_func = mixup_func
         assert scheduler_interval in ["step", "epoch"]
         self.scheduler_interval = scheduler_interval
         self.lr_decay_steps = lr_decay_steps
@@ -116,11 +129,12 @@ class LinearModel(pl.LightningModule):
         # all the other parameters
         self.extra_args = kwargs
 
-        for param in self.backbone.parameters():
-            param.requires_grad = False
+        if not finetune:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
 
         if scheduler_interval == "step":
-            warnings.warn(
+            logging.warn(
                 f"Using scheduler_interval={scheduler_interval} might generate "
                 "issues when resuming a checkpoint."
             )
@@ -148,6 +162,9 @@ class LinearModel(pl.LightningModule):
         # for ViT
         parser.add_argument("--patch_size", type=int, default=16)
 
+        # if we want to finetune the backbone
+        parser.add_argument("--finetune", action="store_true")
+
         # general train
         parser.add_argument("--batch_size", type=int, default=128)
         parser.add_argument("--lr", type=float, default=0.3)
@@ -165,7 +182,11 @@ class LinearModel(pl.LightningModule):
         parser.add_argument(
             "--optimizer", choices=LinearModel._OPTIMIZERS.keys(), type=str, required=True
         )
+        # lars args
         parser.add_argument("--exclude_bias_n_norm", action="store_true")
+        # adamw args
+        parser.add_argument("--adamw_beta1", default=0.9, type=float)
+        parser.add_argument("--adamw_beta2", default=0.999, type=float)
 
         parser.add_argument(
             "--scheduler", choices=LinearModel._SCHEDULERS, type=str, default="reduce"
@@ -198,8 +219,28 @@ class LinearModel(pl.LightningModule):
         assert self.optimizer in self._OPTIMIZERS
         optimizer = self._OPTIMIZERS[self.optimizer]
 
+        layer_decay = self.extra_args.get("layer_decay", 0)
+        if layer_decay > 0:
+            assert self.finetune, "Only with use layer weight decay with finetune on."
+            parameters = param_groups_layer_decay(
+                self.backbone,
+                self.weight_decay,
+                no_weight_decay_list=self.backbone.no_weight_decay(),
+                layer_decay=layer_decay,
+            )
+            parameters.append({"name": "classifier", "params": self.classifier.parameters()})
+        else:
+            parameters = (
+                self.classifier.parameters()
+                if not self.finetune
+                else [
+                    {"name": "backbone", "params": self.backbone.parameters()},
+                    {"name": "classifier", "params": self.classifier.parameters()},
+                ]
+            )
+
         optimizer = optimizer(
-            self.classifier.parameters(),
+            parameters,
             lr=self.lr,
             weight_decay=self.weight_decay,
             **self.extra_optimizer_args,
@@ -257,8 +298,9 @@ class LinearModel(pl.LightningModule):
         if not self.no_channel_last:
             X = X.to(memory_format=torch.channels_last)
 
-        with torch.no_grad():
+        with torch.set_grad_enabled(self.finetune):
             feats = self.backbone(X)
+
         logits = self.classifier(feats)
         return {"logits": logits, "feats": feats}
 
@@ -277,14 +319,20 @@ class LinearModel(pl.LightningModule):
         """
 
         X, target = batch
-        batch_size = X.size(0)
 
-        out = self(X)["logits"]
+        metrics = {"batch_size": X.size(0)}
+        if self.training and self.mixup_func is not None:
+            X, target = self.mixup_func(X, target)
+            out = self(X)["logits"]
+            loss = self.loss_func(out, target)
+            metrics.update({"loss": loss})
+        else:
+            out = self(X)["logits"]
+            loss = F.cross_entropy(out, target)
+            acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
+            metrics.update({"loss": loss, "acc1": acc1, "acc5": acc5})
 
-        loss = F.cross_entropy(out, target)
-
-        acc1, acc5 = accuracy_at_k(out, target, top_k=(1, 5))
-        return batch_size, loss, acc1, acc5
+        return metrics
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """Performs the training step for the linear eval.
@@ -298,13 +346,17 @@ class LinearModel(pl.LightningModule):
         """
 
         # set backbone to eval mode
-        self.backbone.eval()
+        if not self.finetune:
+            self.backbone.eval()
 
-        _, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
+        out = self.shared_step(batch, batch_idx)
 
-        log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": acc5}
+        log = {"train_loss": out["loss"]}
+        if self.mixup_func is None:
+            log.update({"train_acc1": out["acc1"], "train_acc5": out["acc5"]})
+
         self.log_dict(log, on_epoch=True, sync_dist=True)
-        return loss
+        return out["loss"]
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
@@ -319,13 +371,13 @@ class LinearModel(pl.LightningModule):
                 the classification loss and accuracies.
         """
 
-        batch_size, loss, acc1, acc5 = self.shared_step(batch, batch_idx)
+        out = self.shared_step(batch, batch_idx)
 
         results = {
-            "batch_size": batch_size,
-            "val_loss": loss,
-            "val_acc1": acc1,
-            "val_acc5": acc5,
+            "batch_size": out["batch_size"],
+            "val_loss": out["loss"],
+            "val_acc1": out["acc1"],
+            "val_acc5": out["acc5"],
         }
         return results
 

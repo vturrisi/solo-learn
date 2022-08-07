@@ -18,7 +18,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import warnings
 from argparse import Namespace
 from contextlib import suppress
 
@@ -219,11 +218,13 @@ def additional_setup_pretrain(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-    if args.optimizer == "lars":
+    elif args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
         args.extra_optimizer_args["eta"] = args.eta_lars
         args.extra_optimizer_args["clip_lars_lr"] = args.grad_clip_lars
         args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+    elif args.optimizer == "adamw":
+        args.extra_optimizer_args["betas"] = [args.adamw_beta1, args.adamw_beta2]
 
     with suppress(AttributeError):
         del args.eta_lars
@@ -290,9 +291,11 @@ def additional_setup_linear(args: Namespace):
     args.extra_optimizer_args = {}
     if args.optimizer == "sgd":
         args.extra_optimizer_args["momentum"] = 0.9
-    if args.optimizer == "lars":
+    elif args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
         args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm
+    elif args.optimizer == "adamw":
+        args.extra_optimizer_args["betas"] = [args.adamw_beta1, args.adamw_beta2]
 
     with suppress(AttributeError):
         del args.exclude_bias_n_norm

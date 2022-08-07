@@ -17,15 +17,18 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import logging
 import math
 import os
-import warnings
 from typing import List, Optional, Tuple
 
+import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-from solo.utils.h5_dataset import H5Dataset
+from solo.data.h5_dataset import H5Dataset
+from timm.models.helpers import group_parameters
+from timm.optim.optim_factory import _layer_map
 
 
 def _1d_filter(tensor: torch.Tensor) -> torch.Tensor:
@@ -129,7 +132,7 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
 
     if (mean < a - 2 * std) or (mean > b + 2 * std):
-        warnings.warn(
+        logging.warn(
             "mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
             "The distribution of values may be incorrect.",
             stacklevel=2,
@@ -204,6 +207,24 @@ def gather(X, dim=0):
     return torch.cat(GatherLayer.apply(X), dim=dim)
 
 
+@torch.no_grad()
+def concat_all_gather_no_grad(tensor: torch.Tensor) -> torch.Tensor:
+    """
+    Performs all_gather operation on the provided tensors.
+    *** Warning ***: torch.distributed.all_gather has no gradient.
+    """
+
+    if dist.is_available() and dist.is_initialized():
+        tensors_gather = [
+            torch.ones_like(tensor) for _ in range(torch.distributed.get_world_size())
+        ]
+        torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
+
+        output = torch.cat(tensors_gather, dim=0)
+        return output
+    return tensor
+
+
 def compute_dataset_size(
     dataset: Optional[str] = None,
     train: Optional[bool] = True,
@@ -267,3 +288,116 @@ def make_contiguous(module):
     with torch.no_grad():
         for param in module.parameters():
             param.set_(param.contiguous())
+
+
+def generate_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
+    """Adapted from https://github.com/facebookresearch/mae.
+    grid_size: int of the grid height and width
+    return:
+    pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
+    """
+
+    grid_h = np.arange(grid_size, dtype=np.float32)
+    grid_w = np.arange(grid_size, dtype=np.float32)
+    grid = np.meshgrid(grid_w, grid_h)  # here w goes first
+    grid = np.stack(grid, axis=0)
+
+    grid = grid.reshape([2, 1, grid_size, grid_size])
+    pos_embed = generate_2d_sincos_pos_embed_from_grid(embed_dim, grid)
+    if cls_token:
+        pos_embed = np.concatenate([np.zeros([1, embed_dim]), pos_embed], axis=0)
+    return pos_embed
+
+
+def generate_2d_sincos_pos_embed_from_grid(embed_dim, grid):
+    # Adapted from https://github.com/facebookresearch/mae.
+
+    assert embed_dim % 2 == 0
+
+    # use half of dimensions to encode grid_h
+    emb_h = generate_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[0])  # (H*W, D/2)
+    emb_w = generate_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[1])  # (H*W, D/2)
+
+    emb = np.concatenate([emb_h, emb_w], axis=1)  # (H*W, D)
+    return emb
+
+
+def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
+    """Adapted from https://github.com/facebookresearch/mae.
+    embed_dim: output dimension for each position
+    pos: a list of positions to be encoded: size (M,)
+    out: (M, D)
+    """
+
+    assert embed_dim % 2 == 0
+    omega = np.arange(embed_dim // 2, dtype=np.float)
+    omega /= embed_dim / 2.0
+    omega = 1.0 / 10000**omega  # (D/2,)
+
+    pos = pos.reshape(-1)  # (M,)
+    out = np.einsum("m,d->md", pos, omega)  # (M, D/2), outer product
+
+    emb_sin = np.sin(out)  # (M, D/2)
+    emb_cos = np.cos(out)  # (M, D/2)
+
+    emb = np.concatenate([emb_sin, emb_cos], axis=1)  # (M, D)
+    return emb
+
+
+def param_groups_layer_decay(
+    model: nn.Module,
+    weight_decay: float = 0.05,
+    no_weight_decay_list: Tuple[str] = (),
+    layer_decay: float = 0.75,
+):
+    """
+    Parameter groups for layer-wise lr decay & weight decay
+    Based on BEiT: https://github.com/microsoft/unilm/blob/master/beit/optim_factory.py#L58
+    """
+
+    no_weight_decay_list = set(no_weight_decay_list)
+    param_group_names = {}  # NOTE for debugging
+    param_groups = {}
+
+    if hasattr(model, "group_matcher"):
+        # FIXME interface needs more work
+        layer_map = group_parameters(model, model.group_matcher(coarse=False), reverse=True)
+    else:
+        # fallback
+        layer_map = _layer_map(model)
+    num_layers = max(layer_map.values()) + 1
+    layer_max = num_layers - 1
+    layer_scales = list(layer_decay ** (layer_max - i) for i in range(num_layers))
+
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+
+        # no decay: all 1D parameters and model specific ones
+        if param.ndim == 1 or name in no_weight_decay_list:
+            g_decay = "no_decay"
+            this_decay = 0.0
+        else:
+            g_decay = "decay"
+            this_decay = weight_decay
+
+        layer_id = layer_map.get(name, layer_max)
+        group_name = "layer_%d_%s" % (layer_id, g_decay)
+
+        if group_name not in param_groups:
+            this_scale = layer_scales[layer_id]
+            param_group_names[group_name] = {
+                "lr_scale": this_scale,
+                "weight_decay": this_decay,
+                "param_names": [],
+            }
+            param_groups[group_name] = {
+                "lr_scale": this_scale,
+                "weight_decay": this_decay,
+                "params": [],
+            }
+
+        param_group_names[group_name]["param_names"].append(name)
+        param_groups[group_name]["params"].append(param)
+
+    return list(param_groups.values())

@@ -28,12 +28,12 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from solo.args.setup import parse_args_knn
-from solo.methods import METHODS
-from solo.utils.classification_dataloader import (
+from solo.data.classification_dataloader import (
     prepare_dataloaders,
     prepare_datasets,
     prepare_transforms,
 )
+from solo.methods import METHODS
 from solo.utils.knn import WeightedKNNClassifier
 
 
@@ -92,11 +92,7 @@ def run_knn(
     """
 
     # build knn
-    knn = WeightedKNNClassifier(
-        k=k,
-        T=T,
-        distance_fx=distance_fx,
-    )
+    knn = WeightedKNNClassifier(k=k, T=T, distance_fx=distance_fx,)
 
     # add features
     knn(
@@ -145,10 +141,7 @@ def main():
         download=True,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset,
-        val_dataset,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
+        train_dataset, val_dataset, batch_size=args.batch_size, num_workers=args.num_workers,
     )
 
     # extract train features

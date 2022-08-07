@@ -22,9 +22,9 @@ import os
 from pathlib import Path
 
 from solo.args.setup import parse_args_umap
+from solo.data.classification_dataloader import prepare_data
 from solo.methods import METHODS
 from solo.utils.auto_umap import OfflineUMAP
-from solo.utils.classification_dataloader import prepare_data
 
 
 def main():

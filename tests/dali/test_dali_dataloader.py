@@ -22,7 +22,7 @@ import argparse
 from pytorch_lightning import Trainer
 from solo.methods import BarlowTwins
 from solo.methods.linear import LinearModel
-from solo.utils.dali_dataloader import (
+from solo.data.dali_dataloader import (
     ClassificationDALIDataModule,
     ImagenetTransform,
     NormalPipelineBuilder,

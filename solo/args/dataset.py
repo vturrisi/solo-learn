@@ -20,6 +20,8 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+
 
 def dataset_args(parser: ArgumentParser):
     """Adds dataset-related arguments to a parser.
@@ -43,9 +45,7 @@ def dataset_args(parser: ArgumentParser):
     parser.add_argument("--train_data_path", type=Path, required=True)
     parser.add_argument("--val_data_path", type=Path, default=None)
     parser.add_argument(
-        "--data_format",
-        default="image_folder",
-        choices=["image_folder", "dali", "h5"],
+        "--data_format", default="image_folder", choices=["image_folder", "dali", "h5"]
     )
 
     # percentage of data used from training, leave -1.0 to use all data available
@@ -100,5 +100,5 @@ def custom_dataset_args(parser: ArgumentParser):
     parser.add_argument("--no_labels", action="store_true")
 
     # for custom dataset
-    parser.add_argument("--mean", type=float, default=[0.485, 0.456, 0.406], nargs="+")
-    parser.add_argument("--std", type=float, default=[0.228, 0.224, 0.225], nargs="+")
+    parser.add_argument("--mean", type=float, default=IMAGENET_DEFAULT_MEAN, nargs="+")
+    parser.add_argument("--std", type=float, default=IMAGENET_DEFAULT_STD, nargs="+")
