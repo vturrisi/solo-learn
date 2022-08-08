@@ -402,7 +402,6 @@ def param_groups_layer_decay(
 
     return list(param_groups.values())
 
-
 def remove_bias_and_norm_from_weight_decay(parameter_groups: List[Dict], weight_decay=1e-5):
     out = []
     for group in parameter_groups:
