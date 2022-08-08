@@ -27,7 +27,6 @@ from solo.losses.mae import mae_loss_func
 from solo.methods.base import BaseMethod
 from solo.utils.misc import generate_2d_sincos_pos_embed
 from timm.models.vision_transformer import Block
-from timm.optim import optim_factory
 
 
 class MAEDecoder(nn.Module):
@@ -188,17 +187,10 @@ class MAE(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        backbone_groups = optim_factory.param_groups_weight_decay(self.backbone, self.weight_decay)
-        return [
-            *backbone_groups,
-            {
-                "name": "classifier",
-                "params": self.classifier.parameters(),
-                "lr": self.classifier_lr,
-                "weight_decay": 0,
-            },
+        extra_learnable_params = [
             {"params": self.decoder.parameters()},
         ]
+        return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor) -> Dict[str, Any]:
         """Performs forward pass of the online backbone, projector and predictor.

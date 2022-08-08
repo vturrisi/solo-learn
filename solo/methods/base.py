@@ -54,6 +54,7 @@ from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
+from timm.optim import optim_factory
 from torch.optim.lr_scheduler import MultiStepLR
 
 
@@ -347,8 +348,12 @@ class BaseMethod(pl.LightningModule):
                 list of dicts containing learnable parameters and possible settings.
         """
 
+        # do not apply weight decay to bias and norm layers
+        backbone_param_groups = optim_factory.param_groups_weight_decay(
+            self.backbone, self.weight_decay
+        )
         return [
-            {"name": "backbone", "params": self.backbone.parameters()},
+            *backbone_param_groups,
             {
                 "name": "classifier",
                 "params": self.classifier.parameters(),
