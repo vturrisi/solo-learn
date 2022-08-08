@@ -375,7 +375,7 @@ class BaseMethod(pl.LightningModule):
 
         # create optimizer
         optimizer = optimizer(
-            self.learnable_params,
+            learnable_params,
             lr=self.lr,
             weight_decay=self.weight_decay,
             **self.extra_optimizer_args,
