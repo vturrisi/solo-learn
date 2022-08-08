@@ -53,6 +53,7 @@ from solo.backbones import (
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
+from solo.utils.misc import remove_bias_and_norm_from_weight_decay
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
 
@@ -365,16 +366,16 @@ class BaseMethod(pl.LightningModule):
         """
 
         # collect learnable parameters
-        idxs_no_scheduler = [
-            i for i, m in enumerate(self.learnable_params) if m.pop("static_lr", False)
-        ]
+        learnable_params = remove_bias_and_norm_from_weight_decay(self.learnable_params)
+        # indexes of parameters without lr scheduler
+        idxs_no_scheduler = [i for i, m in enumerate(learnable_params) if m.pop("static_lr", False)]
 
         assert self.optimizer in self._OPTIMIZERS
         optimizer = self._OPTIMIZERS[self.optimizer]
 
         # create optimizer
         optimizer = optimizer(
-            self.learnable_params,
+            learnable_params,
             lr=self.lr,
             weight_decay=self.weight_decay,
             **self.extra_optimizer_args,
