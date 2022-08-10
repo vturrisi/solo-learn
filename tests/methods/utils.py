@@ -59,7 +59,7 @@ def gen_base_kwargs(
         "grad_clip_lars": True,
         "weight_decay": 0.00001,
         "classifier_lr": 0.5,
-        "exclude_bias_n_norm": True,
+        "exclude_bias_n_norm_lars": True,
         "accumulate_grad_batches": 1,
         "extra_optimizer_args": {"momentum": 0.9},
         "scheduler": "warmup_cosine",

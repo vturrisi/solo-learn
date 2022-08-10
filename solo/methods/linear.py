@@ -29,7 +29,7 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.methods.base import BaseMethod
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from solo.utils.misc import param_groups_layer_decay
+from solo.utils.misc import param_groups_layer_decay, remove_bias_and_norm_from_weight_decay
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
 
 
@@ -85,7 +85,8 @@ class LinearModel(pl.LightningModule):
             min_lr (float): minimum learning rate for warmup scheduler.
             warmup_start_lr (float): initial learning rate for warmup scheduler.
             warmup_epochs (float): number of warmup epochs.
-            mixup_func (Callable, optional). function to convert data and targets with mixup/cutmix. Defaults to None.
+            mixup_func (Callable, optional). function to convert data and targets with mixup/cutmix.
+                Defaults to None.
             finetune (bool): whether or not to finetune the backbone. Defaults to False.
             scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
             lr_decay_steps (Optional[Sequence[int]], optional): list of epochs where the learning
@@ -182,8 +183,9 @@ class LinearModel(pl.LightningModule):
         parser.add_argument(
             "--optimizer", choices=LinearModel._OPTIMIZERS.keys(), type=str, required=True
         )
+        parser.add_argument("--exclude_bias_n_norm_wd", action="store_true")
         # lars args
-        parser.add_argument("--exclude_bias_n_norm", action="store_true")
+        parser.add_argument("--exclude_bias_n_norm_lars", action="store_true")
         # adamw args
         parser.add_argument("--adamw_beta1", default=0.9, type=float)
         parser.add_argument("--adamw_beta2", default=0.999, type=float)
@@ -222,15 +224,15 @@ class LinearModel(pl.LightningModule):
         layer_decay = self.extra_args.get("layer_decay", 0)
         if layer_decay > 0:
             assert self.finetune, "Only with use layer weight decay with finetune on."
-            parameters = param_groups_layer_decay(
+            learnable_params = param_groups_layer_decay(
                 self.backbone,
                 self.weight_decay,
                 no_weight_decay_list=self.backbone.no_weight_decay(),
                 layer_decay=layer_decay,
             )
-            parameters.append({"name": "classifier", "params": self.classifier.parameters()})
+            learnable_params.append({"name": "classifier", "params": self.classifier.parameters()})
         else:
-            parameters = (
+            learnable_params = (
                 self.classifier.parameters()
                 if not self.finetune
                 else [
@@ -239,8 +241,12 @@ class LinearModel(pl.LightningModule):
                 ]
             )
 
+        # exclude bias and norm from weight decay
+        if self.extra_args.get("exclude_bias_n_norm_wd", False):
+            learnable_params = remove_bias_and_norm_from_weight_decay(learnable_params)
+
         optimizer = optimizer(
-            parameters,
+            learnable_params,
             lr=self.lr,
             weight_decay=self.weight_decay,
             **self.extra_optimizer_args,

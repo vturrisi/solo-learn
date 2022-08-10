@@ -32,7 +32,7 @@ However, in this tutorial, we will simply define all the needed parameters to pe
         "precision": 16,
         "lars": False,
         "lr": 0.1,
-        "exclude_bias_n_norm": False,
+        "exclude_bias_n_norm_lars": False,
         "gpus": "0",
         "weight_decay": 0,
         "extra_optimizer_args": {"momentum": 0.9},

@@ -16,7 +16,7 @@ python3 main_linear.py \
     --num_workers 10 \
     --data_format dali \
     --name nnclr-imagenet100-linear-eval \
-    --pretrained_feature_extractor PATH \
+    --pretrained_feature_extractor $1 \
     --project solo-learn \
     --entity unitn-mhug \
     --wandb \
