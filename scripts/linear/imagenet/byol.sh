@@ -17,7 +17,7 @@ python3 main_linear.py \
     --batch_size 256 \
     --num_workers 10 \
     --data_format dali \
-    --pretrained_feature_extractor PATH \
+    --pretrained_feature_extractor $1 \
     --name byol-resnet50-imagenet-linear-eval \
     --entity unitn-mhug \
     --project solo-learn \

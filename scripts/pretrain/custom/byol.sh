@@ -5,7 +5,7 @@
 python3 main_pretrain.py \
     --dataset custom \
     --backbone resnet18 \
-    --train_data_path PATH_TO_TRAIN_DIR \
+    --train_data_path $1_TO_TRAIN_DIR \
     --no_labels \
     --max_epochs 400 \
     --devices 0,1 \

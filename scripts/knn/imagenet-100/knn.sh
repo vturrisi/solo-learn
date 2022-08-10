@@ -4,7 +4,7 @@ python3 main_knn.py \
     --val_data_path /datasets/imagenet-100/val \
     --batch_size 16 \
     --num_workers 10 \
-    --pretrained_checkpoint_dir PATH \
+    --pretrained_checkpoint_dir $1 \
     --k 1 2 5 10 20 50 100 200 \
     --temperature 0.01 0.02 0.05 0.07 0.1 0.2 0.5 1 \
     --feature_type backbone projector \
