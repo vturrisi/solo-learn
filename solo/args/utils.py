@@ -222,7 +222,7 @@ def additional_setup_pretrain(args: Namespace):
         args.extra_optimizer_args["momentum"] = 0.9
         args.extra_optimizer_args["eta"] = args.eta_lars
         args.extra_optimizer_args["clip_lars_lr"] = args.grad_clip_lars
-        args.extra_optimizer_args["exclude_bias_n_norm_lars"] = args.exclude_bias_n_norm_lars
+        args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm_lars
     elif args.optimizer == "adamw":
         args.extra_optimizer_args["betas"] = [args.adamw_beta1, args.adamw_beta2]
 
@@ -232,6 +232,10 @@ def additional_setup_pretrain(args: Namespace):
         del args.grad_clip_lars
     with suppress(AttributeError):
         del args.exclude_bias_n_norm_lars
+    with suppress(AttributeError):
+        del args.adamw_beta1
+    with suppress(AttributeError):
+        del args.adamw_beta2
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]
@@ -293,12 +297,16 @@ def additional_setup_linear(args: Namespace):
         args.extra_optimizer_args["momentum"] = 0.9
     elif args.optimizer == "lars":
         args.extra_optimizer_args["momentum"] = 0.9
-        args.extra_optimizer_args["exclude_bias_n_norm_lars"] = args.exclude_bias_n_norm_lars
+        args.extra_optimizer_args["exclude_bias_n_norm"] = args.exclude_bias_n_norm_lars
     elif args.optimizer == "adamw":
         args.extra_optimizer_args["betas"] = [args.adamw_beta1, args.adamw_beta2]
 
     with suppress(AttributeError):
         del args.exclude_bias_n_norm_lars
+    with suppress(AttributeError):
+        del args.adamw_beta1
+    with suppress(AttributeError):
+        del args.adamw_beta2
 
     if isinstance(args.devices, int):
         args.devices = [args.devices]
