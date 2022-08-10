@@ -78,7 +78,7 @@ class LARS(Optimizer):
         eta=1e-3,
         eps=1e-8,
         clip_lars_lr=False,
-        exclude_bias_n_norm=False,
+        exclude_bias_n_norm_lars=False,
     ):
         if lr is not required and lr < 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
@@ -96,7 +96,7 @@ class LARS(Optimizer):
             eta=eta,
             eps=eps,
             clip_lars_lr=clip_lars_lr,
-            exclude_bias_n_norm=exclude_bias_n_norm,
+            exclude_bias_n_norm_lars=exclude_bias_n_norm_lars,
         )
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
@@ -137,7 +137,7 @@ class LARS(Optimizer):
                 g_norm = torch.norm(p.grad.data)
 
                 # lars scaling + weight decay part
-                if p.ndim != 1 or not group["exclude_bias_n_norm"]:
+                if p.ndim != 1 or not group["exclude_bias_n_norm_lars"]:
                     if p_norm != 0 and g_norm != 0:
                         lars_lr = p_norm / (g_norm + p_norm * weight_decay + group["eps"])
                         lars_lr *= group["eta"]

@@ -68,7 +68,7 @@ However, for now, we won't rely on this, so let's just define all the needed par
         "grad_clip_lars": True,
         "weight_decay": 0.00001,
         "classifier_lr": 0.5,
-        "exclude_bias_n_norm": True,
+        "exclude_bias_n_norm_lars": True,
         "accumulate_grad_batches": 1,
         "extra_optimizer_args": {"momentum": 0.9},
         "scheduler": "warmup_cosine",
@@ -206,7 +206,7 @@ And that's it, we basically replicated a small version of ``main_pretrain.py``. 
         --lars \
         --grad_clip_lars \
         --eta_lars 0.02 \
-        --exclude_bias_n_norm \
+        --exclude_bias_n_norm_lars \
         --scheduler warmup_cosine \
         --lr 0.3 \
         --weight_decay 1e-4 \

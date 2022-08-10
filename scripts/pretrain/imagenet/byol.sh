@@ -11,7 +11,7 @@ python3 main_pretrain.py \
     --precision 16 \
     --optimizer lars \
     --eta_lars 0.001 \
-    --exclude_bias_n_norm \
+    --exclude_bias_n_norm_lars \
     --scheduler warmup_cosine \
     --lr 0.45 \
     --accumulate_grad_batches 16 \

@@ -311,10 +311,11 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument(
             "--optimizer", choices=BaseMethod._OPTIMIZERS.keys(), type=str, required=True
         )
+        parser.add_argument("--exclude_bias_n_norm_wd", action="store_true")
         # lars args
         parser.add_argument("--grad_clip_lars", action="store_true")
         parser.add_argument("--eta_lars", default=1e-3, type=float)
-        parser.add_argument("--exclude_bias_n_norm", action="store_true")
+        parser.add_argument("--exclude_bias_n_norm_lars", action="store_true")
         # adamw args
         parser.add_argument("--adamw_beta1", default=0.9, type=float)
         parser.add_argument("--adamw_beta2", default=0.999, type=float)
@@ -365,8 +366,12 @@ class BaseMethod(pl.LightningModule):
             Tuple[List, List]: two lists containing the optimizer and the scheduler.
         """
 
-        # collect learnable parameters
-        learnable_params = remove_bias_and_norm_from_weight_decay(self.learnable_params)
+        learnable_params = self.learnable_params
+
+        # exclude bias and norm from weight decay
+        if self.extra_args.get("exclude_bias_n_norm_wd", False):
+            learnable_params = remove_bias_and_norm_from_weight_decay(learnable_params)
+
         # indexes of parameters without lr scheduler
         idxs_no_scheduler = [i for i, m in enumerate(learnable_params) if m.pop("static_lr", False)]
 
