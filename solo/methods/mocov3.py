@@ -208,7 +208,9 @@ class MoCoV3(BaseMomentumMethod):
         Q = out["q"]
         K = out["momentum_k"]
 
-        contrastive_loss = mocov3_loss_func(Q[0], K[1]) + mocov3_loss_func(Q[1], K[0])
+        contrastive_loss = mocov3_loss_func(
+            Q[0], K[1], temperature=self.temperature
+        ) + mocov3_loss_func(Q[1], K[0], temperature=self.temperature)
 
         metrics = {
             "train_contrastive_loss": contrastive_loss,
