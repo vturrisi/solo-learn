@@ -75,6 +75,7 @@ While the library is self contained, it is possible to use the models outside of
    solo/methods/nnsiam
    solo/methods/ressl
    solo/methods/simclr
+   solo/methods/simmim
    solo/methods/simsiam
    solo/methods/swav
    solo/methods/vibcreg

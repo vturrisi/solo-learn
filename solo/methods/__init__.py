@@ -31,6 +31,7 @@ from solo.methods.nnclr import NNCLR
 from solo.methods.nnsiam import NNSiam
 from solo.methods.ressl import ReSSL
 from solo.methods.simclr import SimCLR
+from solo.methods.simmim import SimMIM
 from solo.methods.simsiam import SimSiam
 from solo.methods.supcon import SupCon
 from solo.methods.swav import SwAV
@@ -55,6 +56,7 @@ METHODS = {
     "nnsiam": NNSiam,
     "ressl": ReSSL,
     "simclr": SimCLR,
+    "simmim": SimMIM,
     "simsiam": SimSiam,
     "supcon": SupCon,
     "swav": SwAV,
@@ -62,6 +64,7 @@ METHODS = {
     "vicreg": VICReg,
     "wmse": WMSE,
 }
+
 __all__ = [
     "BarlowTwins",
     "BYOL",
@@ -77,6 +80,7 @@ __all__ = [
     "NNSiam",
     "ReSSL",
     "SimCLR",
+    "SimMIM",
     "SimSiam",
     "SupCon",
     "SwAV",

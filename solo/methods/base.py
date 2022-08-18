@@ -146,6 +146,7 @@ class BaseMethod(pl.LightningModule):
                 zero_init_residual (bool): change the initialization of the resnet backbone.
                 #! only for vit
                 patch_size (int): size of the patches for ViT.
+                drop_path (float): percentage for drop path.
             max_epochs (int): number of training epochs.
             batch_size (int): number of samples in the batch.
             optimizer (str): name of the optimizer.
@@ -293,6 +294,7 @@ class BaseMethod(pl.LightningModule):
         parser.add_argument("--zero_init_residual", action="store_true")
         # extra args for ViT
         parser.add_argument("--patch_size", type=int, default=16)
+        parser.add_argument("--drop_path", type=float, default=0.0)
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)

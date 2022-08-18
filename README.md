@@ -15,6 +15,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Aug 24 2022]**: :monocle_face: Added [SimMIM](https://arxiv.org/abs/2111.09886).
 * **[Aug 04 2022]**: :paintbrush: Added [MAE](https://arxiv.org/abs/2111.06377) and supports finetuning the backbone with `main_linear.py`, mixup, cutmix and [random augment](https://arxiv.org/abs/1909.13719).
 * **[Jul 13 2022]**: :sparkling_heart: Added support for [H5](https://docs.h5py.org/en/stable/index.html) data, improved scripts and data handling.
 * **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
@@ -57,6 +58,7 @@ The library is self-contained, but it is possible to use the models outside of s
 * [NNSiam](https://arxiv.org/abs/2104.14548)
 * [ReSSL](https://arxiv.org/abs/2107.09282)
 * [SimCLR](https://arxiv.org/abs/2002.05709)
+* [SimMIM](https://arxiv.org/abs/2111.09886)
 * [SimSiam](https://arxiv.org/abs/2011.10566)
 * [Supervised Contrastive Learning](https://arxiv.org/abs/2004.11362)
 * [SwAV](https://arxiv.org/abs/2006.09882)

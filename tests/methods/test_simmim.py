@@ -22,27 +22,23 @@ import argparse
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning import Trainer
-from solo.methods.mae import MAE
+from solo.methods.simmim import SimMIM
 
 from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
 
 
-def test_mae():
+def test_simmim():
     method_kwargs = {
-        "decoder_embed_dim": 512,
-        "decoder_depth": 8,
-        "decoder_num_heads": 16,
-        "mask_ratio": 0.75,
-        "norm_pix_loss": True,
+        "mask_ratio": 0.6,
     }
 
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
-    BASE_KWARGS["method"] = "mae"
+    BASE_KWARGS["method"] = "simmim"
     BASE_KWARGS["backbone"] = "vit_small"
-    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
+    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16, "drop_path": 0.0}
 
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MAE(**kwargs)
+    model = SimMIM(**kwargs)
 
     # test arguments
     parser = argparse.ArgumentParser()
@@ -78,12 +74,12 @@ def test_mae():
 
     # imagenet
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
-    BASE_KWARGS["method"] = "mae"
+    BASE_KWARGS["method"] = "simmim"
     BASE_KWARGS["backbone"] = "vit_small"
     BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
 
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MAE(**kwargs)
+    model = SimMIM(**kwargs)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)
@@ -99,12 +95,12 @@ def test_mae():
 
     # cifar
     BASE_KWARGS = gen_base_kwargs(cifar=True, momentum=True, batch_size=2)
-    BASE_KWARGS["method"] = "mae"
+    BASE_KWARGS["method"] = "simmim"
     BASE_KWARGS["backbone"] = "vit_small"
     BASE_KWARGS["backbone_args"] = {"img_size": 32, "patch_size": 16}
 
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MAE(**kwargs)
+    model = SimMIM(**kwargs)
 
     args = argparse.Namespace(**kwargs)
     trainer = Trainer.from_argparse_args(args, fast_dev_run=True)

@@ -18,6 +18,7 @@ python3 main_pretrain.py \
     --lr 2.0e-4 \
     --classifier_lr 2.0e-4 \
     --weight_decay 0.05 \
+    --exclude_bias_n_norm_wd \
     --batch_size 64 \
     --num_workers 8 \
     --brightness 0 \
