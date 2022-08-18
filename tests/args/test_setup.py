@@ -52,7 +52,7 @@ def test_setup_pretrain():
         "16",
         "--optimizer",
         "lars",
-        "--exclude_bias_n_norm",
+        "--exclude_bias_n_norm_lars",
         "--scheduler",
         "warmup_cosine",
         "--lr",

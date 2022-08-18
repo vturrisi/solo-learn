@@ -5,7 +5,7 @@
 python3 main_pretrain.py \
     --dataset custom \
     --backbone resnet18 \
-    --train_data_path PATH_TO_TRAIN_DIR \
+    --train_data_path $1_TO_TRAIN_DIR \
     --no_labels \
     --max_epochs 400 \
     --devices 0,1 \
@@ -16,7 +16,7 @@ python3 main_pretrain.py \
     --optimizer lars \
     --grad_clip_lars \
     --eta_lars 0.02 \
-    --exclude_bias_n_norm \
+    --exclude_bias_n_norm_lars \
     --scheduler warmup_cosine \
     --lr 1.0 \
     --classifier_lr 0.1 \

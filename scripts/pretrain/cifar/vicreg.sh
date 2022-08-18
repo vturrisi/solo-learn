@@ -10,7 +10,7 @@ python3 main_pretrain.py \
     --optimizer lars \
     --grad_clip_lars \
     --eta_lars 0.02 \
-    --exclude_bias_n_norm \
+    --exclude_bias_n_norm_lars \
     --scheduler warmup_cosine \
     --lr 0.3 \
     --weight_decay 1e-4 \
