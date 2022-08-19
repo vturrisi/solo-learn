@@ -59,7 +59,7 @@ def main():
         kwargs["window_size"] = 4
 
     if "vit" in args.backbone:
-        kwargs["drop_path_rate"] = args.drop_path
+        kwargs["drop_path_rate"] = args.drop_path_rate
         kwargs["global_pool"] = args.global_pool
 
     method = args.pretrain_method

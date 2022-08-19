@@ -35,7 +35,7 @@ def test_simmim():
     BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
     BASE_KWARGS["method"] = "simmim"
     BASE_KWARGS["backbone"] = "vit_small"
-    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16, "drop_path": 0.0}
+    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16, "drop_path_rate": 0.0}
 
     kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
     model = SimMIM(**kwargs)

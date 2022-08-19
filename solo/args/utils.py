@@ -206,14 +206,14 @@ def additional_setup_pretrain(args: Namespace):
         args.backbone_args["img_size"] = crop_size
         if "vit" in args.backbone:
             args.backbone_args["patch_size"] = args.patch_size
-            args.backbone_args["drop_path"] = args.drop_path
+            args.backbone_args["drop_path_rate"] = args.drop_path_rate
 
     with suppress(AttributeError):
         del args.zero_init_residual
     with suppress(AttributeError):
         del args.patch_size
     with suppress(AttributeError):
-        del args.drop_path
+        del args.drop_path_rate
 
     if args.data_format == "dali":
         assert args.dataset in ["imagenet100", "imagenet", "custom"]
@@ -288,12 +288,12 @@ def additional_setup_linear(args: Namespace):
         args.backbone_args["img_size"] = crop_size
         if "vit" in args.backbone:
             args.backbone_args["patch_size"] = args.patch_size
-            args.backbone_args["drop_path"] = args.drop_path
+            args.backbone_args["drop_path_rate"] = args.drop_path_rate
 
     with suppress(AttributeError):
         del args.patch_size
     with suppress(AttributeError):
-        del args.drop_path
+        del args.drop_path_rate
 
     if args.data_format == "dali":
         assert args.dataset in ["imagenet100", "imagenet", "custom"]

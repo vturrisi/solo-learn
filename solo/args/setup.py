@@ -121,13 +121,13 @@ def parse_args_linear() -> argparse.Namespace:
     parser.add_argument("--pretrain_method", type=str, default=None)
     # add support for auto augment (randaug by default)
     parser.add_argument("--auto_augment", action="store_true")
-    # for mixup, cutmix and drop_path (for transformers)
+    # for mixup, cutmix and drop_path_rate (for transformers)
     parser.add_argument("--label_smoothing", type=float, default=0.0)
     parser.add_argument("--mixup", type=float, default=0.0)
     parser.add_argument("--cutmix", type=float, default=0.0)
 
     # just for transformers
-    parser.add_argument("--drop_path", type=float, default=None)
+    parser.add_argument("--drop_path_rate", type=float, default=None)
     # type of pooling to use, either cls token or global average
     parser.add_argument("--global_pool", type=str, default="token", choices=["token", "avg"])
     # different weight decay for each layer (using timm.optim.optim_factory)

@@ -37,4 +37,4 @@ python3 main_pretrain.py \
     --save_checkpoint \
     --method simmim \
     --mask_ratio 0.6 \
-    --drop_path 0.1
+    --drop_path_rate 0.1
