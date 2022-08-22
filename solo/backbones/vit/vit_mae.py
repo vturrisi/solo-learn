@@ -19,6 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 
+import logging
 from functools import partial
 
 import torch
@@ -216,7 +217,10 @@ def vit_large(**kwargs):
 
 
 def vit_huge(**kwargs):
-    kwargs["patch_size"] = 14
+    if kwargs["patch_size"] != 14:
+        logging.warning("Replaced patch size by 14 (default for MAE).")
+        kwargs["patch_size"] = 14
+
     model = MaskedAutoencoderViT(
         embed_dim=1280,
         depth=32,

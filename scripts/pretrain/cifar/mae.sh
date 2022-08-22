@@ -1,0 +1,43 @@
+python3 main_pretrain.py \
+    --dataset $1 \
+    --backbone vit_small \
+    --train_data_path ./datasets \
+    --val_data_path ./datasets \
+    --max_epochs 1000 \
+    --warmup_epochs 40 \
+    --devices 0 \
+    --accelerator gpu \
+    --strategy ddp \
+    --sync_batchnorm \
+    --precision 16 \
+    --optimizer adamw \
+    --adamw_beta1 0.9 \
+    --adamw_beta2 0.95 \
+    --scheduler warmup_cosine \
+    --lr 2.0e-4 \
+    --classifier_lr 2.0e-4 \
+    --weight_decay 0.05 \
+    --batch_size 256 \
+    --num_workers 8 \
+    --brightness 0 \
+    --contrast 0 \
+    --saturation 0 \
+    --hue 0 \
+    --gray_scale_prob 0 \
+    --gaussian_prob 0 \
+    --solarization_prob 0 \
+    --crop_size 32 \
+    --min_scale 0.08 \
+    --num_crops_per_aug 1 \
+    --name mae-$1 \
+    --project solo-learn \
+    --entity unitn-mhug \
+    --wandb \
+    --save_checkpoint \
+    --method mae \
+    --decoder_embed_dim 512 \
+    --decoder_depth 8 \
+    --decoder_num_heads 16 \
+    --mask_ratio 0.75 \
+    --norm_pix_loss \
+    --patch_size 4
