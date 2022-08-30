@@ -1,0 +1,35 @@
+name: sphinx-linkcheck
+
+on:
+  push:
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+  schedule:
+    - cron: 43 4 5 * *  # 04:43 UTC on the 5th day of each month
+
+jobs:
+  sphinx-linkcheck:
+    name: linkcheck
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9']
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: linkcheck
+        shell: bash -l {0}
+        run: |
+          cd docs && make linkcheck
+      - uses: actions/upload-artifact@v1
+        with:
+          name: linkcheck-output.txt
+          path: docs/build/linkcheck/output.txt
