@@ -110,7 +110,7 @@ For convenience, we can also define a forward function in order for our model to
         p = self.predictor(z)
         return {**out, "z": z, "p": p}
 
-However, to use the model in inference we first need to train the networks. Training is performed using the `PyTorchLightning Trainer <https://pytorch-lightning.readthedocs.io/en/latest/common/trainer.html/>`_, which requires us to implement the `training_step` method:
+However, to use the model in inference we first need to train the networks. Training is performed using the `PyTorchLightning Trainer <https://pytorch-lightning.readthedocs.io/en/latest/common/trainer.html>`_, which requires us to implement the `training_step` method:
 
 .. code-block:: python
 
