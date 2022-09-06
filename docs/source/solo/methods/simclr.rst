@@ -21,7 +21,7 @@ forward
    :noindex:
 
 multicrop_forward
-~~~~~~~
+~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.simclr.SimCLR.multicrop_forward
    :noindex:
 

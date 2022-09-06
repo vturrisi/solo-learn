@@ -26,12 +26,12 @@ forward
    :noindex:
 
 multicrop_forward
-~~~~~~~
+~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.base.BaseMethod.multicrop_forward
    :noindex:
 
 _base_shared_step
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 .. automethod:: solo.methods.base.BaseMethod._base_shared_step
    :noindex:
 
