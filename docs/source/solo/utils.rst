@@ -116,7 +116,7 @@ compute
 LARS
 ----
 
-.. automethod:: solo.utils.lars.LARSWrapper.__init__
+.. automethod:: solo.utils.lars.LARS.__init__
    :noindex:
 
 Metrics
