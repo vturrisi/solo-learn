@@ -3,12 +3,10 @@ name: sphinx-linkcheck
 on:
   push:
     branches:
-    - '*'
+    - ['main']
   pull_request:
     branches:
     - '*'
-  schedule:
-    - cron: 43 4 5 * *  # 04:43 UTC on the 5th day of each month
 
 jobs:
   sphinx-linkcheck:
@@ -24,7 +22,7 @@ jobs:
       - name: python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
+          pip install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
           pip install -r docs/requirements.txt
       - name: linkcheck
         shell: bash -l {0}
