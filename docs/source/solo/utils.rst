@@ -153,16 +153,6 @@ Sinkhorn-Knopp
 .. automethod:: solo.utils.sinkhorn_knopp.SinkhornKnopp.__init__
    :noindex:
 
-
-Truncate normal
----------------
-
-trunc_normal_
-~~~~~~~~~~~~~
-
-.. autofunction:: solo.utils.trunc_normal.trunc_normal_
-   :noindex:
-
 Whitening
 ---------
 
