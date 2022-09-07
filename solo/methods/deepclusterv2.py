@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -29,31 +29,28 @@ from solo.utils.kmeans import KMeans
 
 
 class DeepClusterV2(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        num_prototypes: Sequence[int],
-        temperature: float,
-        kmeans_iters: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements DeepCluster V2 (https://arxiv.org/abs/2006.09882).
 
-        Args:
-            proj_output_dim (int): number of dimensions of the projected features.
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            num_prototypes (Sequence[int]): number of prototypes.
-            temperature (float): temperature for the softmax.
-            kmeans_iters (int): number of iterations for k-means clustering.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of the projected features.
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                num_prototypes (Sequence[int]): number of prototypes.
+                temperature (float): temperature for the softmax.
+                kmeans_iters (int): number of iterations for k-means clustering.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.proj_output_dim = proj_output_dim
-        self.temperature = temperature
-        self.num_prototypes = num_prototypes
-        self.kmeans_iters = kmeans_iters
+        self.proj_output_dim = cfg.method_kwargs.proj_output_dim
+        self.temperature = cfg.method_kwargs.temperature
+        self.num_prototypes = cfg.method_kwargs.num_prototypes
+        self.kmeans_iters = cfg.method_kwargs.kmeans_iters
+
+        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim = cfg.method_kwargs.proj_output_dim
+        num_prototypes = cfg.method_kwargs.num_prototypes
 
         # projector
         self.projector = nn.Sequential(
@@ -74,20 +71,26 @@ class DeepClusterV2(BaseMethod):
             proto.weight.copy_(F.normalize(proto.weight.data.clone(), dim=-1))
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(DeepClusterV2, DeepClusterV2).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("deepclusterv2")
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=128)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # parameters
-        parser.add_argument("--temperature", type=float, default=0.1)
-        parser.add_argument("--num_prototypes", type=int, nargs="+", default=[3000, 3000, 3000])
-        parser.add_argument("--kmeans_iters", type=int, default=10)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        return parent_parser
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+
+        cfg.method_kwargs.temperature = cfg.get("method_kwargs.temperature", 0.1)
+        cfg.method_kwargs.num_prototypes = cfg.get(
+            "method_kwargs.num_prototypes", [3000, 3000, 3000]
+        )
+        cfg.method_kwargs.kmeans_iters = cfg.get("method_kwargs.kmeans_iters", 10)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:

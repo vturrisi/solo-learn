@@ -17,35 +17,34 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence, Tuple
 
+import numpy as np
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumMethod
 from solo.utils.momentum import initialize_momentum_params
 
 
 class BYOL(BaseMomentumMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements BYOL (https://arxiv.org/abs/2006.07733).
 
-        Args:
-            proj_output_dim (int): number of dimensions of projected features.
-            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of projected features.
+                proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+                pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
+
+        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim = cfg.method_kwargs.pred_hidden_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -73,18 +72,21 @@ class BYOL(BaseMomentumMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(BYOL, BYOL).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("byol")
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=256)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # predictor
-        parser.add_argument("--pred_hidden_dim", type=int, default=512)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        return parent_parser
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:

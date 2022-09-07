@@ -17,17 +17,21 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import inspect
 import os
-from pprint import pprint
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
 
+from omegaconf import OmegaConf
 from solo.args.setup import parse_args_pretrain
 from solo.data.classification_dataloader import prepare_data as prepare_data_classification
 from solo.data.pretrain_dataloader import (
+    FullTransformPipeline,
+    NCropAugmentation,
+    build_transform_pipeline,
     prepare_dataloader,
     prepare_datasets,
     prepare_n_crop_transform,
@@ -37,6 +41,7 @@ from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous
+from solo.args.pretrain import parse
 
 try:
     from solo.data.dali_dataloader import PretrainDALIDataModule
@@ -54,44 +59,46 @@ else:
 
 
 def main():
-    seed_everything(5)
+    cfg = parse()
 
-    args = parse_args_pretrain()
+    seed_everything(cfg.get("seed", 5))
 
-    assert args.method in METHODS, f"Choose from {METHODS.keys()}"
+    assert cfg.method in METHODS, f"Choose from {METHODS.keys()}"
 
-    if args.num_large_crops != 2:
-        assert args.method in ["wmse", "mae"]
+    if cfg.data.num_large_crops != 2:
+        assert cfg.method in ["wmse", "mae"]
 
-    model = METHODS[args.method](**args.__dict__)
+    model = METHODS[cfg.method](cfg)
     make_contiguous(model)
 
     # validation dataloader for when it is available
-    if args.dataset == "custom" and (args.no_labels or args.val_data_path is None):
+    if cfg.data.dataset == "custom" and (
+        cfg.get("data.no_labels", False) or cfg.get("data.val_data_path", None)
+    ):
         val_loader = None
-    elif args.dataset in ["imagenet100", "imagenet"] and (args.val_data_path is None):
+    elif cfg.data.dataset in ["imagenet100", "imagenet"] and cfg.get("data.val_data_path", None):
         val_loader = None
     else:
-        if args.data_format == "dali":
+        if cfg.data.format == "dali":
             val_data_format = "image_folder"
         else:
-            val_data_format = args.data_format
+            val_data_format = cfg.data.format
 
         _, val_loader = prepare_data_classification(
-            args.dataset,
-            train_data_path=args.train_data_path,
-            val_data_path=args.val_data_path,
+            cfg.data.dataset,
+            train_data_path=cfg.data.train_path,
+            val_data_path=cfg.data.val_path,
             data_format=val_data_format,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
+            batch_size=cfg.optimizer.batch_size,
+            num_workers=cfg.data.num_workers,
         )
 
     # pretrain dataloader
-    if args.data_format == "dali":
+    if cfg.data.format == "dali":
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with pip3 install .[dali]."
-
+        raise NotImplementedError
         dali_datamodule = PretrainDALIDataModule(
             dataset=args.dataset,
             train_data_path=args.train_data_path,
@@ -109,97 +116,104 @@ def main():
         )
         dali_datamodule.val_dataloader = lambda: val_loader
     else:
-        transform_kwargs = (
-            args.transform_kwargs if args.unique_augs > 1 else [args.transform_kwargs]
-        )
-        transform = prepare_n_crop_transform(
-            [prepare_transform(args.dataset, **kwargs) for kwargs in transform_kwargs],
-            num_crops_per_aug=args.num_crops_per_aug,
-        )
+        pipelines = []
+        for aug_cfg in cfg.data.augmentations:
+            pipelines.append(
+                NCropAugmentation(
+                    build_transform_pipeline(cfg.data.dataset, aug_cfg), aug_cfg.num_crops
+                )
+            )
+        transform = FullTransformPipeline(pipelines)
 
-        if args.debug_augmentations:
+        if cfg.get("data.debug", False):
             print("Transforms:")
-            pprint(transform)
+            print(transform)
 
         train_dataset = prepare_datasets(
-            args.dataset,
+            cfg.data.dataset,
             transform,
-            train_data_path=args.train_data_path,
-            data_format=args.data_format,
-            no_labels=args.no_labels,
-            data_fraction=args.data_fraction,
+            train_data_path=cfg.data.train_path,
+            data_format=cfg.data.format,
+            no_labels=cfg.get("data.no_labels", False),
+            data_fraction=cfg.get("data.fraction", -1),
         )
         train_loader = prepare_dataloader(
-            train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
+            train_dataset, batch_size=cfg.optimizer.batch_size, num_workers=cfg.data.num_workers
         )
 
     # 1.7 will deprecate resume_from_checkpoint, but for the moment
     # the argument is the same, but we need to pass it as ckpt_path to trainer.fit
     ckpt_path, wandb_run_id = None, None
-    if args.auto_resume and args.resume_from_checkpoint is None:
+    if cfg.auto_resume.enabled and cfg.resume_from_checkpoint is None:
         auto_resumer = AutoResumer(
-            checkpoint_dir=os.path.join(args.checkpoint_dir, args.method),
-            max_hours=args.auto_resumer_max_hours,
+            checkpoint_dir=os.path.join(cfg.checkpoint.dir, cfg.method),
+            max_hours=cfg.auto_resume.max_hours,
         )
-        resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(args)
+        resume_from_checkpoint, wandb_run_id = auto_resumer.find_checkpoint(cfg)
         if resume_from_checkpoint is not None:
             print(
                 "Resuming from previous checkpoint that matches specifications:",
                 f"'{resume_from_checkpoint}'",
             )
             ckpt_path = resume_from_checkpoint
-    elif args.resume_from_checkpoint is not None:
-        ckpt_path = args.resume_from_checkpoint
-        del args.resume_from_checkpoint
+    elif cfg.resume_from_checkpoint is not None:
+        ckpt_path = cfg.resume_from_checkpoint
+        del cfg.resume_from_checkpoint
 
     callbacks = []
 
-    if args.save_checkpoint:
+    if cfg.checkpoint.enabled:
         # save checkpoint on last epoch only
         ckpt = Checkpointer(
-            args,
-            logdir=os.path.join(args.checkpoint_dir, args.method),
-            frequency=args.checkpoint_frequency,
+            cfg,
+            logdir=os.path.join(cfg.checkpoint.dir, cfg.method),
+            frequency=cfg.checkpoint.frequency,
         )
         callbacks.append(ckpt)
 
-    if args.auto_umap:
+    if cfg.auto_umap.enabled:
         assert (
             _umap_available
         ), "UMAP is not currently avaiable, please install it first with [umap]."
         auto_umap = AutoUMAP(
-            args,
-            logdir=os.path.join(args.auto_umap_dir, args.method),
-            frequency=args.auto_umap_frequency,
+            cfg,
+            logdir=os.path.join(cfg.auto_umap.dir, cfg.method),
+            frequency=cfg.auto_umap.frequency,
         )
         callbacks.append(auto_umap)
 
     # wandb logging
-    if args.wandb:
+    if cfg.wandb.enabled:
         wandb_logger = WandbLogger(
-            name=args.name,
-            project=args.project,
-            entity=args.entity,
-            offline=args.offline,
+            name=cfg.name,
+            project=cfg.wandb.project,
+            entity=cfg.wandb.entity,
+            offline=cfg.offline,
             resume="allow" if wandb_run_id else None,
             id=wandb_run_id,
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
-        wandb_logger.log_hyperparams(args)
+        wandb_logger.log_hyperparams(OmegaConf.to_container(cfg))
 
         # lr logging
         lr_monitor = LearningRateMonitor(logging_interval="step")
         callbacks.append(lr_monitor)
 
-    trainer = Trainer.from_argparse_args(
-        args,
-        logger=wandb_logger if args.wandb else None,
-        callbacks=callbacks,
-        enable_checkpointing=False,
-        strategy=DDPStrategy(find_unused_parameters=False)
-        if args.strategy == "ddp"
-        else args.strategy,
+    trainer_params = OmegaConf.to_container(cfg)
+    # we only want to pass in valid Trainer args, the rest may be user specific
+    valid_kwargs = inspect.signature(Trainer.__init__).parameters
+    trainer_kwargs = {name: trainer_params[name] for name in valid_kwargs if name in trainer_params}
+    trainer_kwargs.update(
+        {
+            "logger": wandb_logger if cfg.wandb.enabled else None,
+            "callbacks": callbacks,
+            "enable_checkpointing": False,
+            "strategy": DDPStrategy(find_unused_parameters=False)
+            if cfg.strategy == "ddp"
+            else cfg.strategy,
+        }
     )
+    trainer = Trainer(**trainer_kwargs)
 
     # fix for incompatibility with nvidia-dali and pytorch lightning
     # with dali 1.15 (this will be fixed on 1.16)
@@ -218,7 +232,8 @@ def main():
     except:
         pass
 
-    if args.data_format == "dali":
+    if cfg.data.format == "dali":
+        raise NotImplemented
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)

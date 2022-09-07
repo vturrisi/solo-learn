@@ -1,0 +1,12 @@
+optimizer:
+  max_epochs: 400
+  batch_size: 128
+  lr: 0.4
+  weight_decay: 1e-5
+  type: "lars"
+  kwargs:
+    grad_clip_lars: True
+    eta_lars: 0.02
+    exclude_bias_n_norm: True
+scheduler: 
+  type: "warmup_cosine"

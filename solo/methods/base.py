@@ -57,6 +57,8 @@ from solo.utils.misc import remove_bias_and_norm_from_weight_decay
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
 
+import omegaconf
+
 
 def static_lr(
     get_lr: Callable, param_group_indexes: Sequence[int], lrs_to_replace: Sequence[float]
@@ -107,29 +109,29 @@ class BaseMethod(pl.LightningModule):
 
     def __init__(
         self,
-        backbone: str,
-        num_classes: int,
-        backbone_args: dict,
-        max_epochs: int,
-        batch_size: int,
-        optimizer: str,
-        lr: float,
-        weight_decay: float,
-        classifier_lr: float,
-        accumulate_grad_batches: Union[int, None],
-        extra_optimizer_args: Dict,
-        scheduler: str,
-        num_large_crops: int,
-        num_small_crops: int,
-        min_lr: float = 0.0,
-        warmup_start_lr: float = 0.00003,
-        warmup_epochs: float = 10,
-        scheduler_interval: str = "step",
-        lr_decay_steps: Sequence = None,
-        knn_eval: bool = False,
-        knn_k: int = 20,
-        no_channel_last: bool = False,
-        **kwargs,
+        cfg: omegaconf.DictConfig,
+        # backbone: str,
+        # num_classes: int,
+        # backbone_args: dict,
+        # max_epochs: int,
+        # batch_size: int,
+        # optimizer: str,
+        # lr: float,
+        # weight_decay: float,
+        # classifier_lr: float,
+        # accumulate_grad_batches: Union[int, None],
+        # extra_optimizer_args: Dict,
+        # scheduler: str,
+        # num_large_crops: int,
+        # num_small_crops: int,
+        # min_lr: float = 0.0,
+        # warmup_start_lr: float = 0.00003,
+        # warmup_epochs: float = 10,
+        # scheduler_interval: str = "step",
+        # lr_decay_steps: Sequence = None,
+        # knn_eval: bool = False,
+        # knn_k: int = 20,
+        # no_channel_last: bool = False,
     ):
         """Base model that implements all basic operations for all self-supervised methods.
         It adds shared arguments, extract basic learnable parameters, creates optimizers
@@ -188,66 +190,23 @@ class BaseMethod(pl.LightningModule):
 
         super().__init__()
 
-        # resnet backbone related
-        self.backbone_args = backbone_args
+        self.cfg = cfg
 
-        # training related
-        self.num_classes = num_classes
-        self.max_epochs = max_epochs
-        self.batch_size = batch_size
-        self.optimizer = optimizer
-        self.lr = lr
-        self.weight_decay = weight_decay
-        self.classifier_lr = classifier_lr
-        self.accumulate_grad_batches = accumulate_grad_batches
-        self.extra_optimizer_args = extra_optimizer_args
-        self.scheduler = scheduler
-        self.lr_decay_steps = lr_decay_steps
-        self.min_lr = min_lr
-        self.warmup_start_lr = warmup_start_lr
-        self.warmup_epochs = warmup_epochs
-        assert scheduler_interval in ["step", "epoch"]
-        self.scheduler_interval = scheduler_interval
-        self.num_large_crops = num_large_crops
-        self.num_small_crops = num_small_crops
-        self.knn_eval = knn_eval
-        self.knn_k = knn_k
-        self.no_channel_last = no_channel_last
-
-        # multicrop
-        self.num_crops = self.num_large_crops + self.num_small_crops
-
-        # all the other parameters
-        self.extra_args = kwargs
-
-        # turn on multicrop if there are small crops
-        self.multicrop = self.num_small_crops != 0
-
-        # if accumulating gradient then scale lr
-        if self.accumulate_grad_batches:
-            self.lr = self.lr * self.accumulate_grad_batches
-            self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
-            self.min_lr = self.min_lr * self.accumulate_grad_batches
-            self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
-
-        assert backbone in BaseMethod._BACKBONES
-        self.base_model = self._BACKBONES[backbone]
-
-        self.backbone_name = backbone
-
+        ########## Backbone ##########
+        self.backbone_args = cfg.get("backbone.kwargs", {})
+        assert cfg.backbone.name in BaseMethod._BACKBONES
+        self.base_model = self._BACKBONES[cfg.backbone.name]
+        self.backbone_name = cfg.backbone.name
         # initialize backbone
         kwargs = self.backbone_args.copy()
-        cifar = kwargs.pop("cifar", False)
-        # swin specific
-        if "swin" in self.backbone_name and cifar:
-            kwargs["window_size"] = 4
 
-        method = self.extra_args.get("method", None)
+        method = cfg.method
         self.backbone = self.base_model(method, **kwargs)
         if self.backbone_name.startswith("resnet"):
             self.features_dim = self.backbone.inplanes
             # remove fc layer
             self.backbone.fc = nn.Identity()
+            cifar = cfg.data.dataset in ["cifar10", "cifar100"]
             if cifar:
                 self.backbone.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
@@ -255,90 +214,60 @@ class BaseMethod(pl.LightningModule):
                 self.backbone.maxpool = nn.Identity()
         else:
             self.features_dim = self.backbone.num_features
+        ##############################
 
-        self.classifier = nn.Linear(self.features_dim, num_classes)
+        # online linear classifier
+        self.num_classes = cfg.data.num_classes
+        self.classifier = nn.Linear(self.features_dim, self.num_classes)
 
-        if self.knn_eval:
-            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
+        # training related
+        self.max_epochs = cfg.max_epochs
+        self.accumulate_grad_batches = cfg.accumulate_grad_batches
 
-        if scheduler_interval == "step":
+        # optimizer related
+        self.optimizer = cfg.optimizer.name
+        self.batch_size = cfg.optimizer.batch_size
+        self.lr = cfg.optimizer.lr
+        self.weight_decay = cfg.optimizer.weight_decay
+        self.classifier_lr = cfg.optimizer.classifier_lr
+        self.extra_optimizer_args = cfg.get(
+            "optimizer.kwargs", {}
+        )  # pytorch's default if not available
+
+        # scheduler related
+        self.scheduler = cfg.scheduler.name
+        self.lr_decay_steps = cfg.get(
+            "scheduler.lr_decay_steps", None
+        )  # decay steps need to be passed manually
+        self.min_lr = cfg.get("scheduler.min_lr", 0.0)
+        self.warmup_start_lr = cfg.get("scheduler.warmup_start_lr", 0.00003)
+        self.warmup_epochs = cfg.get("scheduler.warmup_epochs", 10)
+        self.scheduler_interval = cfg.get("scheduler.interval", "step")
+        assert self.scheduler_interval in ["step", "epoch"]
+        if self.scheduler_interval == "step":
             logging.warn(
-                f"Using scheduler_interval={scheduler_interval} might generate "
+                f"Using scheduler_interval={self.scheduler_interval} might generate "
                 "issues when resuming a checkpoint."
             )
 
+        # data-related
+        self.num_large_crops = cfg.data.num_large_crops
+        self.num_small_crops = cfg.data.num_small_crops
+        self.num_crops = self.num_large_crops + self.num_small_crops
+        # turn on multicrop if there are small crops
+        self.multicrop = self.num_small_crops != 0
+
+        # knn online evaluation
+        self.knn_eval = cfg.get("knn_eval.enabled", False)
+        self.knn_k = cfg.get("knn_eval.k", 20)
+        if self.knn_eval:
+            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
+
+        # performance optimization
+        self.no_channel_last = cfg.get("performance.disable_channel_last", False)
         # can provide up to ~20% speed up
-        if not no_channel_last:
+        if not self.no_channel_last:
             self = self.to(memory_format=torch.channels_last)
-
-    @staticmethod
-    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
-        """Adds shared basic arguments that are shared for all methods.
-
-        Args:
-            parent_parser (ArgumentParser): argument parser that is used to create a
-                argument group.
-
-        Returns:
-            ArgumentParser: same as the argument, used to avoid errors.
-        """
-
-        parser = parent_parser.add_argument_group("base")
-
-        # backbone args
-        BACKBONES = BaseMethod._BACKBONES
-
-        parser.add_argument("--backbone", choices=BACKBONES, type=str)
-        # extra args for resnet
-        parser.add_argument("--zero_init_residual", action="store_true")
-        # extra args for ViT
-        parser.add_argument("--patch_size", type=int, default=16)
-
-        # general train
-        parser.add_argument("--batch_size", type=int, default=128)
-        parser.add_argument("--lr", type=float, default=0.3)
-        parser.add_argument("--classifier_lr", type=float, default=0.3)
-        parser.add_argument("--weight_decay", type=float, default=0.0001)
-        parser.add_argument("--num_workers", type=int, default=4)
-
-        # wandb
-        parser.add_argument("--name")
-        parser.add_argument("--project")
-        parser.add_argument("--entity", default=None, type=str)
-        parser.add_argument("--wandb", action="store_true")
-        parser.add_argument("--offline", action="store_true")
-
-        parser.add_argument(
-            "--optimizer", choices=BaseMethod._OPTIMIZERS.keys(), type=str, required=True
-        )
-        parser.add_argument("--exclude_bias_n_norm_wd", action="store_true")
-        # lars args
-        parser.add_argument("--grad_clip_lars", action="store_true")
-        parser.add_argument("--eta_lars", default=1e-3, type=float)
-        parser.add_argument("--exclude_bias_n_norm_lars", action="store_true")
-        # adamw args
-        parser.add_argument("--adamw_beta1", default=0.9, type=float)
-        parser.add_argument("--adamw_beta2", default=0.999, type=float)
-
-        parser.add_argument(
-            "--scheduler", choices=BaseMethod._SCHEDULERS, type=str, default="reduce"
-        )
-        parser.add_argument("--lr_decay_steps", default=None, type=int, nargs="+")
-        parser.add_argument("--min_lr", default=0.0, type=float)
-        parser.add_argument("--warmup_start_lr", default=0.00003, type=float)
-        parser.add_argument("--warmup_epochs", default=10, type=int)
-        parser.add_argument(
-            "--scheduler_interval", choices=["step", "epoch"], default="step", type=str
-        )
-
-        # online knn eval
-        parser.add_argument("--knn_eval", action="store_true")
-        parser.add_argument("--knn_k", default=20, type=int)
-
-        # disables channel last optimization
-        parser.add_argument("--no_channel_last", action="store_true")
-
-        return parent_parser
 
     @property
     def learnable_params(self) -> List[Dict[str, Any]]:
@@ -369,7 +298,7 @@ class BaseMethod(pl.LightningModule):
         learnable_params = self.learnable_params
 
         # exclude bias and norm from weight decay
-        if self.extra_args.get("exclude_bias_n_norm_wd", False):
+        if self.cfg.get("optimizer.exclude_bias_n_norm_wd", False):
             learnable_params = remove_bias_and_norm_from_weight_decay(learnable_params)
 
         # indexes of parameters without lr scheduler
@@ -670,7 +599,7 @@ class BaseMomentumMethod(BaseMethod):
         if "swin" in self.backbone_name and cifar:
             kwargs["window_size"] = 4
 
-        method = self.extra_args.get("method", None)
+        method = self.cfg.method
         self.momentum_backbone = self.base_model(method, **kwargs)
         if self.backbone_name.startswith("resnet"):
             # remove fc layer

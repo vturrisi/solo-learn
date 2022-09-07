@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence, Tuple
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -29,30 +29,25 @@ from solo.utils.misc import gather
 
 
 class NNCLR(BaseMethod):
-    queue: torch.Tensor
-
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        temperature: float,
-        queue_size: int,
-        **kwargs
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements NNCLR (https://arxiv.org/abs/2104.14548).
 
-        Args:
-            proj_output_dim (int): number of dimensions of projected features.
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            pred_hidden_dim (int): number of neurons in the hidden layers of the predictor.
-            temperature (float): temperature for the softmax in the contrastive loss.
-            queue_size (int): number of samples to keep in the queue.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of projected features.
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                pred_hidden_dim (int): number of neurons in the hidden layers of the predictor.
+                temperature (float): temperature for the softmax in the contrastive loss.
+                queue_size (int): number of samples to keep in the queue.
         """
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.temperature = temperature
-        self.queue_size = queue_size
+        self.temperature = cfg.method_kwargs.temperature
+        self.queue_size = cfg.method_kwargs.queue_size
+
+        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim = cfg.method_kwargs.pred_hidden_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -81,23 +76,24 @@ class NNCLR(BaseMethod):
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(NNCLR, NNCLR).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("nnclr")
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=256)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # predictor
-        parser.add_argument("--pred_hidden_dim", type=int, default=4096)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        # queue settings
-        parser.add_argument("--queue_size", default=65536, type=int)
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.temperature")
 
-        # parameters
-        parser.add_argument("--temperature", type=float, default=0.2)
-        return parent_parser
+        cfg.method_kwargs.queue_size = cfg.get("method_kwargs.queue_size", 65536)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:

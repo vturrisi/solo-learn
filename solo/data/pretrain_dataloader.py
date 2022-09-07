@@ -457,6 +457,106 @@ class CustomTransform(BaseTransform):
         )
 
 
+def build_transform_pipeline(dataset, cfg):
+    """Creates a pipeline of transformations given a dataset and an augmentation Cfg node.
+    The node needs to be in the following format:
+        crop_size: int
+        [OPTIONAL] mean: float
+        [OPTIONAL] std: float
+        rrc:
+            enabled: bool
+            crop_min_scale: float
+            crop_max_scale: float
+        color_jitter:
+            enabled: bool
+            brightness: float
+            contrast: float
+            saturation: float
+            hue: float
+            prob: float
+        grayscale:
+            enabled: bool
+            prob: float
+        gaussian_blur:
+            enabled: bool
+            prob: float
+        solarization:
+            enabled: bool
+            prob: float
+        equalization:
+            enabled: bool
+            prob: float
+        horizontal_flip:
+            enabled: bool
+            prob: float
+    """
+
+    MEANS_N_STD = {
+        "cifar10": ((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)),
+        "cifar100": ((0.5071, 0.4865, 0.4409), (0.2673, 0.2564, 0.2762)),
+        "stl10": ((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
+        "imagenet100": (IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
+        "imagenet": (IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
+    }
+
+    mean, std = MEANS_N_STD.get(
+        dataset, (cfg.get("mean", IMAGENET_DEFAULT_MEAN), cfg.get("std", IMAGENET_DEFAULT_STD))
+    )
+
+    augmentations = []
+    if cfg.rrc.enabled:
+        augmentations.append(
+            transforms.RandomResizedCrop(
+                cfg.crop_size,
+                scale=(cfg.rrc.crop_min_scale, cfg.rrc.crop_max_scale),
+                interpolation=transforms.InterpolationMode.BICUBIC,
+            ),
+        )
+    else:
+        augmentations.append(
+            transforms.Resize(
+                cfg.crop_size,
+                interpolation=transforms.InterpolationMode.BICUBIC,
+            ),
+        )
+
+    if cfg.color_jitter.enabled:
+        augmentations.append(
+            transforms.RandomApply(
+                [
+                    transforms.ColorJitter(
+                        cfg.color_jitter.brightness,
+                        cfg.color_jitter.contrast,
+                        cfg.color_jitter.saturation,
+                        cfg.color_jitter.hue,
+                    )
+                ],
+                p=cfg.color_jitter.prob,
+            ),
+        )
+
+    if cfg.grayscale.enabled:
+        augmentations.append(transforms.RandomGrayscale(p=cfg.grayscale.prob))
+
+    if cfg.gaussian_blur.enabled:
+        augmentations.append(transforms.RandomApply([GaussianBlur()], p=cfg.gaussian_blur.prob))
+
+    if cfg.solarization.enabled:
+        augmentations.append(transforms.RandomApply([Solarization()], p=cfg.solarization.prob))
+
+    if cfg.equalization.enabled:
+        augmentations.append(transforms.RandomApply([Equalization()], p=cfg.equalization.prob))
+
+    if cfg.horizontal_flip.enabled:
+        augmentations.append(transforms.RandomHorizontalFlip(p=cfg.horizontal_flip.prob))
+
+    augmentations.append(transforms.ToTensor())
+    augmentations.append(transforms.Normalize(mean=mean, std=std))
+
+    augmentations = transforms.Compose(augmentations)
+    return augmentations
+
+
 def prepare_transform(dataset: str, **kwargs) -> Any:
     """Prepares transforms for a specific dataset. Optionally uses multi crop.
 

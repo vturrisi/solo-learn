@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
@@ -27,22 +27,24 @@ from solo.methods.base import BaseMethod
 
 
 class BarlowTwins(BaseMethod):
-    def __init__(
-        self, proj_hidden_dim: int, proj_output_dim: int, lamb: float, scale_loss: float, **kwargs
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements Barlow Twins (https://arxiv.org/abs/2103.03230)
 
-        Args:
-            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            proj_output_dim (int): number of dimensions of projected features.
-            lamb (float): off-diagonal scaling factor for the cross-covariance matrix.
-            scale_loss (float): scaling factor of the loss.
+        Extra cfg settings:
+            method_kwargs:
+                proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+                proj_output_dim (int): number of dimensions of projected features.
+                lamb (float): off-diagonal scaling factor for the cross-covariance matrix.
+                scale_loss (float): scaling factor of the loss.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.lamb = lamb
-        self.scale_loss = scale_loss
+        self.lamb = cfg.method_kwargs.lamb
+        self.scale_loss = cfg.method_kwargs.scale_loss
+
+        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -56,18 +58,23 @@ class BarlowTwins(BaseMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(BarlowTwins, BarlowTwins).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("barlow_twins")
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=2048)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # parameters
-        parser.add_argument("--lamb", type=float, default=0.0051)
-        parser.add_argument("--scale_loss", type=float, default=0.024)
-        return parent_parser
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+
+        cfg.method_kwargs.lamb = cfg.get("method_kwargs.lamb", 0.0051)
+        cfg.method_kwargs.scale_loss = cfg.get("method_kwargs.scale_loss", 0.024)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:

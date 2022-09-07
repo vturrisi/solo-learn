@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 from solo.losses.vicreg import vicreg_loss_func
@@ -27,30 +27,26 @@ from solo.methods.base import BaseMethod
 
 
 class VICReg(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        sim_loss_weight: float,
-        var_loss_weight: float,
-        cov_loss_weight: float,
-        **kwargs
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements VICReg (https://arxiv.org/abs/2105.04906)
 
-        Args:
-            proj_output_dim (int): number of dimensions of the projected features.
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            sim_loss_weight (float): weight of the invariance term.
-            var_loss_weight (float): weight of the variance term.
-            cov_loss_weight (float): weight of the covariance term.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of the projected features.
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                sim_loss_weight (float): weight of the invariance term.
+                var_loss_weight (float): weight of the variance term.
+                cov_loss_weight (float): weight of the covariance term.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.sim_loss_weight = sim_loss_weight
-        self.var_loss_weight = var_loss_weight
-        self.cov_loss_weight = cov_loss_weight
+        self.sim_loss_weight = cfg.method_kwargs.sim_loss_weight
+        self.var_loss_weight = cfg.method_kwargs.var_loss_weight
+        self.cov_loss_weight = cfg.method_kwargs.cov_loss_weight
+
+        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -64,19 +60,24 @@ class VICReg(BaseMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(VICReg, VICReg).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("vicreg")
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=2048)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # parameters
-        parser.add_argument("--sim_loss_weight", default=25, type=float)
-        parser.add_argument("--var_loss_weight", default=25, type=float)
-        parser.add_argument("--cov_loss_weight", default=1.0, type=float)
-        return parent_parser
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+
+        cfg.method_kwargs.sim_loss_weight = cfg.get("method_kwargs.sim_loss_weight", 25.0)
+        cfg.method_kwargs.var_loss_weight = cfg.get("method_kwargs.var_loss_weight", 25.0)
+        cfg.method_kwargs.cov_loss_weight = cfg.get("method_kwargs.cov_loss_weight", 1.0)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:

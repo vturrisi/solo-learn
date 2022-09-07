@@ -1,0 +1,40 @@
+name: "barlow_twins-imagenet100"
+method: "barlow_twins"
+backbone:
+  name: "resnet18"
+method_kwargs:
+  proj_hidden_dim: 4096
+  proj_output_dim: 4096
+  scale_loss: 0.1
+data:
+  dataset: imagenet100
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
+  format: "h5"
+  num_workers: 4
+optimizer:
+  name: "lars"
+  batch_size: 32
+  lr: 0.4
+  classifier_lr: 0.1
+  weight_decay: 1e-5
+  kwargs:
+    grad_clip: True
+    eta: 0.02
+    exclude_bias_n_norm: True
+scheduler:
+  name: "warmup_cosine"
+checkpoint:
+  enabled: True
+  dir: 'trained_models'
+  frequency: 1
+auto_resume:
+  enabled: True
+augmentations_cfg: "configs/defaults/augmentations/asymmetric.yaml"
+wandb_cfg: "configs/defaults/wandb/mhug.yaml"
+# overwrite PL stuff
+max_epochs: 400
+devices: [0, 1]
+sync_batchnorm: True
+accelerator: "gpu"
+strategy: "ddp"
