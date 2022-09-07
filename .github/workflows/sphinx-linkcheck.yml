@@ -1,0 +1,32 @@
+name: sphinx-linkcheck
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  sphinx-linkcheck:
+    name: linkcheck
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9']
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
+          pip install -r docs/requirements.txt
+      - name: linkcheck
+        shell: bash -l {0}
+        run: |
+          cd docs && make linkcheck
+      - uses: actions/upload-artifact@v1
+        with:
+          name: linkcheck-output.txt
+          path: docs/build/linkcheck/output.txt

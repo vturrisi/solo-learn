@@ -116,7 +116,7 @@ compute
 LARS
 ----
 
-.. automethod:: solo.utils.lars.LARSWrapper.__init__
+.. automethod:: solo.utils.lars.LARS.__init__
    :noindex:
 
 Metrics
@@ -151,16 +151,6 @@ Sinkhorn-Knopp
 --------------
 
 .. automethod:: solo.utils.sinkhorn_knopp.SinkhornKnopp.__init__
-   :noindex:
-
-
-Truncate normal
----------------
-
-trunc_normal_
-~~~~~~~~~~~~~
-
-.. autofunction:: solo.utils.trunc_normal.trunc_normal_
    :noindex:
 
 Whitening
