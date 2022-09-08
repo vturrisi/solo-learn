@@ -118,4 +118,10 @@ def parse_cfg():
     cfg.wandb.project = omegaconf_select(cfg, "wandb.project", "solo-learn")
     cfg.wandb.offline = omegaconf_select(cfg, "wandb.offline", False)
 
+    # default values for dali
+    cfg.dali = omegaconf_select(cfg, "dali", {})
+    cfg.dali.device = omegaconf_select(cfg, "dali.device", "gpu")
+    cfg.dali.encode_indexes_into_labels = omegaconf_select(
+        cfg, "dali.encode_indexes_into_labels", False
+    )
     return cfg

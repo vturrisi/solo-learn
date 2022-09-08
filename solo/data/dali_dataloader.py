@@ -21,7 +21,7 @@ import math
 import os
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from typing import Callable, List, Optional, Union
 
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
@@ -31,12 +31,7 @@ import torch
 import torch.nn as nn
 from nvidia.dali.pipeline import pipeline_def
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
-from solo.data.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-
-# Dali uses the values in [0, 255]
-IMAGENET_DEFAULT_MEAN = [v * 255 for v in IMAGENET_DEFAULT_MEAN]
-IMAGENET_DEFAULT_STD = [v * 255 for v in IMAGENET_DEFAULT_STD]
 
 
 class Mux:
@@ -279,8 +274,8 @@ class NormalPipelineBuilder:
                 dtype=types.FLOAT,
                 output_layout=types.NCHW,
                 crop=(224, 224),
-                mean=IMAGENET_DEFAULT_MEAN,
-                std=IMAGENET_DEFAULT_STD,
+                mean=[v * 255 for v in IMAGENET_DEFAULT_MEAN],
+                std=[v * 255 for v in IMAGENET_DEFAULT_STD],
             )
         else:
             self.resize = ops.RandomResizedCrop(
@@ -294,8 +289,8 @@ class NormalPipelineBuilder:
                 device=self.device,
                 dtype=types.FLOAT,
                 output_layout=types.NCHW,
-                mean=IMAGENET_DEFAULT_MEAN,
-                std=IMAGENET_DEFAULT_STD,
+                mean=[v * 255 for v in IMAGENET_DEFAULT_MEAN],
+                std=[v * 255 for v in IMAGENET_DEFAULT_STD],
             )
 
         self.coin05 = ops.random.CoinFlip(probability=0.5)
@@ -336,205 +331,125 @@ class CustomNormalPipelineBuilder(NormalPipelineBuilder):
     pass
 
 
-class ImagenetTransform:
-    def __init__(
-        self,
-        device: str,
-        brightness: float,
-        contrast: float,
-        saturation: float,
-        hue: float,
-        color_jitter_prob: float = 0.8,
-        gray_scale_prob: float = 0.2,
-        horizontal_flip_prob: float = 0.5,
-        gaussian_prob: float = 0.5,
-        solarization_prob: float = 0.0,
-        min_scale: float = 0.08,
-        max_scale: float = 1.0,
-        crop_size: int = 224,
-    ):
-        """Applies Imagenet transformations to a batch of images.
+def build_transform_pipeline_dali(dataset, cfg, dali_device):
+    """Creates a pipeline of transformations given a dataset and an augmentation Cfg node.
+    The node needs to be in the following format:
+        crop_size: int
+        [OPTIONAL] mean: float
+        [OPTIONAL] std: float
+        rrc:
+            enabled: bool
+            crop_min_scale: float
+            crop_max_scale: float
+        color_jitter:
+            enabled: bool
+            brightness: float
+            contrast: float
+            saturation: float
+            hue: float
+            prob: float
+        grayscale:
+            enabled: bool
+            prob: float
+        gaussian_blur:
+            enabled: bool
+            prob: float
+        solarization:
+            enabled: bool
+            prob: float
+        equalization:
+            enabled: bool
+            prob: float
+        horizontal_flip:
+            enabled: bool
+            prob: float
+    """
 
-        Args:
-            device (str): device on which the operations will be performed.
-            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
-            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
-            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
-            hue (float): sampled uniformly in [-hue, hue].
-            color_jitter_prob (float, optional): probability of applying color jitter.
-                Defaults to 0.8.
-            gray_scale_prob (float, optional): probability of converting to gray scale.
-                Defaults to 0.2.
-            horizontal_flip_prob (float, optional): probability of flipping horizontally.
-                Defaults to 0.5.
-            gaussian_prob (float, optional): probability of applying gaussian blur.
-                Defaults to 0.0.
-            solarization_prob (float, optional): probability of applying solarization.
-                Defaults to 0.0.
-            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
-            max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
-            crop_size (int, optional): size of the crop. Defaults to 224.
-        """
+    MEANS_N_STD = {
+        "cifar10": ((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)),
+        "cifar100": ((0.5071, 0.4865, 0.4409), (0.2673, 0.2564, 0.2762)),
+        "stl10": ((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
+        "imagenet100": (IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
+        "imagenet": (IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
+    }
 
-        # random crop
-        self.random_crop = ops.RandomResizedCrop(
-            device=device,
-            size=crop_size,
-            random_area=(min_scale, max_scale),
-            interp_type=types.INTERP_CUBIC,
+    mean, std = MEANS_N_STD.get(
+        dataset, (cfg.get("mean", IMAGENET_DEFAULT_MEAN), cfg.get("std", IMAGENET_DEFAULT_STD))
+    )
+
+    augmentations = []
+    if cfg.rrc.enabled:
+        augmentations.append(
+            ops.RandomResizedCrop(
+                device=dali_device,
+                size=cfg.crop_size,
+                random_area=(cfg.rrc.crop_min_scale, cfg.rrc.crop_max_scale),
+                interp_type=types.INTERP_CUBIC,
+            )
+        )
+    else:
+        augmentations.append(
+            ops.Resize(size=(cfg.crop_size, cfg.crop_size), interp_type=types.INTERP_CUBIC)
         )
 
-        # color jitter
-        self.random_color_jitter = RandomColorJitter(
-            brightness=brightness,
-            contrast=contrast,
-            saturation=saturation,
-            hue=hue,
-            prob=color_jitter_prob,
-            device=device,
+    if cfg.color_jitter.enabled:
+        augmentations.append(
+            RandomColorJitter(
+                brightness=cfg.color_jitter.brightness,
+                contrast=cfg.color_jitter.contrast,
+                saturation=cfg.color_jitter.saturation,
+                hue=cfg.color_jitter.hue,
+                prob=cfg.color_jitter.prob,
+                device=dali_device,
+            )
         )
 
-        # grayscale conversion
-        self.random_grayscale = RandomGrayScaleConversion(prob=gray_scale_prob, device=device)
+    if cfg.grayscale.enabled:
+        augmentations.append(RandomGrayScaleConversion(prob=cfg.grayscale.prob, device=dali_device))
 
-        # gaussian blur
-        self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
+    if cfg.gaussian_blur.enabled:
+        augmentations.append(RandomGaussianBlur(prob=cfg.gaussian_blur.prob, device=dali_device))
 
-        # solarization
-        self.random_solarization = RandomSolarize(prob=solarization_prob)
+    if cfg.solarization.enabled:
+        augmentations.append(RandomSolarize(prob=cfg.solarization.prob))
 
-        # normalize and horizontal flip
-        self.cmn = ops.CropMirrorNormalize(
-            device=device,
-            dtype=types.FLOAT,
-            output_layout=types.NCHW,
-            mean=IMAGENET_DEFAULT_MEAN,
-            std=IMAGENET_DEFAULT_STD,
-        )
-        self.coin05 = ops.random.CoinFlip(probability=horizontal_flip_prob)
-
-        self.str = (
-            "ImagenetTransform("
-            f"random_crop({min_scale}, {max_scale}), "
-            f"random_color_jitter(brightness={brightness}, "
-            f"contrast={contrast}, saturation={saturation}, hue={hue}), "
-            f"random_gray_scale, random_gaussian_blur({gaussian_prob}), "
-            f"random_solarization({solarization_prob}), "
-            "crop_mirror_resize())"
+    if cfg.equalization.enabled:
+        raise NotImplementedError(
+            "Equalization is not available for DALI"
+            "turn it off by setting augmentations.equalization.enabled to False."
         )
 
-    def __str__(self) -> str:
-        return self.str
+    coin = None
+    if cfg.horizontal_flip.enabled:
+        coin = ops.random.CoinFlip(probability=cfg.horizontal_flip.prob)
 
-    def __call__(self, images):
-        out = self.random_crop(images)
-        out = self.random_color_jitter(out)
-        out = self.random_grayscale(out)
-        out = self.random_gaussian_blur(out)
-        out = self.random_solarization(out)
-        out = self.cmn(out, mirror=self.coin05())
-        return out
+    cmn = ops.CropMirrorNormalize(
+        device=dali_device,
+        dtype=types.FLOAT,
+        output_layout=types.NCHW,
+        mean=[v * 255 for v in mean],
+        std=[v * 255 for v in std],
+    )
 
+    class AugWrapper:
+        def __init__(self, augmentations, cmn, coin) -> None:
+            self.augmentations = augmentations
+            self.cmn = cmn
+            self.coin = coin
 
-class CustomTransform:
-    def __init__(
-        self,
-        device: str,
-        brightness: float,
-        contrast: float,
-        saturation: float,
-        hue: float,
-        color_jitter_prob: float = 0.8,
-        gray_scale_prob: float = 0.2,
-        horizontal_flip_prob: float = 0.5,
-        gaussian_prob: float = 0.5,
-        solarization_prob: float = 0.0,
-        min_scale: float = 0.08,
-        max_scale: float = 1.0,
-        crop_size: int = 224,
-        mean: Sequence[float] = (0.485, 0.456, 0.406),
-        std: Sequence[float] = (0.228, 0.224, 0.225),
-    ):
-        """Applies Custom transformations.
-        If you want to do exoteric augmentations, you can just re-write this class.
+        def __call__(self, images):
+            for aug in self.augmentations:
+                images = aug(images)
+            if self.coin:
+                images = self.cmn(images, mirror=self.coin())
+            else:
+                images = self.cmn(images)
+            return images
 
-        Args:
-            device (str): device on which the operations will be performed.
-            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
-            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
-            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
-            hue (float): sampled uniformly in [-hue, hue].
-            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.5.
-            solarization_prob (float, optional): probability of applying solarization. Defaults
-                to 0.0.
-            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
-            max_scale (float, optional): maximum scale of the crops. Defaults to 1.0.
-            crop_size (int, optional): size of the side of the image after transformation. Defaults
-                to 224.
-            mean (Sequence[float], optional): mean values for normalization.
-                Defaults to (0.485, 0.456, 0.406).
-            std (Sequence[float], optional): std values for normalization.
-                Defaults to (0.228, 0.224, 0.225).
-        """
+        def __repr__(self) -> str:
+            return f"{self.augmentations}"
 
-        # random crop
-        self.random_crop = ops.RandomResizedCrop(
-            device=device,
-            size=crop_size,
-            random_area=(min_scale, max_scale),
-            interp_type=types.INTERP_CUBIC,
-        )
-
-        # color jitter
-        self.random_color_jitter = RandomColorJitter(
-            brightness=brightness,
-            contrast=contrast,
-            saturation=saturation,
-            hue=hue,
-            prob=color_jitter_prob,
-            device=device,
-        )
-
-        # grayscale conversion
-        self.random_grayscale = RandomGrayScaleConversion(prob=gray_scale_prob, device=device)
-
-        # gaussian blur
-        self.random_gaussian_blur = RandomGaussianBlur(prob=gaussian_prob, device=device)
-
-        # solarization
-        self.random_solarization = RandomSolarize(prob=solarization_prob)
-
-        # normalize and horizontal flip
-        self.cmn = ops.CropMirrorNormalize(
-            device=device,
-            dtype=types.FLOAT,
-            output_layout=types.NCHW,
-            mean=[v * 255 for v in mean],
-            std=[v * 255 for v in std],
-        )
-        self.coin05 = ops.random.CoinFlip(probability=horizontal_flip_prob)
-
-        self.str = (
-            "CustomTransform("
-            f"random_crop({min_scale}, {max_scale}), "
-            f"random_color_jitter(brightness={brightness}, "
-            f"contrast={contrast}, saturation={saturation}, hue={hue}), "
-            f"random_gray_scale, random_gaussian_blur({gaussian_prob}), "
-            f"random_solarization({solarization_prob}), "
-            "crop_mirror_resize())"
-        )
-
-    def __call__(self, images):
-        out = self.random_crop(images)
-        out = self.random_color_jitter(out)
-        out = self.random_grayscale(out)
-        out = self.random_gaussian_blur(out)
-        out = self.random_solarization(out)
-        out = self.cmn(out, mirror=self.coin05())
-        return out
-
-    def __repr__(self):
-        return self.str
+    return AugWrapper(augmentations=augmentations, cmn=cmn, coin=coin)
 
 
 class PretrainPipelineBuilder:
@@ -544,7 +459,6 @@ class PretrainPipelineBuilder:
         batch_size: int,
         device: str,
         transforms: List[Callable],
-        num_crops_per_aug: List[int],
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -658,10 +572,7 @@ class PretrainPipelineBuilder:
         )
         self.to_int64 = ops.Cast(dtype=types.INT64, device=device)
 
-        T = []
-        for transform, num_crops in zip(transforms, num_crops_per_aug):
-            T.append(NCropAugmentation(transform, num_crops))
-        self.transforms = FullTransformPipeline(T)
+        self.transforms = transforms
 
     @pipeline_def
     def pipeline(self):
@@ -785,9 +696,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         self,
         dataset: str,
         train_data_path: Union[str, Path],
-        unique_augs: int,
-        transform_kwargs: Dict[str, Any],
-        num_crops_per_aug: List[int],
+        transforms: List[Callable],
         num_large_crops: int,
         num_small_crops: int,
         batch_size: int,
@@ -804,7 +713,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
             dataset (str): dataset name.
             train_data_path (Union[str, Path]): path where the training data is located.
             unique_augs (int): number of unique augmentation pielines
-            transform_kwargs (Dict[str, Any]): kwargs for the transformations.
+            transforms (List[Callable]): list of transformations.
             num_crops_per_aug (List[int]): number of crops per pipeline.
             num_large_crops (int): total number of large crops.
             num_small_crops (int): total number of small crops.
@@ -828,9 +737,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         self.train_data_path = Path(train_data_path)
 
         # augmentation-related
-        self.unique_augs = unique_augs
-        self.transform_kwargs = transform_kwargs
-        self.num_crops_per_aug = num_crops_per_aug
+        self.transforms = transforms
         self.num_large_crops = num_large_crops
         self.num_small_crops = num_small_crops
 
@@ -845,38 +752,6 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         assert dali_device in ["gpu", "cpu"]
         # hack to encode image indexes into the labels
         self.encode_indexes_into_labels = encode_indexes_into_labels
-
-        # handle custom data by creating the needed pipeline
-        if dataset in ["imagenet100", "imagenet"]:
-            transform_pipeline = ImagenetTransform
-        elif dataset == "custom":
-            transform_pipeline = CustomTransform
-        else:
-            raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
-
-        if unique_augs > 1:
-            assert all(
-                [(kwargs["equalization_prob"] == 0.0) for kwargs in transform_kwargs]
-            ), "Equalization is not yet supported in Dali"
-            for kwargs in transform_kwargs:
-                del kwargs["equalization_prob"]
-
-        else:
-            assert (
-                transform_kwargs["equalization_prob"] == 0.0
-            ), "Equalization is not yet supported in Dali"
-            del transform_kwargs["equalization_prob"]
-
-        if unique_augs > 1:
-            self.transforms = [
-                transform_pipeline(
-                    device=dali_device,
-                    **kwargs,
-                )
-                for kwargs in transform_kwargs
-            ]
-        else:
-            self.transforms = [transform_pipeline(device=dali_device, **transform_kwargs)]
 
     @staticmethod
     def add_dali_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -904,7 +779,6 @@ class PretrainDALIDataModule(pl.LightningDataModule):
             self.train_data_path,
             batch_size=self.batch_size,
             transforms=self.transforms,
-            num_crops_per_aug=self.num_crops_per_aug,
             device=self.dali_device,
             device_id=self.device_id,
             shard_id=self.shard_id,

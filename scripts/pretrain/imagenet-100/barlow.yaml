@@ -8,9 +8,9 @@ method_kwargs:
   scale_loss: 0.1
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
-  format: "image_folder"
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/val.h5"
+  format: "h5"
   num_workers: 4
 optimizer:
   name: "lars"

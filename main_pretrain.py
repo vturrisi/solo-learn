@@ -20,13 +20,13 @@
 import inspect
 import os
 
+from omegaconf import OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
 
-from omegaconf import OmegaConf
-from solo.args.setup import parse_args_pretrain
+from solo.args.pretrain import parse_cfg
 from solo.data.classification_dataloader import prepare_data as prepare_data_classification
 from solo.data.pretrain_dataloader import (
     FullTransformPipeline,
@@ -34,17 +34,14 @@ from solo.data.pretrain_dataloader import (
     build_transform_pipeline,
     prepare_dataloader,
     prepare_datasets,
-    prepare_n_crop_transform,
-    prepare_transform,
 )
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.misc import make_contiguous
-from solo.args.pretrain import parse_cfg
+from solo.utils.misc import make_contiguous, omegaconf_select
 
 try:
-    from solo.data.dali_dataloader import PretrainDALIDataModule
+    from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
 except ImportError:
     _dali_avaliable = False
 else:
@@ -98,21 +95,30 @@ def main():
         assert (
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with pip3 install .[dali]."
-        raise NotImplementedError
+        pipelines = []
+        for aug_cfg in cfg.data.augmentations:
+            pipelines.append(
+                NCropAugmentation(
+                    build_transform_pipeline_dali(
+                        cfg.data.dataset, aug_cfg, dali_device=cfg.dali.device
+                    ),
+                    aug_cfg.num_crops,
+                )
+            )
+        transform = FullTransformPipeline(pipelines)
+
         dali_datamodule = PretrainDALIDataModule(
-            dataset=args.dataset,
-            train_data_path=args.train_data_path,
-            unique_augs=args.unique_augs,
-            transform_kwargs=args.transform_kwargs,
-            num_crops_per_aug=args.num_crops_per_aug,
-            num_large_crops=args.num_large_crops,
-            num_small_crops=args.num_small_crops,
-            num_workers=args.num_workers,
-            batch_size=args.batch_size,
-            no_labels=args.no_labels,
-            data_fraction=args.data_fraction,
-            dali_device=args.dali_device,
-            encode_indexes_into_labels=args.encode_indexes_into_labels,
+            dataset=cfg.data.dataset,
+            train_data_path=cfg.data.train_path,
+            transforms=transform,
+            num_large_crops=cfg.data.num_large_crops,
+            num_small_crops=cfg.data.num_small_crops,
+            num_workers=cfg.data.num_workers,
+            batch_size=cfg.optimizer.batch_size,
+            no_labels=omegaconf_select(cfg, "data.no_labels", False),
+            data_fraction=omegaconf_select(cfg, "data.fraction", -1),
+            dali_device=cfg.dali.device,
+            encode_indexes_into_labels=cfg.dali.encode_indexes_into_labels,
         )
         dali_datamodule.val_dataloader = lambda: val_loader
     else:
@@ -134,8 +140,8 @@ def main():
             transform,
             train_data_path=cfg.data.train_path,
             data_format=cfg.data.format,
-            no_labels=cfg.get("data.no_labels", False),
-            data_fraction=cfg.get("data.fraction", -1),
+            no_labels=omegaconf_select(cfg, "data.no_labels", False),
+            data_fraction=omegaconf_select(cfg, "data.fraction", -1),
         )
         train_loader = prepare_dataloader(
             train_dataset, batch_size=cfg.optimizer.batch_size, num_workers=cfg.data.num_workers
@@ -234,7 +240,6 @@ def main():
         pass
 
     if cfg.data.format == "dali":
-        raise NotImplemented
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
     else:
         trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
