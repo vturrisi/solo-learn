@@ -61,7 +61,7 @@ class SupCon(BaseMethod):
         Returns:
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
-        
+
         cfg = super(SupCon, SupCon).add_method_specific_cfg(cfg)
 
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
