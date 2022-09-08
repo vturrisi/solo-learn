@@ -22,7 +22,6 @@ import os
 import random
 import string
 import time
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Optional, Union
 
@@ -34,25 +33,16 @@ import torch.nn as nn
 import umap
 import wandb
 from matplotlib import pyplot as plt
+from omegaconf import DictConfig
 from pytorch_lightning.callbacks import Callback
+from solo.utils.misc import gather, omegaconf_select
 from tqdm import tqdm
-
-from .misc import gather
-
-
-def random_string(letter_count=4, digit_count=4):
-    tmp_random = random.Random(time.time())
-    rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
-    rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
-    rand_str = list(rand_str)
-    tmp_random.shuffle(rand_str)
-    return "".join(rand_str)
 
 
 class AutoUMAP(Callback):
     def __init__(
         self,
-        args: Namespace,
+        cfg: DictConfig,
         logdir: Union[str, Path] = Path("auto_umap"),
         frequency: int = 1,
         keep_previous: bool = False,
@@ -62,7 +52,7 @@ class AutoUMAP(Callback):
         figure to wandb.
 
         Args:
-            args (Namespace): namespace object containing at least an attribute name.
+            cfg (DictConfig): DictConfig containing at least an attribute name.
             logdir (Union[str, Path], optional): base directory to store checkpoints.
                 Defaults to Path("auto_umap").
             frequency (int, optional): number of epochs between each UMAP. Defaults to 1.
@@ -73,24 +63,38 @@ class AutoUMAP(Callback):
 
         super().__init__()
 
-        self.args = args
+        self.cfg = cfg
         self.logdir = Path(logdir)
         self.frequency = frequency
         self.color_palette = color_palette
         self.keep_previous = keep_previous
 
     @staticmethod
-    def add_auto_umap_args(parent_parser: ArgumentParser):
-        """Adds user-required arguments to a parser.
+    def add_specific_cfg(cfg: DictConfig) -> DictConfig:
+        """Adds specific default values/checks for config.
 
         Args:
-            parent_parser (ArgumentParser): parser to add new args to.
+            cfg (omegaconf.DictConfig): DictConfig object.
+
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        parser = parent_parser.add_argument_group("auto_umap")
-        parser.add_argument("--auto_umap_dir", default=Path("auto_umap"), type=Path)
-        parser.add_argument("--auto_umap_frequency", default=1, type=int)
-        return parent_parser
+        cfg.auto_umap = omegaconf_select(cfg, "auto_umap", default={})
+        cfg.auto_umap.enabled = omegaconf_select(cfg, "auto_umap.enabled", default=False)
+        cfg.auto_umap.dir = omegaconf_select(cfg, "auto_umap.dir", default="auto_umap")
+        cfg.auto_umap.frequency = omegaconf_select(cfg, "auto_umap.frequency", default=1)
+
+        return cfg
+
+    @staticmethod
+    def random_string(letter_count=4, digit_count=4):
+        tmp_random = random.Random(time.time())
+        rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
+        rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
+        rand_str = list(rand_str)
+        tmp_random.shuffle(rand_str)
+        return "".join(rand_str)
 
     def initial_setup(self, trainer: pl.Trainer):
         """Creates the directories and does the initial setup needed.
@@ -104,17 +108,17 @@ class AutoUMAP(Callback):
                 existing_versions = set(os.listdir(self.logdir))
             else:
                 existing_versions = []
-            version = "offline-" + random_string()
+            version = "offline-" + self.random_string()
             while version in existing_versions:
-                version = "offline-" + random_string()
+                version = "offline-" + self.random_string()
         else:
             version = str(trainer.logger.version)
         if version is not None:
             self.path = self.logdir / version
-            self.umap_placeholder = f"{self.args.name}-{version}" + "-ep={}.pdf"
+            self.umap_placeholder = f"{self.cfg.name}-{version}" + "-ep={}.pdf"
         else:
             self.path = self.logdir
-            self.umap_placeholder = f"{self.args.name}" + "-ep={}.pdf"
+            self.umap_placeholder = f"{self.cfg.name}" + "-ep={}.pdf"
         self.last_ckpt: Optional[str] = None
 
         # create logging dirs

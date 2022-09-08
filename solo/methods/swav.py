@@ -25,6 +25,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.swav import swav_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
 
@@ -85,18 +86,30 @@ class SwAV(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(SwAV, SwAV).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.temperature")
 
-        cfg.method_kwargs.queue_size = cfg.get("method_kwargs.queue_size", 65536)
-        cfg.method_kwargs.num_prototypes = cfg.get("method_kwargs.num_prototypes", 3000)
-        cfg.method_kwargs.sk_epsilon = cfg.get("method_kwargs.sk_epsilon", 0.05)
-        cfg.method_kwargs.sk_iters = cfg.get("method_kwargs.sk_iters", 3)
-        cfg.method_kwargs.freeze_prototypes_epochs = cfg.get(
-            "method_kwargs.freeze_prototypes_epochs", 1
+        cfg.method_kwargs.queue_size = omegaconf_select(cfg, "method_kwargs.queue_size", 65536)
+        cfg.method_kwargs.num_prototypes = omegaconf_select(
+            cfg,
+            "method_kwargs.num_prototypes",
+            3000,
         )
-        cfg.method_kwargs.epoch_queue_starts = cfg.get("method_kwargs.epoch_queue_starts", 15)
+        cfg.method_kwargs.sk_epsilon = omegaconf_select(cfg, "method_kwargs.sk_epsilon", 0.05)
+        cfg.method_kwargs.sk_iters = omegaconf_select(cfg, "method_kwargs.sk_iters", 3)
+        cfg.method_kwargs.freeze_prototypes_epochs = omegaconf_select(
+            cfg,
+            "method_kwargs.freeze_prototypes_epochs",
+            1,
+        )
+        cfg.method_kwargs.epoch_queue_starts = omegaconf_select(
+            cfg,
+            "method_kwargs.epoch_queue_starts",
+            15,
+        )
 
         return cfg
 

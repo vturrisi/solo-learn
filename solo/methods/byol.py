@@ -82,6 +82,8 @@ class BYOL(BaseMomentumMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(BYOL, BYOL).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")

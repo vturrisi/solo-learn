@@ -24,6 +24,7 @@ import torch
 import torch.nn as nn
 from solo.losses.vibcreg import vibcreg_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 from solo.utils.whitening import IterNorm
 
 
@@ -74,13 +75,27 @@ class VIbCReg(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(VIbCReg, VIbCReg).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
 
-        cfg.method_kwargs.sim_loss_weight = cfg.get("method_kwargs.sim_loss_weight", 25.0)
-        cfg.method_kwargs.var_loss_weight = cfg.get("method_kwargs.var_loss_weight", 25.0)
-        cfg.method_kwargs.cov_loss_weight = cfg.get("method_kwargs.cov_loss_weight", 200.0)
-        cfg.method_kwargs.iternorm = cfg.get("method_kwargs.iternorm", False)
+        cfg.method_kwargs.sim_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.sim_loss_weight",
+            25.0,
+        )
+        cfg.method_kwargs.var_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.var_loss_weight",
+            25.0,
+        )
+        cfg.method_kwargs.cov_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.cov_loss_weight",
+            200.0,
+        )
+        cfg.method_kwargs.iternorm = omegaconf_select(cfg, "method_kwargs.iternorm", False)
 
         return cfg
 

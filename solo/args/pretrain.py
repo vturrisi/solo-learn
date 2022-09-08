@@ -4,6 +4,10 @@ import os
 import pytorch_lightning as pl
 from omegaconf import OmegaConf
 from solo.methods import METHODS
+from solo.utils.auto_resumer import AutoResumer
+from solo.utils.auto_umap import AutoUMAP
+from solo.utils.checkpointer import Checkpointer
+from solo.utils.misc import omegaconf_select
 
 N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -14,7 +18,7 @@ N_CLASSES_PER_DATASET = {
 }
 
 
-def parse():
+def parse_cfg():
     parser = argparse.ArgumentParser()
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
@@ -42,6 +46,10 @@ def parse():
             cfg_from_file.merge_with(aux_cfg_file)
             del cfg_from_file[k]
     cfg.merge_with(cfg_from_file)
+
+    # replace cfg with remaining parameters
+    if args.rest:
+        cfg.merge_with(OmegaConf.from_cli(args.rest))
 
     # extra processing
     if cfg.data.dataset in N_CLASSES_PER_DATASET:
@@ -75,44 +83,39 @@ def parse():
     cfg.optimizer.classifier_lr = cfg.optimizer.classifier_lr * scale_factor
 
     # extra optimizer kwargs
-    cfg.optimizer.kwargs = cfg.get("optimizer.kwargs", {})
+    cfg.optimizer.kwargs = omegaconf_select(cfg, "optimizer.kwargs", {})
     if cfg.optimizer.name == "sgd":
-        cfg.optimizer.kwargs.momentum = cfg.get("optimizer.kwargs.momentum", 0.9)
+        cfg.optimizer.kwargs.momentum = omegaconf_select(cfg, "optimizer.kwargs.momentum", 0.9)
     elif cfg.optimizer.name == "lars":
-        cfg.optimizer.kwargs.momentum = cfg.get("optimizer.kwargs.momentum", 0.9)
-        cfg.optimizer.kwargs.eta = cfg.get("optimizer.kwargs.eta", 1e-3)
-        cfg.optimizer.kwargs.grad_clip = cfg.get("optimizer.kwargs.grad_clip", False)
-        cfg.optimizer.kwargs.exclude_bias_n_norm = cfg.get(
-            "optimizer.kwargs.exclude_bias_n_norm", False
+        cfg.optimizer.kwargs.momentum = omegaconf_select(cfg, "optimizer.kwargs.momentum", 0.9)
+        cfg.optimizer.kwargs.eta = omegaconf_select(cfg, "optimizer.kwargs.eta", 1e-3)
+        cfg.optimizer.kwargs.clip_lr = omegaconf_select(cfg, "optimizer.kwargs.clip_lr", False)
+        cfg.optimizer.kwargs.exclude_bias_n_norm = omegaconf_select(
+            cfg,
+            "optimizer.kwargs.exclude_bias_n_norm",
+            False,
         )
     elif cfg.optimizer.name == "adamw":
-        cfg.optimizer.kwargs.betas = cfg.get("optimizer.kwargs.betas", [0.9, 0.999])
+        cfg.optimizer.kwargs.betas = omegaconf_select(cfg, "optimizer.kwargs.betas", [0.9, 0.999])
 
     # method specific cfg
-    cfg.method_kwargs = cfg.get("method_kwargs", {})
+    cfg.method_kwargs = omegaconf_select(cfg, "method_kwargs", {})
     cfg = METHODS[cfg.method].add_method_specific_cfg(cfg)
 
     # default values for checkpointer
-    cfg.checkpoint = cfg.get("checkpoint", {})
-    cfg.checkpoint.enabled = cfg.get("checkpoint.enabled", False)
-    cfg.checkpoint.dir = cfg.get("checkpoint.dir", "trained_models")
-    cfg.checkpoint.frequency = cfg.get("checkpoint.frequency", 1)
+    cfg = Checkpointer.add_specific_cfg(cfg)
 
     # default values for auto_resume
-    cfg.auto_resume = cfg.get("auto_resume", {})
-    cfg.auto_resume.enabled = cfg.get("auto_resume.enabled", False)
-    cfg.auto_resume.max_hours = cfg.get("auto_resume.max_hours", 36)
+    cfg = AutoResumer.add_specific_cfg(cfg)
 
     # default values for auto_umap
-    cfg.auto_umap = cfg.get("auto_umap", {})
-    cfg.auto_umap.enabled = cfg.get("auto_umap.enabled", False)
-    cfg.auto_umap.dir = cfg.get("auto_umap.dir", "auto_umap")
-    cfg.auto_umap.frequency = cfg.get("auto_umap.frequency", 1)
+    cfg = AutoUMAP.add_specific_cfg(cfg)
 
     # default values for wandb
-    cfg.wandb = cfg.get("wandb", {})
-    cfg.wandb.enabled = cfg.get("wandb.enabled", False)
-    cfg.wandb.project = cfg.get("wandb.project", "solo-learn")
-    cfg.wandb.entity = cfg.get("wandb.entity", None)
+    cfg.wandb = omegaconf_select(cfg, "wandb", {})
+    cfg.wandb.enabled = omegaconf_select(cfg, "wandb.enabled", False)
+    cfg.wandb.entity = omegaconf_select(cfg, "wandb.entity", None)
+    cfg.wandb.project = omegaconf_select(cfg, "wandb.project", "solo-learn")
+    cfg.wandb.offline = omegaconf_select(cfg, "wandb.offline", False)
 
     return cfg

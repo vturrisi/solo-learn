@@ -24,6 +24,7 @@ import torch
 import torch.nn as nn
 from solo.losses.vicreg import vicreg_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 
 
 class VICReg(BaseMethod):
@@ -70,12 +71,26 @@ class VICReg(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(VICReg, VICReg).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
 
-        cfg.method_kwargs.sim_loss_weight = cfg.get("method_kwargs.sim_loss_weight", 25.0)
-        cfg.method_kwargs.var_loss_weight = cfg.get("method_kwargs.var_loss_weight", 25.0)
-        cfg.method_kwargs.cov_loss_weight = cfg.get("method_kwargs.cov_loss_weight", 1.0)
+        cfg.method_kwargs.sim_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.sim_loss_weight",
+            25.0,
+        )
+        cfg.method_kwargs.var_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.var_loss_weight",
+            25.0,
+        )
+        cfg.method_kwargs.cov_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.cov_loss_weight",
+            1.0,
+        )
 
         return cfg
 

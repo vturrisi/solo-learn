@@ -24,6 +24,7 @@ import torch
 import torch.nn as nn
 from solo.losses.wmse import wmse_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 from solo.utils.whitening import Whitening2d
 
 
@@ -72,12 +73,22 @@ class WMSE(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(WMSE, WMSE).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
 
-        cfg.method_kwargs.whitening_iters = cfg.get("method_kwargs.whitening_iters", 1)
-        cfg.method_kwargs.whitening_size = cfg.get("method_kwargs.whitening_size", 256)
-        cfg.method_kwargs.whitening_eps = cfg.get("method_kwargs.whitening_eps", 0.0)
+        cfg.method_kwargs.whitening_iters = omegaconf_select(
+            cfg,
+            "method_kwargs.whitening_iters",
+            1,
+        )
+        cfg.method_kwargs.whitening_size = omegaconf_select(
+            cfg,
+            "method_kwargs.whitening_size",
+            256,
+        )
+        cfg.method_kwargs.whitening_eps = omegaconf_select(cfg, "method_kwargs.whitening_eps", 0.0)
 
         return cfg
 

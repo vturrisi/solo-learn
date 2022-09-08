@@ -20,8 +20,9 @@
 import logging
 from argparse import ArgumentParser
 from functools import partial
-from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Sequence, Tuple
 
+import omegaconf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -53,11 +54,9 @@ from solo.backbones import (
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
 from solo.utils.metrics import accuracy_at_k, weighted_mean
-from solo.utils.misc import remove_bias_and_norm_from_weight_decay
+from solo.utils.misc import omegaconf_select, remove_bias_and_norm_from_weight_decay
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
-
-import omegaconf
 
 
 def static_lr(
@@ -107,40 +106,21 @@ class BaseMethod(pl.LightningModule):
         "none",
     ]
 
-    def __init__(
-        self,
-        cfg: omegaconf.DictConfig,
-        # backbone: str,
-        # num_classes: int,
-        # backbone_args: dict,
-        # max_epochs: int,
-        # batch_size: int,
-        # optimizer: str,
-        # lr: float,
-        # weight_decay: float,
-        # classifier_lr: float,
-        # accumulate_grad_batches: Union[int, None],
-        # extra_optimizer_args: Dict,
-        # scheduler: str,
-        # num_large_crops: int,
-        # num_small_crops: int,
-        # min_lr: float = 0.0,
-        # warmup_start_lr: float = 0.00003,
-        # warmup_epochs: float = 10,
-        # scheduler_interval: str = "step",
-        # lr_decay_steps: Sequence = None,
-        # knn_eval: bool = False,
-        # knn_k: int = 20,
-        # no_channel_last: bool = False,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Base model that implements all basic operations for all self-supervised methods.
         It adds shared arguments, extract basic learnable parameters, creates optimizers
         and schedulers, implements basic training_step for any number of crops,
         trains the online classifier and implements validation_step.
 
-        Args:
-            backbone (str): architecture of the base backbone.
-            num_classes (int): number of classes.
+        Cfg basic structure:
+            backbone:
+                name (str): architecture of the base backbone.
+                [OPTIONAL] kwargs (dict): extra backbone kwargs.
+            data:
+                dataset (str): name of the dataset.
+                num_classes (int): number of classes.
+            max_epochs (int): number of training epochs.
+
             backbone_params (dict): dict containing extra backbone args, namely:
                 #! optional, if it's not present, it is considered as False
                 cifar (bool): flag indicating if cifar is being used.
@@ -148,29 +128,32 @@ class BaseMethod(pl.LightningModule):
                 zero_init_residual (bool): change the initialization of the resnet backbone.
                 #! only for vit
                 patch_size (int): size of the patches for ViT.
-            max_epochs (int): number of training epochs.
-            batch_size (int): number of samples in the batch.
-            optimizer (str): name of the optimizer.
-            lr (float): learning rate.
-            weight_decay (float): weight decay for optimizer.
-            classifier_lr (float): learning rate for the online linear classifier.
-            accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
-            extra_optimizer_args (Dict): extra named arguments for the optimizer.
-            scheduler (str): name of the scheduler.
-            num_large_crops (int): number of big crops.
-            num_small_crops (int): number of small crops .
-            min_lr (float): minimum learning rate for warmup scheduler. Defaults to 0.0.
-            warmup_start_lr (float): initial learning rate for warmup scheduler.
-                Defaults to 0.00003.
-            warmup_epochs (float): number of warmup epochs. Defaults to 10.
-            scheduler_interval (str): interval to update the lr scheduler. Defaults to 'step'.
-            lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
-                step. Defaults to None.
-            knn_eval (bool): enables online knn evaluation while training.
-            knn_k (int): the number of neighbors to use for knn.
-            no_channel_last (bool). Disables channel last conversion operation which
+            optimizer:
+                name (str): name of the optimizer.
+                batch_size (int): number of samples in the batch.
+                lr (float): learning rate.
+                weight_decay (float): weight decay for optimizer.
+                classifier_lr (float): learning rate for the online linear classifier.
+                kwargs (Dict): extra named arguments for the optimizer.
+            scheduler:
+                name (str): name of the scheduler.
+                [OPTIONAL] min_lr (float): minimum learning rate for warmup scheduler. Defaults to 0.0.
+                [OPTIONAL] warmup_start_lr (float): initial learning rate for warmup scheduler.
+                    Defaults to 0.00003.
+                [OPTIONAL] warmup_epochs (float): number of warmup epochs. Defaults to 10.
+                [OPTIONAL] lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
+                    step. Defaults to None.
+                interval (str): interval to update the lr scheduler. Defaults to 'step'.
+            knn_eval:
+                enabled (bool): enables online knn evaluation while training.
+                k (int): the number of neighbors to use for knn.
+            performance:
+                [OPTIONAL] disable_channel_last (bool). Disables channel last conversion operation which
                 speeds up training considerably. Defaults to False.
                 https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models
+            accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
+            num_large_crops (int): number of big crops.
+            num_small_crops (int): number of small crops .
 
         .. note::
             When using distributed data parallel, the batch size and the number of workers are
@@ -179,8 +162,8 @@ class BaseMethod(pl.LightningModule):
             workers).
 
         .. note::
-            The learning rate (base, min and warmup) is automatically scaled linearly based on the
-            batch size and gradient accumulation.
+            The learning rate (base, min and warmup) is automatically scaled linearly
+            if using gradient accumulation.
 
         .. note::
             For CIFAR10/100, the first convolutional and maxpooling layers of the ResNet backbone
@@ -193,7 +176,7 @@ class BaseMethod(pl.LightningModule):
         self.cfg = cfg
 
         ########## Backbone ##########
-        self.backbone_args = cfg.get("backbone.kwargs", {})
+        self.backbone_args = omegaconf_select(cfg, "backbone.kwargs", {})
         assert cfg.backbone.name in BaseMethod._BACKBONES
         self.base_model = self._BACKBONES[cfg.backbone.name]
         self.backbone_name = cfg.backbone.name
@@ -222,7 +205,7 @@ class BaseMethod(pl.LightningModule):
 
         # training related
         self.max_epochs = cfg.max_epochs
-        self.accumulate_grad_batches = cfg.accumulate_grad_batches
+        self.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", None)
 
         # optimizer related
         self.optimizer = cfg.optimizer.name
@@ -230,19 +213,26 @@ class BaseMethod(pl.LightningModule):
         self.lr = cfg.optimizer.lr
         self.weight_decay = cfg.optimizer.weight_decay
         self.classifier_lr = cfg.optimizer.classifier_lr
-        self.extra_optimizer_args = cfg.get(
-            "optimizer.kwargs", {}
+        self.extra_optimizer_args = omegaconf_select(
+            cfg, "optimizer.kwargs", {}
         )  # pytorch's default if not available
+
+        # if accumulating gradient then scale lr
+        if self.accumulate_grad_batches:
+            self.lr = self.lr * self.accumulate_grad_batches
+            self.classifier_lr = self.classifier_lr * self.accumulate_grad_batches
+            self.min_lr = self.min_lr * self.accumulate_grad_batches
+            self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
         # scheduler related
         self.scheduler = cfg.scheduler.name
-        self.lr_decay_steps = cfg.get(
-            "scheduler.lr_decay_steps", None
+        self.lr_decay_steps = omegaconf_select(
+            cfg, "scheduler.lr_decay_steps", None
         )  # decay steps need to be passed manually
-        self.min_lr = cfg.get("scheduler.min_lr", 0.0)
-        self.warmup_start_lr = cfg.get("scheduler.warmup_start_lr", 0.00003)
-        self.warmup_epochs = cfg.get("scheduler.warmup_epochs", 10)
-        self.scheduler_interval = cfg.get("scheduler.interval", "step")
+        self.min_lr = omegaconf_select(cfg, "scheduler.min_lr", 0.0)
+        self.warmup_start_lr = omegaconf_select(cfg, "scheduler.warmup_start_lr", 0.00003)
+        self.warmup_epochs = omegaconf_select(cfg, "scheduler.warmup_epochs", 10)
+        self.scheduler_interval = omegaconf_select(cfg, "scheduler.interval", "step")
         assert self.scheduler_interval in ["step", "epoch"]
         if self.scheduler_interval == "step":
             logging.warn(
@@ -258,16 +248,31 @@ class BaseMethod(pl.LightningModule):
         self.multicrop = self.num_small_crops != 0
 
         # knn online evaluation
-        self.knn_eval = cfg.get("knn_eval.enabled", False)
-        self.knn_k = cfg.get("knn_eval.k", 20)
+        self.knn_eval = omegaconf_select(cfg, "knn_eval.enabled", False)
+        self.knn_k = omegaconf_select(cfg, "knn_eval.k", 20)
         if self.knn_eval:
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
 
         # performance optimization
-        self.no_channel_last = cfg.get("performance.disable_channel_last", False)
+        self.no_channel_last = omegaconf_select(cfg, "performance.disable_channel_last", False)
         # can provide up to ~20% speed up
         if not self.no_channel_last:
             self = self.to(memory_format=torch.channels_last)
+
+    @staticmethod
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
+
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
+
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        # TODO
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[Dict[str, Any]]:
@@ -298,7 +303,7 @@ class BaseMethod(pl.LightningModule):
         learnable_params = self.learnable_params
 
         # exclude bias and norm from weight decay
-        if self.cfg.get("optimizer.exclude_bias_n_norm_wd", False):
+        if omegaconf_select(self.cfg, "optimizer.exclude_bias_n_norm_wd", False):
             learnable_params = remove_bias_and_norm_from_weight_decay(learnable_params)
 
         # indexes of parameters without lr scheduler
@@ -570,10 +575,7 @@ class BaseMethod(pl.LightningModule):
 class BaseMomentumMethod(BaseMethod):
     def __init__(
         self,
-        base_tau_momentum: float,
-        final_tau_momentum: float,
-        momentum_classifier: bool,
-        **kwargs,
+        cfg: omegaconf.DictConfig,
     ):
         """Base momentum model that implements all basic operations for all self-supervised methods
         that use a momentum backbone. It adds shared momentum arguments, adds basic learnable
@@ -581,16 +583,14 @@ class BaseMomentumMethod(BaseMethod):
         classifier. Also implements momentum update using exponential moving average and cosine
         annealing of the weighting decrease coefficient.
 
-        Args:
-            base_tau_momentum (float): base value of the weighting decrease coefficient (should be
-                in [0,1]).
-            final_tau_momentum (float): final value of the weighting decrease coefficient (should be
-                in [0,1]).
-            momentum_classifier (bool): whether or not to train a classifier on top of the momentum
-                backbone.
+        Extra cfg settings:
+            momentum:
+                base_tau (float): base value of the weighting decrease coefficient in [0,1].
+                final_tau (float): final value of the weighting decrease coefficient in [0,1].
+                classifier (bool): whether or not to train a classifier on top of the momentum backbone.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
         # momentum backbone
         kwargs = self.backbone_args.copy()
@@ -615,13 +615,13 @@ class BaseMomentumMethod(BaseMethod):
         initialize_momentum_params(self.backbone, self.momentum_backbone)
 
         # momentum classifier
-        if momentum_classifier:
+        if omegaconf_select(cfg, "momentum.classifier", False):
             self.momentum_classifier: Any = nn.Linear(self.features_dim, self.num_classes)
         else:
             self.momentum_classifier = None
 
         # momentum updater
-        self.momentum_updater = MomentumUpdater(base_tau_momentum, final_tau_momentum)
+        self.momentum_updater = MomentumUpdater(cfg.momentum.base_tau, cfg.momentum.final_tau)
 
     @property
     def learnable_params(self) -> List[Dict[str, Any]]:
@@ -655,28 +655,23 @@ class BaseMomentumMethod(BaseMethod):
         return [(self.backbone, self.momentum_backbone)]
 
     @staticmethod
-    def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
-        """Adds basic momentum arguments that are shared for all methods.
+    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
         Args:
-            parent_parser (ArgumentParser): argument parser that is used to create a
-                argument group.
+            cfg (omegaconf.DictConfig): DictConfig object.
 
         Returns:
-            ArgumentParser: same as the argument, used to avoid errors.
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        parent_parser = super(BaseMomentumMethod, BaseMomentumMethod).add_model_specific_args(
-            parent_parser
-        )
-        parser = parent_parser.add_argument_group("base")
+        cfg = super(BaseMomentumMethod, BaseMomentumMethod).add_method_specific_cfg(cfg)
 
-        # momentum settings
-        parser.add_argument("--base_tau_momentum", default=0.99, type=float)
-        parser.add_argument("--final_tau_momentum", default=1.0, type=float)
-        parser.add_argument("--momentum_classifier", action="store_true")
+        cfg.momentum.base_tau = omegaconf_select(cfg, "momentum.base_tau", 0.99)
+        cfg.momentum.final_tau = omegaconf_select(cfg, "momentum.final_tau", 1.0)
+        cfg.momentum.classifier = omegaconf_select(cfg, "momentum.classifier", False)
 
-        return parent_parser
+        return cfg
 
     def on_train_start(self):
         """Resets the step counter at the beginning of training."""

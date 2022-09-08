@@ -25,7 +25,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.byol import byol_loss_func
 from solo.methods.base import BaseMomentumMethod
-from solo.utils.misc import gather
+from solo.utils.misc import gather, omegaconf_select
 from solo.utils.momentum import initialize_momentum_params
 
 
@@ -97,11 +97,13 @@ class NNBYOL(BaseMomentumMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(NNBYOL, NNBYOL).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")
 
-        cfg.method_kwargs.queue_size = cfg.get("method_kwargs.queue_size", 65536)
+        cfg.method_kwargs.queue_size = omegaconf_select(cfg, "method_kwargs.queue_size", 65536)
 
         return cfg
 

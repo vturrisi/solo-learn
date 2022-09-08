@@ -1,11 +1,14 @@
-name: "barlow_twins-imagenet100"
-method: "barlow_twins"
+name: "byol-imagenet100"
+method: "byol"
 backbone:
   name: "resnet18"
 method_kwargs:
   proj_hidden_dim: 4096
-  proj_output_dim: 4096
-  scale_loss: 0.1
+  proj_output_dim: 256
+  pred_hidden_dim: 8192
+momentum:
+  base_tau: 0.99
+  final_tau: 1.0
 data:
   dataset: imagenet100
   train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
@@ -15,9 +18,9 @@ data:
 optimizer:
   name: "lars"
   batch_size: 64
-  lr: 0.3
+  lr: 0.5
   classifier_lr: 0.1
-  weight_decay: 1e-4
+  weight_decay: 1e-5
   kwargs:
     clip_lr: True
     eta: 0.02

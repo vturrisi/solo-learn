@@ -26,6 +26,7 @@ import torch.nn.functional as F
 from solo.losses.deepclusterv2 import deepclusterv2_loss_func
 from solo.methods.base import BaseMethod
 from solo.utils.kmeans import KMeans
+from solo.utils.misc import omegaconf_select
 
 
 class DeepClusterV2(BaseMethod):
@@ -81,14 +82,18 @@ class DeepClusterV2(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(DeepClusterV2, DeepClusterV2).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
 
-        cfg.method_kwargs.temperature = cfg.get("method_kwargs.temperature", 0.1)
-        cfg.method_kwargs.num_prototypes = cfg.get(
-            "method_kwargs.num_prototypes", [3000, 3000, 3000]
+        cfg.method_kwargs.temperature = omegaconf_select(cfg, "method_kwargs.temperature", 0.1)
+        cfg.method_kwargs.num_prototypes = omegaconf_select(
+            cfg,
+            "method_kwargs.num_prototypes",
+            [3000, 3000, 3000],
         )
-        cfg.method_kwargs.kmeans_iters = cfg.get("method_kwargs.kmeans_iters", 10)
+        cfg.method_kwargs.kmeans_iters = omegaconf_select(cfg, "method_kwargs.kmeans_iters", 10)
 
         return cfg
 

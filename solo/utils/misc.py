@@ -26,6 +26,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+from omegaconf import OmegaConf
 from solo.data.h5_dataset import H5Dataset
 from timm.models.helpers import group_parameters
 from timm.optim.optim_factory import _layer_map
@@ -434,3 +435,11 @@ def remove_bias_and_norm_from_weight_decay(parameter_groups: List[Dict], weight_
             no_decay_group["params"] = no_decay_params
             out.append(no_decay_group)
     return out
+
+
+def omegaconf_select(cfg, key, default=None):
+    """Wrapper for OmegaConf.select to allow None to be returned instead of 'None'."""
+    value = OmegaConf.select(cfg, key, default=default)
+    if value == "None":
+        return None
+    return value

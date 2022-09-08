@@ -41,7 +41,7 @@ from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous
-from solo.args.pretrain import parse
+from solo.args.pretrain import parse_cfg
 
 try:
     from solo.data.dali_dataloader import PretrainDALIDataModule
@@ -59,7 +59,7 @@ else:
 
 
 def main():
-    cfg = parse()
+    cfg = parse_cfg()
 
     seed_everything(cfg.get("seed", 5))
 
@@ -168,6 +168,7 @@ def main():
             cfg,
             logdir=os.path.join(cfg.checkpoint.dir, cfg.method),
             frequency=cfg.checkpoint.frequency,
+            keep_prev=cfg.checkpoint.keep_prev,
         )
         callbacks.append(ckpt)
 
@@ -188,7 +189,7 @@ def main():
             name=cfg.name,
             project=cfg.wandb.project,
             entity=cfg.wandb.entity,
-            offline=cfg.offline,
+            offline=cfg.wandb.offline,
             resume="allow" if wandb_run_id else None,
             id=wandb_run_id,
         )

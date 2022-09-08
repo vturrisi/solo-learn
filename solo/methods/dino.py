@@ -25,7 +25,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.dino import DINOLoss
 from solo.methods.base import BaseMomentumMethod
-from solo.utils.misc import trunc_normal_
+from solo.utils.misc import omegaconf_select, trunc_normal_
 from solo.utils.momentum import initialize_momentum_params
 
 
@@ -188,26 +188,38 @@ class DINO(BaseMomentumMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(DINO, DINO).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.num_prototypes")
 
         # optimization settings
-        cfg.method_kwargs.clip_grad = cfg.get("method_kwargs.clip_grad", 0)
-        cfg.method_kwargs.freeze_last_layer = cfg.get("method_kwargs.freeze_last_layer", 1)
+        cfg.method_kwargs.clip_grad = omegaconf_select(cfg, "method_kwargs.clip_grad", 0)
+        cfg.method_kwargs.freeze_last_layer = omegaconf_select(
+            cfg, "method_kwargs.freeze_last_layer", 1
+        )
 
         # head settings
-        cfg.method_kwargs.norm_last_layer = cfg.get("method_kwargs.norm_last_layer", True)
-        cfg.method_kwargs.use_bn_in_head = cfg.get("method_kwargs.use_bn_in_head", False)
+        cfg.method_kwargs.norm_last_layer = omegaconf_select(
+            cfg, "method_kwargs.norm_last_layer", True
+        )
+        cfg.method_kwargs.use_bn_in_head = omegaconf_select(
+            cfg, "method_kwargs.use_bn_in_head", False
+        )
 
         # temperature settings
-        cfg.method_kwargs.student_temperature = cfg.get("method_kwargs.student_temperature", 0.1)
-        cfg.method_kwargs.teacher_temperature = cfg.get("method_kwargs.teacher_temperature", 0.07)
-        cfg.method_kwargs.warmup_teacher_temperature = cfg.get(
-            "method_kwargs.warmup_teacher_temperature", 0.04
+        cfg.method_kwargs.student_temperature = omegaconf_select(
+            cfg, "method_kwargs.student_temperature", 0.1
         )
-        cfg.method_kwargs.warmup_teacher_temperature_epochs = cfg.get(
-            "method_kwargs.warmup_teacher_temperature_epochs", 50
+        cfg.method_kwargs.teacher_temperature = omegaconf_select(
+            cfg, "method_kwargs.teacher_temperature", 0.07
+        )
+        cfg.method_kwargs.warmup_teacher_temperature = omegaconf_select(
+            cfg, "method_kwargs.warmup_teacher_temperature", 0.04
+        )
+        cfg.method_kwargs.warmup_teacher_temperature_epochs = omegaconf_select(
+            cfg, "method_kwargs.warmup_teacher_temperature_epochs", 50
         )
 
         return cfg

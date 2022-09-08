@@ -24,7 +24,7 @@ import torch
 import torch.nn as nn
 from solo.losses.mae import mae_loss_func
 from solo.methods.base import BaseMethod
-from solo.utils.misc import generate_2d_sincos_pos_embed
+from solo.utils.misc import generate_2d_sincos_pos_embed, omegaconf_select
 from timm.models.vision_transformer import Block
 
 
@@ -173,12 +173,18 @@ class MAE(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(MAE, MAE).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.decoder_embed_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.decoder_depth")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.decoder_num_heads")
 
-        cfg.method_kwargs.mask_ratio = cfg.get("method_kwargs.mask_ratio", 0.75)
-        cfg.method_kwargs.norm_pix_loss = cfg.get("method_kwargs.norm_pix_loss", False)
+        cfg.method_kwargs.mask_ratio = omegaconf_select(cfg, "method_kwargs.mask_ratio", 0.75)
+        cfg.method_kwargs.norm_pix_loss = omegaconf_select(
+            cfg,
+            "method_kwargs.norm_pix_loss",
+            False,
+        )
 
         return cfg
 

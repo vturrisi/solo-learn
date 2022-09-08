@@ -24,6 +24,7 @@ import torch
 import torch.nn as nn
 from solo.losses.barlow import barlow_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 
 
 class BarlowTwins(BaseMethod):
@@ -68,11 +69,13 @@ class BarlowTwins(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
+        cfg = super(BarlowTwins, BarlowTwins).add_method_specific_cfg(cfg)
+
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
 
-        cfg.method_kwargs.lamb = cfg.get("method_kwargs.lamb", 0.0051)
-        cfg.method_kwargs.scale_loss = cfg.get("method_kwargs.scale_loss", 0.024)
+        cfg.method_kwargs.lamb = omegaconf_select(cfg, "method_kwargs.lamb", 0.0051)
+        cfg.method_kwargs.scale_loss = omegaconf_select(cfg, "method_kwargs.scale_loss", 0.024)
 
         return cfg
 
