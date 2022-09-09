@@ -58,7 +58,7 @@ class Checkpointer(Callback):
         self.keep_prev = keep_prev
 
     @staticmethod
-    def add_specific_cfg(cfg: DictConfig) -> DictConfig:
+    def add_and_assert_specific_cfg(cfg: DictConfig) -> DictConfig:
         """Adds specific default values/checks for config.
 
         Args:

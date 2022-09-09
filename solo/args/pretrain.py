@@ -100,16 +100,16 @@ def parse_cfg():
 
     # method specific cfg
     cfg.method_kwargs = omegaconf_select(cfg, "method_kwargs", {})
-    cfg = METHODS[cfg.method].add_method_specific_cfg(cfg)
+    cfg = METHODS[cfg.method].add_and_assert_specific_cfg(cfg)
 
     # default values for checkpointer
-    cfg = Checkpointer.add_specific_cfg(cfg)
+    cfg = Checkpointer.add_and_assert_specific_cfg(cfg)
 
     # default values for auto_resume
-    cfg = AutoResumer.add_specific_cfg(cfg)
+    cfg = AutoResumer.add_and_assert_specific_cfg(cfg)
 
     # default values for auto_umap
-    cfg = AutoUMAP.add_specific_cfg(cfg)
+    cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
 
     # default values for wandb
     cfg.wandb = omegaconf_select(cfg, "wandb", {})

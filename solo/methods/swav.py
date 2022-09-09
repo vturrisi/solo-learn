@@ -76,7 +76,7 @@ class SwAV(BaseMethod):
         self.prototypes.weight_g.requires_grad = False
 
     @staticmethod
-    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
 
         Args:
@@ -86,7 +86,7 @@ class SwAV(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        cfg = super(SwAV, SwAV).add_method_specific_cfg(cfg)
+        cfg = super(SwAV, SwAV).add_and_assert_specific_cfg(cfg)
 
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")

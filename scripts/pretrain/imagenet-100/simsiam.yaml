@@ -1,27 +1,23 @@
-name: "barlow_twins-imagenet100"
-method: "barlow_twins"
+name: "simclr-imagenet100"
+method: "simclr"
 backbone:
   name: "resnet18"
 method_kwargs:
   proj_hidden_dim: 4096
-  proj_output_dim: 4096
-  scale_loss: 0.1
+  proj_output_dim: 512
+  temperature: 0.2
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/val.h5"
-  format: "h5"
+  train_path: "datasets/imagenet100/train"
+  val_path: "datasets/imagenet100/val"
+  format: "dali"
   num_workers: 4
 optimizer:
-  name: "lars"
+  name: "sgd"
   batch_size: 64
-  lr: 0.3
+  lr: 0.5
   classifier_lr: 0.1
-  weight_decay: 1e-4
-  kwargs:
-    clip_lr: True
-    eta: 0.02
-    exclude_bias_n_norm: True
+  weight_decay: 1e-5
 scheduler:
   name: "warmup_cosine"
 checkpoint:
@@ -30,7 +26,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric.yaml"
+augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric_weak.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
 max_epochs: 400

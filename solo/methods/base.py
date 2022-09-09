@@ -18,7 +18,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 import logging
-from argparse import ArgumentParser
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple
 
@@ -57,15 +56,6 @@ from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import omegaconf_select, remove_bias_and_norm_from_weight_decay
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
-
-
-def static_lr(
-    get_lr: Callable, param_group_indexes: Sequence[int], lrs_to_replace: Sequence[float]
-):
-    lrs = get_lr()
-    for idx, lr in zip(param_group_indexes, lrs_to_replace):
-        lrs[idx] = lr
-    return lrs
 
 
 class BaseMethod(pl.LightningModule):
@@ -112,18 +102,18 @@ class BaseMethod(pl.LightningModule):
         and schedulers, implements basic training_step for any number of crops,
         trains the online classifier and implements validation_step.
 
+        .. note:: Set Cfg defaults by calling `cfg = add_and_assert_specific_cfg(cfg)`
+
         Cfg basic structure:
             backbone:
                 name (str): architecture of the base backbone.
-                [OPTIONAL] kwargs (dict): extra backbone kwargs.
+                kwargs (dict): extra backbone kwargs.
             data:
                 dataset (str): name of the dataset.
                 num_classes (int): number of classes.
             max_epochs (int): number of training epochs.
 
             backbone_params (dict): dict containing extra backbone args, namely:
-                #! optional, if it's not present, it is considered as False
-                cifar (bool): flag indicating if cifar is being used.
                 #! only for resnet
                 zero_init_residual (bool): change the initialization of the resnet backbone.
                 #! only for vit
@@ -137,18 +127,18 @@ class BaseMethod(pl.LightningModule):
                 kwargs (Dict): extra named arguments for the optimizer.
             scheduler:
                 name (str): name of the scheduler.
-                [OPTIONAL] min_lr (float): minimum learning rate for warmup scheduler. Defaults to 0.0.
-                [OPTIONAL] warmup_start_lr (float): initial learning rate for warmup scheduler.
+                min_lr (float): minimum learning rate for warmup scheduler. Defaults to 0.0.
+                warmup_start_lr (float): initial learning rate for warmup scheduler.
                     Defaults to 0.00003.
-                [OPTIONAL] warmup_epochs (float): number of warmup epochs. Defaults to 10.
-                [OPTIONAL] lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
+                warmup_epochs (float): number of warmup epochs. Defaults to 10.
+                lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
                     step. Defaults to None.
                 interval (str): interval to update the lr scheduler. Defaults to 'step'.
             knn_eval:
                 enabled (bool): enables online knn evaluation while training.
                 k (int): the number of neighbors to use for knn.
             performance:
-                [OPTIONAL] disable_channel_last (bool). Disables channel last conversion operation which
+                disable_channel_last (bool). Disables channel last conversion operation which
                 speeds up training considerably. Defaults to False.
                 https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models
             accumulate_grad_batches (Union[int, None]): number of batches for gradient accumulation.
@@ -176,7 +166,7 @@ class BaseMethod(pl.LightningModule):
         self.cfg = cfg
 
         ########## Backbone ##########
-        self.backbone_args = omegaconf_select(cfg, "backbone.kwargs", {})
+        self.backbone_args = cfg.backbone.kwargs
         assert cfg.backbone.name in BaseMethod._BACKBONES
         self.base_model = self._BACKBONES[cfg.backbone.name]
         self.backbone_name = cfg.backbone.name
@@ -205,7 +195,7 @@ class BaseMethod(pl.LightningModule):
 
         # training related
         self.max_epochs = cfg.max_epochs
-        self.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", None)
+        self.accumulate_grad_batches = cfg.accumulate_grad_batches
 
         # optimizer related
         self.optimizer = cfg.optimizer.name
@@ -213,9 +203,8 @@ class BaseMethod(pl.LightningModule):
         self.lr = cfg.optimizer.lr
         self.weight_decay = cfg.optimizer.weight_decay
         self.classifier_lr = cfg.optimizer.classifier_lr
-        self.extra_optimizer_args = omegaconf_select(
-            cfg, "optimizer.kwargs", {}
-        )  # pytorch's default if not available
+        self.extra_optimizer_args = cfg.optimizer.kwargs
+        self.exclude_bias_n_norm_wd = cfg.optimizer.exclude_bias_n_norm_wd
 
         # if accumulating gradient then scale lr
         if self.accumulate_grad_batches:
@@ -226,13 +215,11 @@ class BaseMethod(pl.LightningModule):
 
         # scheduler related
         self.scheduler = cfg.scheduler.name
-        self.lr_decay_steps = omegaconf_select(
-            cfg, "scheduler.lr_decay_steps", None
-        )  # decay steps need to be passed manually
-        self.min_lr = omegaconf_select(cfg, "scheduler.min_lr", 0.0)
-        self.warmup_start_lr = omegaconf_select(cfg, "scheduler.warmup_start_lr", 0.00003)
-        self.warmup_epochs = omegaconf_select(cfg, "scheduler.warmup_epochs", 10)
-        self.scheduler_interval = omegaconf_select(cfg, "scheduler.interval", "step")
+        self.lr_decay_steps = cfg.scheduler.lr_decay_steps
+        self.min_lr = cfg.scheduler.min_lr
+        self.warmup_start_lr = cfg.scheduler.warmup_start_lr
+        self.warmup_epochs = cfg.scheduler.warmup_epochs
+        self.scheduler_interval = cfg.scheduler.interval
         assert self.scheduler_interval in ["step", "epoch"]
         if self.scheduler_interval == "step":
             logging.warn(
@@ -248,19 +235,19 @@ class BaseMethod(pl.LightningModule):
         self.multicrop = self.num_small_crops != 0
 
         # knn online evaluation
-        self.knn_eval = omegaconf_select(cfg, "knn_eval.enabled", False)
-        self.knn_k = omegaconf_select(cfg, "knn_eval.k", 20)
+        self.knn_eval = cfg.knn_eval.enabled
+        self.knn_k = cfg.knn_eval.k
         if self.knn_eval:
-            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
+            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx=cfg.knn.distance_func)
 
         # performance optimization
-        self.no_channel_last = omegaconf_select(cfg, "performance.disable_channel_last", False)
+        self.no_channel_last = cfg.performance.disable_channel_last
         # can provide up to ~20% speed up
         if not self.no_channel_last:
             self = self.to(memory_format=torch.channels_last)
 
     @staticmethod
-    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
 
         Args:
@@ -270,7 +257,37 @@ class BaseMethod(pl.LightningModule):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        # TODO
+        # default for extra backbone kwargs (use pytorch's default if not available)
+        cfg.backbone.kwargs = omegaconf_select(cfg, "backbone.kwargs", {})
+
+        # default parameters for optimizer
+        cfg.optimizer.exclude_bias_n_norm_wd = omegaconf_select(
+            cfg, "optimizer.exclude_bias_n_norm_wd", False
+        )
+        # default for extra optimizer kwargs (use pytorch's default if not available)
+        cfg.optimizer.kwargs = omegaconf_select(cfg, "optimizer.kwargs", {})
+
+        # default for acc grad batches
+        cfg.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", None)
+
+        # default parameters for the scheduler
+        cfg.scheduler.lr_decay_steps = omegaconf_select(cfg, "scheduler.lr_decay_steps", None)
+        cfg.scheduler.min_lr = omegaconf_select(cfg, "scheduler.min_lr", 0.0)
+        cfg.scheduler.warmup_start_lr = omegaconf_select(cfg, "scheduler.warmup_start_lr", 3e-5)
+        cfg.scheduler.warmup_epochs = omegaconf_select(cfg, "scheduler.warmup_epochs", 10)
+        cfg.scheduler.interval = omegaconf_select(cfg, "scheduler.interval", "step")
+
+        # default parameters for knn eval
+        cfg.knn_eval = omegaconf_select(cfg, "knn_eval", {})
+        cfg.knn_eval.enabled = omegaconf_select(cfg, "knn_eval.enabled", False)
+        cfg.knn_eval.k = omegaconf_select(cfg, "knn_eval.k", 20)
+        cfg.knn_eval.distance_func = omegaconf_select(cfg, "knn_eval.distance_func", "euclidean")
+
+        # default parameters for performance optimization
+        cfg.performance = omegaconf_select(cfg, "performance", {})
+        cfg.performance.disable_channel_last = omegaconf_select(
+            cfg, "performance.disable_channel_last", False
+        )
 
         return cfg
 
@@ -303,7 +320,7 @@ class BaseMethod(pl.LightningModule):
         learnable_params = self.learnable_params
 
         # exclude bias and norm from weight decay
-        if omegaconf_select(self.cfg, "optimizer.exclude_bias_n_norm_wd", False):
+        if self.exclude_bias_n_norm_wd:
             learnable_params = remove_bias_and_norm_from_weight_decay(learnable_params)
 
         # indexes of parameters without lr scheduler
@@ -351,6 +368,17 @@ class BaseMethod(pl.LightningModule):
             raise ValueError(f"{self.scheduler} not in (warmup_cosine, cosine, step)")
 
         if idxs_no_scheduler:
+
+            def static_lr(
+                get_lr: Callable,
+                param_group_indexes: Sequence[int],
+                lrs_to_replace: Sequence[float],
+            ):
+                lrs = get_lr()
+                for idx, lr in zip(param_group_indexes, lrs_to_replace):
+                    lrs[idx] = lr
+                return lrs
+
             partial_fn = partial(
                 static_lr,
                 get_lr=scheduler["scheduler"].get_lr
@@ -615,7 +643,7 @@ class BaseMomentumMethod(BaseMethod):
         initialize_momentum_params(self.backbone, self.momentum_backbone)
 
         # momentum classifier
-        if omegaconf_select(cfg, "momentum.classifier", False):
+        if cfg.momentum.classifier:
             self.momentum_classifier: Any = nn.Linear(self.features_dim, self.num_classes)
         else:
             self.momentum_classifier = None
@@ -655,7 +683,7 @@ class BaseMomentumMethod(BaseMethod):
         return [(self.backbone, self.momentum_backbone)]
 
     @staticmethod
-    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
 
         Args:
@@ -665,7 +693,7 @@ class BaseMomentumMethod(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        cfg = super(BaseMomentumMethod, BaseMomentumMethod).add_method_specific_cfg(cfg)
+        cfg = super(BaseMomentumMethod, BaseMomentumMethod).add_and_assert_specific_cfg(cfg)
 
         cfg.momentum.base_tau = omegaconf_select(cfg, "momentum.base_tau", 0.99)
         cfg.momentum.final_tau = omegaconf_select(cfg, "momentum.final_tau", 1.0)

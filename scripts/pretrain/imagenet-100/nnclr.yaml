@@ -1,23 +1,25 @@
-name: "barlow_twins-imagenet100"
-method: "barlow_twins"
+name: "nnclr-imagenet100"
+method: "nnclr"
 backbone:
   name: "resnet18"
 method_kwargs:
-  proj_hidden_dim: 4096
-  proj_output_dim: 4096
-  scale_loss: 0.1
+  temperature: 0.2
+  proj_hidden_dim: 2048
+  pred_hidden_dim: 4096
+  proj_output_dim: 256
+  queue_size: 65536
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/val.h5"
-  format: "h5"
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  format: "image_folder"
   num_workers: 4
 optimizer:
   name: "lars"
   batch_size: 64
-  lr: 0.3
+  lr: 0.4
   classifier_lr: 0.1
-  weight_decay: 1e-4
+  weight_decay: 1e-5
   kwargs:
     clip_lr: True
     eta: 0.02

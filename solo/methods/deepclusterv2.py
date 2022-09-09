@@ -72,7 +72,7 @@ class DeepClusterV2(BaseMethod):
             proto.weight.copy_(F.normalize(proto.weight.data.clone(), dim=-1))
 
     @staticmethod
-    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
 
         Args:
@@ -82,7 +82,7 @@ class DeepClusterV2(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        cfg = super(DeepClusterV2, DeepClusterV2).add_method_specific_cfg(cfg)
+        cfg = super(DeepClusterV2, DeepClusterV2).add_and_assert_specific_cfg(cfg)
 
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")

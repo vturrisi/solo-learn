@@ -76,7 +76,7 @@ class NNCLR(BaseMethod):
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
     @staticmethod
-    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
 
         Args:
@@ -86,7 +86,7 @@ class NNCLR(BaseMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        cfg = super(NNCLR, NNCLR).add_method_specific_cfg(cfg)
+        cfg = super(NNCLR, NNCLR).add_and_assert_specific_cfg(cfg)
 
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")

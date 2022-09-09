@@ -1,9 +1,9 @@
 python3 main_pretrain.py \
     --dataset imagenet100 \
     --backbone vit_small \
-    --train_data_path $1/train.h5 \
-    --val_data_path $1/val.h5 \
-    --data_format h5 \
+    --train_data_path $1/train \
+    --val_data_path $1/val \
+    --data_format dali \
     --max_epochs 400 \
     --warmup_epochs 40 \
     --devices 0,1,2,3,4,5,6,7 \

@@ -70,7 +70,7 @@ class AutoUMAP(Callback):
         self.keep_previous = keep_previous
 
     @staticmethod
-    def add_specific_cfg(cfg: DictConfig) -> DictConfig:
+    def add_and_assert_specific_cfg(cfg: DictConfig) -> DictConfig:
         """Adds specific default values/checks for config.
 
         Args:

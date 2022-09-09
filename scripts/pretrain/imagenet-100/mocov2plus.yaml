@@ -1,11 +1,13 @@
-name: "byol-imagenet100"
-method: "byol"
+name: "mocov2plus-imagenet100"
+method: "mocov2plus"
 backbone:
   name: "resnet18"
 method_kwargs:
-  proj_hidden_dim: 4096
-  proj_output_dim: 256
-  pred_hidden_dim: 8192
+  proj_hidden_dim: 2048
+  queue_size: 65536
+  temperature: 0.2
+  base_tau_momentum: 0.99
+  final_tau_momentum: 0.999
 momentum:
   base_tau: 0.99
   final_tau: 1.0
@@ -16,15 +18,11 @@ data:
   format: "image_folder"
   num_workers: 4
 optimizer:
-  name: "lars"
+  name: "sgd"
   batch_size: 64
-  lr: 0.5
-  classifier_lr: 0.1
-  weight_decay: 1e-5
-  kwargs:
-    clip_lr: True
-    eta: 0.02
-    exclude_bias_n_norm: True
+  lr: 0.3
+  classifier_lr: 0.3
+  weight_decay: 1e-4
 scheduler:
   name: "warmup_cosine"
 checkpoint:
@@ -33,7 +31,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric.yaml"
+augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric_weak.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
 max_epochs: 400

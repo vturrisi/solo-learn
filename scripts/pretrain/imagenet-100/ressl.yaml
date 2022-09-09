@@ -1,27 +1,30 @@
-name: "barlow_twins-imagenet100"
-method: "barlow_twins"
+name: "ressl-imagenet100"
+method: "ressl"
 backbone:
   name: "resnet18"
 method_kwargs:
+  proj_output_dim: 256
   proj_hidden_dim: 4096
-  proj_output_dim: 4096
-  scale_loss: 0.1
+  base_tau_momentum: 0.99
+  final_tau_momentum: 1.0
+  momentum_classifier:
+  temperature_q: 0.1
+  temperature_k: 0.04
+momentum:
+  base_tau: 0.99
+  final_tau: 1.0
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/val.h5"
-  format: "h5"
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  format: "image_folder"
   num_workers: 4
 optimizer:
-  name: "lars"
+  name: "sgd"
   batch_size: 64
   lr: 0.3
   classifier_lr: 0.1
   weight_decay: 1e-4
-  kwargs:
-    clip_lr: True
-    eta: 0.02
-    exclude_bias_n_norm: True
 scheduler:
   name: "warmup_cosine"
 checkpoint:
@@ -30,7 +33,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric.yaml"
+augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric_ressl.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
 max_epochs: 400

@@ -1,23 +1,26 @@
-name: "barlow_twins-imagenet100"
-method: "barlow_twins"
+name: "dino-imagenet100"
+method: "dino"
 backbone:
   name: "resnet18"
 method_kwargs:
-  proj_hidden_dim: 4096
-  proj_output_dim: 4096
-  scale_loss: 0.1
+  proj_hidden_dim: 2048
+  proj_output_dim: 256
+  num_prototypes: 4096
+momentum:
+  base_tau: 0.9995
+  final_tau: 1.0
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/train.h5"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet_h5/val.h5"
-  format: "h5"
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  format: "image_folder"
   num_workers: 4
 optimizer:
   name: "lars"
   batch_size: 64
   lr: 0.3
   classifier_lr: 0.1
-  weight_decay: 1e-4
+  weight_decay: 1e-6
   kwargs:
     clip_lr: True
     eta: 0.02
@@ -30,6 +33,8 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
+dali:
+  encode_indexes_into_labels: True
 augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff

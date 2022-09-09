@@ -116,7 +116,7 @@ class MoCoV3(BaseMomentumMethod):
         return nn.Sequential(*mlp)
 
     @staticmethod
-    def add_method_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
 
         Args:
@@ -126,7 +126,7 @@ class MoCoV3(BaseMomentumMethod):
             omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        cfg = super(MoCoV3, MoCoV3).add_method_specific_cfg(cfg)
+        cfg = super(MoCoV3, MoCoV3).add_and_assert_specific_cfg(cfg)
 
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
         assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
