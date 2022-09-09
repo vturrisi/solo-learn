@@ -1,25 +1,23 @@
-name: "nnclr-imagenet100"
-method: "nnclr"
+name: "simclr-multicrop-imagenet100"
+method: "simclr"
 backbone:
   name: "resnet18"
 method_kwargs:
+  proj_hidden_dim: 4096
+  proj_output_dim: 512
   temperature: 0.2
-  proj_hidden_dim: 2048
-  pred_hidden_dim: 4096
-  proj_output_dim: 256
-  queue_size: 65536
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  train_path: "datasets/imagenet100/train"
+  val_path: "datasets/imagenet100/val"
   format: "dali"
   num_workers: 4
 optimizer:
   name: "lars"
   batch_size: 64
-  lr: 0.4
+  lr: 0.3
   classifier_lr: 0.1
-  weight_decay: 1e-5
+  weight_decay: 1e-4
   kwargs:
     clip_lr: True
     eta: 0.02
@@ -32,7 +30,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric/default.yaml"
+augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/multicrop.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
 max_epochs: 400

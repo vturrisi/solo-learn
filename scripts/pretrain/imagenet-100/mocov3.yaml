@@ -13,7 +13,7 @@ data:
   dataset: imagenet100
   train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
   val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
-  format: "image_folder"
+  format: "dali"
   num_workers: 4
 optimizer:
   name: "lars"

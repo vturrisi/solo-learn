@@ -1,28 +1,29 @@
-name: "nnclr-imagenet100"
-method: "nnclr"
+name: "byol-imagenet"
+method: "byol"
 backbone:
-  name: "resnet18"
+  name: "resnet50"
 method_kwargs:
-  temperature: 0.2
-  proj_hidden_dim: 2048
-  pred_hidden_dim: 4096
+  proj_hidden_dim: 4096
   proj_output_dim: 256
-  queue_size: 65536
+  pred_hidden_dim: 4096
+momentum:
+  base_tau: 0.99
+  final_tau: 1.0
 data:
-  dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  dataset: imagenet
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/train"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/val"
   format: "dali"
   num_workers: 4
 optimizer:
   name: "lars"
   batch_size: 64
-  lr: 0.4
-  classifier_lr: 0.1
-  weight_decay: 1e-5
+  lr: 0.45
+  classifier_lr: 0.2
+  weight_decay: 1e-6
   kwargs:
-    clip_lr: True
-    eta: 0.02
+    clip_lr: False
+    eta: 0.001
     exclude_bias_n_norm: True
 scheduler:
   name: "warmup_cosine"
@@ -35,9 +36,10 @@ auto_resume:
 augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric/default.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
-max_epochs: 400
+max_epochs: 100
 devices: [0, 1]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"
 precision: 16
+accumulate_grad_batches: 16

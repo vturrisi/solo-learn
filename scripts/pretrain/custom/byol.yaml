@@ -1,4 +1,4 @@
-name: "byol-imagenet100"
+name: "byol-custom-dataset"
 method: "byol"
 backbone:
   name: "resnet18"
@@ -10,11 +10,15 @@ momentum:
   base_tau: 0.99
   final_tau: 1.0
 data:
-  dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
-  format: "dali"
+  dataset: "custom"
+  train_path: "PATH_TO_TRAIN_DIR"
+  val_path: "PATH_TO_VAL_DIR"  # remove this if there's no validation dir
+  format: "dali" # data format, supports "image_folder", "dali" or "h5"
   num_workers: 4
+  # set this to True if the dataset is not stored as subfolders for each class
+  # if no labels are provided, "h5" is not supported
+  # convert a custom dataset by following `scripts/utils/convert_imgfolder_to_h5.py`
+  no_labels: False
 optimizer:
   name: "lars"
   batch_size: 64
@@ -33,6 +37,8 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
+# how to configure the augmentations
+# it's also possible to copy paste here for a finer control
 augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric/default.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff

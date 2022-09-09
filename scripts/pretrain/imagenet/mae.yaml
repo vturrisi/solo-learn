@@ -1,4 +1,4 @@
-name: "mae-imagenet100"
+name: "mae-imagenet"
 method: "mae"
 backbone:
   name: "vit_base"
@@ -12,9 +12,9 @@ momentum:
   base_tau: 0.9995
   final_tau: 1.0
 data:
-  dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  dataset: imagenet
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/train"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/val"
   format: "dali"
   num_workers: 4
 optimizer:

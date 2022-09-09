@@ -1,7 +1,7 @@
-name: "mocov2plus-imagenet100"
+name: "mocov2plus-imagenet"
 method: "mocov2plus"
 backbone:
-  name: "resnet18"
+  name: "resnet50"
 method_kwargs:
   proj_hidden_dim: 2048
   queue_size: 65536
@@ -10,17 +10,17 @@ momentum:
   base_tau: 0.99
   final_tau: 0.999
 data:
-  dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  dataset: imagenet
+  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/train"
+  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/val"
   format: "dali"
   num_workers: 4
 optimizer:
   name: "sgd"
   batch_size: 64
   lr: 0.3
-  classifier_lr: 0.3
-  weight_decay: 1e-4
+  classifier_lr: 0.4
+  weight_decay: 3e-5
 scheduler:
   name: "warmup_cosine"
 checkpoint:
