@@ -1,21 +1,57 @@
 import argparse
 import os
 
+import omegaconf
 import pytorch_lightning as pl
 from omegaconf import OmegaConf
+from solo.data.dali_dataloader import PretrainDALIDataModule
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.auto_umap import AutoUMAP
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import omegaconf_select
 
-N_CLASSES_PER_DATASET = {
+_N_CLASSES_PER_DATASET = {
     "cifar10": 10,
     "cifar100": 100,
     "stl10": 10,
     "imagenet": 1000,
     "imagenet100": 100,
 }
+
+_SUPPORTED_DATASETS = [
+    "cifar10",
+    "cifar100",
+    "stl10",
+    "imagenet",
+    "imagenet100",
+    "custom",
+]
+
+
+def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    """Adds specific default values/checks for config.
+
+    Args:
+        cfg (omegaconf.DictConfig): DictConfig object.
+
+    Returns:
+        omegaconf.DictConfig: same as the argument, used to avoid errors.
+    """
+
+    assert not OmegaConf.is_missing(cfg, "data.dataset")
+    assert not OmegaConf.is_missing(cfg, "data.train_path")
+    assert not OmegaConf.is_missing(cfg, "data.format")
+
+    assert cfg.data.dataset in _SUPPORTED_DATASETS
+
+    # if validation path is not available, assume that we want to skip eval
+    cfg.data.val_path = omegaconf_select(cfg, "data.val_path", None)
+    cfg.data.no_labels = omegaconf_select(cfg, "data.no_labels", False)
+    cfg.data.fraction = omegaconf_select(cfg, "data.fraction", -1)
+    cfg.data.debug = omegaconf_select(cfg, "data.debug", False)
+
+    return cfg
 
 
 def parse_cfg():
@@ -52,8 +88,8 @@ def parse_cfg():
         cfg.merge_with(OmegaConf.from_cli(args.rest))
 
     # extra processing
-    if cfg.data.dataset in N_CLASSES_PER_DATASET:
-        cfg.data.num_classes = N_CLASSES_PER_DATASET[cfg.data.dataset]
+    if cfg.data.dataset in _N_CLASSES_PER_DATASET:
+        cfg.data.num_classes = _N_CLASSES_PER_DATASET[cfg.data.dataset]
     else:
         # hack to maintain the current pipeline
         # even if the custom dataset doesn't have any labels
@@ -111,6 +147,12 @@ def parse_cfg():
     # default values for auto_umap
     cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
 
+    # default values for dali
+    cfg = PretrainDALIDataModule.add_and_assert_specific_cfg(cfg)
+
+    # assert dataset parameters
+    cfg = add_and_assert_dataset_cfg(cfg)
+
     # default values for wandb
     cfg.wandb = omegaconf_select(cfg, "wandb", {})
     cfg.wandb.enabled = omegaconf_select(cfg, "wandb.enabled", False)
@@ -118,10 +160,7 @@ def parse_cfg():
     cfg.wandb.project = omegaconf_select(cfg, "wandb.project", "solo-learn")
     cfg.wandb.offline = omegaconf_select(cfg, "wandb.offline", False)
 
-    # default values for dali
-    cfg.dali = omegaconf_select(cfg, "dali", {})
-    cfg.dali.device = omegaconf_select(cfg, "dali.device", "gpu")
-    cfg.dali.encode_indexes_into_labels = omegaconf_select(
-        cfg, "dali.encode_indexes_into_labels", False
-    )
+    # default misc values
+    cfg.seed = omegaconf_select(cfg, "seed", 5)
+
     return cfg

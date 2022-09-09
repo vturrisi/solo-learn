@@ -26,7 +26,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric_weak.yaml"
+augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/weak.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
 max_epochs: 400

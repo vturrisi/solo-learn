@@ -38,7 +38,7 @@ from solo.data.pretrain_dataloader import (
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.misc import make_contiguous, omegaconf_select
+from solo.utils.misc import make_contiguous
 
 try:
     from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
@@ -58,7 +58,7 @@ else:
 def main():
     cfg = parse_cfg()
 
-    seed_everything(cfg.get("seed", 5))
+    seed_everything(cfg.seed)
 
     assert cfg.method in METHODS, f"Choose from {METHODS.keys()}"
 
@@ -69,11 +69,9 @@ def main():
     make_contiguous(model)
 
     # validation dataloader for when it is available
-    if cfg.data.dataset == "custom" and (
-        cfg.get("data.no_labels", False) or cfg.get("data.val_data_path", None)
-    ):
+    if cfg.data.dataset == "custom" and (cfg.data.no_labels or cfg.data.val_path is None):
         val_loader = None
-    elif cfg.data.dataset in ["imagenet100", "imagenet"] and cfg.get("data.val_data_path", None):
+    elif cfg.data.dataset in ["imagenet100", "imagenet"] and cfg.data.val_path is None:
         val_loader = None
     else:
         if cfg.data.format == "dali":
@@ -115,8 +113,8 @@ def main():
             num_small_crops=cfg.data.num_small_crops,
             num_workers=cfg.data.num_workers,
             batch_size=cfg.optimizer.batch_size,
-            no_labels=omegaconf_select(cfg, "data.no_labels", False),
-            data_fraction=omegaconf_select(cfg, "data.fraction", -1),
+            no_labels=cfg.data.no_labels,
+            data_fraction=cfg.data.fraction,
             dali_device=cfg.dali.device,
             encode_indexes_into_labels=cfg.dali.encode_indexes_into_labels,
         )
@@ -131,7 +129,7 @@ def main():
             )
         transform = FullTransformPipeline(pipelines)
 
-        if cfg.get("data.debug", False):
+        if cfg.data.debug:
             print("Transforms:")
             print(transform)
 
@@ -140,8 +138,8 @@ def main():
             transform,
             train_data_path=cfg.data.train_path,
             data_format=cfg.data.format,
-            no_labels=omegaconf_select(cfg, "data.no_labels", False),
-            data_fraction=omegaconf_select(cfg, "data.fraction", -1),
+            no_labels=cfg.data.no_labels,
+            data_fraction=cfg.data.fraction,
         )
         train_loader = prepare_dataloader(
             train_dataset, batch_size=cfg.optimizer.batch_size, num_workers=cfg.data.num_workers

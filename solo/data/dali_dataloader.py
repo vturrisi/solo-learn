@@ -26,11 +26,13 @@ from typing import Callable, List, Optional, Union
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
+import omegaconf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from nvidia.dali.pipeline import pipeline_def
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
+from solo.utils.misc import omegaconf_select
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 
@@ -754,13 +756,22 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         self.encode_indexes_into_labels = encode_indexes_into_labels
 
     @staticmethod
-    def add_dali_args(parent_parser: ArgumentParser) -> ArgumentParser:
-        parser = parent_parser.add_argument_group("dali")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        parser.add_argument("--dali_device", type=str, default="gpu")
-        parser.add_argument("--encode_indexes_into_labels", action="store_true")
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        return parent_parser
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        cfg.dali = omegaconf_select(cfg, "dali", {})
+        cfg.dali.device = omegaconf_select(cfg, "dali.device", "gpu")
+        cfg.dali.encode_indexes_into_labels = omegaconf_select(
+            cfg, "dali.encode_indexes_into_labels", False
+        )
+        return cfg
 
     def setup(self, stage: Optional[str] = None):
         # extra info about training

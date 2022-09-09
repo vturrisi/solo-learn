@@ -33,7 +33,7 @@ auto_resume:
   enabled: True
 dali:
   encode_indexes_into_labels: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric.yaml"
+augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric/default.yaml"
 wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
 # overwrite PL stuff
 max_epochs: 400
