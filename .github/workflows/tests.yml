@@ -34,7 +34,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[umap,h5] codecov mypy pytest-cov black
+          pip install -e .[dev,umap,h5]
 
       - name: Cache datasets
         uses: actions/cache@v2

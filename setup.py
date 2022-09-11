@@ -26,6 +26,13 @@ EXTRA_REQUIREMENTS = {
     "dali": ["nvidia-dali-cuda110"],
     "umap": ["matplotlib", "seaborn", "pandas", "umap-learn"],
     "h5": ["h5py"],
+        "dev": [
+            "pytest",
+            "pytest-cov",
+            "codecov",
+            "mypy",
+            "pytest-cov"
+        ]
 }
 
 
