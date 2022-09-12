@@ -116,6 +116,9 @@ def main():
     del args.backbone
     model = LinearModel(backbone, loss_func=loss_func, mixup_func=mixup_func, **args.__dict__)
     make_contiguous(model)
+    # can provide up to ~20% speed up
+    if not args.no_channel_last:
+        model = model.to(memory_format=torch.channels_last)
 
     if args.data_format == "dali":
         val_data_format = "image_folder"

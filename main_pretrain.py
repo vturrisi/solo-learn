@@ -20,6 +20,7 @@
 import os
 from pprint import pprint
 
+import torch
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
@@ -65,6 +66,9 @@ def main():
 
     model = METHODS[args.method](**args.__dict__)
     make_contiguous(model)
+    # can provide up to ~20% speed up
+    if not args.no_channel_last:
+        model = model.to(memory_format=torch.channels_last)
 
     # validation dataloader for when it is available
     if args.dataset == "custom" and (args.no_labels or args.val_data_path is None):

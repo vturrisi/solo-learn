@@ -50,11 +50,12 @@ def main():
     # prepare data
     train_loader, val_loader = prepare_data(
         args.dataset,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
+        train_data_path=args.train_data_path,
+        val_data_path=args.val_data_path,
+        data_format=args.data_format,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
+        auto_augment=args.auto_augment,
     )
 
     umap = OfflineUMAP()
