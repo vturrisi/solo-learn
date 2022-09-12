@@ -19,8 +19,8 @@
 
 import inspect
 import os
-
-from omegaconf import OmegaConf
+import hydra
+from omegaconf import OmegaConf, DictConfig
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
@@ -55,8 +55,12 @@ else:
     _umap_available = True
 
 
-def main():
-    cfg = parse_cfg()
+@hydra.main(version_base="1.2", config_path="config", config_name="pretrain")
+def main(cfg: DictConfig):
+    print(cfg)
+    print(cfg.name)
+    exit()
+    cfg = parse_cfg(cfg)
 
     seed_everything(cfg.seed)
 

@@ -10,6 +10,7 @@ from solo.utils.auto_resumer import AutoResumer
 from solo.utils.auto_umap import AutoUMAP
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import omegaconf_select
+from hydra._internal.utils import get_args
 
 _N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -54,7 +55,9 @@ def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfi
     return cfg
 
 
-def parse_cfg():
+def parse_cfg(cfg: omegaconf.DictConfig):
+    print(cfg)
+    exit()
     parser = argparse.ArgumentParser()
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)

@@ -1,0 +1,7 @@
+defaults:
+  - _self_
+  - augmentations: null
+  - wandb: null
+
+name: null
+method: null
