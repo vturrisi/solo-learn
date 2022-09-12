@@ -20,9 +20,9 @@ forward
 .. automethod:: solo.methods.simclr.SimCLR.forward
    :noindex:
 
-gen_extra_positives_gt
-~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.simclr.SimCLR.gen_extra_positives_gt
+multicrop_forward
+~~~~~~~~~~~~~~~~~
+.. automethod:: solo.methods.simclr.SimCLR.multicrop_forward
    :noindex:
 
 training_step

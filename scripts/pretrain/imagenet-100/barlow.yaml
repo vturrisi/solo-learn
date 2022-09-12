@@ -1,3 +1,8 @@
+defaults:
+  - _self_
+  - augmentations: asymmetric.yaml
+  - wandb: private.yaml
+
 name: "barlow_twins-imagenet100"
 method: "barlow_twins"
 backbone:
@@ -30,8 +35,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations: augmentations/asymmetric/default.yaml
-wandb: defaults/wandb/private.yaml
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

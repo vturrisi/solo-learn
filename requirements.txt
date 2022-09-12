@@ -10,3 +10,4 @@ scipy
 timm
 scikit-learn
 omegaconf
+hydra

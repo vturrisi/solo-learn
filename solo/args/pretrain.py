@@ -56,40 +56,6 @@ def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfi
 
 
 def parse_cfg(cfg: omegaconf.DictConfig):
-    print(cfg)
-    exit()
-    parser = argparse.ArgumentParser()
-    # add pytorch lightning trainer args
-    parser = pl.Trainer.add_argparse_args(parser)
-
-    parser.add_argument("--cfg", required=True)
-
-    parser.add_argument(
-        "rest",
-        default=None,
-        nargs=argparse.REMAINDER,
-    )
-
-    args = parser.parse_args()
-
-    # collect PL parameters
-    pl_args = {k: v for k, v in vars(args).items() if k != "cfg"}
-    cfg = OmegaConf.create(pl_args)
-
-    # merge with cfg file
-    # allows overwriting PL parameters and replaces cfg files with the actual configuration
-    cfg_from_file = OmegaConf.load(args.cfg)
-    for k, v in cfg_from_file.items():
-        if k.endswith("_cfg"):
-            aux_cfg_file = OmegaConf.load(v)
-            cfg_from_file.merge_with(aux_cfg_file)
-            del cfg_from_file[k]
-    cfg.merge_with(cfg_from_file)
-
-    # replace cfg with remaining parameters
-    if args.rest:
-        cfg.merge_with(OmegaConf.from_cli(args.rest))
-
     # extra processing
     if cfg.data.dataset in _N_CLASSES_PER_DATASET:
         cfg.data.num_classes = _N_CLASSES_PER_DATASET[cfg.data.dataset]

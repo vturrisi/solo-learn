@@ -140,10 +140,6 @@ class LinearModel(pl.LightningModule):
                 "issues when resuming a checkpoint."
             )
 
-        # can provide up to ~20% speed up
-        if not no_channel_last:
-            self = self.to(memory_format=torch.channels_last)
-
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds basic linear arguments.

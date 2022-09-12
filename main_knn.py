@@ -92,7 +92,11 @@ def run_knn(
     """
 
     # build knn
-    knn = WeightedKNNClassifier(k=k, T=T, distance_fx=distance_fx,)
+    knn = WeightedKNNClassifier(
+        k=k,
+        T=T,
+        distance_fx=distance_fx,
+    )
 
     # add features
     knn(
@@ -135,13 +139,15 @@ def main():
         args.dataset,
         T_train=T,
         T_val=T,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
-        download=True,
+        train_data_path=args.train_data_path,
+        val_data_path=args.val_data_path,
+        data_format=args.data_format,
     )
     train_loader, val_loader = prepare_dataloaders(
-        train_dataset, val_dataset, batch_size=args.batch_size, num_workers=args.num_workers,
+        train_dataset,
+        val_dataset,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
     )
 
     # extract train features

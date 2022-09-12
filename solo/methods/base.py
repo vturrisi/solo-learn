@@ -240,12 +240,6 @@ class BaseMethod(pl.LightningModule):
         if self.knn_eval:
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx=cfg.knn.distance_func)
 
-        # performance optimization
-        self.no_channel_last = cfg.performance.disable_channel_last
-        # can provide up to ~20% speed up
-        if not self.no_channel_last:
-            self = self.to(memory_format=torch.channels_last)
-
     @staticmethod
     def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.

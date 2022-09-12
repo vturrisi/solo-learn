@@ -1,0 +1,25 @@
+name: sphinx-build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ammaraskar/sphinx-action@0.4
+      with:
+        pre-build-command: |
+          python -m pip install --upgrade pip
+          pip install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
+          pip install -r docs/requirements.txt
+        docs-folder: "docs/"
+    - uses: actions/upload-artifact@v1
+      with:
+        name: DocumentationHTML
+        path: docs/build/html/

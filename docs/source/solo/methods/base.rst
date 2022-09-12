@@ -25,14 +25,14 @@ forward
 .. automethod:: solo.methods.base.BaseMethod.forward
    :noindex:
 
-base_forward
-~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMethod.base_forward
+multicrop_forward
+~~~~~~~~~~~~~~~~~
+.. automethod:: solo.methods.base.BaseMethod.multicrop_forward
    :noindex:
 
-_shared_step
-~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMethod._shared_step
+_base_shared_step
+~~~~~~~~~~~~~~~~~
+.. automethod:: solo.methods.base.BaseMethod._base_shared_step
    :noindex:
 
 training_step
@@ -79,9 +79,9 @@ on_train_start
 .. automethod:: solo.methods.base.BaseMomentumMethod.on_train_start
    :noindex:
 
-base_momentum_forward
+momentum_forward
 ~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMomentumMethod.base_momentum_forward
+.. automethod:: solo.methods.base.BaseMomentumMethod.momentum_forward
    :noindex:
 
 _shared_step_momentum

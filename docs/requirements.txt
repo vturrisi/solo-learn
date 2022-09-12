@@ -11,3 +11,9 @@ umap-learn
 
 setuptools==59.5.0
 protobuf==3.19
+
+# https://github.com/readthedocs/readthedocs.org/issues/9038
+Jinja2<3.1
+
+# https://stackoverflow.com/a/72747002/82733
+markupsafe==2.0.1

@@ -19,8 +19,10 @@
 
 import inspect
 import os
+
 import hydra
-from omegaconf import OmegaConf, DictConfig
+import torch
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
@@ -55,11 +57,8 @@ else:
     _umap_available = True
 
 
-@hydra.main(version_base="1.2", config_path="config", config_name="pretrain")
+@hydra.main(version_base="1.2")
 def main(cfg: DictConfig):
-    print(cfg)
-    print(cfg.name)
-    exit()
     cfg = parse_cfg(cfg)
 
     seed_everything(cfg.seed)
@@ -71,6 +70,9 @@ def main(cfg: DictConfig):
 
     model = METHODS[cfg.method](cfg)
     make_contiguous(model)
+    # can provide up to ~20% speed up
+    if not cfg.performance.disable_channel_last:
+        model = model.to(memory_format=torch.channels_last)
 
     # validation dataloader for when it is available
     if cfg.data.dataset == "custom" and (cfg.data.no_labels or cfg.data.val_path is None):
@@ -208,10 +210,10 @@ def main(cfg: DictConfig):
         lr_monitor = LearningRateMonitor(logging_interval="step")
         callbacks.append(lr_monitor)
 
-    trainer_params = OmegaConf.to_container(cfg)
+    trainer_kwargs = OmegaConf.to_container(cfg)
     # we only want to pass in valid Trainer args, the rest may be user specific
     valid_kwargs = inspect.signature(Trainer.__init__).parameters
-    trainer_kwargs = {name: trainer_params[name] for name in valid_kwargs if name in trainer_params}
+    trainer_kwargs = {name: trainer_kwargs[name] for name in valid_kwargs if name in trainer_kwargs}
     trainer_kwargs.update(
         {
             "logger": wandb_logger if cfg.wandb.enabled else None,
