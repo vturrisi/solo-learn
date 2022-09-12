@@ -19,13 +19,19 @@
 
 from setuptools import find_packages, setup
 
-KW = ["artificial intelligence", "deep learning", "unsupervised learning", "contrastive learning"]
+KW = [
+    "artificial intelligence",
+    "deep learning",
+    "unsupervised learning",
+    "contrastive learning",
+]
 
 
 EXTRA_REQUIREMENTS = {
     "dali": ["nvidia-dali-cuda110"],
     "umap": ["matplotlib", "seaborn", "pandas", "umap-learn"],
     "h5": ["h5py"],
+    "dev": ["pytest", "pytest-cov", "codecov", "mypy", "black"],
 }
 
 
@@ -37,7 +43,9 @@ def parse_requirements(path):
 
 setup(
     name="solo-learn",
-    packages=find_packages(exclude=["bash_files", "docs", "downstream", "tests", "zoo"]),
+    packages=find_packages(
+        exclude=["bash_files", "docs", "downstream", "tests", "zoo"]
+    ),
     version="1.0.3",
     license="MIT",
     author="solo-learn development team",

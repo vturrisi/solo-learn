@@ -165,4 +165,10 @@ dmypy.json
 # Ignore all local history of files
 .history
 
+# Vim files
+*.sw?
+
+# Virtual env
+env/
+
 # End of https://www.gitignore.io/api/python,visualstudiocode

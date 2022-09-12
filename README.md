@@ -14,6 +14,12 @@ The library is self-contained, but it is possible to use the models outside of s
 
 ---
 
+Please, check out our
+[documentation](https://solo-learn.readthedocs.io/en/latest) and
+[tutorials](#tutorials)
+
+---
+
 ## News
 * **[Aug 04 2022]**: :paintbrush: Added [MAE](https://arxiv.org/abs/2111.06377) and supports finetuning the backbone with `main_linear.py`, mixup, cutmix and [random augment](https://arxiv.org/abs/1909.13719).
 * **[Jul 13 2022]**: :sparkling_heart: Added support for [H5](https://docs.h5py.org/en/stable/index.html) data, improved scripts and data handling.
@@ -99,6 +105,7 @@ The library is self-contained, but it is possible to use the models outside of s
 * Custom model checkpointing with a simple file organization.
 
 ---
+
 ## Requirements
 * torch
 * torchvision
@@ -120,7 +127,10 @@ The library is self-contained, but it is possible to use the models outside of s
 
 ---
 
-## Installation
+## Installation (for users)
+
+*Note that if you are developing this repo, please see the [developer
+instructions](#Installation-for-users)
 
 First clone the repo.
 
@@ -155,7 +165,7 @@ There are extra experiments on K-NN evaluation in `bash_files/knn/` and feature 
 ---
 
 ## Tutorials
-Please, check out our [documentation](https://solo-learn.readthedocs.io/en/latest) and tutorials:
+
 * [Overview](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html)
 * [Offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html)
 * [Object detection](https://github.com/vturrisi/solo-learn/blob/main/downstream/object_detection/README.md)
@@ -281,6 +291,22 @@ We report the training efficiency of some methods using a ResNet18 with and with
 |              |:heavy_check_mark:| 42m 3s                     |  2m 6s  (64% faster) |      9244 MB          |
 
 **Note**: GPU memory increase doesn't scale with the model, rather it scales with the number of workers.
+
+---
+
+## Installation (for developers)
+
+```
+# Set up a virtual env (please make sure you aren't in conda or
+# that will cause pain)
+python3 -m venv env
+. env/bin/activate
+# Disable dali installation, since you are probably on a CPU when
+# doing laptop dev
+python3 -m pip  install .[dev,umap,h5]
+# Run test suite
+pytest --cov=solo tests/args tests/backbones tests/losses tests/methods tests/utils
+```
 
 ---
 
