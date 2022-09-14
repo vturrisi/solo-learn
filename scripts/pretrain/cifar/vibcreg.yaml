@@ -1,10 +1,9 @@
 defaults:
   - _self_
-  - augmentations: vicreg.yaml
   - wandb: private.yaml
 
-name: "vicreg-imagenet100"
-method: "vicreg"
+name: "vibcreg-cifar10" # change here for cifar100
+method: "vibcreg"
 backbone:
   name: "resnet18"
 method_kwargs:
@@ -12,12 +11,13 @@ method_kwargs:
   proj_output_dim: 2048
   sim_loss_weight: 25.0
   var_loss_weight: 25.0
-  cov_loss_weight: 1.0
+  cov_loss_weight: 200.0
+  iternorm: True
 data:
-  dataset: imagenet100
-  train_path: "datasets/imagenet100/train"
+  dataset: cifar10 # change here for cifar100
+  train_path: "./datasets"
   val_path: "datasets/imagenet100/val"
-  format: "dali"
+  format: "image_folder"
   num_workers: 4
   augmentations:
     - rrc:
@@ -35,8 +35,8 @@ data:
         enabled: True
         prob: 0.2
       gaussian_blur:
-        enabled: True
-        prob: 0.5
+        enabled: False
+        prob: 0.0
       solarization:
         enabled: True
         prob: 0.1
@@ -46,16 +46,17 @@ data:
       horizontal_flip:
         enabled: True
         prob: 0.5
-      crop_size: 224
+      crop_size: 32
       num_crops: 2
 optimizer:
   name: "lars"
-  batch_size: 128
+  batch_size: 256
   lr: 0.3
   classifier_lr: 0.1
   weight_decay: 1e-4
   kwargs:
-    clip_lr: True
+augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/default.yaml"
+wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
     eta: 0.02
     exclude_bias_n_norm: True
 scheduler:
@@ -68,8 +69,8 @@ auto_resume:
   enabled: True
 
 # overwrite PL stuff
-max_epochs: 400
-devices: [0, 1]
+max_epochs: 1000
+devices: [0]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"

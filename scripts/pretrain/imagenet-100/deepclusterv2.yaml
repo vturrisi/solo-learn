@@ -1,3 +1,8 @@
+defaults:
+  - _self_
+  - augmentations: symmetric.yaml
+  - wandb: private.yaml
+
 name: "deepclusterv2-imagenet100"
 method: "deepclusterv2"
 backbone:
@@ -8,13 +13,13 @@ method_kwargs:
   num_prototypes: [3000, 3000, 3000]
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
+  train_path: "./datasets/imagenet-100/train"
+  val_path: "./datasets/imagenet-100/val"
   format: "dali"
   num_workers: 4
 optimizer:
   name: "lars"
-  batch_size: 64
+  batch_size: 128
   lr: 0.6
   classifier_lr: 0.1
   weight_decay: 1e-6
@@ -35,8 +40,7 @@ auto_resume:
   enabled: True
 dali:
   encode_indexes_into_labels: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/default.yaml"
-wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

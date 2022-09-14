@@ -1,23 +1,20 @@
 defaults:
   - _self_
-  - augmentations: vicreg.yaml
   - wandb: private.yaml
 
-name: "vicreg-imagenet100"
-method: "vicreg"
+name: "wmse-cifar10" # change here for cifar100
+method: "wmse"
 backbone:
   name: "resnet18"
 method_kwargs:
-  proj_hidden_dim: 2048
-  proj_output_dim: 2048
-  sim_loss_weight: 25.0
-  var_loss_weight: 25.0
-  cov_loss_weight: 1.0
+  proj_hidden_dim: 1024
+  proj_output_dim: 64
+  whitening_size: 128
 data:
-  dataset: imagenet100
-  train_path: "datasets/imagenet100/train"
+  dataset: cifar10 # change here for cifar100
+  train_path: "./datasets"
   val_path: "datasets/imagenet100/val"
-  format: "dali"
+  format: "image_folder"
   num_workers: 4
   augmentations:
     - rrc:
@@ -26,40 +23,35 @@ data:
         crop_max_scale: 1.0
       color_jitter:
         enabled: True
-        brightness: 0.4
-        contrast: 0.4
-        saturation: 0.2
-        hue: 0.1
+        brightness: 0.8
+        contrast: 0.8
+        saturation: 0.8
+        hue: 0.2
         prob: 0.8
       grayscale:
         enabled: True
         prob: 0.2
       gaussian_blur:
-        enabled: True
-        prob: 0.5
-      solarization:
-        enabled: True
-        prob: 0.1
-      equalization:
         enabled: False
         prob: 0.0
+      solarization:
+        enabled: False
+      equalization:
+        enabled: False
       horizontal_flip:
         enabled: True
         prob: 0.5
-      crop_size: 224
+      crop_size: 32
       num_crops: 2
 optimizer:
-  name: "lars"
-  batch_size: 128
-  lr: 0.3
-  classifier_lr: 0.1
-  weight_decay: 1e-4
-  kwargs:
-    clip_lr: True
-    eta: 0.02
-    exclude_bias_n_norm: True
+  name: "adam"
+  batch_size: 256
+  lr: 2e-3
+  classifier_lr: 3e-3
+  weight_decay: 1e-6
 scheduler:
   name: "warmup_cosine"
+  warmup_start_lr: 0
 checkpoint:
   enabled: True
   dir: "trained_models"
@@ -68,8 +60,8 @@ auto_resume:
   enabled: True
 
 # overwrite PL stuff
-max_epochs: 400
-devices: [0, 1]
+max_epochs: 1000
+devices: [0]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"

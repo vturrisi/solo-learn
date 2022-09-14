@@ -1,3 +1,8 @@
+defaults:
+  - _self_
+  - augmentations: symmetric.yaml
+  - wandb: private.yaml
+
 name: "supcon-imagenet100"
 method: "supcon"
 backbone:
@@ -14,7 +19,7 @@ data:
   num_workers: 4
 optimizer:
   name: "sgd"
-  batch_size: 64
+  batch_size: 128
   lr: 0.5
   classifier_lr: 0.1
   weight_decay: 1e-5
@@ -26,8 +31,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/default.yaml"
-wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

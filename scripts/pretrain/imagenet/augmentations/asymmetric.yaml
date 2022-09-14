@@ -15,7 +15,7 @@ data:
         enabled: True
         prob: 0.2
       gaussian_blur:
-        enabled: False
+        enabled: True
         prob: 1.0
       solarization:
         enabled: False
@@ -26,7 +26,7 @@ data:
       horizontal_flip:
         enabled: True
         prob: 0.5
-      crop_size: 32
+      crop_size: 224
       num_crops: 1
 
     - rrc:
@@ -47,7 +47,7 @@ data:
         enabled: True
         prob: 0.1
       solarization:
-        enabled: False
+        enabled: True
         prob: 0.2
       equalization:
         enabled: False
@@ -55,5 +55,5 @@ data:
       horizontal_flip:
         enabled: True
         prob: 0.5
-      crop_size: 32
+      crop_size: 224
       num_crops: 1

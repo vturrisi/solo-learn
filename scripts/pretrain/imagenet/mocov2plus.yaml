@@ -1,3 +1,8 @@
+defaults:
+  - _self_
+  - augmentations: symmetric_weak.yaml
+  - wandb: private.yaml
+
 name: "mocov2plus-imagenet"
 method: "mocov2plus"
 backbone:
@@ -11,8 +16,8 @@ momentum:
   final_tau: 0.999
 data:
   dataset: imagenet
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet/val"
+  train_path: "./datasets/imagenet/train"
+  val_path: "./datasets/imagenet/val"
   format: "dali"
   num_workers: 4
 optimizer:
@@ -29,8 +34,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/weak.yaml"
-wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

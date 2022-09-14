@@ -3,29 +3,26 @@ defaults:
   - augmentations: symmetric_weak.yaml
   - wandb: private.yaml
 
-name: "mocov2plus-imagenet100"
-method: "mocov2plus"
+name: "simsiam-cifar10" # change here for cifar100
+method: "simsiam"
 backbone:
   name: "resnet18"
 method_kwargs:
   proj_hidden_dim: 2048
-  queue_size: 65536
+  proj_output_dim: 512
   temperature: 0.2
-momentum:
-  base_tau: 0.99
-  final_tau: 0.999
 data:
-  dataset: imagenet100
-  train_path: "./datasets/imagenet-100/train"
-  val_path: "./datasets/imagenet-100/val"
-  format: "dali"
+  dataset: cifar10 # change here for cifar100
+  train_path: "./datasets"
+  val_path: "datasets/imagenet100/val"
+  format: "image_folder"
   num_workers: 4
 optimizer:
   name: "sgd"
-  batch_size: 128
-  lr: 0.3
-  classifier_lr: 0.3
-  weight_decay: 1e-4
+  batch_size: 256
+  lr: 0.5
+  classifier_lr: 0.1
+  weight_decay: 1e-5
 scheduler:
   name: "warmup_cosine"
 checkpoint:
@@ -36,8 +33,8 @@ auto_resume:
   enabled: True
 
 # overwrite PL stuff
-max_epochs: 400
-devices: [0, 1]
+max_epochs: 1000
+devices: [0]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"

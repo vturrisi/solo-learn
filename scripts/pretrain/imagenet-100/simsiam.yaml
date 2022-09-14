@@ -1,5 +1,10 @@
-name: "simclr-imagenet100"
-method: "simclr"
+defaults:
+  - _self_
+  - augmentations: asymmetric.yaml
+  - wandb: private.yaml
+
+name: "simsiam-imagenet100"
+method: "simsiam"
 backbone:
   name: "resnet18"
 method_kwargs:
@@ -14,7 +19,7 @@ data:
   num_workers: 4
 optimizer:
   name: "sgd"
-  batch_size: 64
+  batch_size: 128
   lr: 0.5
   classifier_lr: 0.1
   weight_decay: 1e-5

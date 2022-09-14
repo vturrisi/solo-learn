@@ -3,7 +3,7 @@ defaults:
   - augmentations: symmetric.yaml
   - wandb: private.yaml
 
-name: "swav-imagenet100"
+name: "swav-cifar10" # change here for cifar100
 method: "swav"
 backbone:
   name: "resnet18"
@@ -15,14 +15,14 @@ method_kwargs:
   epoch_queue_starts: 50
   freeze_prototypes_epochs: 2
 data:
-  dataset: imagenet100
-  train_path: "datasets/imagenet100/train"
+  dataset: cifar10 # change here for cifar100
+  train_path: "./datasets"
   val_path: "datasets/imagenet100/val"
-  format: "dali"
+  format: "image_folder"
   num_workers: 4
 optimizer:
   name: "lars"
-  batch_size: 128
+  batch_size: 256
   lr: 0.6
   classifier_lr: 0.1
   weight_decay: 1e-6
@@ -40,8 +40,8 @@ auto_resume:
   enabled: True
 
 # overwrite PL stuff
-max_epochs: 400
-devices: [0, 1]
+max_epochs: 1000
+devices: [0]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"

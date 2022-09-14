@@ -103,10 +103,6 @@ def parse_cfg(cfg: omegaconf.DictConfig):
     elif cfg.optimizer.name == "adamw":
         cfg.optimizer.kwargs.betas = omegaconf_select(cfg, "optimizer.kwargs.betas", [0.9, 0.999])
 
-    # method specific cfg
-    cfg.method_kwargs = omegaconf_select(cfg, "method_kwargs", {})
-    cfg = METHODS[cfg.method].add_and_assert_specific_cfg(cfg)
-
     # default values for checkpointer
     cfg = Checkpointer.add_and_assert_specific_cfg(cfg)
 

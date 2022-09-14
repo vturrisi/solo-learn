@@ -163,6 +163,9 @@ class BaseMethod(pl.LightningModule):
 
         super().__init__()
 
+        # add default values and assert that config has the basic needed settings
+        cfg = self.add_and_assert_specific_cfg(cfg)
+
         self.cfg = cfg
 
         ########## Backbone ##########
@@ -282,6 +285,9 @@ class BaseMethod(pl.LightningModule):
         cfg.performance.disable_channel_last = omegaconf_select(
             cfg, "performance.disable_channel_last", False
         )
+
+        # default empty parameters for method-specific kwargs
+        cfg.method_kwargs = omegaconf_select(cfg, "method_kwargs", {})
 
         return cfg
 

@@ -3,26 +3,23 @@ defaults:
   - augmentations: symmetric.yaml
   - wandb: private.yaml
 
-name: "swav-imagenet100"
-method: "swav"
+name: "deepclusterv2-cifar10" # change here for cifar100
+method: "deepclusterv2"
 backbone:
   name: "resnet18"
 method_kwargs:
   proj_hidden_dim: 2048
-  queue_size: 3840
   proj_output_dim: 128
-  num_prototypes: 3000
-  epoch_queue_starts: 50
-  freeze_prototypes_epochs: 2
+  num_prototypes: [3000, 3000, 3000]
 data:
-  dataset: imagenet100
-  train_path: "datasets/imagenet100/train"
-  val_path: "datasets/imagenet100/val"
-  format: "dali"
+  dataset: cifar10 # change here for cifar100
+  train_path: "./datasets"
+  val_path: "./datasets"
+  format: "image_folder"
   num_workers: 4
 optimizer:
   name: "lars"
-  batch_size: 128
+  batch_size: 256
   lr: 0.6
   classifier_lr: 0.1
   weight_decay: 1e-6
@@ -32,6 +29,9 @@ optimizer:
     exclude_bias_n_norm: True
 scheduler:
   name: "warmup_cosine"
+  min_lr: 0.0006
+  warmup_start_lr: 0.0
+  warmup_epochs: 11
 checkpoint:
   enabled: True
   dir: "trained_models"
@@ -40,8 +40,8 @@ auto_resume:
   enabled: True
 
 # overwrite PL stuff
-max_epochs: 400
-devices: [0, 1]
+max_epochs: 1000
+devices: [0]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"
