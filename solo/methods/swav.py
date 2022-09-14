@@ -48,17 +48,17 @@ class SwAV(BaseMethod):
 
         super().__init__(cfg)
 
-        self.proj_output_dim = cfg.method_kwargs.proj_output_dim
-        self.sk_iters = cfg.method_kwargs.sk_iters
-        self.sk_epsilon = cfg.method_kwargs.sk_epsilon
-        self.temperature = cfg.method_kwargs.temperature
-        self.queue_size = cfg.method_kwargs.queue_size
-        self.epoch_queue_starts = cfg.method_kwargs.epoch_queue_starts
-        self.freeze_prototypes_epochs = cfg.method_kwargs.freeze_prototypes_epochs
+        self.proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        self.sk_iters: int = cfg.method_kwargs.sk_iters
+        self.sk_epsilon: float = cfg.method_kwargs.sk_epsilon
+        self.temperature: float = cfg.method_kwargs.temperature
+        self.queue_size: int = cfg.method_kwargs.queue_size
+        self.epoch_queue_starts: int = cfg.method_kwargs.epoch_queue_starts
+        self.freeze_prototypes_epochs: int = cfg.method_kwargs.freeze_prototypes_epochs
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        num_prototypes = cfg.method_kwargs.num_prototypes
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        num_prototypes: int = cfg.method_kwargs.num_prototypes
 
         # projector
         self.projector = nn.Sequential(
@@ -122,8 +122,8 @@ class SwAV(BaseMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
-            {"params": self.prototypes.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "prototypes", "params": self.prototypes.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

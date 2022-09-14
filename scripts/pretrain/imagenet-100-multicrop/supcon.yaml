@@ -1,3 +1,9 @@
+defaults:
+  - _self_
+  - augmentations: symmetric.yaml
+  - wandb: private.yaml
+
+
 name: "supcon-multicrop-imagenet100"
 method: "supcon"
 backbone:
@@ -26,8 +32,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/symmetric/multicrop.yaml"
-wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

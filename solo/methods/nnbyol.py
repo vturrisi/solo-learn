@@ -49,11 +49,11 @@ class NNBYOL(BaseMomentumMethod):
 
         super().__init__(cfg)
 
-        self.queue_size = cfg.method_kwargs.queue_size
+        self.queue_size: int = cfg.method_kwargs.queue_size
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        pred_hidden_dim = cfg.method_kwargs.pred_hidden_dim
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim: int = cfg.method_kwargs.pred_hidden_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -116,8 +116,8 @@ class NNBYOL(BaseMomentumMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

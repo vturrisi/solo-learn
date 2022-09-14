@@ -1,3 +1,11 @@
+
+# how to configure the augmentations
+# it's also possible to copy paste here for a finer control
+defaults:
+  - _self_
+  - augmentations: asymmetric.yaml
+  - wandb: private.yaml
+
 name: "byol-custom-dataset"
 method: "byol"
 backbone:
@@ -37,10 +45,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-# how to configure the augmentations
-# it's also possible to copy paste here for a finer control
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric/default.yaml"
-wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

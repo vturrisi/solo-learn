@@ -43,12 +43,11 @@ class MoCoV2Plus(BaseMomentumMethod):
 
         super().__init__(cfg)
 
-        self.temperature = cfg.method_kwargs.temperature
-        self.queue_size = cfg.method_kwargs.queue_size
+        self.temperature: float = cfg.method_kwargs.temperature
+        self.queue_size: int = cfg.method_kwargs.queue_size
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        queue_size = cfg.method_kwargs.queue_size
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -66,7 +65,7 @@ class MoCoV2Plus(BaseMomentumMethod):
         initialize_momentum_params(self.projector, self.momentum_projector)
 
         # create the queue
-        self.register_buffer("queue", torch.randn(2, proj_output_dim, queue_size))
+        self.register_buffer("queue", torch.randn(2, proj_output_dim, self.queue_size))
         self.queue = nn.functional.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
@@ -99,7 +98,7 @@ class MoCoV2Plus(BaseMomentumMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     @property

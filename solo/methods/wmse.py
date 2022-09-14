@@ -43,14 +43,14 @@ class WMSE(BaseMethod):
 
         super().__init__(cfg)
 
-        self.whitening_iters = cfg.method_kwargs.whitening_iters
-        self.whitening_size = cfg.method_kwargs.whitening_size
+        self.whitening_iters: int = cfg.method_kwargs.whitening_iters
+        self.whitening_size: int = cfg.method_kwargs.whitening_size
 
         assert self.whitening_size <= self.batch_size
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        whitening_eps = cfg.method_kwargs.whitening_eps
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        whitening_eps: float = cfg.method_kwargs.whitening_eps
 
         # projector
         self.projector = nn.Sequential(
@@ -100,7 +100,7 @@ class WMSE(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor) -> Dict[str, Any]:

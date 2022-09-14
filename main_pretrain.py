@@ -59,6 +59,10 @@ else:
 
 @hydra.main(version_base="1.2")
 def main(cfg: DictConfig):
+    # hydra doesn't allow us to add new keys for "safety"
+    # set_struct(..., False) disables this behavior and allows us to add more parameters
+    # without making the user specify every single thing about the model
+    OmegaConf.set_struct(cfg, False)
     cfg = parse_cfg(cfg)
 
     seed_everything(cfg.seed)
@@ -100,7 +104,7 @@ def main(cfg: DictConfig):
             _dali_avaliable
         ), "Dali is not currently avaiable, please install it first with pip3 install .[dali]."
         pipelines = []
-        for aug_cfg in cfg.data.augmentations:
+        for aug_cfg in cfg.augmentations:
             pipelines.append(
                 NCropAugmentation(
                     build_transform_pipeline_dali(
@@ -127,7 +131,7 @@ def main(cfg: DictConfig):
         dali_datamodule.val_dataloader = lambda: val_loader
     else:
         pipelines = []
-        for aug_cfg in cfg.data.augmentations:
+        for aug_cfg in cfg.augmentations:
             pipelines.append(
                 NCropAugmentation(
                     build_transform_pipeline(cfg.data.dataset, aug_cfg), aug_cfg.num_crops
@@ -135,7 +139,7 @@ def main(cfg: DictConfig):
             )
         transform = FullTransformPipeline(pipelines)
 
-        if cfg.data.debug:
+        if cfg.debug_augmentations:
             print("Transforms:")
             print(transform)
 

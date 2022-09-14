@@ -44,8 +44,12 @@ class ReSSL(BaseMomentumMethod):
 
         super().__init__(cfg)
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
+        self.temperature_q: float = cfg.method_kwargs.temperature_q
+        self.temperature_k: float = cfg.method_kwargs.temperature_k
+        self.queue_size: int = cfg.method_kwargs.queue_size
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -61,10 +65,6 @@ class ReSSL(BaseMomentumMethod):
             nn.Linear(proj_hidden_dim, proj_output_dim),
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
-
-        self.temperature_q = cfg.method_kwargs.temperature_q
-        self.temperature_k = cfg.method_kwargs.temperature_k
-        self.queue_size = cfg.method_kwargs.queue_size
 
         # queue
         self.register_buffer("queue", torch.randn(self.queue_size, proj_output_dim))
@@ -102,7 +102,7 @@ class ReSSL(BaseMomentumMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

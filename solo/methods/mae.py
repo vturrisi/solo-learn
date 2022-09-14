@@ -139,17 +139,17 @@ class MAE(BaseMethod):
 
         assert "vit" in self.backbone_name, "MAE only supports ViT as backbone."
 
-        self.mask_ratio = cfg.method_kwargs.mask_ratio
-        self.norm_pix_loss = cfg.method_kwargs.norm_pix_loss
+        self.mask_ratio: float = cfg.method_kwargs.mask_ratio
+        self.norm_pix_loss: bool = cfg.method_kwargs.norm_pix_loss
 
         # gather backbone info from timm
-        self._vit_embed_dim = self.backbone.pos_embed.size(-1)
-        self._vit_patch_size = self.backbone_args["patch_size"]
-        self._vit_num_patches = self.backbone.patch_embed.num_patches
+        self._vit_embed_dim: int = self.backbone.pos_embed.size(-1)
+        self._vit_patch_size: int = self.backbone_args["patch_size"]
+        self._vit_num_patches: int = self.backbone.patch_embed.num_patches
 
-        decoder_embed_dim = cfg.method_kwargs.decoder_embed_dim
-        decoder_depth = cfg.method_kwargs.decoder_depth
-        decoder_num_heads = cfg.method_kwargs.decoder_num_heads
+        decoder_embed_dim: int = cfg.method_kwargs.decoder_embed_dim
+        decoder_depth: int = cfg.method_kwargs.decoder_depth
+        decoder_num_heads: int = cfg.method_kwargs.decoder_num_heads
 
         # decoder
         self.decoder = MAEDecoder(
@@ -197,7 +197,7 @@ class MAE(BaseMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.decoder.parameters()},
+            {"name": "decoder", "params": self.decoder.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

@@ -1,3 +1,8 @@
+defaults:
+  - _self_
+  - augmentations: asymmetric.yaml
+  - wandb: private.yaml
+
 name: "byol-multicrop-imagenet100"
 method: "byol"
 backbone:
@@ -33,8 +38,7 @@ checkpoint:
   frequency: 1
 auto_resume:
   enabled: True
-augmentations_cfg: "scripts/configs/defaults/augmentations/asymmetric/multicrop.yaml"
-wandb_cfg: "scripts/configs/defaults/wandb/private.yaml"
+
 # overwrite PL stuff
 max_epochs: 400
 devices: [0, 1]

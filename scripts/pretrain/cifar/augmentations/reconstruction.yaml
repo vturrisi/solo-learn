@@ -1,30 +1,28 @@
-data:
-  augmentations:
-    - rrc:
-        enabled: True
-        crop_min_scale: 0.08
-        crop_max_scale: 1.0
-      color_jitter:
-        enabled: False
-        brightness: 0.0
-        contrast: 0.0
-        saturation: 0.0
-        hue: 0.0
-        prob: 0.0
-      grayscale:
-        enabled: False
-        prob: 0.0
-      gaussian_blur:
-        enabled: False
-        prob: 0.0
-      solarization:
-        enabled: False
-        prob: 0.0
-      equalization:
-        enabled: False
-        prob: 0.0
-      horizontal_flip:
-        enabled: True
-        prob: 0.5
-      crop_size: 32
-      num_crops: 1
+- rrc:
+    enabled: True
+    crop_min_scale: 0.08
+    crop_max_scale: 1.0
+  color_jitter:
+    enabled: False
+    brightness: 0.0
+    contrast: 0.0
+    saturation: 0.0
+    hue: 0.0
+    prob: 0.0
+  grayscale:
+    enabled: False
+    prob: 0.0
+  gaussian_blur:
+    enabled: False
+    prob: 0.0
+  solarization:
+    enabled: False
+    prob: 0.0
+  equalization:
+    enabled: False
+    prob: 0.0
+  horizontal_flip:
+    enabled: True
+    prob: 0.5
+  crop_size: 32
+  num_crops: 1

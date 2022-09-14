@@ -41,11 +41,11 @@ class BarlowTwins(BaseMethod):
 
         super().__init__(cfg)
 
-        self.lamb = cfg.method_kwargs.lamb
-        self.scale_loss = cfg.method_kwargs.scale_loss
+        self.lamb: float = cfg.method_kwargs.lamb
+        self.scale_loss: float = cfg.method_kwargs.scale_loss
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -87,7 +87,7 @@ class BarlowTwins(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X):

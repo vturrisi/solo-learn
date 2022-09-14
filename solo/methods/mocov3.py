@@ -41,11 +41,11 @@ class MoCoV3(BaseMomentumMethod):
 
         super().__init__(cfg)
 
-        self.temperature = cfg.method_kwargs.temperature
+        self.temperature: float = cfg.method_kwargs.temperature
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        pred_hidden_dim = cfg.method_kwargs.pred_hidden_dim
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim: int = cfg.method_kwargs.pred_hidden_dim
 
         if "resnet" in self.backbone_name:
             # projector
@@ -144,8 +144,8 @@ class MoCoV3(BaseMomentumMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

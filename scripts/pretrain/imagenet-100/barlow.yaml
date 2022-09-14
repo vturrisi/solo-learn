@@ -1,7 +1,9 @@
 defaults:
   - _self_
   - augmentations: asymmetric.yaml
-  - wandb: private.yaml
+hydra:  
+  output_subdir: null
+
 
 name: "barlow_twins-imagenet100"
 method: "barlow_twins"
@@ -19,7 +21,7 @@ data:
   num_workers: 4
 optimizer:
   name: "lars"
-  batch_size: 128
+  batch_size: 32
   lr: 0.3
   classifier_lr: 0.1
   weight_decay: 1e-4

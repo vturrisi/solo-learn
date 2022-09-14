@@ -44,14 +44,13 @@ class DeepClusterV2(BaseMethod):
 
         super().__init__(cfg)
 
-        self.proj_output_dim = cfg.method_kwargs.proj_output_dim
-        self.temperature = cfg.method_kwargs.temperature
-        self.num_prototypes = cfg.method_kwargs.num_prototypes
-        self.kmeans_iters = cfg.method_kwargs.kmeans_iters
+        self.proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        self.temperature: float = cfg.method_kwargs.temperature
+        self.num_prototypes: Sequence[int] = cfg.method_kwargs.num_prototypes
+        self.kmeans_iters: int = cfg.method_kwargs.kmeans_iters
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        num_prototypes = cfg.method_kwargs.num_prototypes
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -63,7 +62,7 @@ class DeepClusterV2(BaseMethod):
 
         # prototypes
         self.prototypes = nn.ModuleList(
-            [nn.Linear(proj_output_dim, np, bias=False) for np in num_prototypes]
+            [nn.Linear(proj_output_dim, np, bias=False) for np in self.num_prototypes]
         )
         # normalize and set requires grad to false
         for proto in self.prototypes:
@@ -105,7 +104,7 @@ class DeepClusterV2(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def on_train_start(self):

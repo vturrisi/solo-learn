@@ -42,12 +42,12 @@ class VICReg(BaseMethod):
 
         super().__init__(cfg)
 
-        self.sim_loss_weight = cfg.method_kwargs.sim_loss_weight
-        self.var_loss_weight = cfg.method_kwargs.var_loss_weight
-        self.cov_loss_weight = cfg.method_kwargs.cov_loss_weight
+        self.sim_loss_weight: float = cfg.method_kwargs.sim_loss_weight
+        self.var_loss_weight: float = cfg.method_kwargs.var_loss_weight
+        self.cov_loss_weight: float = cfg.method_kwargs.cov_loss_weight
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -102,7 +102,7 @@ class VICReg(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor) -> Dict[str, Any]:

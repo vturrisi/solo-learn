@@ -19,7 +19,7 @@
 
 import logging
 from functools import partial
-from typing import Any, Callable, Dict, List, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
 import omegaconf
 import pytorch_lightning as pl
@@ -166,20 +166,20 @@ class BaseMethod(pl.LightningModule):
         # add default values and assert that config has the basic needed settings
         cfg = self.add_and_assert_specific_cfg(cfg)
 
-        self.cfg = cfg
+        self.cfg: omegaconf.DictConfig = cfg
 
         ########## Backbone ##########
-        self.backbone_args = cfg.backbone.kwargs
+        self.backbone_args: Dict[str, Any] = cfg.backbone.kwargs
         assert cfg.backbone.name in BaseMethod._BACKBONES
-        self.base_model = self._BACKBONES[cfg.backbone.name]
-        self.backbone_name = cfg.backbone.name
+        self.base_model: Callable = self._BACKBONES[cfg.backbone.name]
+        self.backbone_name: str = cfg.backbone.name
         # initialize backbone
-        kwargs = self.backbone_args.copy()
+        kwargs: Dict[str, Any] = self.backbone_args.copy()
 
-        method = cfg.method
-        self.backbone = self.base_model(method, **kwargs)
+        method: str = cfg.method
+        self.backbone: nn.Module = self.base_model(method, **kwargs)
         if self.backbone_name.startswith("resnet"):
-            self.features_dim = self.backbone.inplanes
+            self.features_dim: int = self.backbone.inplanes
             # remove fc layer
             self.backbone.fc = nn.Identity()
             cifar = cfg.data.dataset in ["cifar10", "cifar100"]
@@ -189,25 +189,39 @@ class BaseMethod(pl.LightningModule):
                 )
                 self.backbone.maxpool = nn.Identity()
         else:
-            self.features_dim = self.backbone.num_features
+            self.features_dim: int = self.backbone.num_features
         ##############################
 
         # online linear classifier
-        self.num_classes = cfg.data.num_classes
-        self.classifier = nn.Linear(self.features_dim, self.num_classes)
+        self.num_classes: int = cfg.data.num_classes
+        self.classifier: nn.Module = nn.Linear(self.features_dim, self.num_classes)
 
         # training related
-        self.max_epochs = cfg.max_epochs
-        self.accumulate_grad_batches = cfg.accumulate_grad_batches
+        self.max_epochs: int = cfg.max_epochs
+        self.accumulate_grad_batches: Union[int, None] = cfg.accumulate_grad_batches
 
         # optimizer related
-        self.optimizer = cfg.optimizer.name
-        self.batch_size = cfg.optimizer.batch_size
-        self.lr = cfg.optimizer.lr
-        self.weight_decay = cfg.optimizer.weight_decay
-        self.classifier_lr = cfg.optimizer.classifier_lr
-        self.extra_optimizer_args = cfg.optimizer.kwargs
-        self.exclude_bias_n_norm_wd = cfg.optimizer.exclude_bias_n_norm_wd
+        self.optimizer: str = cfg.optimizer.name
+        self.batch_size: int = cfg.optimizer.batch_size
+        self.lr: float = cfg.optimizer.lr
+        self.weight_decay: float = cfg.optimizer.weight_decay
+        self.classifier_lr: float = cfg.optimizer.classifier_lr
+        self.extra_optimizer_args: Dict[str, Any] = cfg.optimizer.kwargs
+        self.exclude_bias_n_norm_wd: bool = cfg.optimizer.exclude_bias_n_norm_wd
+
+        # scheduler related
+        self.scheduler: str = cfg.scheduler.name
+        self.lr_decay_steps: Union[List[int], None] = cfg.scheduler.lr_decay_steps
+        self.min_lr: float = cfg.scheduler.min_lr
+        self.warmup_start_lr: float = cfg.scheduler.warmup_start_lr
+        self.warmup_epochs: int = cfg.scheduler.warmup_epochs
+        self.scheduler_interval: str = cfg.scheduler.interval
+        assert self.scheduler_interval in ["step", "epoch"]
+        if self.scheduler_interval == "step":
+            logging.warn(
+                f"Using scheduler_interval={self.scheduler_interval} might generate "
+                "issues when resuming a checkpoint."
+            )
 
         # if accumulating gradient then scale lr
         if self.accumulate_grad_batches:
@@ -216,32 +230,21 @@ class BaseMethod(pl.LightningModule):
             self.min_lr = self.min_lr * self.accumulate_grad_batches
             self.warmup_start_lr = self.warmup_start_lr * self.accumulate_grad_batches
 
-        # scheduler related
-        self.scheduler = cfg.scheduler.name
-        self.lr_decay_steps = cfg.scheduler.lr_decay_steps
-        self.min_lr = cfg.scheduler.min_lr
-        self.warmup_start_lr = cfg.scheduler.warmup_start_lr
-        self.warmup_epochs = cfg.scheduler.warmup_epochs
-        self.scheduler_interval = cfg.scheduler.interval
-        assert self.scheduler_interval in ["step", "epoch"]
-        if self.scheduler_interval == "step":
-            logging.warn(
-                f"Using scheduler_interval={self.scheduler_interval} might generate "
-                "issues when resuming a checkpoint."
-            )
-
         # data-related
-        self.num_large_crops = cfg.data.num_large_crops
-        self.num_small_crops = cfg.data.num_small_crops
-        self.num_crops = self.num_large_crops + self.num_small_crops
+        self.num_large_crops: int = cfg.data.num_large_crops
+        self.num_small_crops: int = cfg.data.num_small_crops
+        self.num_crops: int = self.num_large_crops + self.num_small_crops
         # turn on multicrop if there are small crops
-        self.multicrop = self.num_small_crops != 0
+        self.multicrop: bool = self.num_small_crops != 0
 
         # knn online evaluation
-        self.knn_eval = cfg.knn_eval.enabled
-        self.knn_k = cfg.knn_eval.k
+        self.knn_eval: bool = cfg.knn_eval.enabled
+        self.knn_k: int = cfg.knn_eval.k
         if self.knn_eval:
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx=cfg.knn.distance_func)
+
+        # for performance
+        self.no_channel_last = cfg.performance.disable_channel_last
 
     @staticmethod
     def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:

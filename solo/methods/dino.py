@@ -133,18 +133,18 @@ class DINO(BaseMomentumMethod):
 
         super().__init__(cfg)
 
-        self.clip_grad = cfg.method_kwargs.clip_grad
-        self.freeze_last_layer = cfg.method_kwargs.freeze_last_layer
+        self.clip_grad: bool = cfg.method_kwargs.clip_grad
+        self.freeze_last_layer: bool = cfg.method_kwargs.freeze_last_layer
 
-        proj_hidden_dim = cfg.method_kwargs.proj_hidden_dim
-        proj_output_dim = cfg.method_kwargs.proj_output_dim
-        use_bn_in_head = cfg.method_kwargs.use_bn_in_head
-        num_prototypes = cfg.method_kwargs.num_prototypes
-        norm_last_layer = cfg.method_kwargs.norm_last_layer
-        student_temperature = cfg.method_kwargs.student_temperature
-        warmup_teacher_temperature = cfg.method_kwargs.warmup_teacher_temperature
-        teacher_temperature = cfg.method_kwargs.teacher_temperature
-        warmup_teacher_temperature_epochs = cfg.method_kwargs.warmup_teacher_temperature_epochs
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        use_bn_in_head: bool = cfg.method_kwargs.use_bn_in_head
+        num_prototypes: int = cfg.method_kwargs.num_prototypes
+        norm_last_layer: bool = cfg.method_kwargs.norm_last_layer
+        student_temperature: float = cfg.method_kwargs.student_temperature
+        warmup_teacher_temperature: float = cfg.method_kwargs.warmup_teacher_temperature
+        teacher_temperature: float = cfg.method_kwargs.teacher_temperature
+        warmup_teacher_temperature_epochs: int = cfg.method_kwargs.warmup_teacher_temperature_epochs
 
         # dino head
         self.head = DINOHead(
@@ -232,7 +232,7 @@ class DINO(BaseMomentumMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.head.parameters()}]
+        extra_learnable_params = [{"name": "head", "params": self.head.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     @property

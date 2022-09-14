@@ -50,7 +50,7 @@ def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfi
     cfg.data.val_path = omegaconf_select(cfg, "data.val_path", None)
     cfg.data.no_labels = omegaconf_select(cfg, "data.no_labels", False)
     cfg.data.fraction = omegaconf_select(cfg, "data.fraction", -1)
-    cfg.data.debug = omegaconf_select(cfg, "data.debug", False)
+    cfg.debug_augmentations = omegaconf_select(cfg, "debug_augmentations", False)
 
     return cfg
 
@@ -68,9 +68,9 @@ def parse_cfg(cfg: omegaconf.DictConfig):
         )
 
     # find number of big/small crops
-    big_size = cfg.data.augmentations[0].crop_size
+    big_size = cfg.augmentations[0].crop_size
     num_large_crops = num_small_crops = 0
-    for pipeline in cfg.data.augmentations:
+    for pipeline in cfg.augmentations:
         if big_size == pipeline.crop_size:
             num_large_crops += pipeline.num_crops
         else:
@@ -82,8 +82,8 @@ def parse_cfg(cfg: omegaconf.DictConfig):
         assert cfg.data.dataset in ["imagenet100", "imagenet", "custom"]
 
     # adjust lr according to batch size
-    num_nodes = cfg.num_nodes or 1
-    scale_factor = cfg.optimizer.batch_size * len(cfg.devices) * num_nodes / 256
+    cfg.num_nodes = omegaconf_select(cfg, "num_nodes", 1)
+    scale_factor = cfg.optimizer.batch_size * len(cfg.devices) * cfg.num_nodes / 256
     cfg.optimizer.lr = cfg.optimizer.lr * scale_factor
     cfg.optimizer.classifier_lr = cfg.optimizer.classifier_lr * scale_factor
 
@@ -127,5 +127,8 @@ def parse_cfg(cfg: omegaconf.DictConfig):
 
     # default misc values
     cfg.seed = omegaconf_select(cfg, "seed", 5)
+
+    # default values for pytorch lightning stuff
+    cfg.resume_from_checkpoint = omegaconf_select(cfg, "resume_from_checkpoint", None)
 
     return cfg
