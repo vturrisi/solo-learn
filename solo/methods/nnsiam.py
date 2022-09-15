@@ -105,8 +105,8 @@ class NNSiam(BaseMethod):
         """
 
         extra_learnable_params: List[dict] = [
-            {"name":"projector", "params": self.projector.parameters()},
-            {"name":"predictor", "params": self.predictor.parameters(), "static_lr": True},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters(), "static_lr": True},
         ]
         return super().learnable_params + extra_learnable_params
 
