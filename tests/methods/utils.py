@@ -17,18 +17,28 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import textwrap
 import numpy as np
 import torch
 from PIL import Image
+
+import sys
+
+# hack for now
+sys.path.append("/home/CORP/vg.turrisi/Documents/projects/solo-learn/")
+
 from solo.data.pretrain_dataloader import (
+    FullTransformPipeline,
+    NCropAugmentation,
+    build_transform_pipeline,
     dataset_with_index,
     prepare_dataloader,
     prepare_n_crop_transform,
-    prepare_transform,
 )
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import FakeData
+from omegaconf import OmegaConf
 
 DATA_KWARGS = {
     "brightness": 0.4,
@@ -135,67 +145,62 @@ def gen_classification_batch(b, num_classes, dataset):
 
 
 def prepare_dummy_dataloaders(
-    dataset, num_large_crops, num_classes, multicrop=False, num_small_crops=0, batch_size=2
+    dataset, num_large_crops, num_classes, num_small_crops=0, batch_size=2
 ):
     is_cifar = "cifar" in dataset
 
-    if multicrop:
-        transform_kwargs = [
-            dict(
-                brightness=brightness,
-                contrast=contrast,
-                saturation=saturation,
-                hue=hue,
-                gaussian_prob=gaussian_prob,
-                solarization_prob=solarization_prob,
-                crop_size=crop_size,
-                min_scale=min_scale,
-                max_scale=max_scale,
-            )
-            for (
-                brightness,
-                contrast,
-                saturation,
-                hue,
-                gaussian_prob,
-                solarization_prob,
-                crop_size,
-                min_scale,
-                max_scale,
-            ) in zip(
-                [0.4, 0.4],
-                [0.4, 0.4],
-                [0.2, 0.2],
-                [0.1, 0.1],
-                [1.0, 0.1],
-                [0.0, 0.2],
-                [224, 96] if not is_cifar else [32, 24],
-                [0.14, 0.08],
-                [1.0, 0.14],
-            )
-        ]
+    cfg = {
+        "augmentations": [
+            {
+                "rrc": {"enabled": True, "crop_min_scale": 0.08, "crop_max_scale": 1.0},
+                "color_jitter": {
+                    "enabled": True,
+                    "brightness": 0.8,
+                    "contrast": 0.8,
+                    "saturation": 0.8,
+                    "hue": 0.2,
+                    "prob": 0.8,
+                },
+                "grayscale": {
+                    "enabled": True,
+                    "prob": 0.2,
+                },
+                "gaussian_blur": {
+                    "enabled": True,
+                    "prob": 0.2,
+                },
+                "solarization": {
+                    "enabled": True,
+                    "prob": 0.2,
+                },
+                "equalization": {
+                    "enabled": False,
+                    "prob": 0,
+                },
+                "horizontal_flip": {
+                    "enabled": True,
+                    "prob": 0.5,
+                },
+                "crop_size": 224 if is_cifar else 32,
+                "num_crops": num_large_crops,
+            },
+        ],
+    }
+    if num_small_crops > 0:
+        small_crop_aug = cfg["augmentations"][0].copy()
+        small_crop_aug["crop_size"] = 96 if is_cifar else 24
+        small_crop_aug["num_crops"] = num_small_crops
+        cfg["augmentations"].append(small_crop_aug)
 
-    else:
-        transform_kwargs = dict(
-            brightness=0.4,
-            contrast=0.4,
-            saturation=0.2,
-            hue=0.1,
-            gaussian_prob=1.0,
-            solarization_prob=0.1,
-            crop_size=224 if not is_cifar else 32,
-            min_scale=0.14,
-            max_scale=1.0,
+    cfg = OmegaConf.create(cfg)
+
+    pipelines = []
+    for aug_cfg in cfg.augmentations:
+        pipelines.append(
+            NCropAugmentation(build_transform_pipeline(dataset, aug_cfg), aug_cfg.num_crops)
         )
+    transform = FullTransformPipeline(pipelines)
 
-    if multicrop:
-        transform = [prepare_transform(dataset, **kwargs) for kwargs in transform_kwargs]
-        num_crops_per_aug = [num_large_crops, num_small_crops]
-    else:
-        transform = [prepare_transform(dataset, **transform_kwargs)]
-        num_crops_per_aug = [num_large_crops]
-
-    transform = prepare_n_crop_transform(transform, num_crops_per_aug=num_crops_per_aug)
     dataset = dataset_with_index(FakeData)(
         image_size=(3, 224, 224),
         num_classes=num_classes,
@@ -207,7 +212,7 @@ def prepare_dummy_dataloaders(
     # normal dataloader
     T_val = transforms.Compose(
         [
-            transforms.Resize(224) if not is_cifar else transforms.Resize(32),
+            transforms.Resize(224) if is_cifar else transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]
@@ -232,3 +237,12 @@ def prepare_classification_dummy_dataloaders(dataset, num_classes):
     train_dl = val_dl = DataLoader(dataset, batch_size=2, num_workers=0, drop_last=False)
 
     return train_dl, val_dl
+
+
+prepare_dummy_dataloaders(
+    dataset="imagenet100",
+    num_large_crops=2,
+    num_classes=100,
+    num_small_crops=6,
+    batch_size=2,
+)
