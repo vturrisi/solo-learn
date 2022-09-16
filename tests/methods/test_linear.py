@@ -48,19 +48,19 @@ def test_linear():
     assert model.add_model_specific_args(parser) is not None
 
     batch, _ = gen_classification_batch(
-        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
+        cfg.optimizer.batch_size, cfg.data.num_classes, "imagenet100"
     )
     out = model(batch[0])
 
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
-        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
+        and out["logits"].size() == (cfg.optimizer.batch_size, cfg.data.num_classes)
     )
     assert (
         "feats" in out
         and isinstance(out["feats"], torch.Tensor)
-        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.backbone.inplanes)
+        and out["feats"].size() == (cfg.optimizer.batch_size, model.backbone.inplanes)
     )
 
     args = argparse.Namespace(**kwargs)
@@ -72,7 +72,7 @@ def test_linear():
     )
     train_dl, val_dl = prepare_classification_dummy_dataloaders(
         "imagenet100",
-        num_classes=BASE_KWARGS["num_classes"],
+        num_classes=cfg.data.num_classes,
     )
     trainer.fit(model, train_dl, val_dl)
 

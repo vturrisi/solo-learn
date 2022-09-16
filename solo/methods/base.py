@@ -174,7 +174,7 @@ class BaseMethod(pl.LightningModule):
         self.base_model: Callable = self._BACKBONES[cfg.backbone.name]
         self.backbone_name: str = cfg.backbone.name
         # initialize backbone
-        kwargs: Dict[str, Any] = self.backbone_args.copy()
+        kwargs = self.backbone_args.copy()
 
         method: str = cfg.method
         self.backbone: nn.Module = self.base_model(method, **kwargs)
@@ -623,25 +623,20 @@ class BaseMomentumMethod(BaseMethod):
 
         super().__init__(cfg)
 
-        # momentum backbone
+        # initialize momentum backbone
         kwargs = self.backbone_args.copy()
-        cifar = kwargs.pop("cifar", False)
-        # swin specific
-        if "swin" in self.backbone_name and cifar:
-            kwargs["window_size"] = 4
 
-        method = self.cfg.method
-        self.momentum_backbone = self.base_model(method, **kwargs)
+        method: str = cfg.method
+        self.momentum_backbone: nn.Module = self.base_model(method, **kwargs)
         if self.backbone_name.startswith("resnet"):
             # remove fc layer
             self.momentum_backbone.fc = nn.Identity()
+            cifar = cfg.data.dataset in ["cifar10", "cifar100"]
             if cifar:
                 self.momentum_backbone.conv1 = nn.Conv2d(
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.momentum_backbone.maxpool = nn.Identity()
-        else:
-            self.features_dim = self.momentum_backbone.num_features
 
         initialize_momentum_params(self.backbone, self.momentum_backbone)
 

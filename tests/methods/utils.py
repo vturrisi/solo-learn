@@ -17,81 +17,73 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import textwrap
+import inspect
+
 import numpy as np
 import torch
+from omegaconf import OmegaConf
 from PIL import Image
-
-import sys
-
-# hack for now
-sys.path.append("/home/CORP/vg.turrisi/Documents/projects/solo-learn/")
-
+from pytorch_lightning import Trainer
 from solo.data.pretrain_dataloader import (
     FullTransformPipeline,
     NCropAugmentation,
     build_transform_pipeline,
     dataset_with_index,
     prepare_dataloader,
-    prepare_n_crop_transform,
 )
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import FakeData
-from omegaconf import OmegaConf
-
-DATA_KWARGS = {
-    "brightness": 0.4,
-    "contrast": 0.4,
-    "saturation": 0.2,
-    "hue": 0.1,
-    "gaussian_prob": 0.5,
-    "solarization_prob": 0.5,
-}
 
 
-def gen_base_kwargs(
-    cifar=False,
-    momentum=False,
-    num_large_crops=2,
-    num_small_crops=0,
-    batch_size=32,
+def gen_base_cfg(
+    method_name, batch_size, num_classes, num_large_crops=2, num_small_crops=0, momentum=False
 ):
-    BASE_KWARGS = {
-        "backbone": "resnet18",
-        "num_classes": 10 if cifar else 100,
-        "no_labels": False,
-        "data_fraction": -1,
-        "backbone_args": {"zero_init_residual": True, "cifar": cifar},
-        "max_epochs": 2,
-        "optimizer": "lars",
-        "lr": 0.01,
-        "grad_clip_lars": True,
-        "weight_decay": 0.00001,
-        "classifier_lr": 0.5,
-        "exclude_bias_n_norm_lars": True,
-        "accumulate_grad_batches": 1,
-        "extra_optimizer_args": {"momentum": 0.9},
-        "scheduler": "warmup_cosine",
-        "min_lr": 0.0,
-        "warmup_start_lr": 0.0,
-        "warmup_epochs": 10,
-        "num_crops_per_aug": [num_large_crops, num_small_crops],
-        "num_large_crops": num_large_crops,
-        "num_small_crops": num_small_crops,
-        "eta_lars": 0.02,
-        "lr_decay_steps": None,
-        "dali_device": "gpu",
-        "batch_size": batch_size,
-        "num_workers": 4,
-        "train_data_path": "./cifar10/train",
-        "val_data_path": "./cifar10/val",
-        "dataset": "cifar10",
+    cfg = {
+        "name": "test",
+        "method": method_name,
+        "backbone": {"name": "resnet18"},
+        "data": {
+            "dataset": "custom",
+            "train_path": ".",
+            "val_path": ".",
+            "format": "image_folder",
+            "num_workers": 4,
+            "num_large_crops": num_large_crops,
+            "num_small_crops": num_small_crops,
+            "num_classes": num_classes,
+        },
+        "optimizer": {
+            "name": "lars",
+            "batch_size": batch_size,
+            "lr": 0.3,
+            "classifier_lr": 0.1,
+            "weight_decay": 1e-5,
+            "kwargs": {"momentum": 0.9},
+        },
+        "scheduler": {"name": "warmup_cosine"},
+        "checkpoint": {"enabled": False},
+        "auto_resume": {"enabled": False},
+        "max_epochs": 5,
+        "devices": [0],
+        "accelerator": "gpu",
+        "num_nodes": 1,
     }
     if momentum:
-        BASE_KWARGS["base_tau_momentum"] = 0.99
-        BASE_KWARGS["final_tau_momentum"] = 1.0
-    return BASE_KWARGS
+        cfg["momentum"] = {"base_tau": 0.99, "final_tau": 1.0}
+    cfg = OmegaConf.create(cfg)
+    OmegaConf.set_struct(cfg, False)
+    return cfg
+
+
+def gen_trainer(cfg):
+    trainer_kwargs = OmegaConf.to_container(cfg)
+    # we only want to pass in valid Trainer args, the rest may be user specific
+    valid_kwargs = inspect.signature(Trainer.__init__).parameters
+    trainer_kwargs = {name: trainer_kwargs[name] for name in valid_kwargs if name in trainer_kwargs}
+    trainer_kwargs.update({"logger": None, "enable_checkpointing": False, "fast_dev_run": True})
+    trainer = Trainer(**trainer_kwargs)
+    return trainer
 
 
 def gen_batch(b, num_classes, dataset):
@@ -102,13 +94,8 @@ def gen_batch(b, num_classes, dataset):
     else:
         size = 224
 
-    im = np.random.rand(size, size, 3) * 255
-    im = Image.fromarray(im.astype("uint8")).convert("RGB")
-    T = [prepare_transform(dataset, crop_size=size, **DATA_KWARGS)]
-    T = prepare_n_crop_transform(T, num_crops_per_aug=[2])
-    x1, x2 = T(im)
-    x1 = x1.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
-    x2 = x2.unsqueeze(0).repeat(b, 1, 1, 1).requires_grad_(True)
+    x1 = torch.randn(b, 3, size, size, requires_grad=True)
+    x2 = torch.randn(b, 3, size, size, requires_grad=True)
 
     idx = torch.arange(b)
     label = torch.randint(low=0, high=num_classes, size=(b,))
@@ -237,12 +224,3 @@ def prepare_classification_dummy_dataloaders(dataset, num_classes):
     train_dl = val_dl = DataLoader(dataset, batch_size=2, num_workers=0, drop_last=False)
 
     return train_dl, val_dl
-
-
-prepare_dummy_dataloaders(
-    dataset="imagenet100",
-    num_large_crops=2,
-    num_classes=100,
-    num_small_crops=6,
-    batch_size=2,
-)

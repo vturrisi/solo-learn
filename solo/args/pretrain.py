@@ -130,5 +130,6 @@ def parse_cfg(cfg: omegaconf.DictConfig):
 
     # default values for pytorch lightning stuff
     cfg.resume_from_checkpoint = omegaconf_select(cfg, "resume_from_checkpoint", None)
+    cfg.strategy = omegaconf_select(cfg, "strategy", None)
 
     return cfg
