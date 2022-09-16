@@ -20,7 +20,7 @@
 import torch
 from solo.methods import NNBYOL
 
-from .utils import gen_base_cfg, gen_base_kwargs, gen_batch, gen_trainer, prepare_dummy_dataloaders
+from .utils import gen_base_cfg, gen_batch, gen_trainer, prepare_dummy_dataloaders
 
 
 def test_nnbyol():

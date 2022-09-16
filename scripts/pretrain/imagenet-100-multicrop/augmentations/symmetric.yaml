@@ -3,26 +3,20 @@
       crop_min_scale: 0.08
       crop_max_scale: 1.0
     color_jitter:
-      enabled: True
+      prob: 0.8
       brightness: 0.8
       contrast: 0.8
       saturation: 0.8
       hue: 0.2
-      prob: 0.8
     grayscale:
-      enabled: True
       prob: 0.2
     gaussian_blur:
-      enabled: True
       prob: 0.5
     solarization:
-      enabled: False
       prob: 0.0
     equalization:
-      enabled: False
       prob: 0.0
     horizontal_flip:
-      enabled: True
       prob: 0.5
     crop_size: 224
     num_crops: 2
@@ -32,26 +26,20 @@
       crop_min_scale: 0.08
       crop_max_scale: 1.0
     color_jitter:
-      enabled: True
+      prob: 0.8
       brightness: 0.8
       contrast: 0.8
       saturation: 0.8
       hue: 0.2
-      prob: 0.8
     grayscale:
-      enabled: True
       prob: 0.2
     gaussian_blur:
-      enabled: False
       prob: 0.0
     solarization:
-      enabled: False
       prob: 0.0
     equalization:
-      enabled: False
       prob: 0.0
     horizontal_flip:
-      enabled: True
       prob: 0.5
     crop_size: 96
     num_crops: 6

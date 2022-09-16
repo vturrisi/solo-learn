@@ -17,15 +17,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
-
-import pytorch_lightning as pl
 import torch
-from pytorch_lightning import Trainer
-from solo.methods import MoCoV3
 from solo.methods.mae import MAE
 
-from .utils import DATA_KWARGS, gen_base_kwargs, gen_batch, prepare_dummy_dataloaders
+from .utils import gen_base_cfg, gen_batch, gen_trainer, prepare_dummy_dataloaders
 
 
 def test_mae():
@@ -36,14 +31,11 @@ def test_mae():
         "mask_ratio": 0.75,
         "norm_pix_loss": True,
     }
+    cfg = gen_base_cfg("mae", batch_size=2, num_classes=100, momentum=True)
+    cfg.method_kwargs = method_kwargs
+    cfg.backbone = {"name": "vit_small", "kwargs": {"img_size": 224, "patch_size": 16}}
 
-    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
-    BASE_KWARGS["method"] = "mae"
-    BASE_KWARGS["backbone"] = "vit_small"
-    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
-
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MAE(**kwargs)
+    model = MAE(cfg)
 
     # test arguments
     model.add_and_assert_specific_cfg(cfg)
@@ -76,14 +68,7 @@ def test_mae():
     )
 
     # imagenet
-    BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True, batch_size=2)
-    BASE_KWARGS["method"] = "mae"
-    BASE_KWARGS["backbone"] = "vit_small"
-    BASE_KWARGS["backbone_args"] = {"img_size": 224, "patch_size": 16}
-
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MAE(**kwargs)
-
+    model = MAE(cfg)
     trainer = gen_trainer(cfg)
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
@@ -95,13 +80,10 @@ def test_mae():
     trainer.fit(model, train_dl, val_dl)
 
     # cifar
-    BASE_KWARGS = gen_base_kwargs(cifar=True, momentum=True, batch_size=2)
-    BASE_KWARGS["method"] = "mae"
-    BASE_KWARGS["backbone"] = "vit_small"
-    BASE_KWARGS["backbone_args"] = {"img_size": 32, "patch_size": 16}
-
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = MAE(**kwargs)
+    cfg.data.dataset = "cifar10"
+    cfg.data.num_classes = 10
+    cfg.backbone = {"name": "vit_small", "kwargs": {"img_size": 32, "patch_size": 8}}
+    model = MAE(cfg)
 
     trainer = gen_trainer(cfg)
     train_dl, val_dl = prepare_dummy_dataloaders(

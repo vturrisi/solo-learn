@@ -56,7 +56,6 @@ setup(
         "scipy",
         "timm",
         "scikit-learn",
-        "omegaconf",
         "hydra-core",
     ],
     extras_require=EXTRA_REQUIREMENTS,

@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}
 
       - name: pytest
-        run: pytest --cov=solo tests/args tests/backbones tests/losses tests/methods tests/utils
+        run: pytest --cov=solo tests/args tests/backbones tests/data tests/losses tests/methods tests/utils
 
       - name: Statistics
         if: success()

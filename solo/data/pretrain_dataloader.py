@@ -186,26 +186,20 @@ def build_transform_pipeline(dataset, cfg):
             crop_min_scale: float
             crop_max_scale: float
         color_jitter:
-            enabled: bool
+            prob: float
             brightness: float
             contrast: float
             saturation: float
             hue: float
-            prob: float
         grayscale:
-            enabled: bool
             prob: float
         gaussian_blur:
-            enabled: bool
             prob: float
         solarization:
-            enabled: bool
             prob: float
         equalization:
-            enabled: bool
             prob: float
         horizontal_flip:
-            enabled: bool
             prob: float
     """
 
@@ -238,7 +232,7 @@ def build_transform_pipeline(dataset, cfg):
             ),
         )
 
-    if cfg.color_jitter.enabled:
+    if cfg.color_jitter.prob:
         augmentations.append(
             transforms.RandomApply(
                 [
@@ -253,19 +247,19 @@ def build_transform_pipeline(dataset, cfg):
             ),
         )
 
-    if cfg.grayscale.enabled:
+    if cfg.grayscale.prob:
         augmentations.append(transforms.RandomGrayscale(p=cfg.grayscale.prob))
 
-    if cfg.gaussian_blur.enabled:
+    if cfg.gaussian_blur.prob:
         augmentations.append(transforms.RandomApply([GaussianBlur()], p=cfg.gaussian_blur.prob))
 
-    if cfg.solarization.enabled:
+    if cfg.solarization.prob:
         augmentations.append(transforms.RandomApply([Solarization()], p=cfg.solarization.prob))
 
-    if cfg.equalization.enabled:
+    if cfg.equalization.prob:
         augmentations.append(transforms.RandomApply([Equalization()], p=cfg.equalization.prob))
 
-    if cfg.horizontal_flip.enabled:
+    if cfg.horizontal_flip.prob:
         augmentations.append(transforms.RandomHorizontalFlip(p=cfg.horizontal_flip.prob))
 
     augmentations.append(transforms.ToTensor())

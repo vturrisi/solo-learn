@@ -26,12 +26,60 @@ from pytorch_lightning import Trainer
 from solo.methods.linear import LinearModel
 from torchvision.models import resnet18
 
-from .utils import (
-    DATA_KWARGS,
-    gen_base_kwargs,
-    gen_classification_batch,
-    prepare_classification_dummy_dataloaders,
-)
+from .utils import gen_classification_batch, prepare_classification_dummy_dataloaders
+
+DATA_KWARGS = {
+    "brightness": 0.4,
+    "contrast": 0.4,
+    "saturation": 0.2,
+    "hue": 0.1,
+    "gaussian_prob": 0.5,
+    "solarization_prob": 0.5,
+}
+
+
+def gen_base_kwargs(
+    cifar=False,
+    momentum=False,
+    num_large_crops=2,
+    num_small_crops=0,
+    batch_size=32,
+):
+    BASE_KWARGS = {
+        "backbone": "resnet18",
+        "num_classes": 10 if cifar else 100,
+        "no_labels": False,
+        "data_fraction": -1,
+        "backbone_args": {"zero_init_residual": True, "cifar": cifar},
+        "max_epochs": 2,
+        "optimizer": "lars",
+        "lr": 0.01,
+        "grad_clip_lars": True,
+        "weight_decay": 0.00001,
+        "classifier_lr": 0.5,
+        "exclude_bias_n_norm_lars": True,
+        "accumulate_grad_batches": 1,
+        "extra_optimizer_args": {"momentum": 0.9},
+        "scheduler": "warmup_cosine",
+        "min_lr": 0.0,
+        "warmup_start_lr": 0.0,
+        "warmup_epochs": 10,
+        "num_crops_per_aug": [num_large_crops, num_small_crops],
+        "num_large_crops": num_large_crops,
+        "num_small_crops": num_small_crops,
+        "eta_lars": 0.02,
+        "lr_decay_steps": None,
+        "dali_device": "gpu",
+        "batch_size": batch_size,
+        "num_workers": 4,
+        "train_data_path": "./cifar10/train",
+        "val_data_path": "./cifar10/val",
+        "dataset": "cifar10",
+    }
+    if momentum:
+        BASE_KWARGS["base_tau_momentum"] = 0.99
+        BASE_KWARGS["final_tau_momentum"] = 1.0
+    return BASE_KWARGS
 
 
 def test_linear():
@@ -48,19 +96,19 @@ def test_linear():
     assert model.add_model_specific_args(parser) is not None
 
     batch, _ = gen_classification_batch(
-        cfg.optimizer.batch_size, cfg.data.num_classes, "imagenet100"
+        BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"], "imagenet100"
     )
     out = model(batch[0])
 
     assert (
         "logits" in out
         and isinstance(out["logits"], torch.Tensor)
-        and out["logits"].size() == (cfg.optimizer.batch_size, cfg.data.num_classes)
+        and out["logits"].size() == (BASE_KWARGS["batch_size"], BASE_KWARGS["num_classes"])
     )
     assert (
         "feats" in out
         and isinstance(out["feats"], torch.Tensor)
-        and out["feats"].size() == (cfg.optimizer.batch_size, model.backbone.inplanes)
+        and out["feats"].size() == (BASE_KWARGS["batch_size"], model.backbone.inplanes)
     )
 
     args = argparse.Namespace(**kwargs)
@@ -72,7 +120,7 @@ def test_linear():
     )
     train_dl, val_dl = prepare_classification_dummy_dataloaders(
         "imagenet100",
-        num_classes=cfg.data.num_classes,
+        num_classes=BASE_KWARGS["num_classes"],
     )
     trainer.fit(model, train_dl, val_dl)
 

@@ -21,9 +21,7 @@ import torch
 from solo.methods import DINO
 
 from .utils import (
-    DATA_KWARGS,
     gen_base_cfg,
-    gen_base_kwargs,
     gen_batch,
     gen_trainer,
     prepare_dummy_dataloaders,

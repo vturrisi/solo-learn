@@ -168,14 +168,15 @@ def prepare_dummy_dataloaders(
                     "enabled": True,
                     "prob": 0.5,
                 },
-                "crop_size": 224 if is_cifar else 32,
+                "crop_size": 224 if not is_cifar else 32,
                 "num_crops": num_large_crops,
             },
         ],
     }
+
     if num_small_crops > 0:
         small_crop_aug = cfg["augmentations"][0].copy()
-        small_crop_aug["crop_size"] = 96 if is_cifar else 24
+        small_crop_aug["crop_size"] = 96 if not is_cifar else 24
         small_crop_aug["num_crops"] = num_small_crops
         cfg["augmentations"].append(small_crop_aug)
 
@@ -199,7 +200,7 @@ def prepare_dummy_dataloaders(
     # normal dataloader
     T_val = transforms.Compose(
         [
-            transforms.Resize(224) if is_cifar else transforms.Resize(32),
+            transforms.Resize(224) if not is_cifar else transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]
