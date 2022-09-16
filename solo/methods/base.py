@@ -267,8 +267,6 @@ class BaseMethod(pl.LightningModule):
                 "issues when resuming a checkpoint."
             )
 
-       
-
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds shared basic arguments that are shared for all methods.
