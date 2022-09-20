@@ -204,16 +204,8 @@ def test_dali_pretrain():
 def test_dali_linear():
     # creates a dummy dataset that autodeletes after usage
     with DummyDataset("./dummy_train", "./dummy_val", 128, 4):
-        method_kwargs = {
-            "proj_hidden_dim": 2048,
-            "proj_output_dim": 2048,
-            "lamb": 5e-3,
-            "scale_loss": 0.025,
-        }
-        cfg = gen_base_cfg("barlow_twins", batch_size=2, num_classes=100)
-        cfg.method_kwargs = method_kwargs
+        cfg = gen_base_cfg("none", batch_size=2, num_classes=100)
         cfg = ClassificationDALIDataModule.add_and_assert_specific_cfg(cfg)
-        model = BarlowTwins(cfg)
 
         backbone = resnet18()
         backbone.fc = nn.Identity()

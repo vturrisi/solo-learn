@@ -65,8 +65,8 @@ def gen_base_cfg(
         "checkpoint": {"enabled": False},
         "auto_resume": {"enabled": False},
         "max_epochs": 5,
-        "devices": [0],
-        "accelerator": "gpu",
+        "devices": 1,
+        "accelerator": "cpu",
         "num_nodes": 1,
     }
     if momentum:
