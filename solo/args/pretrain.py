@@ -44,12 +44,12 @@ def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfi
 
     assert not OmegaConf.is_missing(cfg, "data.dataset")
     assert not OmegaConf.is_missing(cfg, "data.train_path")
-    assert not OmegaConf.is_missing(cfg, "data.format")
 
     assert cfg.data.dataset in _SUPPORTED_DATASETS
 
     # if validation path is not available, assume that we want to skip eval
     cfg.data.val_path = omegaconf_select(cfg, "data.val_path", None)
+    cfg.data.format = omegaconf_select(cfg, "data.format", "image_folder")
     cfg.data.no_labels = omegaconf_select(cfg, "data.no_labels", False)
     cfg.data.fraction = omegaconf_select(cfg, "data.fraction", -1)
     cfg.debug_augmentations = omegaconf_select(cfg, "debug_augmentations", False)
@@ -124,7 +124,7 @@ def parse_cfg(cfg: omegaconf.DictConfig):
         # even if the custom dataset doesn't have any labels
         cfg.data.num_classes = max(
             1,
-            len([entry.name for entry in os.scandir(cfg.data.train_data_path) if entry.is_dir]),
+            len([entry.name for entry in os.scandir(cfg.data.train_path) if entry.is_dir]),
         )
 
     # find number of big/small crops

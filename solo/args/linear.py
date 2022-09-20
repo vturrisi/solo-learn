@@ -1,5 +1,5 @@
-from multiprocessing.managers import BaseManager
 import os
+from multiprocessing.managers import BaseManager
 
 import omegaconf
 from omegaconf import OmegaConf
@@ -48,10 +48,10 @@ def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfi
     assert not OmegaConf.is_missing(cfg, "data.dataset")
     assert not OmegaConf.is_missing(cfg, "data.train_path")
     assert not OmegaConf.is_missing(cfg, "data.val_path")
-    assert not OmegaConf.is_missing(cfg, "data.format")
 
     assert cfg.data.dataset in _SUPPORTED_DATASETS
 
+    cfg.data.format = omegaconf_select(cfg, "data.format", "image_folder")
     cfg.data.fraction = omegaconf_select(cfg, "data.fraction", -1)
 
     return cfg
@@ -140,18 +140,6 @@ def parse_cfg(cfg: omegaconf.DictConfig):
     cfg.mixup = omegaconf_select(cfg, "mixup", 0.0)
     cfg.cutmix = omegaconf_select(cfg, "cutmix", 0.0)
 
-    cfg.transformer_kwargs = omegaconf_select(cfg, "transformer_kwargs", {})
-    cfg.transformer_kwargs.drop_path = omegaconf_select(cfg, "transformer_kwargs.drop_path", 0.0)
-    # type of pooling to use, either cls token or global average
-    cfg.transformer_kwargs.global_pool = omegaconf_select(
-        cfg, "transformer_kwargs.global_pool", "token"
-    )
-    assert cfg.transformer_kwargs.global_pool in ["token", "avg"]
-    # different weight decay for each layer (using timm.optim.optim_factory)
-    cfg.transformer_kwargs.layer_decay = omegaconf_select(
-        cfg, "transformer_kwargs.layer_decay", 0.0
-    )
-
     # augmentation related (crop size and custom mean/std values for normalization)
     cfg.data.augmentations = omegaconf_select(cfg, "data.augmentations", {})
     cfg.data.augmentations.crop_size = omegaconf_select(cfg, "data.augmentations.crop_size", 224)
@@ -170,7 +158,7 @@ def parse_cfg(cfg: omegaconf.DictConfig):
         # even if the custom dataset doesn't have any labels
         cfg.data.num_classes = max(
             1,
-            len([entry.name for entry in os.scandir(cfg.data.train_data_path) if entry.is_dir]),
+            len([entry.name for entry in os.scandir(cfg.data.train_path) if entry.is_dir]),
         )
 
     if cfg.data.format == "dali":

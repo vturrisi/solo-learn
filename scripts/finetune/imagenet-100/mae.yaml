@@ -2,6 +2,9 @@ name: "mae-imagenet100-finetune"
 pretrained_feature_extractor: None
 backbone:
   name: "vit_base"
+  kwargs:
+    layer_decay: 0.75
+    drop_path: 0.1
 pretrain_method: "mae"
 data:
   dataset: imagenet100
@@ -23,8 +26,6 @@ checkpoint:
 auto_resume:
   enabled: True
 label_smoothing: 0.1
-layer_decay: 0.75
-drop_path: 0.1
 mixup: 0.8
 cutmix: 1.0
 finetune: True
