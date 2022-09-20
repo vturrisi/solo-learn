@@ -1,14 +1,16 @@
+from multiprocessing.managers import BaseManager
 import os
 
 import omegaconf
 from omegaconf import OmegaConf
+from solo.methods.base import BaseMethod
 from solo.utils.auto_resumer import AutoResumer
-from solo.utils.auto_umap import AutoUMAP
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import omegaconf_select
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 try:
-    from solo.data.dali_dataloader import PretrainDALIDataModule
+    from solo.data.dali_dataloader import ClassificationDALIDataModule
 except ImportError:
     _dali_available = False
 else:
@@ -21,6 +23,7 @@ _N_CLASSES_PER_DATASET = {
     "imagenet": 1000,
     "imagenet100": 100,
 }
+
 
 _SUPPORTED_DATASETS = [
     "cifar10",
@@ -44,15 +47,12 @@ def add_and_assert_dataset_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfi
 
     assert not OmegaConf.is_missing(cfg, "data.dataset")
     assert not OmegaConf.is_missing(cfg, "data.train_path")
+    assert not OmegaConf.is_missing(cfg, "data.val_path")
     assert not OmegaConf.is_missing(cfg, "data.format")
 
     assert cfg.data.dataset in _SUPPORTED_DATASETS
 
-    # if validation path is not available, assume that we want to skip eval
-    cfg.data.val_path = omegaconf_select(cfg, "data.val_path", None)
-    cfg.data.no_labels = omegaconf_select(cfg, "data.no_labels", False)
     cfg.data.fraction = omegaconf_select(cfg, "data.fraction", -1)
-    cfg.debug_augmentations = omegaconf_select(cfg, "debug_augmentations", False)
 
     return cfg
 
@@ -94,18 +94,25 @@ def add_and_assert_lightning_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictCon
 
 
 def parse_cfg(cfg: omegaconf.DictConfig):
+    """Parses feature extractor, dataset, pytorch lightning, linear eval specific and additional args.
+
+    First adds an arg for the pretrained feature extractor, then adds dataset, pytorch lightning
+    and linear eval specific args. If wandb is enabled, it adds checkpointer args. Finally, adds
+    additional non-user given parameters.
+
+    Returns:
+        argparse.Namespace: a namespace containing all args needed for pretraining.
+    """
+
     # default values for checkpointer
     cfg = Checkpointer.add_and_assert_specific_cfg(cfg)
 
     # default values for auto_resume
     cfg = AutoResumer.add_and_assert_specific_cfg(cfg)
 
-    # default values for auto_umap
-    cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
-
     # default values for dali
     if _dali_available:
-        cfg = PretrainDALIDataModule.add_and_assert_specific_cfg(cfg)
+        cfg = ClassificationDALIDataModule.add_and_assert_specific_cfg(cfg)
 
     # assert dataset parameters
     cfg = add_and_assert_dataset_cfg(cfg)
@@ -115,6 +122,45 @@ def parse_cfg(cfg: omegaconf.DictConfig):
 
     # default values for pytorch lightning stuff
     cfg = add_and_assert_lightning_cfg(cfg)
+
+    # backbone
+    assert not omegaconf.OmegaConf.is_missing(cfg, "backbone.name")
+    assert cfg.backbone.name in BaseMethod._BACKBONES
+
+    # backbone kwargs
+    cfg.backbone.kwargs = omegaconf_select(cfg, "backbone.kwargs", {})
+
+    assert not omegaconf.OmegaConf.is_missing(cfg, "pretrained_feature_extractor")
+
+    cfg.pretrain_method = omegaconf_select(cfg, "pretrain_method", None)
+
+    # extra training options
+    cfg.auto_augment = omegaconf_select(cfg, "auto_augment", False)
+    cfg.label_smoothing = omegaconf_select(cfg, "label_smoothing", 0.0)
+    cfg.mixup = omegaconf_select(cfg, "mixup", 0.0)
+    cfg.cutmix = omegaconf_select(cfg, "cutmix", 0.0)
+
+    cfg.transformer_kwargs = omegaconf_select(cfg, "transformer_kwargs", {})
+    cfg.transformer_kwargs.drop_path = omegaconf_select(cfg, "transformer_kwargs.drop_path", 0.0)
+    # type of pooling to use, either cls token or global average
+    cfg.transformer_kwargs.global_pool = omegaconf_select(
+        cfg, "transformer_kwargs.global_pool", "token"
+    )
+    assert cfg.transformer_kwargs.global_pool in ["token", "avg"]
+    # different weight decay for each layer (using timm.optim.optim_factory)
+    cfg.transformer_kwargs.layer_decay = omegaconf_select(
+        cfg, "transformer_kwargs.layer_decay", 0.0
+    )
+
+    # augmentation related (crop size and custom mean/std values for normalization)
+    cfg.data.augmentations = omegaconf_select(cfg, "data.augmentations", {})
+    cfg.data.augmentations.crop_size = omegaconf_select(cfg, "data.augmentations.crop_size", 224)
+    cfg.data.augmentations.mean = omegaconf_select(
+        cfg, "data.augmentations.mean", IMAGENET_DEFAULT_MEAN
+    )
+    cfg.data.augmentations.std = omegaconf_select(
+        cfg, "data.augmentations.std", IMAGENET_DEFAULT_STD
+    )
 
     # extra processing
     if cfg.data.dataset in _N_CLASSES_PER_DATASET:
@@ -127,17 +173,6 @@ def parse_cfg(cfg: omegaconf.DictConfig):
             len([entry.name for entry in os.scandir(cfg.data.train_data_path) if entry.is_dir]),
         )
 
-    # find number of big/small crops
-    big_size = cfg.augmentations[0].crop_size
-    num_large_crops = num_small_crops = 0
-    for pipeline in cfg.augmentations:
-        if big_size == pipeline.crop_size:
-            num_large_crops += pipeline.num_crops
-        else:
-            num_small_crops += pipeline.num_crops
-    cfg.data.num_large_crops = num_large_crops
-    cfg.data.num_small_crops = num_small_crops
-
     if cfg.data.format == "dali":
         assert cfg.data.dataset in ["imagenet100", "imagenet", "custom"]
 
@@ -145,9 +180,6 @@ def parse_cfg(cfg: omegaconf.DictConfig):
     cfg.num_nodes = omegaconf_select(cfg, "num_nodes", 1)
     scale_factor = cfg.optimizer.batch_size * len(cfg.devices) * cfg.num_nodes / 256
     cfg.optimizer.lr = cfg.optimizer.lr * scale_factor
-    if cfg.data.val_path is not None:
-        assert not OmegaConf.is_missing(cfg, "optimizer.classifier_lr")
-        cfg.optimizer.classifier_lr = cfg.optimizer.classifier_lr * scale_factor
 
     # extra optimizer kwargs
     cfg.optimizer.kwargs = omegaconf_select(cfg, "optimizer.kwargs", {})

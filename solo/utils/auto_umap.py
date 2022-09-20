@@ -42,7 +42,7 @@ from tqdm import tqdm
 class AutoUMAP(Callback):
     def __init__(
         self,
-        cfg: DictConfig,
+        name: str,
         logdir: Union[str, Path] = Path("auto_umap"),
         frequency: int = 1,
         keep_previous: bool = False,
@@ -63,7 +63,7 @@ class AutoUMAP(Callback):
 
         super().__init__()
 
-        self.cfg = cfg
+        self.name = name
         self.logdir = Path(logdir)
         self.frequency = frequency
         self.color_palette = color_palette
@@ -115,10 +115,10 @@ class AutoUMAP(Callback):
             version = str(trainer.logger.version)
         if version is not None:
             self.path = self.logdir / version
-            self.umap_placeholder = f"{self.cfg.name}-{version}" + "-ep={}.pdf"
+            self.umap_placeholder = f"{self.name}-{version}" + "-ep={}.pdf"
         else:
             self.path = self.logdir
-            self.umap_placeholder = f"{self.cfg.name}" + "-ep={}.pdf"
+            self.umap_placeholder = f"{self.name}" + "-ep={}.pdf"
         self.last_ckpt: Optional[str] = None
 
         # create logging dirs

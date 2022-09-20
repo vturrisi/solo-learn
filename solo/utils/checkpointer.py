@@ -103,6 +103,7 @@ class Checkpointer(Callback):
         else:
             version = str(trainer.logger.version)
             self.wandb_run_id = version
+
         if version is not None:
             self.path = self.logdir / version
             self.ckpt_placeholder = f"{self.cfg.name}-{version}" + "-ep={}.ckpt"

@@ -1,0 +1,38 @@
+name: "mae-imagenet100-finetune"
+pretrained_feature_extractor: None
+backbone:
+  name: "vit_base"
+pretrain_method: "mae"
+data:
+  dataset: imagenet100
+  train_path: "./datasets/imagenet-100/train"
+  val_path: "./datasets/imagenet-100/val"
+  format: "dali"
+  num_workers: 4
+optimizer:
+  name: "sgd"
+  batch_size: 64
+  lr: 5e-4
+  weight_decay: 0.05
+scheduler:
+  name: "warmup_cosine"
+checkpoint:
+  enabled: True
+  dir: "trained_models"
+  frequency: 1
+auto_resume:
+  enabled: True
+label_smoothing: 0.1
+layer_decay: 0.75
+drop_path: 0.1
+mixup: 0.8
+cutmix: 1.0
+finetune: True
+
+# overwrite PL stuff
+max_epochs: 100
+devices: [0, 1, 2, 3, 4, 5, 6, 7]
+sync_batchnorm: True
+accelerator: "gpu"
+strategy: "ddp"
+precision: 16

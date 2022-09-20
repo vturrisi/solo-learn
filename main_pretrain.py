@@ -191,7 +191,7 @@ def main(cfg: DictConfig):
             _umap_available
         ), "UMAP is not currently avaiable, please install it first with [umap]."
         auto_umap = AutoUMAP(
-            cfg,
+            cfg.name,
             logdir=os.path.join(cfg.auto_umap.dir, cfg.method),
             frequency=cfg.auto_umap.frequency,
         )

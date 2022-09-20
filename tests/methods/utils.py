@@ -76,13 +76,18 @@ def gen_base_cfg(
     return cfg
 
 
-def gen_trainer(cfg):
+def gen_trainer(cfg, callbacks=None):
+    if callbacks is None:
+        callbacks = []
+    elif not isinstance(callbacks, (list, tuple)):
+        callbacks = [callbacks]
+
     trainer_kwargs = OmegaConf.to_container(cfg)
     # we only want to pass in valid Trainer args, the rest may be user specific
     valid_kwargs = inspect.signature(Trainer.__init__).parameters
     trainer_kwargs = {name: trainer_kwargs[name] for name in valid_kwargs if name in trainer_kwargs}
     trainer_kwargs.update({"logger": None, "enable_checkpointing": False, "fast_dev_run": True})
-    trainer = Trainer(**trainer_kwargs)
+    trainer = Trainer(**trainer_kwargs, callbacks=callbacks)
     return trainer
 
 

@@ -885,12 +885,19 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             raise ValueError(dataset, "is not supported, used [imagenet, imagenet100 or custom]")
 
     @staticmethod
-    def add_dali_args(parent_parser: ArgumentParser) -> ArgumentParser:
-        parser = parent_parser.add_argument_group("dali")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        parser.add_argument("--dali_device", type=str, default="gpu")
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        return parent_parser
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        cfg.dali = omegaconf_select(cfg, "dali", {})
+        cfg.dali.device = omegaconf_select(cfg, "dali.device", "gpu")
+        return cfg
 
     def setup(self, stage: Optional[str] = None):
         # extra info about training

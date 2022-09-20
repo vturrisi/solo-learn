@@ -102,7 +102,7 @@ class BaseMethod(pl.LightningModule):
         and schedulers, implements basic training_step for any number of crops,
         trains the online classifier and implements validation_step.
 
-        .. note:: Set Cfg defaults by calling `cfg = add_and_assert_specific_cfg(cfg)`
+        .. note:: Cfg defaults are set in init by calling `cfg = add_and_assert_specific_cfg(cfg)`
 
         Cfg basic structure:
             backbone:

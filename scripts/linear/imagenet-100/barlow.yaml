@@ -1,18 +1,8 @@
-defaults:
-  - _self_
-  - augmentations: asymmetric.yaml
-hydra:  
-  output_subdir: null
-
-
-name: "barlow_twins-imagenet100"
-method: "barlow_twins"
+name: "barlow_twins-imagenet100-linear"
+pretrained_feature_extractor: "/home/CORP/vg.turrisi/Documents/projects/solo-learn/trained_models/barlow_twins/offline-695ax0nd/barlow_twins-imagenet100-offline-695ax0nd-ep=1.ckpt"
 backbone:
   name: "resnet18"
-method_kwargs:
-  proj_hidden_dim: 4096
-  proj_output_dim: 4096
-  scale_loss: 0.1
+pretrain_method: "barlow_twins"
 data:
   dataset: imagenet100
   train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
@@ -20,17 +10,13 @@ data:
   format: "image_folder"
   num_workers: 4
 optimizer:
-  name: "lars"
+  name: "sgd"
   batch_size: 16
-  lr: 0.3
-  classifier_lr: 0.1
-  weight_decay: 1e-4
-  kwargs:
-    clip_lr: True
-    eta: 0.02
-    exclude_bias_n_norm: True
+  lr: 0.1
+  weight_decay: 0
 scheduler:
-  name: "warmup_cosine"
+  name: "step"
+  lr_decay_steps: [60, 80]
 checkpoint:
   enabled: True
   dir: "trained_models"
@@ -39,8 +25,8 @@ auto_resume:
   enabled: True
 
 # overwrite PL stuff
-max_epochs: 400
-devices: [0, 1]
+max_epochs: 100
+devices: [0]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"
