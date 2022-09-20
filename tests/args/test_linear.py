@@ -77,9 +77,9 @@ def test_linear_parse_cfg():
     assert not OmegaConf.is_missing(cfg, "data.num_classes")
     assert not OmegaConf.is_missing(cfg, "num_nodes")
     assert not OmegaConf.is_missing(cfg, "optimizer.kwargs")
-    
+
     assert not OmegaConf.is_missing(cfg, "pretrain_method")
-    
+
     assert not OmegaConf.is_missing(cfg, "auto_augment")
     assert not OmegaConf.is_missing(cfg, "label_smoothing")
     assert not OmegaConf.is_missing(cfg, "mixup")
