@@ -1,0 +1,18 @@
+repos:
+-   repo: https://github.com/kynan/nbstripout
+    rev: 0.6.0
+    hooks:
+    -   id: nbstripout
+-   repo: https://github.com/mwouts/jupytext
+    rev: v1.14.1
+    hooks:
+    -   id: jupytext
+        args: [--sync, --pipe, black]
+        additional_dependencies:
+            - black==22.6.0 # Matches hook
+-   repo: https://github.com/psf/black
+    rev: 22.6.0
+    hooks:
+    -   id: black
+        args: [--line-length, "100"]
+        language_version: python3

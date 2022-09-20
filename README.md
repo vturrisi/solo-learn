@@ -134,6 +134,13 @@ If no Dali/UMAP/H5 support is needed, the repository can be installed as:
 pip3 install .
 ```
 
+For local development:
+```
+pip3 install -e .[umap,h5]
+# Make sure you have pre-commit hooks installed
+pre-commit install
+```
+
 **NOTE:** if you are having trouble with dali, install it following their [guide](https://github.com/NVIDIA/DALI).
 
 **NOTE 2:** consider installing [Pillow-SIMD](https://github.com/uploadcare/pillow-simd) for better loading times when not using Dali.
