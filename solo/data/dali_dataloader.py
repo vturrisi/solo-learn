@@ -344,26 +344,20 @@ def build_transform_pipeline_dali(dataset, cfg, dali_device):
             crop_min_scale: float
             crop_max_scale: float
         color_jitter:
-            enabled: bool
+            prob: float
             brightness: float
             contrast: float
             saturation: float
             hue: float
-            prob: float
         grayscale:
-            enabled: bool
             prob: float
         gaussian_blur:
-            enabled: bool
             prob: float
         solarization:
-            enabled: bool
             prob: float
         equalization:
-            enabled: bool
             prob: float
         horizontal_flip:
-            enabled: bool
             prob: float
     """
 
@@ -394,7 +388,7 @@ def build_transform_pipeline_dali(dataset, cfg, dali_device):
             ops.Resize(size=(cfg.crop_size, cfg.crop_size), interp_type=types.INTERP_CUBIC)
         )
 
-    if cfg.color_jitter.enabled:
+    if cfg.color_jitter.prob:
         augmentations.append(
             RandomColorJitter(
                 brightness=cfg.color_jitter.brightness,
@@ -406,23 +400,23 @@ def build_transform_pipeline_dali(dataset, cfg, dali_device):
             )
         )
 
-    if cfg.grayscale.enabled:
+    if cfg.grayscale.prob:
         augmentations.append(RandomGrayScaleConversion(prob=cfg.grayscale.prob, device=dali_device))
 
-    if cfg.gaussian_blur.enabled:
+    if cfg.gaussian_blur.prob:
         augmentations.append(RandomGaussianBlur(prob=cfg.gaussian_blur.prob, device=dali_device))
 
-    if cfg.solarization.enabled:
+    if cfg.solarization.prob:
         augmentations.append(RandomSolarize(prob=cfg.solarization.prob))
 
-    if cfg.equalization.enabled:
+    if cfg.equalization.prob:
         raise NotImplementedError(
             "Equalization is not available for DALI"
             "turn it off by setting augmentations.equalization.enabled to False."
         )
 
     coin = None
-    if cfg.horizontal_flip.enabled:
+    if cfg.horizontal_flip.prob:
         coin = ops.random.CoinFlip(probability=cfg.horizontal_flip.prob)
 
     cmn = ops.CropMirrorNormalize(
@@ -460,7 +454,7 @@ class PretrainPipelineBuilder:
         data_path: Union[str, Path],
         batch_size: int,
         device: str,
-        transforms: List[Callable],
+        transforms: Callable,
         random_shuffle: bool = True,
         device_id: int = 0,
         shard_id: int = 0,
@@ -477,7 +471,7 @@ class PretrainPipelineBuilder:
             data_path (str): directory that contains the data.
             batch_size (int): batch size.
             device (str): device on which the operation will be performed.
-            transforms (List[Callable]): list of transformations.
+            transforms (Callable): list of transformations.
             num_crops_per_aug (List[int]): number of crops per pipeline.
             random_shuffle (bool, optional): whether to randomly shuffle the samples.
                 Defaults to True.
