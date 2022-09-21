@@ -1,3 +1,7 @@
+defaults:
+  - _self_
+  - wandb: private.yaml
+
 name: "vibcreg-imagenet100-linear"
 pretrained_feature_extractor: None
 backbone:

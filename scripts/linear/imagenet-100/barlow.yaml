@@ -1,5 +1,9 @@
+defaults:
+  - _self_
+  - wandb: private.yaml
+
 name: "barlow_twins-imagenet100-linear"
-pretrained_feature_extractor: "/home/CORP/vg.turrisi/Documents/projects/solo-learn/trained_models/barlow_twins/offline-695ax0nd/barlow_twins-imagenet100-offline-695ax0nd-ep=1.ckpt"
+pretrained_feature_extractor: None
 backbone:
   name: "resnet18"
 pretrain_method: "barlow_twins"
@@ -11,7 +15,7 @@ data:
   num_workers: 4
 optimizer:
   name: "sgd"
-  batch_size: 16
+  batch_size: 256
   lr: 0.1
   weight_decay: 0
 scheduler:
