@@ -14,6 +14,7 @@ method_kwargs:
   num_prototypes: 3000
   epoch_queue_starts: 50
   freeze_prototypes_epochs: 2
+  temperature: 0.1
 data:
   dataset: cifar10 # change here for cifar100
   train_path: "./datasets"

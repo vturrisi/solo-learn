@@ -1,21 +1,20 @@
 defaults:
   - _self_
-  - augmentations: reconstruction.yaml
+  - augmentations: asymmetric.yaml
   - wandb: private.yaml
 
-name: "mae-cifar10" # change here for cifar100
-method: "mae"
+name: "nnsiam-cifar10" # change here for cifar100
+method: "nnsiam"
 backbone:
-  name: "vit_small"
-  kwargs:
-    patch_size: 4
-    img_size: 32
+  name: "resnet18"
 method_kwargs:
-  decoder_embed_dim: 512
-  decoder_depth: 8
-  decoder_num_heads: 16
-  mask_ratio: 0.75
-  norm_pix_loss: True
+  proj_hidden_dim: 2048
+  pred_hidden_dim: 4096
+  proj_output_dim: 2048
+  queue_size: 65536
+momentum:
+  base_tau: 0.99
+  final_tau: 1.0
 data:
   dataset: cifar10 # change here for cifar100
   train_path: "./datasets"
@@ -23,13 +22,11 @@ data:
   format: "image_folder"
   num_workers: 4
 optimizer:
-  name: "adamw"
+  name: "sgd"
   batch_size: 256
-  lr: 2.0e-4
-  classifier_lr: 2.0e-4
-  weight_decay: 0.05
-  kwargs:
-    betas: [0.9, 0.95]
+  lr: 0.5
+  classifier_lr: 0.1
+  weight_decay: 1e-5
 scheduler:
   name: "warmup_cosine"
 checkpoint:

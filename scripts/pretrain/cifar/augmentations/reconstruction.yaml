@@ -5,7 +5,6 @@
   color_jitter:
     prob: 0.0
   grayscale:
-    enabled: False
     prob: 0.0
   gaussian_blur:
     prob: 0.0
