@@ -36,7 +36,7 @@ for dataset in ${DATASETS[@]}; do
     echo ---------------------------------
 
     # run deepcluster v2 for a full epoch
-    method=deepclusterv2
+    method="deepclusterv2"
     echo Running $method
     python3 main_pretrain.py \
         --config-path scripts/pretrain/cifar/ \

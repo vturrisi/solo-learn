@@ -938,7 +938,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         train_pipeline.build()
 
         train_loader = Wrapper(
-            train_pipeline,
+            pipelines=train_pipeline,
             dataset_size=train_pipeline.epoch_size("Reader"),
             output_map=["x", "label"],
             reader_name="Reader",
@@ -968,7 +968,8 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         val_pipeline.build()
 
         val_loader = Wrapper(
-            val_pipeline,
+            pipelines=val_pipeline,
+            dataset_size=val_pipeline.epoch_size("Reader"),
             output_map=["x", "label"],
             reader_name="Reader",
             last_batch_policy=LastBatchPolicy.PARTIAL,

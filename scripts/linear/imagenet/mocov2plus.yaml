@@ -8,7 +8,7 @@ backbone:
   name: "resnet50"
 pretrain_method: "mocov2plus"
 data:
-  dataset: imagenet100
+  dataset: imagenet
   train_path: "./datasets/imagenet/train"
   val_path: "./datasets/imagenet/val"
   format: "dali"

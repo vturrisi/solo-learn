@@ -1,7 +1,7 @@
 TRAIN_PATH=$1
 VAL_PATH=$2
 FORMAT=$3
-METHODS=("barlow" "byol" "dino" "dino_vit" "mae" "mocov2plus" "mocov3" "nnclr" "ressl" "simclr" "simsiam" "supcon" "swav" "vibcreg" "vicreg")
+METHODS=("barlow" "byol" "dino" "dino_vit" "mae" "mocov2plus" "mocov3_vit" "mocov3" "nnclr" "ressl" "simclr" "simsiam" "supcon" "swav" "vibcreg" "vicreg")
 
 for method in ${METHODS[@]}; do
     echo Running $method
@@ -43,7 +43,7 @@ python3 main_pretrain.py \
 echo ---------------------------------
 
 # run deepcluster v2 for a full epoch
-method=deepclusterv2
+method="deepclusterv2"
 echo Running $method
 python3 main_pretrain.py \
     --config-path scripts/pretrain/imagenet-100/ \

@@ -3,7 +3,7 @@ defaults:
   - augmentations: asymmetric.yaml
   - wandb: private.yaml
 
-name: "mocov3-imagenet100"
+name: "mocov3-vit-imagenet100"
 method: "mocov3"
 backbone:
   name: "vit_small"
