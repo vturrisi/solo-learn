@@ -203,7 +203,9 @@ class LinearModel(pl.LightningModule):
 
         if self.layer_decay > 0:
             assert self.finetune, "Only with use layer weight decay with finetune on."
-            assert hasattr(self.backbone, "no_weight_decay"), "TODO"  # Fix this later
+            msg = "Method should implement no_weight_decay() that returns a set of parameter names to ignore from weight decay"
+            assert hasattr(self.backbone, "no_weight_decay"), msg
+
             learnable_params = param_groups_layer_decay(
                 self.backbone,
                 self.weight_decay,

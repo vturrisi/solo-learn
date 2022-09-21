@@ -7,8 +7,7 @@ pretrained_feature_extractor: None
 backbone:
   name: "vit_base"
   kwargs:
-    layer_decay: 0.75
-    drop_path: 0.1
+    drop_path_rate: 0.1
 pretrain_method: "mae"
 data:
   dataset: imagenet100
@@ -17,10 +16,11 @@ data:
   format: "dali"
   num_workers: 4
 optimizer:
-  name: "sgd"
+  name: "adamw"
   batch_size: 64
   lr: 5e-4
   weight_decay: 0.05
+  layer_decay: 0.75
 scheduler:
   name: "warmup_cosine"
 checkpoint:
