@@ -1,9 +1,7 @@
 defaults:
   - _self_
   - augmentations: asymmetric.yaml
-hydra:  
-  output_subdir: null
-
+  - wandb: private.yaml
 
 name: "barlow_twins-imagenet100"
 method: "barlow_twins"
@@ -15,13 +13,13 @@ method_kwargs:
   scale_loss: 0.1
 data:
   dataset: imagenet100
-  train_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/train"
-  val_path: "/home/CORP/vg.turrisi/Documents/datasets/imagenet-100/val"
-  format: "image_folder"
+  train_path: "./datasets/imagenet-100/train"
+  val_path: "./datasets/imagenet-100/val"
+  format: "dali"
   num_workers: 4
 optimizer:
   name: "lars"
-  batch_size: 16
+  batch_size: 128
   lr: 0.3
   classifier_lr: 0.1
   weight_decay: 1e-4

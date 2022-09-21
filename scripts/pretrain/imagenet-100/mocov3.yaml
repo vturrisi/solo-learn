@@ -9,6 +9,7 @@ backbone:
   name: "resnet18"
 method_kwargs:
   proj_hidden_dim: 4096
+  proj_output_dim: 256
   pred_hidden_dim: 4096
   temperature: 0.2
 momentum:

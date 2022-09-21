@@ -29,7 +29,7 @@ optimizer:
   weight_decay: 1e-4
 scheduler:
   name: "warmup_cosine"
-  warmup_start_lr: 
+  warmup_start_lr: 0.00001
 checkpoint:
   enabled: True
   dir: "trained_models"

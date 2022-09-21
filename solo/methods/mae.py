@@ -144,7 +144,9 @@ class MAE(BaseMethod):
 
         # gather backbone info from timm
         self._vit_embed_dim: int = self.backbone.pos_embed.size(-1)
-        self._vit_patch_size: int = self.backbone_args["patch_size"]
+        # if patch size is not available, defaults to 16 or 14 depending on backbone
+        default_patch_size = 14 if self.backbone_name == "vit_huge" else 16
+        self._vit_patch_size: int = self.backbone_args.get("patch_size", default_patch_size)
         self._vit_num_patches: int = self.backbone.patch_embed.num_patches
 
         decoder_embed_dim: int = cfg.method_kwargs.decoder_embed_dim

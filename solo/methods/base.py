@@ -58,6 +58,17 @@ from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
 from torch.optim.lr_scheduler import MultiStepLR
 
 
+def static_lr(
+    get_lr: Callable,
+    param_group_indexes: Sequence[int],
+    lrs_to_replace: Sequence[float],
+):
+    lrs = get_lr()
+    for idx, lr in zip(param_group_indexes, lrs_to_replace):
+        lrs[idx] = lr
+    return lrs
+
+
 class BaseMethod(pl.LightningModule):
     _BACKBONES = {
         "resnet18": resnet18,
@@ -371,17 +382,6 @@ class BaseMethod(pl.LightningModule):
             raise ValueError(f"{self.scheduler} not in (warmup_cosine, cosine, step)")
 
         if idxs_no_scheduler:
-
-            def static_lr(
-                get_lr: Callable,
-                param_group_indexes: Sequence[int],
-                lrs_to_replace: Sequence[float],
-            ):
-                lrs = get_lr()
-                for idx, lr in zip(param_group_indexes, lrs_to_replace):
-                    lrs[idx] = lr
-                return lrs
-
             partial_fn = partial(
                 static_lr,
                 get_lr=scheduler["scheduler"].get_lr

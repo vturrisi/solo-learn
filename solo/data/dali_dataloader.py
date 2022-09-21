@@ -619,6 +619,7 @@ class PretrainWrapper(BaseWrapper):
         model_batch_size: int,
         model_rank: int,
         model_device: str,
+        dataset_size: int,
         conversion_map: List[int] = None,
         *args,
         **kwargs,
@@ -629,6 +630,7 @@ class PretrainWrapper(BaseWrapper):
             model_batch_size (int): batch size.
             model_rank (int): rank of the current process.
             model_device (str): id of the current device.
+            dataset_size (int): number of samples in the dataset.
             conversion_map  (List[int], optional): list of integers that map each index
                 to a class label. If nothing is passed, no label mapping needs to be done.
                 Defaults to None.
@@ -638,6 +640,7 @@ class PretrainWrapper(BaseWrapper):
         self.model_batch_size = model_batch_size
         self.model_rank = model_rank
         self.model_device = model_device
+        self.dataset_size = dataset_size
         self.conversion_map = conversion_map
         if self.conversion_map is not None:
             self.conversion_map = torch.tensor(
@@ -674,6 +677,16 @@ class PretrainWrapper(BaseWrapper):
 
 
 class Wrapper(BaseWrapper):
+    def __init__(self, dataset_size: int, *args, **kwargs):
+        """Wrapper to have dataset size.
+
+        Args:
+            dataset_size (int): number of samples in the dataset.
+        """
+
+        super().__init__(*args, **kwargs)
+        self.dataset_size = dataset_size
+
     def __next__(self):
         batch = super().__next__()
         x, target = batch[0]["x"], batch[0]["label"]
@@ -815,6 +828,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
             model_batch_size=self.batch_size,
             model_rank=self.device_id,
             model_device=self.device,
+            dataset_size=train_pipeline.epoch_size("Reader"),
             conversion_map=conversion_map,
             pipelines=train_pipeline,
             output_map=output_map,
@@ -822,8 +836,6 @@ class PretrainDALIDataModule(pl.LightningDataModule):
             last_batch_policy=policy,
             auto_reset=True,
         )
-
-        self.dali_epoch_size = train_pipeline.epoch_size("Reader")
 
         return train_loader
 
@@ -927,13 +939,12 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
 
         train_loader = Wrapper(
             train_pipeline,
+            dataset_size=train_pipeline.epoch_size("Reader"),
             output_map=["x", "label"],
             reader_name="Reader",
             last_batch_policy=LastBatchPolicy.DROP,
             auto_reset=True,
         )
-
-        self.dali_epoch_size = train_pipeline.epoch_size("Reader")
 
         return train_loader
 

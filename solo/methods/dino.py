@@ -219,7 +219,7 @@ class DINO(BaseMomentumMethod):
             cfg, "method_kwargs.warmup_teacher_temperature", 0.04
         )
         cfg.method_kwargs.warmup_teacher_temperature_epochs = omegaconf_select(
-            cfg, "method_kwargs.warmup_teacher_temperature_epochs", 50
+            cfg, "method_kwargs.warmup_teacher_temperature_epochs", 0
         )
 
         return cfg

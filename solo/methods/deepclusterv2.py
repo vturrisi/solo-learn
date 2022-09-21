@@ -111,9 +111,12 @@ class DeepClusterV2(BaseMethod):
         """Gets the world size and initializes the memory banks."""
         #  k-means needs the world size and the dataset size
         self.world_size = self.trainer.world_size if self.trainer else 1
-        self.dataset_size = getattr(self, "dali_epoch_size", None) or len(
-            self.trainer.train_dataloader.dataset
-        )
+
+        try:
+            self.dataset_size = len(self.trainer.train_dataloader.dataset)
+        except:
+            # get dataset size from dali
+            self.dataset_size = self.trainer.train_dataloader.loaders.dataset_size
 
         # build k-means helper object
         self.kmeans = KMeans(

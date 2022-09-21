@@ -28,8 +28,7 @@ optimizer:
   classifier_lr: 2.0e-4
   weight_decay: 0.05
   kwargs:
-    beta1: 0.9
-    beta2: 0.95
+    betas: [0.9, 0.95]
 scheduler:
   name: "warmup_cosine"
 checkpoint:

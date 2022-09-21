@@ -11,6 +11,7 @@ method_kwargs:
   proj_hidden_dim: 2048
   proj_output_dim: 256
   num_prototypes: 4096
+  warmup_teacher_temperature_epochs: 50
 momentum:
   base_tau: 0.9995
   final_tau: 1.0
