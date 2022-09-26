@@ -169,14 +169,13 @@ python3 main_pretrain.py \
     # training config name
     --config-name barlow.yaml
     # add new arguments (e.g. those not defined in the yaml files)
-    # by doing ++new_argument=VALU
-    # pytorch lightning's trainer specific arguments can be added
-    # like this as well. 
+    # by doing ++new_argument=VALUE
+    # pytorch lightning's arguments can be added here as well.
 ```
 
 After that, for offline linear evaluation, follow the examples in `scripts/linear` or `scripts/finetune` for finetuning the whole backbone.
 
-There are extra experiments on K-NN evaluation in `scripts/knn/` and feature visualization with UMAP in `scripts/umap/`.
+For k-NN evaluation and UMAP visualization check the scripts in `scripts/{knn,umap}`.
 
 **NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
 
