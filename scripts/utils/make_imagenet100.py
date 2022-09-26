@@ -1,5 +1,6 @@
 import os, sys
 
+# usage: python make_imagenet100.py full/imagenet/path desired/imagenet100/path
 full_imagenet_path = sys.argv[1]
 imagenet100_path = sys.argv[2]
 
