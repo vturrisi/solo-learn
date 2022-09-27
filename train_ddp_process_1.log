@@ -1,0 +1,6 @@
+[2022-09-27 11:52:57,381][torch.distributed.nn.jit.instantiator][INFO] - Created a temporary directory at /tmp/tmpsarwxct4
+[2022-09-27 11:52:57,381][torch.distributed.nn.jit.instantiator][INFO] - Writing /tmp/tmpsarwxct4/_remote_module_non_sriptable.py
+[2022-09-27 11:52:57,710][root][WARNING] - Using scheduler_interval=step might generate issues when resuming a checkpoint.
+[2022-09-27 11:52:58,859][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 1
+[2022-09-27 11:52:58,880][torch.distributed.distributed_c10d][INFO] - Rank 1: Completed store-based barrier for key:store_based_barrier_key:1 with 2 nodes.
+[2022-09-27 11:53:09,683][root][INFO] - Reducer buckets have been rebuilt in this iteration.
