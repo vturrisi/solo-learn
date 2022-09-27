@@ -27,7 +27,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from solo.args.setup import parse_args_knn
+from solo.args.knn import parse_args_knn
 from solo.data.classification_dataloader import (
     prepare_dataloaders,
     prepare_datasets,

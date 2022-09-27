@@ -21,16 +21,12 @@ import pytest
 import torch
 from solo.methods.base import BaseMethod
 
-from .utils import DATA_KWARGS, gen_base_kwargs
+from .utils import gen_base_cfg
 
 
 def test_base():
-    BASE_KWARGS = gen_base_kwargs(cifar=False)
-    kwargs = {
-        **BASE_KWARGS,
-        **DATA_KWARGS,
-    }
-    model = BaseMethod(**kwargs)
+    cfg = gen_base_cfg("nothing", batch_size=2, num_classes=100)
+    model = BaseMethod(cfg)
 
     # test optimizers/scheduler
     model.optimizer = "random"

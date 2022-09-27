@@ -19,39 +19,38 @@
 
 from typing import Any, Dict, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 from solo.losses.wmse import wmse_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 from solo.utils.whitening import Whitening2d
 
 
 class WMSE(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        whitening_iters: int,
-        whitening_size: int,
-        whitening_eps: float,
-        **kwargs
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements W-MSE (https://arxiv.org/abs/2007.06346)
 
-        Args:
-            proj_output_dim (int): number of dimensions of the projected features.
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            whitening_iters (int): number of times to perform whitening.
-            whitening_size (int): size of the batch slice for whitening.
-            whitening_eps (float): epsilon for numerical stability in whitening.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of the projected features.
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                whitening_iters (int): number of times to perform whitening.
+                whitening_size (int): size of the batch slice for whitening.
+                whitening_eps (float): epsilon for numerical stability in whitening.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.whitening_iters = whitening_iters
-        self.whitening_size = whitening_size
+        self.whitening_iters: int = cfg.method_kwargs.whitening_iters
+        self.whitening_size: int = cfg.method_kwargs.whitening_size
 
         assert self.whitening_size <= self.batch_size
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        whitening_eps: float = cfg.method_kwargs.whitening_eps
 
         # projector
         self.projector = nn.Sequential(
@@ -64,20 +63,34 @@ class WMSE(BaseMethod):
         self.whitening = Whitening2d(proj_output_dim, eps=whitening_eps)
 
     @staticmethod
-    def add_model_specific_args(parent_parser):
-        parent_parser = super(WMSE, WMSE).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("simclr")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=128)
-        parser.add_argument("--proj_hidden_dim", type=int, default=1024)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # wmse
-        parser.add_argument("--whitening_iters", type=int, default=1)
-        parser.add_argument("--whitening_size", type=int, default=256)
-        parser.add_argument("--whitening_eps", type=float, default=0)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        return parent_parser
+        cfg = super(WMSE, WMSE).add_and_assert_specific_cfg(cfg)
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+
+        cfg.method_kwargs.whitening_iters = omegaconf_select(
+            cfg,
+            "method_kwargs.whitening_iters",
+            1,
+        )
+        cfg.method_kwargs.whitening_size = omegaconf_select(
+            cfg,
+            "method_kwargs.whitening_size",
+            256,
+        )
+        cfg.method_kwargs.whitening_eps = omegaconf_select(cfg, "method_kwargs.whitening_eps", 0.0)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[Dict]:
@@ -87,7 +100,7 @@ class WMSE(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor) -> Dict[str, Any]:

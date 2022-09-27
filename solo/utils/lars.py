@@ -77,7 +77,7 @@ class LARS(Optimizer):
         nesterov=False,
         eta=1e-3,
         eps=1e-8,
-        clip_lars_lr=False,
+        clip_lr=False,
         exclude_bias_n_norm=False,
     ):
         if lr is not required and lr < 0.0:
@@ -95,7 +95,7 @@ class LARS(Optimizer):
             nesterov=nesterov,
             eta=eta,
             eps=eps,
-            clip_lars_lr=clip_lars_lr,
+            clip_lr=clip_lr,
             exclude_bias_n_norm=exclude_bias_n_norm,
         )
         if nesterov and (momentum <= 0 or dampening != 0):
@@ -143,7 +143,7 @@ class LARS(Optimizer):
                         lars_lr *= group["eta"]
 
                         # clip lr
-                        if group["clip_lars_lr"]:
+                        if group["clip_lr"]:
                             lars_lr = min(lars_lr / group["lr"], 1)
 
                         d_p = d_p.add(p, alpha=weight_decay)

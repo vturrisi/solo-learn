@@ -9,3 +9,4 @@ wandb
 scipy
 timm
 scikit-learn
+hydra-core

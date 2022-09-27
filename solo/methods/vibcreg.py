@@ -17,43 +17,40 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 from solo.losses.vibcreg import vibcreg_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 from solo.utils.whitening import IterNorm
 
 
 class VIbCReg(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        sim_loss_weight: float,
-        var_loss_weight: float,
-        cov_loss_weight: float,
-        iternorm: bool,
-        **kwargs
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements VIbCReg (https://arxiv.org/abs/2109.00783)
 
-        Args:
-            proj_output_dim (int): number of dimensions of the projected features.
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            sim_loss_weight (float): weight of the invariance term.
-            var_loss_weight (float): weight of the variance term.
-            cov_loss_weight (float): weight of the covariance term.
-            iternorm (bool): If true, an IterNorm layer will be appended to the projector.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of the projected features.
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                sim_loss_weight (float): weight of the invariance term.
+                var_loss_weight (float): weight of the variance term.
+                cov_loss_weight (float): weight of the covariance term.
+                iternorm (bool): If true, an IterNorm layer will be appended to the projector.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.sim_loss_weight = sim_loss_weight
-        self.var_loss_weight = var_loss_weight
-        self.cov_loss_weight = cov_loss_weight
+        self.sim_loss_weight: float = cfg.method_kwargs.sim_loss_weight
+        self.var_loss_weight: float = cfg.method_kwargs.var_loss_weight
+        self.cov_loss_weight: float = cfg.method_kwargs.cov_loss_weight
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        iternorm: bool = cfg.method_kwargs.iternorm
 
         # projector
         self.projector = nn.Sequential(
@@ -68,20 +65,39 @@ class VIbCReg(BaseMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(VIbCReg, VIbCReg).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("vibcreg")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=2048)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # parameters
-        parser.add_argument("--sim_loss_weight", default=25.0, type=float)
-        parser.add_argument("--var_loss_weight", default=25.0, type=float)
-        parser.add_argument("--cov_loss_weight", default=200.0, type=float)
-        parser.add_argument("--iternorm", action="store_true")
-        return parent_parser
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        cfg = super(VIbCReg, VIbCReg).add_and_assert_specific_cfg(cfg)
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+
+        cfg.method_kwargs.sim_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.sim_loss_weight",
+            25.0,
+        )
+        cfg.method_kwargs.var_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.var_loss_weight",
+            25.0,
+        )
+        cfg.method_kwargs.cov_loss_weight = omegaconf_select(
+            cfg,
+            "method_kwargs.cov_loss_weight",
+            200.0,
+        )
+        cfg.method_kwargs.iternorm = omegaconf_select(cfg, "method_kwargs.iternorm", False)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -91,7 +107,7 @@ class VIbCReg(BaseMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.projector.parameters()}]
+        extra_learnable_params = [{"name": "projector", "params": self.projector.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     def forward(self, X: torch.Tensor) -> Dict[str, Any]:

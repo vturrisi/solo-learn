@@ -22,61 +22,68 @@ import os
 import random
 import string
 import time
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Optional, Union
 
 import pytorch_lightning as pl
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import Callback
-
-
-def random_string(letter_count=4, digit_count=4):
-    tmp_random = random.Random(time.time())
-    rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
-    rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
-    rand_str = list(rand_str)
-    tmp_random.shuffle(rand_str)
-    return "".join(rand_str)
+from solo.utils.misc import omegaconf_select
 
 
 class Checkpointer(Callback):
     def __init__(
         self,
-        args: Namespace,
+        cfg: DictConfig,
         logdir: Union[str, Path] = Path("trained_models"),
         frequency: int = 1,
-        keep_previous_checkpoints: bool = False,
+        keep_prev: bool = False,
     ):
         """Custom checkpointer callback that stores checkpoints in an easier to access way.
 
         Args:
-            args (Namespace): namespace object containing at least an attribute name.
+            cfg (DictConfig): DictConfig containing at least an attribute name.
             logdir (Union[str, Path], optional): base directory to store checkpoints.
                 Defaults to "trained_models".
             frequency (int, optional): number of epochs between each checkpoint. Defaults to 1.
-            keep_previous_checkpoints (bool, optional): whether to keep previous checkpoints or not.
+            keep_prev (bool, optional): whether to keep previous checkpoints or not.
                 Defaults to False.
         """
 
         super().__init__()
 
-        self.args = args
+        self.cfg = cfg
         self.logdir = Path(logdir)
         self.frequency = frequency
-        self.keep_previous_checkpoints = keep_previous_checkpoints
+        self.keep_prev = keep_prev
 
     @staticmethod
-    def add_checkpointer_args(parent_parser: ArgumentParser):
-        """Adds user-required arguments to a parser.
+    def add_and_assert_specific_cfg(cfg: DictConfig) -> DictConfig:
+        """Adds specific default values/checks for config.
 
         Args:
-            parent_parser (ArgumentParser): parser to add new args to.
+            cfg (omegaconf.DictConfig): DictConfig object.
+
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        parser = parent_parser.add_argument_group("checkpointer")
-        parser.add_argument("--checkpoint_dir", default=Path("trained_models"), type=Path)
-        parser.add_argument("--checkpoint_frequency", default=1, type=int)
-        return parent_parser
+        cfg.checkpoint = omegaconf_select(cfg, "checkpoint", default={})
+        cfg.checkpoint.enabled = omegaconf_select(cfg, "checkpoint.enabled", default=False)
+        cfg.checkpoint.dir = omegaconf_select(cfg, "checkpoint.dir", default="trained_models")
+        cfg.checkpoint.frequency = omegaconf_select(cfg, "checkpoint.frequency", default=1)
+        cfg.checkpoint.keep_prev = omegaconf_select(cfg, "checkpoint.keep_prev", default=False)
+
+        return cfg
+
+    @staticmethod
+    def random_string(letter_count=4, digit_count=4):
+        tmp_random = random.Random(time.time())
+        rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for _ in range(letter_count)))
+        rand_str += "".join((tmp_random.choice(string.digits) for _ in range(digit_count)))
+        rand_str = list(rand_str)
+        tmp_random.shuffle(rand_str)
+        return "".join(rand_str)
 
     def initial_setup(self, trainer: pl.Trainer):
         """Creates the directories and does the initial setup needed.
@@ -90,18 +97,19 @@ class Checkpointer(Callback):
                 existing_versions = set(os.listdir(self.logdir))
             else:
                 existing_versions = []
-            version = "offline-" + random_string()
+            version = "offline-" + self.random_string()
             while version in existing_versions:
-                version = "offline-" + random_string()
+                version = "offline-" + self.random_string()
         else:
             version = str(trainer.logger.version)
             self.wandb_run_id = version
+
         if version is not None:
             self.path = self.logdir / version
-            self.ckpt_placeholder = f"{self.args.name}-{version}" + "-ep={}.ckpt"
+            self.ckpt_placeholder = f"{self.cfg.name}-{version}" + "-ep={}.ckpt"
         else:
             self.path = self.logdir
-            self.ckpt_placeholder = f"{self.args.name}" + "-ep={}.ckpt"
+            self.ckpt_placeholder = f"{self.cfg.name}" + "-ep={}.ckpt"
         self.last_ckpt: Optional[str] = None
 
         # create logging dirs
@@ -116,7 +124,7 @@ class Checkpointer(Callback):
         """
 
         if trainer.is_global_zero:
-            args = vars(self.args)
+            args = OmegaConf.to_container(self.cfg)
             args["wandb_run_id"] = getattr(self, "wandb_run_id", None)
             json_path = self.path / "args.json"
             json.dump(args, open(json_path, "w"), default=lambda o: "<not serializable>")
@@ -133,7 +141,7 @@ class Checkpointer(Callback):
             ckpt = self.path / self.ckpt_placeholder.format(epoch)
             trainer.save_checkpoint(ckpt)
 
-            if self.last_ckpt and self.last_ckpt != ckpt and not self.keep_previous_checkpoints:
+            if self.last_ckpt and self.last_ckpt != ckpt and not self.keep_prev:
                 os.remove(self.last_ckpt)
             self.last_ckpt = ckpt
 

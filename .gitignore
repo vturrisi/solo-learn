@@ -4,6 +4,7 @@ runs/
 # wandb dir
 wandb/
 wandb*/
+!scripts/**
 
 # umap dir
 auto_umap/
@@ -45,6 +46,8 @@ lightning_logs/
 
 *logs*/
 *output*/
+
+.hydra
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode

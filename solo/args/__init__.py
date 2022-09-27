@@ -17,6 +17,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from solo.args import dataset, setup, utils
+from solo.args import dataset, knn, linear, pretrain
 
-__all__ = ["dataset", "setup", "utils"]
+__all__ = ["dataset", "knn", "linear", "pretrain"]

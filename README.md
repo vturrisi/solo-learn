@@ -15,6 +15,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Sep 27 2022]**: :pencil: Brand new config system using OmegaConf/Hydra. Adds more clarity and flexibility. New tutorials will follow soon!
 * **[Aug 04 2022]**: :paintbrush: Added [MAE](https://arxiv.org/abs/2111.06377) and supports finetuning the backbone with `main_linear.py`, mixup, cutmix and [random augment](https://arxiv.org/abs/1909.13719).
 * **[Jul 13 2022]**: :sparkling_heart: Added support for [H5](https://docs.h5py.org/en/stable/index.html) data, improved scripts and data handling.
 * **[Jun 26 2022]**: :fire: Added [MoCo V3](https://arxiv.org/abs/2104.02057).
@@ -44,7 +45,15 @@ The library is self-contained, but it is possible to use the models outside of s
 
 ---
 
-## Methods available:
+## Roadmap and help needed
+* Redoing the documentation to improve clarity.
+* Better and up-to-date tutorials.
+* Add performance-related testing to ensure that methods perform the same across updates.
+* Adding new methods (continuous effort).
+
+---
+
+## Methods available
 * [Barlow Twins](https://arxiv.org/abs/2103.03230)
 * [BYOL](https://arxiv.org/abs/2006.07733)
 * [DeepCluster V2](https://arxiv.org/abs/2006.09882)
@@ -151,17 +160,29 @@ pre-commit install
 
 ## Training
 
-For pretraining the backbone, follow one of the many bash files in `bash_files/pretrain/`.
+For pretraining the backbone, follow one of the many bash files in `scripts/pretrain/`.
+We are now using [Hydra](https://github.com/facebookresearch/hydra) to handle the config files, so the common syntax is something like:
+```bash
+python3 main_pretrain.py \
+    # path to training script folder
+    --config-path scripts/pretrain/imagenet-100/ \
+    # training config name
+    --config-name barlow.yaml
+    # add new arguments (e.g. those not defined in the yaml files)
+    # by doing ++new_argument=VALUE
+    # pytorch lightning's arguments can be added here as well.
+```
 
-After that, for offline linear evaluation, follow the examples in `bash_files/linear`.
+After that, for offline linear evaluation, follow the examples in `scripts/linear` or `scripts/finetune` for finetuning the whole backbone.
 
-There are extra experiments on K-NN evaluation in `bash_files/knn/` and feature visualization with UMAP in `bash_files/umap/`.
+For k-NN evaluation and UMAP visualization check the scripts in `scripts/{knn,umap}`.
 
 **NOTE:** Files try to be up-to-date and follow as closely as possible the recommended parameters of each paper, but check them before running.
 
 ---
 
 ## Tutorials
+
 Please, check out our [documentation](https://solo-learn.readthedocs.io/en/latest) and tutorials:
 * [Overview](https://solo-learn.readthedocs.io/en/latest/tutorials/overview.html)
 * [Offline linear eval](https://solo-learn.readthedocs.io/en/latest/tutorials/offline_linear_eval.html)

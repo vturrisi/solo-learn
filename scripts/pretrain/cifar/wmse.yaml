@@ -1,0 +1,73 @@
+defaults:
+  - _self_
+  - wandb: private.yaml
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+# disable hydra outputs
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+
+name: "wmse-cifar10" # change here for cifar100
+method: "wmse"
+backbone:
+  name: "resnet18"
+method_kwargs:
+  proj_hidden_dim: 1024
+  proj_output_dim: 64
+  whitening_size: 128
+data:
+  dataset: cifar10 # change here for cifar100
+  train_path: "./datasets"
+  val_path: "datasets/imagenet100/val"
+  format: "image_folder"
+  num_workers: 4
+augmentations:
+  - rrc:
+      enabled: True
+      crop_min_scale: 0.2
+      crop_max_scale: 1.0
+    color_jitter:
+      prob: 0.8
+      brightness: 0.8
+      contrast: 0.8
+      saturation: 0.8
+      hue: 0.2
+    grayscale:
+      prob: 0.2
+    gaussian_blur:
+      prob: 0.0
+    solarization:
+      prob: 0.0
+    equalization:
+      prob: 0.0
+    horizontal_flip:
+      enabled: True
+      prob: 0.5
+    crop_size: 32
+    num_crops: 2
+optimizer:
+  name: "adam"
+  batch_size: 256
+  lr: 2e-3
+  classifier_lr: 3e-3
+  weight_decay: 1e-6
+scheduler:
+  name: "warmup_cosine"
+  warmup_start_lr: 0
+checkpoint:
+  enabled: True
+  dir: "trained_models"
+  frequency: 1
+auto_resume:
+  enabled: True
+
+# overwrite PL stuff
+max_epochs: 1000
+devices: [0]
+sync_batchnorm: True
+accelerator: "gpu"
+strategy: "ddp"
+precision: 16

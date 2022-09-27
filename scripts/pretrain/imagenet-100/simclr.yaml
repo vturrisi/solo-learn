@@ -1,0 +1,53 @@
+defaults:
+  - _self_
+  - augmentations: symmetric.yaml
+  - wandb: private.yaml
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+# disable hydra outputs
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+
+name: "simclr-imagenet100"
+method: "simclr"
+backbone:
+  name: "resnet18"
+method_kwargs:
+  proj_hidden_dim: 4096
+  proj_output_dim: 512
+  temperature: 0.2
+data:
+  dataset: imagenet100
+  train_path: "datasets/imagenet100/train"
+  val_path: "datasets/imagenet100/val"
+  format: "dali"
+  num_workers: 4
+optimizer:
+  name: "lars"
+  batch_size: 128
+  lr: 0.3
+  classifier_lr: 0.1
+  weight_decay: 1e-4
+  kwargs:
+    clip_lr: True
+    eta: 0.02
+    exclude_bias_n_norm: True
+scheduler:
+  name: "warmup_cosine"
+checkpoint:
+  enabled: True
+  dir: "trained_models"
+  frequency: 1
+auto_resume:
+  enabled: True
+
+# overwrite PL stuff
+max_epochs: 400
+devices: [0, 1]
+sync_batchnorm: True
+accelerator: "gpu"
+strategy: "ddp"
+precision: 16

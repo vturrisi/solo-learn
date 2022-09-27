@@ -17,50 +17,37 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 import shutil
 
-from pytorch_lightning import Trainer
 from solo.methods import BarlowTwins
 from solo.utils.auto_umap import AutoUMAP
 
-from ..methods.utils import DATA_KWARGS, gen_base_kwargs, prepare_dummy_dataloaders
+from ..methods.utils import gen_base_cfg, gen_trainer, prepare_dummy_dataloaders
 
 
 def test_auto_umap():
     method_kwargs = {
-        "name": "barlow_twins",
         "proj_hidden_dim": 2048,
         "proj_output_dim": 2048,
         "lamb": 5e-3,
-        "scale_loss": 0.001,
+        "scale_loss": 0.025,
     }
-
-    # normal training
-    BASE_KWARGS = gen_base_kwargs(cifar=False)
-    kwargs = {**BASE_KWARGS, **DATA_KWARGS, **method_kwargs}
-    model = BarlowTwins(**kwargs, disable_knn_eval=True)
-
-    args = argparse.Namespace(**kwargs)
+    cfg = gen_base_cfg("barlow_twins", batch_size=2, num_classes=100)
+    cfg.method_kwargs = method_kwargs
+    model = BarlowTwins(cfg)
 
     # UMAP
-    auto_umap = AutoUMAP(args)
+    cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
+    auto_umap = AutoUMAP(cfg.name)
 
-    trainer = Trainer.from_argparse_args(
-        args,
-        checkpoint_callback=False,
-        limit_train_batches=2,
-        limit_val_batches=2,
-        callbacks=[auto_umap],
-    )
+    trainer = gen_trainer(cfg, auto_umap)
 
     train_dl, val_dl = prepare_dummy_dataloaders(
         "imagenet100",
-        num_large_crops=BASE_KWARGS["num_large_crops"],
-        num_small_crops=0,
-        num_classes=BASE_KWARGS["num_classes"],
-        multicrop=False,
-        batch_size=BASE_KWARGS["batch_size"],
+        num_large_crops=cfg.data.num_large_crops,
+        num_small_crops=cfg.data.num_small_crops,
+        num_classes=cfg.data.num_classes,
+        batch_size=cfg.optimizer.batch_size,
     )
     trainer.fit(model, train_dl, val_dl)
 

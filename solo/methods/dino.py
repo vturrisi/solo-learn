@@ -17,17 +17,16 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
-import distutils
-from typing import Any, List, Sequence, Tuple, Dict
+from typing import Any, Dict, List, Sequence, Tuple
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.dino import DINOLoss
 from solo.methods.base import BaseMomentumMethod
+from solo.utils.misc import omegaconf_select, trunc_normal_
 from solo.utils.momentum import initialize_momentum_params
-from solo.utils.misc import trunc_normal_
 
 
 class DINOHead(nn.Module):
@@ -113,42 +112,39 @@ class DINOHead(nn.Module):
 
 
 class DINO(BaseMomentumMethod):
-    def __init__(
-        self,
-        proj_hidden_dim: int,
-        proj_output_dim: int,
-        num_prototypes: int,
-        use_bn_in_head: bool,
-        norm_last_layer: bool,
-        clip_grad: float,
-        freeze_last_layer: bool,
-        student_temperature: float,
-        teacher_temperature: float,
-        warmup_teacher_temperature: float,
-        warmup_teacher_temperature_epochs: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Adds DINO head to the student and momentum DINO head to the teacher.
 
-        Args:
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            proj_output_dim (int): number of output neurons in the projector.
-            num_prototypes (int): number of prototypes.
-            use_bn_in_head (bool): whether or not to use bn in the head.
-            norm_last_layer (bool): whether or not to normalize the last layer (prototypes).
-            clip_grad (float): threshold for gradient clipping.
-            freeze_last_layer (bool): whether or not to freeze the last layer (prototypes).
-            student_temperature (float): temperature for the student.
-            teacher_temperature (float): temperature for the teacher.
-            warmup_teacher_temperature (float): base temperature for the teacher.
-            warmup_teacher_temperature_epochs (int): number of epochs of cosine annealing
-                scheduling for teacher temperature.
+        Extra cfg settings:
+            method_kwargs:
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                proj_output_dim (int): number of output neurons in the projector.
+                num_prototypes (int): number of prototypes.
+                use_bn_in_head (bool): whether or not to use bn in the head.
+                norm_last_layer (bool): whether or not to normalize the last layer (prototypes).
+                clip_grad (float): threshold for gradient clipping.
+                freeze_last_layer (bool): whether or not to freeze the last layer (prototypes).
+                student_temperature (float): temperature for the student.
+                teacher_temperature (float): temperature for the teacher.
+                warmup_teacher_temperature (float): base temperature for the teacher.
+                warmup_teacher_temperature_epochs (int): number of epochs of cosine annealing
+                    scheduling for teacher temperature.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.clip_grad = clip_grad
-        self.freeze_last_layer = freeze_last_layer
+        self.clip_grad: bool = cfg.method_kwargs.clip_grad
+        self.freeze_last_layer: bool = cfg.method_kwargs.freeze_last_layer
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        use_bn_in_head: bool = cfg.method_kwargs.use_bn_in_head
+        num_prototypes: int = cfg.method_kwargs.num_prototypes
+        norm_last_layer: bool = cfg.method_kwargs.norm_last_layer
+        student_temperature: float = cfg.method_kwargs.student_temperature
+        warmup_teacher_temperature: float = cfg.method_kwargs.warmup_teacher_temperature
+        teacher_temperature: float = cfg.method_kwargs.teacher_temperature
+        warmup_teacher_temperature_epochs: int = cfg.method_kwargs.warmup_teacher_temperature_epochs
 
         # dino head
         self.head = DINOHead(
@@ -182,28 +178,51 @@ class DINO(BaseMomentumMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(DINO, DINO).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("dino")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
+
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
+
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        cfg = super(DINO, DINO).add_and_assert_specific_cfg(cfg)
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.num_prototypes")
 
         # optimization settings
-        parser.add_argument("--clip_grad", type=float, default=0)
-        parser.add_argument("--freeze_last_layer", type=int, default=1)
+        cfg.method_kwargs.clip_grad = omegaconf_select(cfg, "method_kwargs.clip_grad", 0)
+        cfg.method_kwargs.freeze_last_layer = omegaconf_select(
+            cfg, "method_kwargs.freeze_last_layer", 1
+        )
 
-        # dino head
-        parser.add_argument("--proj_output_dim", type=int, default=256)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
-        parser.add_argument("--num_prototypes", type=int, default=4096)
-        parser.add_argument("--norm_last_layer", type=distutils.util.strtobool, default=True)
-        parser.add_argument("--use_bn_in_head", type=distutils.util.strtobool, default=False)
+        # head settings
+        cfg.method_kwargs.norm_last_layer = omegaconf_select(
+            cfg, "method_kwargs.norm_last_layer", True
+        )
+        cfg.method_kwargs.use_bn_in_head = omegaconf_select(
+            cfg, "method_kwargs.use_bn_in_head", False
+        )
 
         # temperature settings
-        parser.add_argument("--student_temperature", type=float, default=0.1)
-        parser.add_argument("--teacher_temperature", default=0.07, type=float)
-        parser.add_argument("--warmup_teacher_temperature", default=0.04, type=float)
-        parser.add_argument("--warmup_teacher_temperature_epochs", default=50, type=int)
+        cfg.method_kwargs.student_temperature = omegaconf_select(
+            cfg, "method_kwargs.student_temperature", 0.1
+        )
+        cfg.method_kwargs.teacher_temperature = omegaconf_select(
+            cfg, "method_kwargs.teacher_temperature", 0.07
+        )
+        cfg.method_kwargs.warmup_teacher_temperature = omegaconf_select(
+            cfg, "method_kwargs.warmup_teacher_temperature", 0.04
+        )
+        cfg.method_kwargs.warmup_teacher_temperature_epochs = omegaconf_select(
+            cfg, "method_kwargs.warmup_teacher_temperature_epochs", 0
+        )
 
-        return parent_parser
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -213,7 +232,7 @@ class DINO(BaseMomentumMethod):
             List[dict]: list of learnable parameters.
         """
 
-        extra_learnable_params = [{"params": self.head.parameters()}]
+        extra_learnable_params = [{"name": "head", "params": self.head.parameters()}]
         return super().learnable_params + extra_learnable_params
 
     @property

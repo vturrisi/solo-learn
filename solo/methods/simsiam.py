@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,22 +28,21 @@ from solo.methods.base import BaseMethod
 
 
 class SimSiam(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements SimSiam (https://arxiv.org/abs/2011.10566).
 
-        Args:
-            proj_output_dim (int): number of dimensions of projected features.
-            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of projected features.
+                proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+                pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim: int = cfg.method_kwargs.pred_hidden_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -67,17 +66,23 @@ class SimSiam(BaseMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(SimSiam, SimSiam).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("simsiam")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=128)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # predictor
-        parser.add_argument("--pred_hidden_dim", type=int, default=512)
-        return parent_parser
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
+
+        cfg = super(SimSiam, SimSiam).add_and_assert_specific_cfg(cfg)
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -88,8 +93,8 @@ class SimSiam(BaseMethod):
         """
 
         extra_learnable_params: List[dict] = [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters(), "static_lr": True},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters(), "static_lr": True},
         ]
         return super().learnable_params + extra_learnable_params
 

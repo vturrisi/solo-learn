@@ -1,0 +1,53 @@
+defaults:
+  - _self_
+  - augmentations: symmetric_weak.yaml
+  - wandb: private.yaml
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+# disable hydra outputs
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+
+name: "mocov2plus-imagenet"
+method: "mocov2plus"
+backbone:
+  name: "resnet50"
+method_kwargs:
+  proj_hidden_dim: 2048
+  proj_output_dim: 256
+  queue_size: 65536
+  temperature: 0.2
+momentum:
+  base_tau: 0.99
+  final_tau: 0.999
+data:
+  dataset: imagenet
+  train_path: "./datasets/imagenet/train"
+  val_path: "./datasets/imagenet/val"
+  format: "dali"
+  num_workers: 4
+optimizer:
+  name: "sgd"
+  batch_size: 64
+  lr: 0.3
+  classifier_lr: 0.4
+  weight_decay: 3e-5
+scheduler:
+  name: "warmup_cosine"
+checkpoint:
+  enabled: True
+  dir: "trained_models"
+  frequency: 1
+auto_resume:
+  enabled: True
+
+# overwrite PL stuff
+max_epochs: 400
+devices: [0, 1]
+sync_batchnorm: True
+accelerator: "gpu"
+strategy: "ddp"
+precision: 16

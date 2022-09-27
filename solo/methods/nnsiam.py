@@ -17,40 +17,36 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence, Tuple
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.simsiam import simsiam_loss_func
 from solo.methods.base import BaseMethod
-from solo.utils.misc import gather
+from solo.utils.misc import gather, omegaconf_select
 
 
 class NNSiam(BaseMethod):
-    queue: torch.Tensor
-
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        queue_size: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements NNSiam (https://arxiv.org/abs/2104.14548).
 
-        Args:
-            proj_output_dim (int): number of dimensions of projected features.
-            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
-            queue_size (int): number of samples to keep in the queue.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of projected features.
+                proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+                pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+                queue_size (int): number of samples to keep in the queue.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.queue_size = queue_size
+        self.queue_size: int = cfg.method_kwargs.queue_size
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim: int = cfg.method_kwargs.pred_hidden_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -80,21 +76,25 @@ class NNSiam(BaseMethod):
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(NNSiam, NNSiam).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("nnsiam")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=128)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # predictor
-        parser.add_argument("--pred_hidden_dim", type=int, default=512)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        # queue settings
-        parser.add_argument("--queue_size", default=65536, type=int)
+        cfg = super(NNSiam, NNSiam).add_and_assert_specific_cfg(cfg)
 
-        return parent_parser
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")
+
+        cfg.method_kwargs.queue_size = omegaconf_select(cfg, "method_kwargs.queue_size", 65536)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -105,8 +105,8 @@ class NNSiam(BaseMethod):
         """
 
         extra_learnable_params: List[dict] = [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters(), "static_lr": True},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters(), "static_lr": True},
         ]
         return super().learnable_params + extra_learnable_params
 

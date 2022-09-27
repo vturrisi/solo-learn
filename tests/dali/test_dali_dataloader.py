@@ -17,22 +17,21 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
-
-from pytorch_lightning import Trainer
-from solo.methods import BarlowTwins
-from solo.methods.linear import LinearModel
+from omegaconf import OmegaConf
 from solo.data.dali_dataloader import (
     ClassificationDALIDataModule,
-    ImagenetTransform,
     NormalPipelineBuilder,
     PretrainDALIDataModule,
     PretrainPipelineBuilder,
+    build_transform_pipeline_dali,
 )
+from solo.data.pretrain_dataloader import FullTransformPipeline, NCropAugmentation
+from solo.methods import BarlowTwins
+from solo.methods.linear import LinearModel
 from torch import nn
 from torchvision.models.resnet import resnet18
 
-from ..methods.utils import DATA_KWARGS, gen_base_kwargs
+from ..methods.utils import gen_base_cfg, gen_trainer
 from .utils import DummyDataset
 
 
@@ -45,26 +44,43 @@ def test_dali_dataloader():
 
         transforms = []
         for size, min_scale, max_scale in zip(size_crops, min_scales, max_scale_crops):
-            transform = ImagenetTransform(
-                device="cpu",
-                brightness=0.4,
-                contrast=0.4,
-                saturation=0.2,
-                hue=0.1,
-                gaussian_prob=0.5,
-                solarization_prob=0.1,
-                crop_size=size,
-                min_scale=min_scale,
-                max_scale=max_scale,
+            cfg = OmegaConf.create(
+                {
+                    "crop_size": size,
+                    "rrc": {
+                        "enabled": True,
+                        "crop_min_scale": min_scale,
+                        "crop_max_scale": max_scale,
+                    },
+                    "color_jitter": {
+                        "prob": 0.8,
+                        "brightness": 0.4,
+                        "contrast": 0.4,
+                        "saturation": 0.4,
+                        "hue": 0.2,
+                    },
+                    "grayscale": {"prob": 0.5},
+                    "gaussian_blur": {"prob": 0.5},
+                    "solarization": {"prob": 0.1},
+                    "equalization": {"prob": 0.0},
+                    "horizontal_flip": {"prob": 0.5},
+                    "num_crops": 2,
+                }
             )
-            transforms.append(transform)
+            transforms.append(
+                NCropAugmentation(
+                    build_transform_pipeline_dali("imagenet100", cfg, dali_device="cpu"),
+                    cfg.num_crops,
+                )
+            )
+
+        transform = FullTransformPipeline(transforms)
 
         # multicrop pipeline
         train_pipeline_builder = PretrainPipelineBuilder(
             "dummy_train",
             batch_size=4,
-            transforms=transforms,
-            num_crops_per_aug=[2, 4],
+            transforms=transform,
             device="cpu",
             device_id=0,
             shard_id=0,
@@ -126,53 +142,61 @@ def test_dali_pretrain():
                 "proj_output_dim": 2048,
                 "lamb": 5e-3,
                 "scale_loss": 0.025,
-                "encode_indexes_into_labels": encode_indexes_into_labels,
-                "disable_knn_eval": True,
             }
-            BASE_KWARGS = gen_base_kwargs(cifar=False)
-            DATA_KWARGS_WRAPPED = {k: [v] for k, v in DATA_KWARGS.items()}
-            kwargs = {**BASE_KWARGS, **DATA_KWARGS_WRAPPED, **method_kwargs}
+            cfg = gen_base_cfg("barlow_twins", batch_size=2, num_classes=100)
+            cfg.method_kwargs = method_kwargs
+            cfg = PretrainDALIDataModule.add_and_assert_specific_cfg(cfg)
+            cfg.dali.device = "cpu"
+            cfg.data.train_path = "./dummy_train"
+            cfg.data.dataset = "custom"
+            model = BarlowTwins(cfg)
 
-            kwargs["dali_device"] = "cpu"
-            kwargs["train_data_path"] = "./dummy_train"
-            kwargs["dataset"] = "custom"
+            trainer = gen_trainer(cfg)
 
-            kwargs["transform_kwargs"] = dict(
-                brightness=0.4,
-                contrast=0.4,
-                saturation=0.2,
-                hue=0.1,
-                gaussian_prob=0.5,
-                solarization_prob=0.2,
-                min_scale=0.08,
-                max_scale=1.0,
-                equalization_prob=0.0,
+            aug_cfg = OmegaConf.create(
+                {
+                    "crop_size": 224,
+                    "rrc": {
+                        "enabled": True,
+                        "crop_min_scale": 0.08,
+                        "crop_max_scale": 1.0,
+                    },
+                    "color_jitter": {
+                        "prob": 0.8,
+                        "brightness": 0.4,
+                        "contrast": 0.4,
+                        "saturation": 0.4,
+                        "hue": 0.2,
+                    },
+                    "grayscale": {"prob": 0.5},
+                    "gaussian_blur": {"prob": 0.5},
+                    "solarization": {"prob": 0.1},
+                    "equalization": {"prob": 0.0},
+                    "horizontal_flip": {"prob": 0.5},
+                    "num_crops": 2,
+                }
             )
-            kwargs["unique_augs"] = 1
-
-            model = BarlowTwins(**kwargs)
-
-            args = argparse.Namespace(**kwargs)
-            trainer = Trainer.from_argparse_args(
-                args,
-                checkpoint_callback=False,
-                limit_train_batches=2,
-                limit_val_batches=2,
-            )
+            pipelines = [
+                NCropAugmentation(
+                    build_transform_pipeline_dali(
+                        cfg.data.dataset, aug_cfg, dali_device=cfg.dali.device
+                    ),
+                    aug_cfg.num_crops,
+                )
+            ]
+            transform = FullTransformPipeline(pipelines)
             dali_datamodule = PretrainDALIDataModule(
-                dataset=args.dataset,
-                train_data_path=args.train_data_path,
-                unique_augs=args.unique_augs,
-                transform_kwargs=args.transform_kwargs,
-                num_crops_per_aug=args.num_crops_per_aug,
-                num_large_crops=args.num_large_crops,
-                num_small_crops=args.num_small_crops,
-                num_workers=args.num_workers,
-                batch_size=args.batch_size,
-                no_labels=args.no_labels,
-                data_fraction=args.data_fraction,
-                dali_device=args.dali_device,
-                encode_indexes_into_labels=args.encode_indexes_into_labels,
+                dataset=cfg.data.dataset,
+                train_data_path=cfg.data.train_path,
+                transforms=transform,
+                num_large_crops=cfg.data.num_large_crops,
+                num_small_crops=cfg.data.num_small_crops,
+                num_workers=cfg.data.num_workers,
+                batch_size=cfg.optimizer.batch_size,
+                no_labels=False,
+                data_fraction=-1,
+                dali_device=cfg.dali.device,
+                encode_indexes_into_labels=encode_indexes_into_labels,
             )
             trainer.fit(model, datamodule=dali_datamodule)
 
@@ -180,35 +204,29 @@ def test_dali_pretrain():
 def test_dali_linear():
     # creates a dummy dataset that autodeletes after usage
     with DummyDataset("./dummy_train", "./dummy_val", 128, 4):
-        BASE_KWARGS = gen_base_kwargs(cifar=False, momentum=True)
-        kwargs = {**BASE_KWARGS, **DATA_KWARGS}
+        cfg = gen_base_cfg("none", batch_size=2, num_classes=100)
+        cfg = ClassificationDALIDataModule.add_and_assert_specific_cfg(cfg)
+
         backbone = resnet18()
         backbone.fc = nn.Identity()
 
-        kwargs["dali_device"] = "cpu"
-        kwargs["train_data_path"] = "./dummy_train"
-        kwargs["val_data_path"] = "./dummy_val"
-        kwargs["dataset"] = "custom"
+        cfg.dali.device = "cpu"
+        cfg.data.train_path = "./dummy_train"
+        cfg.data.val_path = "./dummy_val"
+        cfg.data.dataset = "custom"
 
-        del kwargs["backbone"]
+        model = LinearModel(backbone, cfg=cfg)
+        trainer = gen_trainer(cfg)
 
-        model = LinearModel(backbone, **kwargs)
-
-        args = argparse.Namespace(**kwargs)
         dali_datamodule = ClassificationDALIDataModule(
-            dataset=args.dataset,
-            train_data_path=args.train_data_path,
-            val_data_path=args.val_data_path,
-            num_workers=args.num_workers,
-            batch_size=args.batch_size,
-            data_fraction=args.data_fraction,
-            dali_device=args.dali_device,
+            dataset=cfg.data.dataset,
+            train_data_path=cfg.data.train_path,
+            val_data_path=cfg.data.val_path,
+            num_workers=cfg.data.num_workers,
+            batch_size=cfg.optimizer.batch_size,
+            data_fraction=-1,
+            dali_device=cfg.dali.device,
         )
 
-        trainer = Trainer.from_argparse_args(
-            args,
-            checkpoint_callback=False,
-            limit_train_batches=2,
-            limit_val_batches=2,
-        )
+        trainer = gen_trainer(cfg)
         trainer.fit(model, datamodule=dali_datamodule)

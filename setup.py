@@ -38,7 +38,7 @@ def parse_requirements(path):
 setup(
     name="solo-learn",
     packages=find_packages(exclude=["bash_files", "docs", "downstream", "tests", "zoo"]),
-    version="1.0.3",
+    version="1.0.6",
     license="MIT",
     author="solo-learn development team",
     author_email="vturrisi@gmail.com, enrico.fini@gmail.com",
@@ -56,6 +56,7 @@ setup(
         "scipy",
         "timm",
         "scikit-learn",
+        "hydra-core",
     ],
     extras_require=EXTRA_REQUIREMENTS,
     dependency_links=["https://developer.download.nvidia.com/compute/redist"],

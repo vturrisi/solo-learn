@@ -1,26 +1,30 @@
+from argparse import ArgumentParser
 import json
 import os
-from argparse import ArgumentParser, Namespace
 from collections import namedtuple
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Union
+
+from omegaconf import DictConfig
+from solo.utils.misc import omegaconf_select
 
 Checkpoint = namedtuple("Checkpoint", ["creation_time", "args", "checkpoint"])
 
 
 class AutoResumer:
     SHOULD_MATCH = [
-        "batch_size",
-        "weight_decay",
-        "lr",
-        "dataset",
-        "backbone",
-        "max_epochs",
-        "method",
         "name",
-        "project",
-        "entity",
+        "backbone",
+        "method",
+        "data.dataset",
+        "max_epochs",
+        "optimizer.name",
+        "optimizer.batch_size",
+        "optimizer.lr",
+        "optimizer.weight_decay",
+        "wandb.project",
+        "wandb.entity",
         "pretrained_feature_extractor",
     ]
 
@@ -42,22 +46,27 @@ class AutoResumer:
         self.max_hours = timedelta(hours=max_hours)
 
     @staticmethod
-    def add_autoresumer_args(parent_parser: ArgumentParser):
-        """Adds user-required arguments to a parser.
+    def add_and_assert_specific_cfg(cfg: DictConfig) -> DictConfig:
+        """Adds specific default values/checks for config.
 
         Args:
-            parent_parser (ArgumentParser): parser to add new args to.
+            cfg (omegaconf.DictConfig): DictConfig object.
+
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
         """
 
-        parser = parent_parser.add_argument_group("autoresumer")
-        parser.add_argument("--auto_resumer_max_hours", default=36, type=int)
-        return parent_parser
+        cfg.auto_resume = omegaconf_select(cfg, "auto_resume", default={})
+        cfg.auto_resume.enabled = omegaconf_select(cfg, "auto_resume.enabled", default=False)
+        cfg.auto_resume.max_hours = omegaconf_select(cfg, "auto_resume.max_hours", default=36)
 
-    def find_checkpoint(self, args: Namespace):
+        return cfg
+
+    def find_checkpoint(self, cfg: DictConfig):
         """Finds a valid checkpoint that matches the arguments
 
         Args:
-            args (Namespace): namespace object containing all settings of the model.
+            cfg (DictConfig): DictConfig containing all settings of the model.
         """
 
         current_time = datetime.now()
@@ -86,12 +95,13 @@ class AutoResumer:
             candidates = sorted(candidates, key=lambda ck: ck.creation_time, reverse=True)
 
             for candidate in candidates:
-                candidate_args = Namespace(**json.load(open(candidate.args)))
+                candidate_cfg = DictConfig(json.load(open(candidate.args)))
                 if all(
-                    getattr(candidate_args, param, None) == getattr(args, param, None)
+                    omegaconf_select(candidate_cfg, param, None)
+                    == omegaconf_select(cfg, param, None)
                     for param in AutoResumer.SHOULD_MATCH
                 ):
-                    wandb_run_id = getattr(candidate_args, "wandb_run_id", None)
+                    wandb_run_id = getattr(candidate_cfg, "wandb_run_id", None)
                     return candidate.checkpoint, wandb_run_id
 
         return None, None

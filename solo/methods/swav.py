@@ -17,54 +17,48 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.swav import swav_loss_func
 from solo.methods.base import BaseMethod
+from solo.utils.misc import omegaconf_select
 from solo.utils.sinkhorn_knopp import SinkhornKnopp
 
 
 class SwAV(BaseMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        num_prototypes: int,
-        sk_iters: int,
-        sk_epsilon: float,
-        temperature: float,
-        queue_size: int,
-        epoch_queue_starts: int,
-        freeze_prototypes_epochs: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements SwAV (https://arxiv.org/abs/2006.09882).
 
-        Args:
-            proj_output_dim (int): number of dimensions of the projected features.
-            proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
-            num_prototypes (int): number of prototypes.
-            sk_iters (int): number of iterations for the sinkhorn-knopp algorithm.
-            sk_epsilon (float): weight for the entropy regularization term.
-            temperature (float): temperature for the softmax normalization.
-            queue_size (int): number of samples to hold in the queue.
-            epoch_queue_starts (int): epochs the queue starts.
-            freeze_prototypes_epochs (int): number of epochs during which the prototypes are frozen.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of the projected features.
+                proj_hidden_dim (int): number of neurons in the hidden layers of the projector.
+                num_prototypes (int): number of prototypes.
+                sk_iters (int): number of iterations for the sinkhorn-knopp algorithm.
+                sk_epsilon (float): weight for the entropy regularization term.
+                temperature (float): temperature for the softmax normalization.
+                queue_size (int): number of samples to hold in the queue.
+                epoch_queue_starts (int): epochs the queue starts.
+                freeze_prototypes_epochs (int): number of epochs during which the prototypes are frozen.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.proj_output_dim = proj_output_dim
-        self.sk_iters = sk_iters
-        self.sk_epsilon = sk_epsilon
-        self.temperature = temperature
-        self.queue_size = queue_size
-        self.epoch_queue_starts = epoch_queue_starts
-        self.freeze_prototypes_epochs = freeze_prototypes_epochs
+        self.proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        self.sk_iters: int = cfg.method_kwargs.sk_iters
+        self.sk_epsilon: float = cfg.method_kwargs.sk_epsilon
+        self.temperature: float = cfg.method_kwargs.temperature
+        self.queue_size: int = cfg.method_kwargs.queue_size
+        self.epoch_queue_starts: int = cfg.method_kwargs.epoch_queue_starts
+        self.freeze_prototypes_epochs: int = cfg.method_kwargs.freeze_prototypes_epochs
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        num_prototypes: int = cfg.method_kwargs.num_prototypes
 
         # projector
         self.projector = nn.Sequential(
@@ -82,25 +76,42 @@ class SwAV(BaseMethod):
         self.prototypes.weight_g.requires_grad = False
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(SwAV, SwAV).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("swav")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=128)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # queue settings
-        parser.add_argument("--queue_size", default=3840, type=int)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        # parameters
-        parser.add_argument("--temperature", type=float, default=0.1)
-        parser.add_argument("--num_prototypes", type=int, default=3000)
-        parser.add_argument("--sk_epsilon", type=float, default=0.05)
-        parser.add_argument("--sk_iters", type=int, default=3)
-        parser.add_argument("--freeze_prototypes_epochs", type=int, default=1)
-        parser.add_argument("--epoch_queue_starts", type=int, default=15)
-        return parent_parser
+        cfg = super(SwAV, SwAV).add_and_assert_specific_cfg(cfg)
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.temperature")
+
+        cfg.method_kwargs.queue_size = omegaconf_select(cfg, "method_kwargs.queue_size", 65536)
+        cfg.method_kwargs.num_prototypes = omegaconf_select(
+            cfg,
+            "method_kwargs.num_prototypes",
+            3000,
+        )
+        cfg.method_kwargs.sk_epsilon = omegaconf_select(cfg, "method_kwargs.sk_epsilon", 0.05)
+        cfg.method_kwargs.sk_iters = omegaconf_select(cfg, "method_kwargs.sk_iters", 3)
+        cfg.method_kwargs.freeze_prototypes_epochs = omegaconf_select(
+            cfg,
+            "method_kwargs.freeze_prototypes_epochs",
+            1,
+        )
+        cfg.method_kwargs.epoch_queue_starts = omegaconf_select(
+            cfg,
+            "method_kwargs.epoch_queue_starts",
+            15,
+        )
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -111,8 +122,8 @@ class SwAV(BaseMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
-            {"params": self.prototypes.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "prototypes", "params": self.prototypes.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

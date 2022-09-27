@@ -17,15 +17,14 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence
 
-
+import omegaconf
 import torch
 import torch.nn as nn
 from solo.losses.mae import mae_loss_func
 from solo.methods.base import BaseMethod
-from solo.utils.misc import generate_2d_sincos_pos_embed
+from solo.utils.misc import generate_2d_sincos_pos_embed, omegaconf_select
 from timm.models.vision_transformer import Block
 
 
@@ -122,35 +121,37 @@ class MAEDecoder(nn.Module):
 class MAE(BaseMethod):
     def __init__(
         self,
-        mask_ratio: float,
-        decoder_embed_dim: int,
-        decoder_depth: int,
-        decoder_num_heads: int,
-        norm_pix_loss: bool = False,
-        **kwargs,
+        cfg: omegaconf.DictConfig,
     ):
         """Implements MAE (https://arxiv.org/abs/2111.06377).
 
-        Args:
-            mask_ratio (float): percentage of image to mask.
-            decoder_embed_dim (int): number of dimensions for the embedding in the decoder
-            decoder_depth (int) depth of the decoder
-            decoder_num_heads (int) number of heads for the decoder
-            norm_pix_loss (bool): whether to normalize the pixels of each patch with their
-                respective mean and std for the loss. Defaults to False.
+        Extra cfg settings:
+            method_kwargs:
+                mask_ratio (float): percentage of image to mask.
+                decoder_embed_dim (int): number of dimensions for the embedding in the decoder
+                decoder_depth (int) depth of the decoder
+                decoder_num_heads (int) number of heads for the decoder
+                norm_pix_loss (bool): whether to normalize the pixels of each patch with their
+                    respective mean and std for the loss. Defaults to False.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
         assert "vit" in self.backbone_name, "MAE only supports ViT as backbone."
 
-        self.mask_ratio = mask_ratio
-        self.norm_pix_loss = norm_pix_loss
+        self.mask_ratio: float = cfg.method_kwargs.mask_ratio
+        self.norm_pix_loss: bool = cfg.method_kwargs.norm_pix_loss
 
         # gather backbone info from timm
-        self._vit_embed_dim = self.backbone.pos_embed.size(-1)
-        self._vit_patch_size = self.backbone_args["patch_size"]
-        self._vit_num_patches = self.backbone.patch_embed.num_patches
+        self._vit_embed_dim: int = self.backbone.pos_embed.size(-1)
+        # if patch size is not available, defaults to 16 or 14 depending on backbone
+        default_patch_size = 14 if self.backbone_name == "vit_huge" else 16
+        self._vit_patch_size: int = self.backbone_args.get("patch_size", default_patch_size)
+        self._vit_num_patches: int = self.backbone.patch_embed.num_patches
+
+        decoder_embed_dim: int = cfg.method_kwargs.decoder_embed_dim
+        decoder_depth: int = cfg.method_kwargs.decoder_depth
+        decoder_num_heads: int = cfg.method_kwargs.decoder_num_heads
 
         # decoder
         self.decoder = MAEDecoder(
@@ -164,20 +165,30 @@ class MAE(BaseMethod):
         )
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(MAE, MAE).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("mocov3")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # decoder
-        parser.add_argument("--decoder_embed_dim", type=int, default=512)
-        parser.add_argument("--decoder_depth", type=int, default=8)
-        parser.add_argument("--decoder_num_heads", type=int, default=16)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # parameters
-        parser.add_argument("--mask_ratio", type=float, default=0.75)
-        parser.add_argument("--norm_pix_loss", action="store_true")
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        return parent_parser
+        cfg = super(MAE, MAE).add_and_assert_specific_cfg(cfg)
+
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.decoder_embed_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.decoder_depth")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.decoder_num_heads")
+
+        cfg.method_kwargs.mask_ratio = omegaconf_select(cfg, "method_kwargs.mask_ratio", 0.75)
+        cfg.method_kwargs.norm_pix_loss = omegaconf_select(
+            cfg,
+            "method_kwargs.norm_pix_loss",
+            False,
+        )
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -188,7 +199,7 @@ class MAE(BaseMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.decoder.parameters()},
+            {"name": "decoder", "params": self.decoder.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

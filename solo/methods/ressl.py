@@ -17,39 +17,39 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence, Tuple
 
+import omegaconf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from solo.losses.ressl import ressl_loss_func
 from solo.methods.base import BaseMomentumMethod
+from solo.utils.misc import gather, omegaconf_select
 from solo.utils.momentum import initialize_momentum_params
-from solo.utils.misc import gather
 
 
 class ReSSL(BaseMomentumMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        temperature_q: float,
-        temperature_k: float,
-        queue_size: int,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements ReSSL (https://arxiv.org/abs/2107.09282v1).
 
-        Args:
-            proj_output_dim (int): number of dimensions of projected features.
-            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
-            temperature_q (float): temperature for the contrastive augmentations.
-            temperature_k (float): temperature for the weak augmentation.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of projected features.
+                proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+                pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+                temperature_q (float): temperature for the contrastive augmentations.
+                temperature_k (float): temperature for the weak augmentation.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
+
+        self.temperature_q: float = cfg.method_kwargs.temperature_q
+        self.temperature_k: float = cfg.method_kwargs.temperature_k
+        self.queue_size: int = cfg.method_kwargs.queue_size
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
 
         # projector
         self.projector = nn.Sequential(
@@ -66,32 +66,32 @@ class ReSSL(BaseMomentumMethod):
         )
         initialize_momentum_params(self.projector, self.momentum_projector)
 
-        self.temperature_q = temperature_q
-        self.temperature_k = temperature_k
-        self.queue_size = queue_size
-
         # queue
         self.register_buffer("queue", torch.randn(self.queue_size, proj_output_dim))
         self.queue = F.normalize(self.queue, dim=1)
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(ReSSL, ReSSL).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("ressl")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=256)
-        parser.add_argument("--proj_hidden_dim", type=int, default=2048)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # queue settings
-        parser.add_argument("--queue_size", default=65536, type=int)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        # parameters
-        parser.add_argument("--temperature_q", type=float, default=0.1)
-        parser.add_argument("--temperature_k", type=float, default=0.04)
+        cfg = super(ReSSL, ReSSL).add_and_assert_specific_cfg(cfg)
 
-        return parent_parser
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.temperature_q")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.temperature_k")
+
+        cfg.method_kwargs.queue_size = omegaconf_select(cfg, "method_kwargs.queue_size", 65536)
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -102,7 +102,7 @@ class ReSSL(BaseMomentumMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

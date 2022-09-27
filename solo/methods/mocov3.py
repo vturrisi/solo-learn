@@ -17,9 +17,9 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
 from typing import Any, Dict, List, Sequence, Tuple
 
+import omegaconf
 import torch
 import torch.nn as nn
 from solo.losses.mocov3 import mocov3_loss_func
@@ -28,26 +28,24 @@ from solo.utils.momentum import initialize_momentum_params
 
 
 class MoCoV3(BaseMomentumMethod):
-    def __init__(
-        self,
-        proj_output_dim: int,
-        proj_hidden_dim: int,
-        pred_hidden_dim: int,
-        temperature: float,
-        **kwargs,
-    ):
+    def __init__(self, cfg: omegaconf.DictConfig):
         """Implements MoCo V3 (https://arxiv.org/abs/2104.02057).
 
-        Args:
-            proj_output_dim (int): number of dimensions of projected features.
-            proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
-            pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
-            temperature (float): temperature for the softmax in the contrastive loss.
+        Extra cfg settings:
+            method_kwargs:
+                proj_output_dim (int): number of dimensions of projected features.
+                proj_hidden_dim (int): number of neurons of the hidden layers of the projector.
+                pred_hidden_dim (int): number of neurons of the hidden layers of the predictor.
+                temperature (float): temperature for the softmax in the contrastive loss.
         """
 
-        super().__init__(**kwargs)
+        super().__init__(cfg)
 
-        self.temperature = temperature
+        self.temperature: float = cfg.method_kwargs.temperature
+
+        proj_hidden_dim: int = cfg.method_kwargs.proj_hidden_dim
+        proj_output_dim: int = cfg.method_kwargs.proj_output_dim
+        pred_hidden_dim: int = cfg.method_kwargs.pred_hidden_dim
 
         if "resnet" in self.backbone_name:
             # projector
@@ -118,21 +116,24 @@ class MoCoV3(BaseMomentumMethod):
         return nn.Sequential(*mlp)
 
     @staticmethod
-    def add_model_specific_args(parent_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parent_parser = super(MoCoV3, MoCoV3).add_model_specific_args(parent_parser)
-        parser = parent_parser.add_argument_group("mocov3")
+    def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+        """Adds method specific default values/checks for config.
 
-        # projector
-        parser.add_argument("--proj_output_dim", type=int, default=256)
-        parser.add_argument("--proj_hidden_dim", type=int, default=4096)
+        Args:
+            cfg (omegaconf.DictConfig): DictConfig object.
 
-        # predictor
-        parser.add_argument("--pred_hidden_dim", type=int, default=4096)
+        Returns:
+            omegaconf.DictConfig: same as the argument, used to avoid errors.
+        """
 
-        # parameters
-        parser.add_argument("--temperature", type=float, default=0.2)
+        cfg = super(MoCoV3, MoCoV3).add_and_assert_specific_cfg(cfg)
 
-        return parent_parser
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_output_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.proj_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.pred_hidden_dim")
+        assert not omegaconf.OmegaConf.is_missing(cfg, "method_kwargs.temperature")
+
+        return cfg
 
     @property
     def learnable_params(self) -> List[dict]:
@@ -143,8 +144,8 @@ class MoCoV3(BaseMomentumMethod):
         """
 
         extra_learnable_params = [
-            {"params": self.projector.parameters()},
-            {"params": self.predictor.parameters()},
+            {"name": "projector", "params": self.projector.parameters()},
+            {"name": "predictor", "params": self.predictor.parameters()},
         ]
         return super().learnable_params + extra_learnable_params
 

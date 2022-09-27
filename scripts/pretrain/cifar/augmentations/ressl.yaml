@@ -1,0 +1,41 @@
+- rrc:
+    enabled: True
+    crop_min_scale: 0.08
+    crop_max_scale: 1.0
+  color_jitter:
+    prob: 0.8
+    brightness: 0.4
+    contrast: 0.4
+    saturation: 0.2
+    hue: 0.1
+  grayscale:
+    prob: 0.2
+  gaussian_blur:
+    prob: 0.5
+  solarization:
+    prob: 0.0
+  equalization:
+    prob: 0.0
+  horizontal_flip:
+    prob: 0.5
+  crop_size: 32
+  num_crops: 1
+
+- rrc:
+    enabled: True
+    crop_min_scale: 0.08
+    crop_max_scale: 1.0
+  color_jitter:
+    prob: 0.0
+  grayscale:
+    prob: 0.0
+  gaussian_blur:
+    prob: 0.0
+  solarization:
+    prob: 0.0
+  equalization:
+    prob: 0.0
+  horizontal_flip:
+    prob: 0.5
+  crop_size: 32
+  num_crops: 1
