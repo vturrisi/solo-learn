@@ -16,8 +16,8 @@ method: "barlow_twins"
 backbone:
   name: "resnet18"
 method_kwargs:
-  proj_hidden_dim: 4096
-  proj_output_dim: 4096
+  proj_hidden_dim: 2048
+  proj_output_dim: 2048
   scale_loss: 0.1
 data:
   dataset: imagenet100
@@ -27,7 +27,7 @@ data:
   num_workers: 4
 optimizer:
   name: "lars"
-  batch_size: 32
+  batch_size: 128
   lr: 0.3
   classifier_lr: 0.1
   weight_decay: 1e-4
