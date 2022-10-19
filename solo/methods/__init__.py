@@ -22,6 +22,7 @@ from solo.methods.base import BaseMethod
 from solo.methods.byol import BYOL
 from solo.methods.deepclusterv2 import DeepClusterV2
 from solo.methods.dino import DINO
+from solo.methods.fastmocov3 import FastMoCoV3
 from solo.methods.linear import LinearModel
 from solo.methods.mae import MAE
 from solo.methods.mocov2plus import MoCoV2Plus
@@ -50,6 +51,7 @@ METHODS = {
     "mae": MAE,
     "mocov2plus": MoCoV2Plus,
     "mocov3": MoCoV3,
+    "fastmocov3": FastMoCoV3,
     "nnbyol": NNBYOL,
     "nnclr": NNCLR,
     "nnsiam": NNSiam,
@@ -72,6 +74,7 @@ __all__ = [
     "LinearModel",
     "MoCoV2Plus",
     "MoCoV3",
+    "FastMoCoV3",
     "NNBYOL",
     "NNCLR",
     "NNSiam",
