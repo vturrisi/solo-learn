@@ -50,7 +50,7 @@ setup(
         "einops",
         "pytorch-lightning==1.6.4",
         "torchmetrics==0.6.0",
-        "lightning-bolts>=0.5.0",
+        "lightning-bolts==0.5.0",  # set with 0.5.0 for now before checking compatibility with lightning 1.7
         "tqdm",
         "wandb",
         "scipy",
