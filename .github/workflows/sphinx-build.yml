@@ -23,10 +23,10 @@ jobs:
           pip install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
           pip install -r docs/requirements.txt
 
-      - name: directly build sphinx
+      - name: Directly build sphinx
         run: |
           pip install -r requirements.txt
-          sphinx-build -D todo_include_todos=0 docs ./docs/
+          sphinx-build -D todo_include_todos=0 docs docs/build/html/
 
       - uses: actions/upload-artifact@v1
         with:
