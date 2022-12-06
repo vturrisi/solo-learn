@@ -29,10 +29,10 @@ jobs:
           git checkout $GITHUB_HEAD_REF
           git commit -am "fixup: format solo with Black"
           git push
-      
+
       - name: Run black --check on tests
         run: black --check --line-length 100 tests
-      
+
       - name: If needed, commit black changes to the pull request
         if: failure()
         run: |
