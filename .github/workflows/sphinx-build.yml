@@ -25,8 +25,8 @@ jobs:
 
       - name: Directly build sphinx
         run: |
-          pip install -r requirements.txt
-          sphinx-build -D todo_include_todos=0 docs docs/build/html/
+          pip install -r docs/requirements.txt
+          sphinx-build -b html solo docs/build/html
 
       - uses: actions/upload-artifact@v1
         with:
