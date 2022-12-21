@@ -25,10 +25,11 @@ jobs:
 
       - name: Directly build sphinx
         run: |
-          pip install -r docs/requirements.txt
-          sphinx-build -b html solo docs/build/html
+          cd docs
+          pip install -r requirements.txt
+          make html
 
       - uses: actions/upload-artifact@v1
         with:
           name: DocumentationHTML
-          path: docs/build/html/
+          path: build/html/
