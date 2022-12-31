@@ -60,4 +60,3 @@ python3 main_pretrain.py \
     ++method_kwargs.warmup_teacher_temperature_epochs=0 \
     ++dali.encode_indexes_into_labels=True
 echo ---------------------------------
-

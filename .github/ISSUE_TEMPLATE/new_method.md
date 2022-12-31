@@ -23,4 +23,3 @@ As a general checklist, you should have:
 * [ ] add documentation to `docs/source/solo/methods` and `docs/source/solo/losses`, and modify `docs/source/index.rst` to reference the new files (use alphabetical order).
 * [ ] check if all tests pass by running `python -m pytest --cov=solo tests`.
 * [ ] reproduce competitive results on at least CIFAR10/CIFAR100 (possibly Imagenet-100 and Imagenet).
-
