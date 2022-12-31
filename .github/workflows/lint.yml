@@ -1,10 +1,8 @@
-name: autoblack
-on:
-  pull_request:
-    branches: [main]
+name: linting
+on: [push, pull_request]
 
 jobs:
-  build:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
