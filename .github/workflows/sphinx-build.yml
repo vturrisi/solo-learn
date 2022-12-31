@@ -1,10 +1,17 @@
 name: sphinx-build
 
+# Let's skip for now since there's an issue with the action
+# I'll properly try to fix in the future
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches-ignore:
+      - '**'
+
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
 
 
 jobs:
