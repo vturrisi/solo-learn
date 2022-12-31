@@ -72,7 +72,7 @@ class VisionTransformerMoCo(VisionTransformer):
         ), "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
         pos_dim = self.embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
-        omega = 1.0 / (temperature ** omega)
+        omega = 1.0 / (temperature**omega)
         out_w = torch.einsum("m,d->md", [grid_w.flatten(), omega])
         out_h = torch.einsum("m,d->md", [grid_h.flatten(), omega])
         pos_emb = torch.cat(

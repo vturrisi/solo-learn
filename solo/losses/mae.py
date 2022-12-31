@@ -37,7 +37,7 @@ def patchify(imgs: torch.Tensor, patch_size: int) -> torch.Tensor:
     h = w = imgs.size(2) // patch_size
     x = imgs.reshape(shape=(imgs.size(0), 3, h, patch_size, w, patch_size))
     x = torch.einsum("nchpwq->nhwpqc", x)
-    x = x.reshape(shape=(imgs.size(0), h * w, patch_size ** 2 * 3))
+    x = x.reshape(shape=(imgs.size(0), h * w, patch_size**2 * 3))
     return x
 
 
