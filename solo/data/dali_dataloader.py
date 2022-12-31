@@ -1,4 +1,4 @@
-# Copyright 2022 solo-learn development team.
+# Copyright 2023 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -19,7 +19,6 @@
 
 import math
 import os
-from argparse import ArgumentParser
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
