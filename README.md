@@ -6,12 +6,11 @@
 
 </div>
 
-# solo-learn
-
 <p align="center">
   <img src="logo.png" width="250"/>
 </p>
 
+# solo-learn
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
 The library is self-contained, but it is possible to use the models outside of solo-learn. **More details in our [paper](#bib)**.
