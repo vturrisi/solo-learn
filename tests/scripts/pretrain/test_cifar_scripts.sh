@@ -52,6 +52,3 @@ for dataset in ${DATASETS[@]}; do
     echo ---------------------------------
 
 done
-
-
-

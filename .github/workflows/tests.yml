@@ -30,7 +30,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.python }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.python }}-pip-
-      
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip

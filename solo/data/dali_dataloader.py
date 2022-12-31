@@ -385,7 +385,11 @@ def build_transform_pipeline_dali(dataset, cfg, dali_device):
         )
     else:
         augmentations.append(
-            ops.Resize(device=dali_device, size=(cfg.crop_size, cfg.crop_size), interp_type=types.INTERP_CUBIC)
+            ops.Resize(
+                device=dali_device,
+                size=(cfg.crop_size, cfg.crop_size),
+                interp_type=types.INTERP_CUBIC,
+            )
         )
 
     if cfg.color_jitter.prob:

@@ -13,5 +13,5 @@ python:
       path: .
 
 # By default readthedocs does not checkout git submodules
-submodules:                                                                                                                          
+submodules:
   include: all
