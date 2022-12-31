@@ -50,6 +50,3 @@ parse_args_linear
 
 .. autofunction:: solo.args.utils.additional_setup_linear
    :noindex:
-
-
-

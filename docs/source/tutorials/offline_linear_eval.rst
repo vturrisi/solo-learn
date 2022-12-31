@@ -12,7 +12,7 @@ As for pretraining, we start by importing the required packages:
     from pytorch_lightning.loggers import WandbLogger
     from pytorch_lightning.callbacks import LearningRateMonitor
     from torchvision.models import resnet18
-   
+
     from solo.methods.linear import LinearModel  # imports the linear eval class
     from solo.utils.classification_dataloader import prepare_data
 
@@ -21,7 +21,7 @@ If we want to be able to specify the arguments from the command line, we can sim
 However, in this tutorial, we will simply define all the needed parameters to perform linear evaluation:
 
 .. code-block:: python
-    
+
     # basic parameters for offline linear evaluation
     # some parameters for extra functionally are missing, but don't mind this for now.
     kwargs = {
@@ -81,7 +81,7 @@ Now, let's create the data loaders. Unlike when we are doing pretraining, this t
 Lastly, we just need to define some extra utilities for Pytorch Lightning to automatically log some stuff for us and then we can just create our lightning Trainer:
 
 .. code-block:: python
-    
+
     wandb_logger = WandbLogger(
         name="linear-cifar10",  # name of the experiment
         project="self-supervised",  # name of the wandb project
@@ -143,4 +143,4 @@ And that's it, we basically replicated a small version of ``main_linear.py``. Of
         --project self-supervised \
         --wandb
 
-Now you are fully able to use solo-learn and you can make your research ideas become reality! 
+Now you are fully able to use solo-learn and you can make your research ideas become reality!
