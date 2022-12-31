@@ -1,25 +1,40 @@
 name: sphinx-build
 
+# Let's skip for now since there's an issue with the action
+# I'll properly try to fix in the future
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches-ignore:
+      - '**'
+
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
 
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ammaraskar/sphinx-action@0.4
-      with:
-        pre-build-command: |
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+
+      - name: Install Python dependencies
+        run: |
           python -m pip install --upgrade pip
           pip install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
           pip install -r docs/requirements.txt
-        docs-folder: "docs/"
-    - uses: actions/upload-artifact@v1
-      with:
-        name: DocumentationHTML
-        path: docs/build/html/
+
+      - name: Directly build sphinx
+        run: |
+            sphinx-build -b html docs/source docs/build
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: DocumentationHTML
+          path: docs/build/html/
