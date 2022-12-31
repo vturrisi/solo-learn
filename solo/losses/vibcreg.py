@@ -1,4 +1,4 @@
-# Copyright 2022 solo-learn development team.
+# Copyright 2023 solo-learn development team.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -43,7 +43,7 @@ def covariance_loss(z1: torch.Tensor, z2: torch.Tensor) -> torch.Tensor:
     fxf_cov_z2 = torch.mm(norm_z2.T, norm_z2)
     fxf_cov_z1.fill_diagonal_(0.0)
     fxf_cov_z2.fill_diagonal_(0.0)
-    cov_loss = (fxf_cov_z1**2).mean() + (fxf_cov_z2**2).mean()
+    cov_loss = (fxf_cov_z1 ** 2).mean() + (fxf_cov_z2 ** 2).mean()
     return cov_loss
 
 

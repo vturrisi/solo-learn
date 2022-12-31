@@ -8,6 +8,10 @@
 
 # solo-learn
 
+<p align="center">
+  <img src="logo.png" width="250"/>
+</p>
+
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
 The library is self-contained, but it is possible to use the models outside of solo-learn. **More details in our [paper](#bib)**.
@@ -15,6 +19,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Dec 31 2022]**: :stars: Shiny new logo!
 * **[Sep 27 2022]**: :pencil: Brand new config system using OmegaConf/Hydra. Adds more clarity and flexibility. New tutorials will follow soon!
 * **[Aug 04 2022]**: :paintbrush: Added [MAE](https://arxiv.org/abs/2111.06377) and supports finetuning the backbone with `main_linear.py`, mixup, cutmix and [random augment](https://arxiv.org/abs/1909.13719).
 * **[Jul 13 2022]**: :sparkling_heart: Added support for [H5](https://docs.h5py.org/en/stable/index.html) data, improved scripts and data handling.
