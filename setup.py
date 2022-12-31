@@ -25,7 +25,7 @@ KW = ["artificial intelligence", "deep learning", "unsupervised learning", "cont
 
 REQUIREMENTS_FILE = os.path.join(os.path.dirname(__file__), "requirements.txt")
 with open(REQUIREMENTS_FILE) as fo:
-    REQUIREMENTS = list(parse_requirements(fo.readlines()))
+    REQUIREMENTS = [str(req) for req in parse_requirements(fo.readlines())]
 
 EXTRA_REQUIREMENTS = {
     "dali": ["nvidia-dali-cuda110"],
