@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" width="250"/>
+</p>
+
 <div align="center">
 
 [![tests](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml/badge.svg)](https://github.com/vturrisi/solo-learn/actions/workflows/tests.yml)
@@ -5,10 +9,6 @@
 [![codecov](https://codecov.io/gh/vturrisi/solo-learn/branch/main/graph/badge.svg?token=WLU9UU17XZ)](https://codecov.io/gh/vturrisi/solo-learn)
 
 </div>
-
-<p align="center">
-  <img src="logo.png" width="250"/>
-</p>
 
 # solo-learn
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
