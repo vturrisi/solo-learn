@@ -10,7 +10,7 @@ hydra:
   run:
     dir: .
 
-name: "mae-imagenet100-finetune"
+name: "mae-imagenet-finetune"
 pretrained_feature_extractor: None
 backbone:
   name: "vit_base"
@@ -18,9 +18,9 @@ backbone:
     drop_path_rate: 0.1
 pretrain_method: "mae"
 data:
-  dataset: imagenet100
-  train_path: "./datasets/imagenet-100/train"
-  val_path: "./datasets/imagenet-100/val"
+  dataset: "imagenet"
+  train_path: "./datasets/imagenet/train"
+  val_path: "./datasets/imagenet/val"
   format: "image_folder"
   num_workers: 4
 optimizer:

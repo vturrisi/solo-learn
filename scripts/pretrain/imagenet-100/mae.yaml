@@ -25,7 +25,7 @@ data:
   dataset: imagenet100
   train_path: "./datasets/imagenet-100/train"
   val_path: "./datasets/imagenet-100/val"
-  format: "dali"
+  format: "image_folder"
   num_workers: 4
 optimizer:
   name: "adamw"
@@ -37,6 +37,7 @@ optimizer:
     betas: [0.9, 0.95]
 scheduler:
   name: "warmup_cosine"
+  warmup_start_lr: 0.0
 checkpoint:
   enabled: True
   dir: "trained_models"
