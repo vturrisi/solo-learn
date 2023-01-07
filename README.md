@@ -18,6 +18,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Jan 07 2023]**: :diving_mask: Added results, checkpoints and configs for MAE on ImageNet.
 * **[Dec 31 2022]**: :stars: Shiny new logo! Huge thanks to [Luiz](https://www.instagram.com/linhaaspera/)!
 * **[Sep 27 2022]**: :pencil: Brand new config system using OmegaConf/Hydra. Adds more clarity and flexibility. New tutorials will follow soon!
 * **[Aug 04 2022]**: :paintbrush: Added [MAE](https://arxiv.org/abs/2111.06377) and supports finetuning the backbone with `main_linear.py`, mixup, cutmix and [random augment](https://arxiv.org/abs/1909.13719).
