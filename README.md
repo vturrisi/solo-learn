@@ -18,6 +18,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Jan 07 2023]**: :diving_mask: Added results, checkpoints and configs for MAE on ImageNet. Thanks to [HuangChiEn](https://github.com/HuangChiEn).
 * **[Dec 31 2022]**: :stars: Shiny new logo! Huge thanks to [Luiz](https://www.instagram.com/linhaaspera/)!
 * **[Sep 27 2022]**: :pencil: Brand new config system using OmegaConf/Hydra. Adds more clarity and flexibility. New tutorials will follow soon!
 * **[Aug 04 2022]**: :paintbrush: Added [MAE](https://arxiv.org/abs/2111.06377) and supports finetuning the backbone with `main_linear.py`, mixup, cutmix and [random augment](https://arxiv.org/abs/1909.13719).
@@ -280,23 +281,13 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 
 ### ImageNet
 
-| Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
-|--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      67.18     |      67.23      |      87.69     |      87.98      | [:link:](https://drive.google.com/drive/folders/1IQUIrCOSduAjUJ31WJ1G5tHDZzWUIEft?usp=sharing) |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |      88.66      | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) |
-|DeepCluster V2| ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| DINO         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |      87.60      | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) |
-| MoCo V3      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| NNCLR        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| ReSSL        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| SimCLR       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| Simsiam      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| SupCon       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| SwAV         | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| VIbCReg      | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| VICReg       | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
-| W-MSE        | ResNet50 |   100  | :heavy_check_mark: |                |                 |                |                 |            |
+| Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint | Finetuned Checkpoint
+|--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|:----------:|
+| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      67.18     |      67.23      |      87.69     |      87.98      | [:link:](https://drive.google.com/drive/folders/1IQUIrCOSduAjUJ31WJ1G5tHDZzWUIEft?usp=sharing) | |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |      88.66      | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) | |
+| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |      87.60      | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) | |
+| MAE          | ViT-B/16 |   100  |        :x:         |      ~     |   81.60 (finetuned)   |      ~     |   95.50 (finetuned)   | [:link:](https://drive.google.com/drive/folders/1OuaXCnQ7WeqyKPxfJibAkXoVTx7S8Hbb) | [:link:](https://drive.google.com/drive/folders/1c9DGhmLsTTtOu2vc9rodqm89wKtp40C5) |
+
 
 
 ## Training efficiency for DALI

@@ -23,3 +23,21 @@ cd mocov2plus
 gdown https://drive.google.com/uc?id=1BBauwWTJV38BCf56KtOK9TJWLyjNH-mP
 gdown https://drive.google.com/uc?id=1JMpGSYjefFzxT5GTbEc_2d4THxOxC3Ca
 cd ..
+
+# MAE
+mkdir mae
+cd mae
+
+mkdir pretrain
+cd pretrain
+gdown https://drive.google.com/uc?id=1WfkMVNGrQB-NK12XPkcWWxJsFy1H_0TI
+gdown https://drive.google.com/uc?id=1EAeZy3lyr35wVcPBISKQXjHFxXtxA0DY
+cd ..
+
+mkdir finetune
+cd finetune
+gdown https://drive.google.com/uc?id=1buWWhf7zPJtpL3qOG_LRePfnwurjoJtw
+gdown https://drive.google.com/uc?id=1n6symLssKGolf_WQd5I1RS-Gj5e-go92
+cd ..
+
+cd ..
