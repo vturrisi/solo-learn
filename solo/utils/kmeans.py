@@ -98,7 +98,6 @@ class KMeans:
                     dist.broadcast(centroids, 0)
 
                 for n_iter in range(self.kmeans_iters + 1):
-
                     # E step
                     dot_products = torch.mm(local_memory_embeddings[j], centroids.t())
                     _, local_assignments = dot_products.max(dim=1)

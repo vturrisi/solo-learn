@@ -182,7 +182,6 @@ class PoolFormerBlock(nn.Module):
         use_layer_scale=True,
         layer_scale_init_value=1e-5,
     ):
-
         super().__init__()
 
         self.norm1 = norm_layer(dim)
@@ -299,7 +298,6 @@ class PoolFormer(nn.Module):
         pretrained=None,
         **kwargs,
     ):
-
         super().__init__()
 
         if not fork_feat:
