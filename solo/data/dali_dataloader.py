@@ -718,7 +718,6 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         dali_device: str = "gpu",
         encode_indexes_into_labels: bool = False,
     ):
-
         """DataModule for pretrain data using Nvidia DALI.
 
         Args:
