@@ -353,12 +353,13 @@ def prepare_datasets(
     if data_fraction > 0:
         assert data_fraction < 1, "Only use data_fraction for values smaller than 1."
         from sklearn.model_selection import train_test_split
-        
+
         if isinstance(train_dataset, CustomDatasetWithoutLabels):
             files = train_dataset.images
-            files, _, = train_test_split(
-                files, train_size=data_fraction, random_state=42
-            )
+            (
+                files,
+                _,
+            ) = train_test_split(files, train_size=data_fraction, random_state=42)
             train_dataset.images = files
         else:
             data = train_dataset.samples
@@ -368,7 +369,7 @@ def prepare_datasets(
                 files, labels, train_size=data_fraction, stratify=labels, random_state=42
             )
             train_dataset.samples = [tuple(p) for p in zip(files, labels)]
-        
+
     return train_dataset
 
 
