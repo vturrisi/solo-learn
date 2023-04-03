@@ -6,7 +6,7 @@ cd imagenet
 # Barlow Twins
 mkdir barlow_twins
 cd barlow_twins
-gdown https://drive.google.com/uc?id=1u0NH9L-p1Y99KVFxjBmZ_wlY-l6YJFtP
+gdown https://drive.google.com/uc?id=1GodHwmdMn9u76b5XFzEr5v59tOfwUOof
 gdown https://drive.google.com/uc?id=1EKdbR72-gtNE782254tjXi9UR2NiwEWh
 cd ..
 
