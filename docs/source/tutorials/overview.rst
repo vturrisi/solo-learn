@@ -30,7 +30,7 @@ We start by importing everything that we will need (we will be relying on Pytorc
     from pytorch_lightning.loggers import WandbLogger
     from pytorch_lightning.plugins import DDPPlugin
 
-    # solo learn uses omega conf and hydra to manage configs files now 
+    # solo learn uses omega conf and hydra to manage configs files now
     from omegaconf  import DictConfig
     from solo.methods import BarlowTwins  # imports the method class
     from solo.utils.checkpointer import Checkpointer
@@ -60,7 +60,7 @@ However, for now, we won't rely on this, so let's just define all the needed par
     base_kwargs = {
         "name": "barlow_twins-cifar10", # change here for cifar100
         "backbone": {
-            "name": "resnet18", 
+            "name": "resnet18",
             "kwargs": {}
         },
         "data": {
@@ -68,7 +68,7 @@ However, for now, we won't rely on this, so let's just define all the needed par
             "num_classes": 10,
             "train_path": "./data",  # replace with your own path
             "val_path": "./data", # replace with your own path
-            "num_large_crops": 2, # must equal 2 for barlow twins 
+            "num_large_crops": 2, # must equal 2 for barlow twins
             "num_small_crops": 0, # must equal 0 for barlow twins
             "num_workers": 4,
         },
@@ -127,11 +127,11 @@ Now, let's create all the necessary data loaders.
             "hue":  0.1,
         },
         # all below need to be specified but are unused
-        "grayscale": {"prob": 0.0},        
-        "gaussian_blur": {"prob": 0.0},    
-        "solarization": {"prob": 0.0},     
-        "equalization": {"prob": 0.0},     
-        "horizontal_flip": {"prob": 0.0},  
+        "grayscale": {"prob": 0.0},
+        "gaussian_blur": {"prob": 0.0},
+        "solarization": {"prob": 0.0},
+        "equalization": {"prob": 0.0},
+        "horizontal_flip": {"prob": 0.0},
     }
     aug_cfg = DictConfig(transform_kwargs)
     augs = build_transform_pipeline("cifar10", aug_cfg)
@@ -149,8 +149,8 @@ Now, let's create all the necessary data loaders.
         no_labels=False,
     )
     train_loader = prepare_dataloader(
-        train_dataset=train_dataset, 
-        batch_size=base_kwargs["optimizer"]["batch_size"], 
+        train_dataset=train_dataset,
+        batch_size=base_kwargs["optimizer"]["batch_size"],
         num_workers=base_kwargs["data"]["num_workers"]
     )
 
