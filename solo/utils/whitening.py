@@ -36,7 +36,7 @@ class Whitening2d(nn.Module):
                 to 0.0.
         """
 
-        super(Whitening2d, self).__init__()
+        super().__init__()
         self.output_dim = output_dim
         self.eps = eps
 
@@ -175,7 +175,7 @@ class IterNorm(torch.nn.Module):
         momentum: float = 0.1,
         affine: bool = True,
     ):
-        super(IterNorm, self).__init__()
+        super().__init__()
         # assert dim == 4, 'IterNorm does not support 2D'
         self.T = T
         self.eps = eps

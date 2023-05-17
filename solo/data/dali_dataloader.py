@@ -659,11 +659,11 @@ class PretrainWrapper(BaseWrapper):
         # to be made before returning.
 
         if self.conversion_map is not None:
-            *all_X, indexes = [batch[v] for v in self.output_map]
+            *all_X, indexes = (batch[v] for v in self.output_map)
             targets = self.conversion_map(indexes).flatten().long().detach().clone()
             indexes = indexes.flatten().long().detach().clone()
         else:
-            *all_X, targets = [batch[v] for v in self.output_map]
+            *all_X, targets = (batch[v] for v in self.output_map)
             targets = targets.squeeze(-1).long().detach().clone()
             # creates dummy indexes
             indexes = (
