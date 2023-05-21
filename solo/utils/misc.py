@@ -295,7 +295,8 @@ def generate_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
     """Adapted from https://github.com/facebookresearch/mae.
     grid_size: int of the grid height and width
     return:
-    pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
+    pos_embed: [grid_size*grid_size, embed_dim] or
+        [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
     """
 
     grid_h = np.arange(grid_size, dtype=np.float32)
@@ -331,9 +332,9 @@ def generate_1d_sincos_pos_embed_from_grid(embed_dim, pos):
     """
 
     assert embed_dim % 2 == 0
-    omega = np.arange(embed_dim // 2, dtype=np.float)
+    omega = np.arange(embed_dim // 2, dtype=float)
     omega /= embed_dim / 2.0
-    omega = 1.0 / 10000**omega  # (D/2,)
+    omega = 1.0 / 10000 ** omega  # (D/2,)
 
     pos = pos.reshape(-1)  # (M,)
     out = np.einsum("m,d->md", pos, omega)  # (M, D/2), outer product

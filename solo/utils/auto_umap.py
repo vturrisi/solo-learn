@@ -150,7 +150,10 @@ class AutoUMAP(Callback):
         # set module to eval model and collect all feature representations
         module.eval()
         with torch.no_grad():
-            for x, y in trainer.val_dataloaders[0]:
+            val_dataloader = trainer.val_dataloaders
+            if isinstance(val_dataloader, list):
+                val_dataloader = val_dataloader[0]
+            for x, y in val_dataloader:
                 x = x.to(device, non_blocking=True)
                 y = y.to(device, non_blocking=True)
 
