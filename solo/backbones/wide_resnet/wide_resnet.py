@@ -30,7 +30,7 @@ class WideResnetBasicBlock(nn.Module):
     def __init__(
         self, in_planes, out_planes, stride, drop_rate=0.0, activate_before_residual=False
     ):
-        super(WideResnetBasicBlock, self).__init__()
+        super().__init__()
         self.bn1 = nn.BatchNorm2d(in_planes, momentum=0.001, eps=0.001)
         self.relu1 = nn.LeakyReLU(negative_slope=0.1, inplace=False)
         self.conv1 = nn.Conv2d(
@@ -73,7 +73,7 @@ class WideResnetNetworkBlock(nn.Module):
         drop_rate=0.0,
         activate_before_residual=False,
     ):
-        super(WideResnetNetworkBlock, self).__init__()
+        super().__init__()
         self.layer = self._make_layer(
             block, in_planes, out_planes, nb_layers, stride, drop_rate, activate_before_residual
         )
@@ -100,7 +100,7 @@ class WideResnetNetworkBlock(nn.Module):
 
 class WideResNet(nn.Module):
     def __init__(self, first_stride=1, depth=28, widen_factor=2, drop_rate=0.0, **kwargs):
-        super(WideResNet, self).__init__()
+        super().__init__()
         channels = [16, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]
         self.num_features = channels[-1]
         assert (depth - 4) % 6 == 0

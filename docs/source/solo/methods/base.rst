@@ -45,9 +45,9 @@ validation_step
 .. automethod:: solo.methods.base.BaseMethod.validation_step
    :noindex:
 
-validation_epoch_end
+on_validation_epoch_end
 ~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMethod.validation_epoch_end
+.. automethod:: solo.methods.base.BaseMethod.on_validation_epoch_end
    :noindex:
 
 
@@ -104,7 +104,7 @@ validation_step
 .. automethod:: solo.methods.base.BaseMethod.validation_step
    :noindex:
 
-validation_epoch_end
+on_validation_epoch_end
 ~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.base.BaseMethod.validation_epoch_end
+.. automethod:: solo.methods.base.BaseMethod.on_validation_epoch_end
    :noindex:

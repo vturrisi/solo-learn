@@ -21,6 +21,8 @@ import json
 import os
 from pathlib import Path
 
+from omegaconf import OmegaConf
+
 from solo.args.umap import parse_args_umap
 from solo.data.classification_dataloader import prepare_data
 from solo.methods import METHODS
@@ -38,15 +40,14 @@ def main():
     # load arguments
     with open(args_path) as f:
         method_args = json.load(f)
+    cfg = OmegaConf.create(method_args)
 
     # build the model
     model = (
         METHODS[method_args["method"]]
-        .load_from_checkpoint(ckpt_path, strict=False, **method_args)
+        .load_from_checkpoint(ckpt_path, strict=False, cfg=cfg)
         .backbone
     )
-    model.cuda()
-
     # prepare data
     train_loader, val_loader = prepare_data(
         args.dataset,
@@ -55,7 +56,7 @@ def main():
         data_format=args.data_format,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        auto_augment=args.auto_augment,
+        auto_augment=False,
     )
 
     umap = OfflineUMAP()

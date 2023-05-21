@@ -197,10 +197,10 @@ class PoolFormerBlock(nn.Module):
         self.use_layer_scale = use_layer_scale
         if use_layer_scale:
             self.layer_scale_1 = nn.Parameter(
-                layer_scale_init_value * torch.ones((dim)), requires_grad=True
+                layer_scale_init_value * torch.ones(dim), requires_grad=True
             )
             self.layer_scale_2 = nn.Parameter(
-                layer_scale_init_value * torch.ones((dim)), requires_grad=True
+                layer_scale_init_value * torch.ones(dim), requires_grad=True
             )
 
     def forward(self, x):
