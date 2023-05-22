@@ -25,8 +25,7 @@ import os
 import torch
 import torch.nn as nn
 from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-from timm.models.layers import DropPath, trunc_normal_
-from timm.models.layers.helpers import to_2tuple
+from timm.models.layers import DropPath, trunc_normal_, to_2tuple
 from timm.models.registry import register_model
 
 
@@ -197,10 +196,10 @@ class PoolFormerBlock(nn.Module):
         self.use_layer_scale = use_layer_scale
         if use_layer_scale:
             self.layer_scale_1 = nn.Parameter(
-                layer_scale_init_value * torch.ones((dim)), requires_grad=True
+                layer_scale_init_value * torch.ones(dim), requires_grad=True
             )
             self.layer_scale_2 = nn.Parameter(
-                layer_scale_init_value * torch.ones((dim)), requires_grad=True
+                layer_scale_init_value * torch.ones(dim), requires_grad=True
             )
 
     def forward(self, x):

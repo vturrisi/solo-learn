@@ -79,8 +79,8 @@ class Checkpointer(Callback):
     @staticmethod
     def random_string(letter_count=4, digit_count=4):
         tmp_random = random.Random(time.time())
-        rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for _ in range(letter_count)))
-        rand_str += "".join((tmp_random.choice(string.digits) for _ in range(digit_count)))
+        rand_str = "".join(tmp_random.choice(string.ascii_lowercase) for _ in range(letter_count))
+        rand_str += "".join(tmp_random.choice(string.digits) for _ in range(digit_count))
         rand_str = list(rand_str)
         tmp_random.shuffle(rand_str)
         return "".join(rand_str)

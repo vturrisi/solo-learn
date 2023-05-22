@@ -52,7 +52,7 @@ exclude_patterns = []
 def package_list_from_file(file):
     """List up package name (not containing version and extras) from a package list file"""
     mocked_packages = []
-    with open(file, "r") as fp:
+    with open(file) as fp:
         for ln in fp.readlines():
             # Example: `tqdm>=4.41.0` => `tqdm`
             # `[` is for package with extras
