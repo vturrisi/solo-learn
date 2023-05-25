@@ -19,13 +19,14 @@
 
 import logging
 from typing import Any, Callable, Dict, List, Tuple, Union
+
 import omegaconf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.lars import LARS
+from solo.utils.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import (
     omegaconf_select,
@@ -79,8 +80,8 @@ class LinearModel(pl.LightningModule):
                 warmup_start_lr (float): initial learning rate for warmup scheduler.
                     Defaults to 0.00003.
                 warmup_epochs (float): number of warmup epochs. Defaults to 10.
-                lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
-                    step. Defaults to None.
+                lr_decay_steps (Sequence, optional): steps to decay the learning rate
+                    if scheduler is step. Defaults to None.
                 interval (str): interval to update the lr scheduler. Defaults to 'step'.
 
             finetune (bool): whether or not to finetune the backbone. Defaults to False.
@@ -90,9 +91,9 @@ class LinearModel(pl.LightningModule):
                 speeds up training considerably. Defaults to False.
                 https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html#converting-existing-models
 
-        loss_func (Callable): loss function to use (for mixup, label smoothing or default). Defaults to None
-        mixup_func (Callable, optional). function to convert data and targets with mixup/cutmix.
-            Defaults to None.
+        loss_func (Callable): loss function to use (for mixup, label smoothing or default).
+        Defaults to None mixup_func (Callable, optional). function to convert data and targets
+        with mixup/cutmix. Defaults to None.
         """
 
         super().__init__()
@@ -154,6 +155,9 @@ class LinearModel(pl.LightningModule):
             for param in self.backbone.parameters():
                 param.requires_grad = False
 
+        # keep track of validation metrics
+        self.validation_step_outputs = []
+
     @staticmethod
     def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
@@ -177,7 +181,7 @@ class LinearModel(pl.LightningModule):
         cfg.finetune = omegaconf_select(cfg, "finetune", False)
 
         # default for acc grad batches
-        cfg.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", None)
+        cfg.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", 1)
 
         # default parameters for the scheduler
         cfg.scheduler.lr_decay_steps = omegaconf_select(cfg, "scheduler.lr_decay_steps", None)
@@ -203,7 +207,10 @@ class LinearModel(pl.LightningModule):
 
         if self.layer_decay > 0:
             assert self.finetune, "Only with use layer weight decay with finetune on."
-            msg = "Method should implement no_weight_decay() that returns a set of parameter names to ignore from weight decay"
+            msg = (
+                "Method should implement no_weight_decay() that returns "
+                "a set of parameter names to ignore from weight decay"
+            )
             assert hasattr(self.backbone, "no_weight_decay"), msg
 
             learnable_params = param_groups_layer_decay(
@@ -364,26 +371,25 @@ class LinearModel(pl.LightningModule):
 
         out = self.shared_step(batch, batch_idx)
 
-        results = {
+        metrics = {
             "batch_size": out["batch_size"],
             "val_loss": out["loss"],
             "val_acc1": out["acc1"],
             "val_acc5": out["acc5"],
         }
-        return results
+        self.validation_step_outputs.append(metrics)
+        return metrics
 
-    def validation_epoch_end(self, outs: List[Dict[str, Any]]):
+    def on_validation_epoch_end(self):
         """Averages the losses and accuracies of all the validation batches.
         This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
-
-        Args:
-            outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
 
-        val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
-        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
+        val_loss = weighted_mean(self.validation_step_outputs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(self.validation_step_outputs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(self.validation_step_outputs, "val_acc5", "batch_size")
+        self.validation_step_outputs.clear()
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
         self.log_dict(log, sync_dist=True)

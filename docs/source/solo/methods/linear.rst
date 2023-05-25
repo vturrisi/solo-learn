@@ -35,7 +35,7 @@ validation_step
 .. automethod:: solo.methods.linear.LinearModel.validation_step
    :noindex:
 
-validation_epoch_end
+on_validation_epoch_end
 ~~~~~~~~~~~~~~~~~~~~
-.. automethod:: solo.methods.linear.LinearModel.validation_epoch_end
+.. automethod:: solo.methods.linear.LinearModel.on_validation_epoch_end
    :noindex:

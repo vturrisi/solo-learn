@@ -50,4 +50,4 @@ devices: [0, 1, 2, 3, 4, 5, 6, 7]
 sync_batchnorm: True
 accelerator: "gpu"
 strategy: "ddp"
-precision: 16
+precision: 16-mixed
