@@ -107,14 +107,18 @@ class WeightedKNNClassifier(Metric):
         train_targets = torch.cat(self.train_targets)
         test_features = torch.cat(self.test_features)
         test_targets = torch.cat(self.test_targets)
-        
+
         # Re-index train_targets and test_targets as [0, num_classes - 1] to guarantee the continuity of indices
         train_targets_list = train_targets.tolist()
         test_targets_list = test_targets.tolist()
         assert set(train_targets_list) == set(test_targets_list)
         idx2newidx = {idx: i for i, idx in enumerate(sorted(set(train_targets_list)))}
-        train_targets = torch.tensor([idx2newidx[idx] for idx in train_targets_list]).to(train_features.device)
-        test_targets = torch.tensor([idx2newidx[idx] for idx in test_targets_list]).to(test_features.device)
+        train_targets = torch.tensor([idx2newidx[idx] for idx in train_targets_list]).to(
+            train_features.device
+        )
+        test_targets = torch.tensor([idx2newidx[idx] for idx in test_targets_list]).to(
+            test_features.device
+        )
 
         if self.distance_fx == "cosine":
             train_features = F.normalize(train_features)
