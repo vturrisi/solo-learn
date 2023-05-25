@@ -18,7 +18,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v4
         with:
@@ -34,7 +34,7 @@ jobs:
         run: |
             sphinx-build -b html docs/source docs/build
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationHTML
           path: docs/build/html/
