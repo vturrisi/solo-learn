@@ -172,7 +172,7 @@ class FullTransformPipeline:
         return out
 
     def __repr__(self) -> str:
-        return "\n".join([str(transform) for transform in self.transforms])
+        return "\n".join(str(transform) for transform in self.transforms)
 
 
 def build_transform_pipeline(dataset, cfg):

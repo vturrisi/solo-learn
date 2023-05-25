@@ -90,8 +90,8 @@ class AutoUMAP(Callback):
     @staticmethod
     def random_string(letter_count=4, digit_count=4):
         tmp_random = random.Random(time.time())
-        rand_str = "".join((tmp_random.choice(string.ascii_lowercase) for x in range(letter_count)))
-        rand_str += "".join((tmp_random.choice(string.digits) for x in range(digit_count)))
+        rand_str = "".join(tmp_random.choice(string.ascii_lowercase) for _ in range(letter_count))
+        rand_str += "".join(tmp_random.choice(string.digits) for _ in range(digit_count))
         rand_str = list(rand_str)
         tmp_random.shuffle(rand_str)
         return "".join(rand_str)
@@ -150,7 +150,10 @@ class AutoUMAP(Callback):
         # set module to eval model and collect all feature representations
         module.eval()
         with torch.no_grad():
-            for x, y in trainer.val_dataloaders[0]:
+            val_dataloader = trainer.val_dataloaders
+            if isinstance(val_dataloader, list):
+                val_dataloader = val_dataloader[0]
+            for x, y in val_dataloader:
                 x = x.to(device, non_blocking=True)
                 y = y.to(device, non_blocking=True)
 

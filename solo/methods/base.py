@@ -26,7 +26,6 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.backbones import (
     convnext_base,
     convnext_large,
@@ -52,6 +51,7 @@ from solo.backbones import (
 )
 from solo.utils.knn import WeightedKNNClassifier
 from solo.utils.lars import LARS
+from solo.utils.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import omegaconf_select, remove_bias_and_norm_from_weight_decay
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
@@ -142,8 +142,8 @@ class BaseMethod(pl.LightningModule):
                 warmup_start_lr (float): initial learning rate for warmup scheduler.
                     Defaults to 0.00003.
                 warmup_epochs (float): number of warmup epochs. Defaults to 10.
-                lr_decay_steps (Sequence, optional): steps to decay the learning rate if scheduler is
-                    step. Defaults to None.
+                lr_decay_steps (Sequence, optional): steps to decay the learning rate if
+                    scheduler is step. Defaults to None.
                 interval (str): interval to update the lr scheduler. Defaults to 'step'.
             knn_eval:
                 enabled (bool): enables online knn evaluation while training.
@@ -179,7 +179,8 @@ class BaseMethod(pl.LightningModule):
 
         self.cfg: omegaconf.DictConfig = cfg
 
-        ########## Backbone ##########
+        ##############################
+        # Backbone
         self.backbone_args: Dict[str, Any] = cfg.backbone.kwargs
         assert cfg.backbone.name in BaseMethod._BACKBONES
         self.base_model: Callable = self._BACKBONES[cfg.backbone.name]
@@ -257,6 +258,9 @@ class BaseMethod(pl.LightningModule):
         # for performance
         self.no_channel_last = cfg.performance.disable_channel_last
 
+        # keep track of validation metrics
+        self.validation_step_outputs = []
+
     @staticmethod
     def add_and_assert_specific_cfg(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         """Adds method specific default values/checks for config.
@@ -279,7 +283,7 @@ class BaseMethod(pl.LightningModule):
         cfg.optimizer.kwargs = omegaconf_select(cfg, "optimizer.kwargs", {})
 
         # default for acc grad batches
-        cfg.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", None)
+        cfg.accumulate_grad_batches = omegaconf_select(cfg, "accumulate_grad_batches", 1)
 
         # default parameters for the scheduler
         cfg.scheduler.lr_decay_steps = omegaconf_select(cfg, "scheduler.lr_decay_steps", None)
@@ -397,14 +401,14 @@ class BaseMethod(pl.LightningModule):
 
         return [optimizer], [scheduler]
 
-    def optimizer_zero_grad(self, epoch, batch_idx, optimizer, optimizer_idx):
+    def optimizer_zero_grad(self, epoch, batch_idx, optimizer):
         """
         This improves performance marginally. It should be fine
         since we are not affected by any of the downsides descrited in
         https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad
 
         Implemented as in here
-        https://pytorch-lightning.readthedocs.io/en/1.5.10/guides/speed.html#set-grads-to-none
+        https://lightning.ai/docs/pytorch/latest/advanced/speed.html?highlight=set%20grads%20none
         """
         try:
             optimizer.zero_grad(set_to_none=True)
@@ -551,7 +555,11 @@ class BaseMethod(pl.LightningModule):
         return self._base_shared_step(X, targets)
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
+        self,
+        batch: List[torch.Tensor],
+        batch_idx: int,
+        dataloader_idx: int = None,
+        update_validation_step_outputs: bool = True,
     ) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
         forwarding a batch of images, computing logits and computing metrics.
@@ -559,6 +567,8 @@ class BaseMethod(pl.LightningModule):
         Args:
             batch (List[torch.Tensor]):a batch of data in the format of [img_indexes, X, Y].
             batch_idx (int): index of the batch.
+            update_validation_step_outputs (bool): whether or not to append the
+                metrics to validation_step_outputs
 
         Returns:
             Dict[str, Any]: dict with the batch_size (used for averaging), the classification loss
@@ -579,20 +589,19 @@ class BaseMethod(pl.LightningModule):
             "val_acc1": out["acc1"],
             "val_acc5": out["acc5"],
         }
+        if update_validation_step_outputs:
+            self.validation_step_outputs.append(metrics)
         return metrics
 
-    def validation_epoch_end(self, outs: List[Dict[str, Any]]):
+    def on_validation_epoch_end(self):
         """Averages the losses and accuracies of all the validation batches.
         This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
-
-        Args:
-            outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
 
-        val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
-        val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
+        val_loss = weighted_mean(self.validation_step_outputs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(self.validation_step_outputs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(self.validation_step_outputs, "val_acc5", "batch_size")
 
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
 
@@ -618,7 +627,8 @@ class BaseMomentumMethod(BaseMethod):
             momentum:
                 base_tau (float): base value of the weighting decrease coefficient in [0,1].
                 final_tau (float): final value of the weighting decrease coefficient in [0,1].
-                classifier (bool): whether or not to train a classifier on top of the momentum backbone.
+                classifier (bool): whether or not to train a classifier on top of the
+                    momentum backbone.
         """
 
         super().__init__(cfg)
@@ -824,56 +834,78 @@ class BaseMomentumMethod(BaseMethod):
         self.last_step = self.trainer.global_step
 
     def validation_step(
-        self, batch: List[torch.Tensor], batch_idx: int, dataloader_idx: int = None
+        self,
+        batch: List[torch.Tensor],
+        batch_idx: int,
+        dataloader_idx: int = None,
+        update_validation_step_outputs: bool = True,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Validation step for pytorch lightning. It performs all the shared operations for the
         momentum backbone and classifier, such as forwarding a batch of images in the momentum
         backbone and classifier and computing statistics.
+
         Args:
             batch (List[torch.Tensor]): a batch of data in the format of [X, Y].
             batch_idx (int): index of the batch.
+            update_validation_step_outputs (bool): whether or not to append the
+                metrics to validation_step_outputs
+
         Returns:
             Tuple(Dict[str, Any], Dict[str, Any]): tuple of dicts containing the batch_size (used
                 for averaging), the classification loss and accuracies for both the online and the
                 momentum classifiers.
         """
 
-        parent_metrics = super().validation_step(batch, batch_idx)
+        metrics = super().validation_step(batch, batch_idx, update_validation_step_outputs=False)
 
         X, targets = batch
-        batch_size = targets.size(0)
 
         out = self._shared_step_momentum(X, targets)
 
-        metrics = None
         if self.momentum_classifier is not None:
-            metrics = {
-                "batch_size": batch_size,
-                "momentum_val_loss": out["loss"],
-                "momentum_val_acc1": out["acc1"],
-                "momentum_val_acc5": out["acc5"],
-            }
+            metrics.update(
+                {
+                    "momentum_val_loss": out["loss"],
+                    "momentum_val_acc1": out["acc1"],
+                    "momentum_val_acc5": out["acc5"],
+                }
+            )
 
-        return parent_metrics, metrics
+        if update_validation_step_outputs:
+            self.validation_step_outputs.append(metrics)
 
-    def validation_epoch_end(self, outs: Tuple[List[Dict[str, Any]]]):
+        return metrics
+
+    def on_validation_epoch_end(self):
         """Averages the losses and accuracies of the momentum backbone / classifier for all the
         validation batches. This is needed because the last batch can be smaller than the others,
         slightly skewing the metrics.
-        Args:
-            outs (Tuple[List[Dict[str, Any]]]):): list of outputs of the validation step for self
-                and the parent.
         """
 
-        parent_outs = [out[0] for out in outs]
-        super().validation_epoch_end(parent_outs)
+        # base method metrics
+        val_loss = weighted_mean(self.validation_step_outputs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(self.validation_step_outputs, "val_acc1", "batch_size")
+        val_acc5 = weighted_mean(self.validation_step_outputs, "val_acc5", "batch_size")
 
+        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": val_acc5}
+
+        if self.knn_eval and not self.trainer.sanity_checking:
+            val_knn_acc1, val_knn_acc5 = self.knn.compute()
+            log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
+
+        self.log_dict(log, sync_dist=True)
+
+        # momentum method metrics
         if self.momentum_classifier is not None:
-            momentum_outs = [out[1] for out in outs]
-
-            val_loss = weighted_mean(momentum_outs, "momentum_val_loss", "batch_size")
-            val_acc1 = weighted_mean(momentum_outs, "momentum_val_acc1", "batch_size")
-            val_acc5 = weighted_mean(momentum_outs, "momentum_val_acc5", "batch_size")
+            val_loss = weighted_mean(
+                self.validation_step_outputs, "momentum_val_loss", "batch_size"
+            )
+            val_acc1 = weighted_mean(
+                self.validation_step_outputs, "momentum_val_acc1", "batch_size"
+            )
+            val_acc5 = weighted_mean(
+                self.validation_step_outputs, "momentum_val_acc5", "batch_size"
+            )
 
             log = {
                 "momentum_val_loss": val_loss,

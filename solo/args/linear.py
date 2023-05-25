@@ -1,5 +1,4 @@
 import os
-from multiprocessing.managers import BaseManager
 
 import omegaconf
 from omegaconf import OmegaConf
@@ -158,7 +157,7 @@ def parse_cfg(cfg: omegaconf.DictConfig):
         # even if the custom dataset doesn't have any labels
         cfg.data.num_classes = max(
             1,
-            len([entry.name for entry in os.scandir(cfg.data.train_path) if entry.is_dir]),
+            sum(entry.is_dir() for entry in os.scandir(cfg.data.train_path)),
         )
 
     if cfg.data.format == "dali":
