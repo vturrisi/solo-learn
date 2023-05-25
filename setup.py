@@ -53,7 +53,6 @@ setup(
     extras_require=EXTRA_REQUIREMENTS,
     dependency_links=["https://developer.download.nvidia.com/compute/redist"],
     classifiers=[
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: MIT License",
