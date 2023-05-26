@@ -13,7 +13,7 @@
 # solo-learn
 A library of self-supervised methods for unsupervised visual representation learning powered by PyTorch Lightning.
 We aim at providing SOTA self-supervised methods in a comparable environment while, at the same time, implementing training tricks.
-The library is self-contained, but it is possible to use the models outside of solo-learn. **More details in our [paper](#bib)**.
+The library is self-contained, but it is possible to use the models outside of solo-learn. **More details in our [paper](#citation)**.
 
 ---
 
@@ -294,7 +294,7 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 
 We report the training efficiency of some methods using a ResNet18 with and without DALI (4 workers per GPU) in a server with an Intel i9-9820X and two RTX2080ti.
 
-| Method       |  Dali            |  Total time for 20 epochs  |  Time for a 1 epoch  |  GPU memory (per GPU) |
+| Method       |  Dali            |  Total time for 20 epochs  |   Time for 1 epoch   |  GPU memory (per GPU) |
 |--------------|:----------------:|:--------------------------:|:--------------------:|:---------------------:|
 | Barlow Twins | :x:              | 1h 38m 27s                 |  4m 55s              |      5097 MB          |
 |              |:heavy_check_mark:| 43m 2s                     |  2m 10s (56% faster) |      9292 MB          |
@@ -308,8 +308,8 @@ We report the training efficiency of some methods using a ResNet18 with and with
 ---
 
 ## Citation
-<a name="bib"></a>If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
-```
+If you use solo-learn, please cite our [paper](https://jmlr.org/papers/v23/21-1155.html):
+```bibtex
 @article{JMLR:v23:21-1155,
   author  = {Victor Guilherme Turrisi da Costa and Enrico Fini and Moin Nabi and Nicu Sebe and Elisa Ricci},
   title   = {solo-learn: A Library of Self-supervised Methods for Visual Representation Learning},
