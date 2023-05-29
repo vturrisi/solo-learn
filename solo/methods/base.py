@@ -401,7 +401,7 @@ class BaseMethod(pl.LightningModule):
 
         return [optimizer], [scheduler]
 
-    def optimizer_zero_grad(self, epoch, batch_idx, optimizer):
+    def optimizer_zero_grad(self, epoch, batch_idx, optimizer, *_):
         """
         This improves performance marginally. It should be fine
         since we are not affected by any of the downsides descrited in

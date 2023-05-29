@@ -3,7 +3,6 @@ import os
 import omegaconf
 from omegaconf import OmegaConf
 from solo.utils.auto_resumer import AutoResumer
-from solo.utils.auto_umap import AutoUMAP
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import omegaconf_select
 
@@ -13,6 +12,13 @@ except ImportError:
     _dali_available = False
 else:
     _dali_available = True
+
+try:
+    from solo.utils.auto_umap import AutoUMAP
+except ImportError:
+    _umap_available = False
+else:
+    _umap_available = True
 
 _N_CLASSES_PER_DATASET = {
     "cifar10": 10,
@@ -100,12 +106,13 @@ def parse_cfg(cfg: omegaconf.DictConfig):
     # default values for auto_resume
     cfg = AutoResumer.add_and_assert_specific_cfg(cfg)
 
-    # default values for auto_umap
-    cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
-
     # default values for dali
     if _dali_available:
         cfg = PretrainDALIDataModule.add_and_assert_specific_cfg(cfg)
+
+    # default values for auto_umap
+    if _umap_available:
+        cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
 
     # assert dataset parameters
     cfg = add_and_assert_dataset_cfg(cfg)

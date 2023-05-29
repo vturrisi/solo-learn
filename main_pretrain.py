@@ -40,7 +40,7 @@ from solo.data.pretrain_dataloader import (
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.misc import make_contiguous
+from solo.utils.misc import make_contiguous, omegaconf_select
 
 try:
     from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
@@ -186,7 +186,7 @@ def main(cfg: DictConfig):
         )
         callbacks.append(ckpt)
 
-    if cfg.auto_umap.enabled:
+    if omegaconf_select(cfg, "auto_umap.enabled", False):
         assert (
             _umap_available
         ), "UMAP is not currently avaiable, please install it first with [umap]."
