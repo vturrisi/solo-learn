@@ -27,9 +27,16 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 from omegaconf import OmegaConf
-from solo.data.h5_dataset import H5Dataset
 from timm.models.helpers import group_parameters
 from timm.optim.optim_factory import _layer_map
+
+
+try:
+    from solo.data.h5_dataset import H5Dataset
+except ImportError:
+    _h5_available = False
+else:
+    _h5_available = True
 
 
 def _1d_filter(tensor: torch.Tensor) -> torch.Tensor:
@@ -265,6 +272,7 @@ def compute_dataset_size(
         size = DATASET_SIZES.get(dataset.lower(), {}).get("train" if train else "val", None)
 
     if data_format == "h5":
+        assert _h5_available
         size = len(H5Dataset(dataset, data_path))
 
     if size is None:

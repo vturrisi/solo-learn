@@ -29,21 +29,21 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies.ddp import DDPStrategy
 
 from solo.args.pretrain import parse_cfg
-from solo.data.classification_dataloader import prepare_data as prepare_data_classification
-from solo.data.pretrain_dataloader import (
-    FullTransformPipeline,
-    NCropAugmentation,
-    build_transform_pipeline,
-    prepare_dataloader,
-    prepare_datasets,
-)
+from solo.data.classification_dataloader import \
+    prepare_data as prepare_data_classification
+from solo.data.pretrain_dataloader import (FullTransformPipeline,
+                                           NCropAugmentation,
+                                           build_transform_pipeline,
+                                           prepare_dataloader,
+                                           prepare_datasets)
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
-from solo.utils.misc import make_contiguous
+from solo.utils.misc import make_contiguous, omegaconf_select
 
 try:
-    from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
+    from solo.data.dali_dataloader import (PretrainDALIDataModule,
+                                           build_transform_pipeline_dali)
 except ImportError:
     _dali_avaliable = False
 else:
@@ -186,7 +186,7 @@ def main(cfg: DictConfig):
         )
         callbacks.append(ckpt)
 
-    if cfg.auto_umap.enabled:
+    if omegaconf_select(cfg, "auto_umap.enabled", False):
         assert (
             _umap_available
         ), "UMAP is not currently avaiable, please install it first with [umap]."

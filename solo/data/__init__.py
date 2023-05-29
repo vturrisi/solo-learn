@@ -18,11 +18,10 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-from solo.data import classification_dataloader, h5_dataset, pretrain_dataloader
+from solo.data import classification_dataloader, pretrain_dataloader
 
 __all__ = [
     "classification_dataloader",
-    "h5_dataset",
     "pretrain_dataloader",
 ]
 
@@ -33,3 +32,11 @@ except ImportError:
     pass
 else:
     __all__.append("dali_dataloader")
+
+
+try:
+    from solo.data import h5_dataset  # noqa: F401
+except ImportError:
+    pass
+else:
+    __all__.append("h5_dataset")
