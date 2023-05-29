@@ -109,7 +109,7 @@ def parse_cfg(cfg: omegaconf.DictConfig):
     # default values for dali
     if _dali_available:
         cfg = PretrainDALIDataModule.add_and_assert_specific_cfg(cfg)
-    
+
     # default values for auto_umap
     if _umap_available:
         cfg = AutoUMAP.add_and_assert_specific_cfg(cfg)
