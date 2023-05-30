@@ -611,6 +611,8 @@ class BaseMethod(pl.LightningModule):
 
         self.log_dict(log, sync_dist=True)
 
+        self.validation_step_outputs.clear()
+
 
 class BaseMomentumMethod(BaseMethod):
     def __init__(
@@ -913,3 +915,5 @@ class BaseMomentumMethod(BaseMethod):
                 "momentum_val_acc5": val_acc5,
             }
             self.log_dict(log, sync_dist=True)
+
+        self.validation_step_outputs.clear()

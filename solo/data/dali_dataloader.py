@@ -17,7 +17,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import math
 import os
 from pathlib import Path
 from typing import Callable, List, Optional, Union
@@ -29,27 +28,11 @@ import omegaconf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-from nvidia.dali.pipeline import pipeline_def
+from nvidia.dali import pipeline_def
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
+from solo.data.temp_dali_fix import TempDALIGenericIterator
 from solo.utils.misc import omegaconf_select
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-
-
-class Mux:
-    def __init__(self, prob: float):
-        """Implements mutex operation for dali in order to support probabilitic augmentations.
-
-        Args:
-            prob (float): probability value
-        """
-
-        self.to_bool = ops.Cast(dtype=types.DALIDataType.BOOL)
-        self.rng = ops.random.CoinFlip(probability=prob)
-
-    def __call__(self, true_case, false_case):
-        condition = self.to_bool(self.rng())
-        neg_condition = condition ^ True
-        return condition * true_case + neg_condition * false_case
 
 
 class RandomGrayScaleConversion:
@@ -62,15 +45,19 @@ class RandomGrayScaleConversion:
                 Defaults to "gpu".
         """
 
-        self.mux = Mux(prob=prob)
+        self.prob = prob
         self.grayscale = ops.ColorSpaceConversion(
             device=device, image_type=types.RGB, output_type=types.GRAY
         )
 
     def __call__(self, images):
-        out = self.grayscale(images)
-        out = fn.cat(out, out, out, axis=2)
-        return self.mux(true_case=out, false_case=images)
+        do_op = fn.random.coin_flip(probability=self.prob, dtype=types.DALIDataType.BOOL)
+        if do_op:
+            out = self.grayscale(images)
+            out = fn.cat(out, out, out, axis=2)
+        else:
+            out = images
+        return out
 
 
 class RandomColorJitter:
@@ -100,7 +87,7 @@ class RandomColorJitter:
 
         assert 0 <= hue <= 0.5
 
-        self.mux = Mux(prob=prob)
+        self.prob = prob
 
         self.color = ops.ColorTwist(device=device)
 
@@ -128,14 +115,18 @@ class RandomColorJitter:
             self.hue = ops.random.Uniform(range=[-hue, hue])
 
     def __call__(self, images):
-        out = self.color(
-            images,
-            brightness=self.brightness() if callable(self.brightness) else self.brightness,
-            contrast=self.contrast() if callable(self.contrast) else self.contrast,
-            saturation=self.saturation() if callable(self.saturation) else self.saturation,
-            hue=self.hue() if callable(self.hue) else self.hue,
-        )
-        return self.mux(true_case=out, false_case=images)
+        do_op = fn.random.coin_flip(probability=self.prob, dtype=types.DALIDataType.BOOL)
+        if do_op:
+            out = self.color(
+                images,
+                brightness=self.brightness() if callable(self.brightness) else self.brightness,
+                contrast=self.contrast() if callable(self.contrast) else self.contrast,
+                saturation=self.saturation() if callable(self.saturation) else self.saturation,
+                hue=self.hue() if callable(self.hue) else self.hue,
+            )
+        else:
+            out = images
+        return out
 
 
 class RandomGaussianBlur:
@@ -149,15 +140,19 @@ class RandomGaussianBlur:
                 Defaults to "gpu".
         """
 
-        self.mux = Mux(prob=prob)
+        self.prob = prob
         # gaussian blur
         self.gaussian_blur = ops.GaussianBlur(device=device, window_size=(window_size, window_size))
         self.sigma = ops.random.Uniform(range=[0, 1])
 
     def __call__(self, images):
-        sigma = self.sigma() * 1.9 + 0.1
-        out = self.gaussian_blur(images, sigma=sigma)
-        return self.mux(true_case=out, false_case=images)
+        do_op = fn.random.coin_flip(probability=self.prob, dtype=types.DALIDataType.BOOL)
+        if do_op:
+            sigma = self.sigma() * 1.9 + 0.1
+            out = self.gaussian_blur(images, sigma=sigma)
+        else:
+            out = images
+        return out
 
 
 class RandomSolarize:
@@ -169,15 +164,18 @@ class RandomSolarize:
             prob (float, optional): probability of solarization. Defaults to 0.0.
         """
 
-        self.mux = Mux(prob=prob)
-
+        self.prob = prob
         self.threshold = threshold
 
     def __call__(self, images):
-        inverted_img = 255 - images
-        mask = images >= self.threshold
-        out = mask * inverted_img + (True ^ mask) * images
-        return self.mux(true_case=out, false_case=images)
+        do_op = fn.random.coin_flip(probability=self.prob, dtype=types.DALIDataType.BOOL)
+        if do_op:
+            inverted_img = types.Constant(255, dtype=types.UINT8) - images
+            mask = images >= self.threshold
+            out = mask * inverted_img + (True ^ mask) * images
+        else:
+            out = images
+        return out
 
 
 class NormalPipelineBuilder:
@@ -439,6 +437,7 @@ def build_transform_pipeline_dali(dataset, cfg, dali_device):
         def __call__(self, images):
             for aug in self.augmentations:
                 images = aug(images)
+
             if self.coin:
                 images = self.cmn(images, mirror=self.coin())
             else:
@@ -573,7 +572,7 @@ class PretrainPipelineBuilder:
 
         self.transforms = transforms
 
-    @pipeline_def
+    @pipeline_def(enable_conditionals=True)
     def pipeline(self):
         """Defines the computational pipeline for dali operations."""
 
@@ -595,28 +594,7 @@ class PretrainPipelineBuilder:
         return str(self.transforms)
 
 
-class BaseWrapper(DALIGenericIterator):
-    """Temporary fix to handle LastBatchPolicy.DROP."""
-
-    def __len__(self):
-        size = (
-            self._size_no_pad // self._shards_num
-            if self._last_batch_policy == LastBatchPolicy.DROP
-            else self.size
-        )
-        if self._reader_name:
-            if self._last_batch_policy != LastBatchPolicy.DROP:
-                return math.ceil(size / self.batch_size)
-
-            return size // self.batch_size
-        else:
-            if self._last_batch_policy != LastBatchPolicy.DROP:
-                return math.ceil(size / (self._devices * self.batch_size))
-
-            return size // (self._devices * self.batch_size)
-
-
-class PretrainWrapper(BaseWrapper):
+class PretrainWrapper(TempDALIGenericIterator):
     def __init__(
         self,
         model_batch_size: int,
@@ -658,28 +636,28 @@ class PretrainWrapper(BaseWrapper):
         # and as DALI owns the tensors it returns the content of it is trashed so the copy needs,
         # to be made before returning.
 
+        # I think we don't need the .detach().clone() anymore,
+        # but I'll keep it commented just to be sure.
         if self.conversion_map is not None:
             *all_X, indexes = (batch[v] for v in self.output_map)
-            targets = self.conversion_map(indexes).flatten().long().detach().clone()
-            indexes = indexes.flatten().long().detach().clone()
+            targets = self.conversion_map(indexes).flatten().long()  # .detach().clone()
+            indexes = indexes.flatten().long()  # .detach().clone()
         else:
             *all_X, targets = (batch[v] for v in self.output_map)
-            targets = targets.squeeze(-1).long().detach().clone()
+            targets = targets.squeeze(-1).long()  # .detach().clone()
             # creates dummy indexes
             indexes = (
-                (
-                    torch.arange(self.model_batch_size, device=self.model_device)
-                    + (self.model_rank * self.model_batch_size)
-                )
-                .detach()
-                .clone()
+                torch.arange(self.model_batch_size, device=self.model_device)
+                + (self.model_rank * self.model_batch_size)
+                # .detach()
+                # .clone()
             )
-
-        all_X = [x.detach().clone() for x in all_X]
+        # .detach().clone()
+        all_X = [x for x in all_X]
         return [indexes, all_X, targets]
 
 
-class Wrapper(BaseWrapper):
+class Wrapper(TempDALIGenericIterator):
     def __init__(self, dataset_size: int, *args, **kwargs):
         """Wrapper to have dataset size.
 
@@ -691,8 +669,8 @@ class Wrapper(BaseWrapper):
         self.dataset_size = dataset_size
 
     def __next__(self):
-        batch = super().__next__()
-        x, target = batch[0]["x"], batch[0]["label"]
+        batch = super().__next__()[0]
+        x, target = batch["x"], batch["label"]
         target = target.squeeze(-1).long()
         # PyTorch Lightning does double buffering
         # https://github.com/PyTorchLightning/pytorch-lightning/issues/1316,
@@ -794,7 +772,6 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         else:
             self.device = torch.device("cpu")
 
-    def train_dataloader(self):
         train_pipeline_builder = PretrainPipelineBuilder(
             self.train_data_path,
             batch_size=self.batch_size,
@@ -826,7 +803,7 @@ class PretrainDALIDataModule(pl.LightningDataModule):
         conversion_map = (
             train_pipeline_builder.conversion_map if self.encode_indexes_into_labels else None
         )
-        train_loader = PretrainWrapper(
+        self.train_loader = PretrainWrapper(
             model_batch_size=self.batch_size,
             model_rank=self.device_id,
             model_device=self.device,
@@ -839,7 +816,8 @@ class PretrainDALIDataModule(pl.LightningDataModule):
             auto_reset=True,
         )
 
-        return train_loader
+    def train_dataloader(self):
+        return self.train_loader
 
 
 class ClassificationDALIDataModule(pl.LightningDataModule):
@@ -919,7 +897,6 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         else:
             self.device = torch.device("cpu")
 
-    def train_dataloader(self):
         train_pipeline_builder = self.pipeline_class(
             self.train_data_path,
             validation=False,
@@ -939,7 +916,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         )
         train_pipeline.build()
 
-        train_loader = Wrapper(
+        self.train_loader = Wrapper(
             pipelines=train_pipeline,
             dataset_size=train_pipeline.epoch_size("Reader"),
             output_map=["x", "label"],
@@ -948,9 +925,6 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             auto_reset=True,
         )
 
-        return train_loader
-
-    def val_dataloader(self) -> DALIGenericIterator:
         val_pipeline_builder = self.pipeline_class(
             self.val_data_path,
             validation=True,
@@ -969,7 +943,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         )
         val_pipeline.build()
 
-        val_loader = Wrapper(
+        self.val_loader = Wrapper(
             pipelines=val_pipeline,
             dataset_size=val_pipeline.epoch_size("Reader"),
             output_map=["x", "label"],
@@ -977,4 +951,9 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             last_batch_policy=LastBatchPolicy.PARTIAL,
             auto_reset=True,
         )
-        return val_loader
+
+    def train_dataloader(self) -> TempDALIGenericIterator:
+        return self.train_loader
+
+    def val_dataloader(self) -> TempDALIGenericIterator:
+        return self.val_loader
