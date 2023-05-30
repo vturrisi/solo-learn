@@ -599,8 +599,6 @@ class BaseMethod(pl.LightningModule):
         slightly skewing the metrics.
         """
 
-        print("validation", self.current_epoch)
-
         val_loss = weighted_mean(self.validation_step_outputs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(self.validation_step_outputs, "val_acc1", "batch_size")
         val_acc5 = weighted_mean(self.validation_step_outputs, "val_acc5", "batch_size")
@@ -612,9 +610,6 @@ class BaseMethod(pl.LightningModule):
             log.update({"val_knn_acc1": val_knn_acc1, "val_knn_acc5": val_knn_acc5})
 
         self.log_dict(log, sync_dist=True)
-
-    def on_train_batch_start(self, *args):
-        print("hi", self.current_epoch)
 
 
 class BaseMomentumMethod(BaseMethod):

@@ -925,10 +925,6 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             auto_reset=True,
         )
 
-    def train_dataloader(self):
-        return self.train_loader
-
-    def val_dataloader(self) -> TempDALIGenericIterator:
         val_pipeline_builder = self.pipeline_class(
             self.val_data_path,
             validation=True,
@@ -947,7 +943,7 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
         )
         val_pipeline.build()
 
-        val_loader = Wrapper(
+        self.val_loader = Wrapper(
             pipelines=val_pipeline,
             dataset_size=val_pipeline.epoch_size("Reader"),
             output_map=["x", "label"],
@@ -955,4 +951,9 @@ class ClassificationDALIDataModule(pl.LightningDataModule):
             last_batch_policy=LastBatchPolicy.PARTIAL,
             auto_reset=True,
         )
-        return val_loader
+
+    def train_dataloader(self) -> TempDALIGenericIterator:
+        return self.train_loader
+
+    def val_dataloader(self) -> TempDALIGenericIterator:
+        return self.val_loader
