@@ -17,14 +17,14 @@ repos:
     hooks:
     -   id: nbstripout
 -   repo: https://github.com/mwouts/jupytext
-    rev: v1.14.5
+    rev: v1.14.6
     hooks:
     -   id: jupytext
         args: [--sync, --pipe, black]
         additional_dependencies:
             - black==22.6.0 # Matches hook
 -   repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.3.0
     hooks:
     -   id: black
         args: [--line-length, "100"]
