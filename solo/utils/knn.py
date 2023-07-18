@@ -103,6 +103,10 @@ class WeightedKNNClassifier(Metric):
             Tuple[float]: k-NN accuracy @1 and @5.
         """
 
+        # if compute is called without any features
+        if not self.train_features or not self.test_features:
+            return -1, -1
+
         train_features = torch.cat(self.train_features)
         train_targets = torch.cat(self.train_targets)
         test_features = torch.cat(self.test_features)
