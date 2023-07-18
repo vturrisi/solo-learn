@@ -253,7 +253,7 @@ class BaseMethod(pl.LightningModule):
         self.knn_eval: bool = cfg.knn_eval.enabled
         self.knn_k: int = cfg.knn_eval.k
         if self.knn_eval:
-            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx=cfg.knn.distance_func)
+            self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx=cfg.knn_eval.distance_func)
 
         # for performance
         self.no_channel_last = cfg.performance.disable_channel_last
