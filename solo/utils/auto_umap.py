@@ -25,18 +25,19 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
+import lightning.pytorch as pl
 import pandas as pd
-import pytorch_lightning as pl
 import seaborn as sns
 import torch
 import torch.nn as nn
 import umap
-import wandb
+from lightning.pytorch.callbacks import Callback
 from matplotlib import pyplot as plt
 from omegaconf import DictConfig
-from pytorch_lightning.callbacks import Callback
-from solo.utils.misc import gather, omegaconf_select
 from tqdm import tqdm
+
+import wandb
+from solo.utils.misc import gather, omegaconf_select
 
 
 class AutoUMAP(Callback):

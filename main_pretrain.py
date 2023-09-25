@@ -22,28 +22,28 @@ import os
 
 import hydra
 import torch
+from lightning.pytorch import Trainer, seed_everything
+from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.loggers.wandb import WandbLogger
+from lightning.pytorch.strategies.ddp import DDPStrategy
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.strategies.ddp import DDPStrategy
 
 from solo.args.pretrain import parse_cfg
-from solo.data.classification_dataloader import prepare_data as prepare_data_classification
-from solo.data.pretrain_dataloader import (
-    FullTransformPipeline,
-    NCropAugmentation,
-    build_transform_pipeline,
-    prepare_dataloader,
-    prepare_datasets,
-)
+from solo.data.classification_dataloader import \
+    prepare_data as prepare_data_classification
+from solo.data.pretrain_dataloader import (FullTransformPipeline,
+                                           NCropAugmentation,
+                                           build_transform_pipeline,
+                                           prepare_dataloader,
+                                           prepare_datasets)
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous, omegaconf_select
 
 try:
-    from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
+    from solo.data.dali_dataloader import (PretrainDALIDataModule,
+                                           build_transform_pipeline_dali)
 except ImportError:
     _dali_avaliable = False
 else:
@@ -234,9 +234,9 @@ def main(cfg: DictConfig):
     # with dali 1.15 (this will be fixed on 1.16)
     # https://github.com/Lightning-AI/lightning/issues/12956
     try:
-        from pytorch_lightning.loops import FitLoop
+        from lightning.pytorch.loops import _FitLoop
 
-        class WorkaroundFitLoop(FitLoop):
+        class WorkaroundFitLoop(_FitLoop):
             @property
             def prefetch_batches(self) -> int:
                 return 1

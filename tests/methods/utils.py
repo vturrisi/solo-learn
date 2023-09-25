@@ -21,9 +21,13 @@ import inspect
 
 import numpy as np
 import torch
+from lightning.pytorch import Trainer
 from omegaconf import OmegaConf
 from PIL import Image
-from pytorch_lightning import Trainer
+from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.datasets import FakeData
+
 from solo.data.pretrain_dataloader import (
     FullTransformPipeline,
     NCropAugmentation,
@@ -31,9 +35,6 @@ from solo.data.pretrain_dataloader import (
     dataset_with_index,
     prepare_dataloader,
 )
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision.datasets import FakeData
 
 
 def gen_base_cfg(

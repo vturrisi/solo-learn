@@ -24,11 +24,11 @@ import os
 import hydra
 import torch
 import torch.nn as nn
+from lightning.pytorch import Trainer
+from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.loggers import WandbLogger
+from lightning.pytorch.strategies.ddp import DDPStrategy
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.strategies.ddp import DDPStrategy
 from timm.data.mixup import Mixup
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
@@ -215,9 +215,9 @@ def main(cfg: DictConfig):
     # with dali 1.15 (this will be fixed on 1.16)
     # https://github.com/Lightning-AI/lightning/issues/12956
     try:
-        from pytorch_lightning.loops import FitLoop
+        from lightning.pytorch.loops import _FitLoop
 
-        class WorkaroundFitLoop(FitLoop):
+        class WorkaroundFitLoop(_FitLoop):
             @property
             def prefetch_batches(self) -> int:
                 return 1

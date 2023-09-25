@@ -25,9 +25,10 @@ import time
 from pathlib import Path
 from typing import Optional, Union
 
-import pytorch_lightning as pl
+import lightning.pytorch as pl
+from lightning.pytorch.callbacks import Callback
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.callbacks import Callback
+
 from solo.utils.misc import omegaconf_select
 
 

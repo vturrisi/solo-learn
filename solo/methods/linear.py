@@ -20,11 +20,13 @@
 import logging
 from typing import Any, Callable, Dict, List, Tuple, Union
 
+import lightning.pytorch as pl
 import omegaconf
-import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
+
 from solo.utils.lars import LARS
 from solo.utils.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.metrics import accuracy_at_k, weighted_mean
@@ -33,7 +35,6 @@ from solo.utils.misc import (
     param_groups_layer_decay,
     remove_bias_and_norm_from_weight_decay,
 )
-from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR, ReduceLROnPlateau
 
 
 class LinearModel(pl.LightningModule):
