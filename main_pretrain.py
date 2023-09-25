@@ -29,21 +29,21 @@ from lightning.pytorch.strategies.ddp import DDPStrategy
 from omegaconf import DictConfig, OmegaConf
 
 from solo.args.pretrain import parse_cfg
-from solo.data.classification_dataloader import \
-    prepare_data as prepare_data_classification
-from solo.data.pretrain_dataloader import (FullTransformPipeline,
-                                           NCropAugmentation,
-                                           build_transform_pipeline,
-                                           prepare_dataloader,
-                                           prepare_datasets)
+from solo.data.classification_dataloader import prepare_data as prepare_data_classification
+from solo.data.pretrain_dataloader import (
+    FullTransformPipeline,
+    NCropAugmentation,
+    build_transform_pipeline,
+    prepare_dataloader,
+    prepare_datasets,
+)
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous, omegaconf_select
 
 try:
-    from solo.data.dali_dataloader import (PretrainDALIDataModule,
-                                           build_transform_pipeline_dali)
+    from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
 except ImportError:
     _dali_avaliable = False
 else:
