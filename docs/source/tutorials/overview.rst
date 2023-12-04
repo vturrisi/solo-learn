@@ -25,10 +25,10 @@ We start by importing everything that we will need (we will be relying on Pytorc
 .. code-block:: python
 
     import torch
-    from pytorch_lightning import Trainer
-    from pytorch_lightning.callbacks import LearningRateMonitor
-    from pytorch_lightning.loggers import WandbLogger
-    from pytorch_lightning.plugins import DDPPlugin
+    from lightning.pytorch import Trainer
+    from lightning.pytorch.callbacks import LearningRateMonitor
+    from lightning.pytorch.loggers import WandbLogger
+    from lightning.pytorch.plugins import DDPPlugin
 
     from solo.methods import BarlowTwins  # imports the method class
     from solo.utils.checkpointer import Checkpointer

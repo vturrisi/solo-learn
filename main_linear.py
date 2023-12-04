@@ -24,11 +24,11 @@ import os
 import hydra
 import torch
 import torch.nn as nn
+from lightning.pytorch import Trainer
+from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.loggers import WandbLogger
+from lightning.pytorch.strategies.ddp import DDPStrategy
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.strategies.ddp import DDPStrategy
 from timm.data.mixup import Mixup
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
@@ -169,7 +169,6 @@ def main(cfg: DictConfig):
     callbacks = []
 
     if cfg.checkpoint.enabled:
-        # save checkpoint on last epoch only
         ckpt = Checkpointer(
             cfg,
             logdir=os.path.join(cfg.checkpoint.dir, "linear"),
@@ -210,23 +209,6 @@ def main(cfg: DictConfig):
         }
     )
     trainer = Trainer(**trainer_kwargs)
-
-    # fix for incompatibility with nvidia-dali and pytorch lightning
-    # with dali 1.15 (this will be fixed on 1.16)
-    # https://github.com/Lightning-AI/lightning/issues/12956
-    try:
-        from pytorch_lightning.loops import FitLoop
-
-        class WorkaroundFitLoop(FitLoop):
-            @property
-            def prefetch_batches(self) -> int:
-                return 1
-
-        trainer.fit_loop = WorkaroundFitLoop(
-            trainer.fit_loop.min_epochs, trainer.fit_loop.max_epochs
-        )
-    except:
-        pass
 
     if cfg.data.format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
