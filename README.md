@@ -139,17 +139,17 @@ The library is self-contained, but it is possible to use the models outside of s
 First clone the repo.
 
 Then, to install solo-learn with [Dali](https://github.com/NVIDIA/DALI) and/or UMAP support, use:
-```
+```bash
 pip3 install .[dali,umap,h5] --extra-index-url https://developer.download.nvidia.com/compute/redist
 ```
 
 If no Dali/UMAP/H5 support is needed, the repository can be installed as:
-```
+```bash
 pip3 install .
 ```
 
 For local development:
-```
+```bash
 pip3 install -e .[umap,h5]
 # Make sure you have pre-commit hooks installed
 pre-commit install
