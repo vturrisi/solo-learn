@@ -169,7 +169,6 @@ def main(cfg: DictConfig):
     callbacks = []
 
     if cfg.checkpoint.enabled:
-        # save checkpoint on last epoch only
         ckpt = Checkpointer(
             cfg,
             logdir=os.path.join(cfg.checkpoint.dir, "linear"),
@@ -210,23 +209,6 @@ def main(cfg: DictConfig):
         }
     )
     trainer = Trainer(**trainer_kwargs)
-
-    # fix for incompatibility with nvidia-dali and pytorch lightning
-    # with dali 1.15 (this will be fixed on 1.16)
-    # https://github.com/Lightning-AI/lightning/issues/12956
-    # try:
-    #     from lightning.pytorch.loops import _FitLoop
-
-    #     class WorkaroundFitLoop(_FitLoop):
-    #         @property
-    #         def prefetch_batches(self) -> int:
-    #             return 1
-
-    #     trainer.fit_loop = WorkaroundFitLoop(
-    #         trainer.fit_loop.min_epochs, trainer.fit_loop.max_epochs
-    #     )
-    # except:
-    #     pass
 
     if cfg.data.format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)

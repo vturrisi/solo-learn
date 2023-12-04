@@ -137,13 +137,20 @@ class Checkpointer(Callback):
             trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
-        if trainer.is_global_zero and not trainer.sanity_checking:
+        if not trainer.sanity_checking:
             epoch = trainer.current_epoch  # type: ignore
             ckpt = self.path / self.ckpt_placeholder.format(epoch)
             trainer.save_checkpoint(ckpt)
 
-            if self.last_ckpt and self.last_ckpt != ckpt and not self.keep_prev:
-                os.remove(self.last_ckpt)
+            if (
+                trainer.is_global_zero
+                and self.last_ckpt
+                and self.last_ckpt != ckpt
+                and not self.keep_prev
+            ):
+                os.remove(
+                    self.last_ckpt,
+                )
             self.last_ckpt = ckpt
 
     def on_train_start(self, trainer: pl.Trainer, _):
