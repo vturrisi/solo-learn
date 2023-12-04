@@ -21,11 +21,13 @@ import logging
 from functools import partial
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
+import lightning.pytorch as pl
 import omegaconf
-import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import MultiStepLR
+
 from solo.backbones import (
     convnext_base,
     convnext_large,
@@ -55,7 +57,6 @@ from solo.utils.lr_scheduler import LinearWarmupCosineAnnealingLR
 from solo.utils.metrics import accuracy_at_k, weighted_mean
 from solo.utils.misc import omegaconf_select, remove_bias_and_norm_from_weight_decay
 from solo.utils.momentum import MomentumUpdater, initialize_momentum_params
-from torch.optim.lr_scheduler import MultiStepLR
 
 
 def static_lr(

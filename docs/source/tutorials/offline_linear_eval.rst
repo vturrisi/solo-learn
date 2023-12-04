@@ -8,9 +8,9 @@ As for pretraining, we start by importing the required packages:
 .. code-block:: python
 
     import torch
-    from pytorch_lightning import Trainer
-    from pytorch_lightning.loggers import WandbLogger
-    from pytorch_lightning.callbacks import LearningRateMonitor
+    from lightning.pytorch import Trainer
+    from lightning.pytorch.loggers import WandbLogger
+    from lightning.pytorch.callbacks import LearningRateMonitor
     from torchvision.models import resnet18
 
     from solo.methods.linear import LinearModel  # imports the linear eval class

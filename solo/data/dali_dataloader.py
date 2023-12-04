@@ -21,18 +21,19 @@ import os
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
+import lightning.pytorch as pl
 import nvidia.dali.fn as fn
 import nvidia.dali.ops as ops
 import nvidia.dali.types as types
 import omegaconf
-import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from nvidia.dali import pipeline_def
 from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+
 from solo.data.temp_dali_fix import TempDALIGenericIterator
 from solo.utils.misc import omegaconf_select
-from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 
 class RandomGrayScaleConversion:
