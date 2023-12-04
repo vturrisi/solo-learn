@@ -43,7 +43,8 @@ class SwAV(BaseMethod):
                 temperature (float): temperature for the softmax normalization.
                 queue_size (int): number of samples to hold in the queue.
                 epoch_queue_starts (int): epochs the queue starts.
-                freeze_prototypes_epochs (int): number of epochs during which the prototypes are frozen.
+                freeze_prototypes_epochs (int): number of epochs during which
+                    the prototypes are frozen.
         """
 
         super().__init__(cfg)
