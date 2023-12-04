@@ -29,21 +29,21 @@ from lightning.pytorch.strategies.ddp import DDPStrategy
 from omegaconf import DictConfig, OmegaConf
 
 from solo.args.pretrain import parse_cfg
-from solo.data.classification_dataloader import \
-    prepare_data as prepare_data_classification
-from solo.data.pretrain_dataloader import (FullTransformPipeline,
-                                           NCropAugmentation,
-                                           build_transform_pipeline,
-                                           prepare_dataloader,
-                                           prepare_datasets)
+from solo.data.classification_dataloader import prepare_data as prepare_data_classification
+from solo.data.pretrain_dataloader import (
+    FullTransformPipeline,
+    NCropAugmentation,
+    build_transform_pipeline,
+    prepare_dataloader,
+    prepare_datasets,
+)
 from solo.methods import METHODS
 from solo.utils.auto_resumer import AutoResumer
 from solo.utils.checkpointer import Checkpointer
 from solo.utils.misc import make_contiguous, omegaconf_select
 
 try:
-    from solo.data.dali_dataloader import (PretrainDALIDataModule,
-                                           build_transform_pipeline_dali)
+    from solo.data.dali_dataloader import PretrainDALIDataModule, build_transform_pipeline_dali
 except ImportError:
     _dali_avaliable = False
 else:
@@ -228,24 +228,25 @@ def main(cfg: DictConfig):
             else cfg.strategy,
         }
     )
+    print(trainer_kwargs)
     trainer = Trainer(**trainer_kwargs)
 
     # fix for incompatibility with nvidia-dali and pytorch lightning
     # with dali 1.15 (this will be fixed on 1.16)
     # https://github.com/Lightning-AI/lightning/issues/12956
-    try:
-        from lightning.pytorch.loops import _FitLoop
+    # try:
+    #     from lightning.pytorch.loops import _FitLoop
 
-        class WorkaroundFitLoop(_FitLoop):
-            @property
-            def prefetch_batches(self) -> int:
-                return 1
+    #     class WorkaroundFitLoop(_FitLoop):
+    #         @property
+    #         def prefetch_batches(self) -> int:
+    #             return 1
 
-        trainer.fit_loop = WorkaroundFitLoop(
-            trainer.fit_loop.min_epochs, trainer.fit_loop.max_epochs
-        )
-    except:
-        pass
+    #     trainer.fit_loop = WorkaroundFitLoop(
+    #         trainer.fit_loop.min_epochs, trainer.fit_loop.max_epochs
+    #     )
+    # except:
+    #     pass
 
     if cfg.data.format == "dali":
         trainer.fit(model, ckpt_path=ckpt_path, datamodule=dali_datamodule)
