@@ -24,6 +24,7 @@ from typing import Tuple
 
 import torch
 import torch.nn as nn
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -126,12 +127,10 @@ def main():
     # load arguments
     with open(args_path) as f:
         method_args = json.load(f)
+    cfg = OmegaConf.create(method_args)
 
     # build the model
-    model = METHODS[method_args["method"]].load_from_checkpoint(
-        ckpt_path, strict=False, **method_args
-    )
-    model.cuda()
+    model = METHODS[method_args["method"]].load_from_checkpoint(ckpt_path, strict=False, cfg=cfg)
 
     # prepare data
     _, T = prepare_transforms(args.dataset)
