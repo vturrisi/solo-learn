@@ -137,9 +137,6 @@ class SSLEY(BaseMethod):
         ssley_loss = ssley_loss_func(
             z1,
             z2,
-            sim_loss_weight=self.sim_loss_weight,
-            var_loss_weight=self.var_loss_weight,
-            cov_loss_weight=self.cov_loss_weight,
         )
 
         self.log("train_ssley_loss", ssley_loss, on_epoch=True, sync_dist=True)
