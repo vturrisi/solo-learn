@@ -18,9 +18,8 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-import torch.nn.functional as F
-from solo.utils.misc import gather
 
+import torch.distributed as dist
 
 def ssley_loss_func(
     z1: torch.Tensor,
@@ -36,8 +35,6 @@ def ssley_loss_func(
     Returns:
         torch.Tensor: VICReg loss.
     """
-
-    sim_loss = invariance_loss(z1, z2)
 
     N, D = z1.size()
     B = torch.cov(torch.hstack((z1, z2)).T)
