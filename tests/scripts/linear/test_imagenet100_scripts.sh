@@ -1,7 +1,7 @@
 TRAIN_PATH=$1
 VAL_PATH=$2
 FORMAT=$3
-METHODS=("barlow" "byol" "dino" "mocov2plus" "mocov3_vit" "mocov3" "nnclr" "ressl" "simclr" "simsiam" "swav" "vibcreg" "vicreg")
+METHODS=("barlow" "byol" "dino" "mocov2plus" "mocov3_vit" "mocov3" "nnclr" "ressl" "simclr" "simsiam" "swav" "vibcreg" "vicreg" "ssley")
 
 # first run ../pretrain/test_imagenet_scripts.sh and then fill the paths here
 # escape path with \"PATH-HERE\"
@@ -20,6 +20,7 @@ PRETRAINED_PATHS=(
     \"PATH-TO-SWAV-MODEL\"
     \"PATH-TO-VIBCREG-MODEL\"
     \"PATH-TO-VICREG-MODEL\"
+    \"PATH-TO-SSLEY-MODEL\"
 )
 
 for i in ${!METHODS[@]}; do
