@@ -4,7 +4,6 @@ build:
   os: ubuntu-20.04
   tools:
     python: "3.10"
-  image: latest
 
 # This part is necessary otherwise the project is not built
 # Optionally set the version of Python and requirements required to build your docs
