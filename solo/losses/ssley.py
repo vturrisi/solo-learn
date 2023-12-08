@@ -18,8 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-
-import torch.distributed as dist
+from solo.utils.misc import gather
 
 def ssley_loss_func(
     z1: torch.Tensor,
@@ -35,15 +34,15 @@ def ssley_loss_func(
     Returns:
         torch.Tensor: SSL-EY loss.
     """
-
+    N, D = z1.size()
     z1, z2 = gather(z1), gather(z2)
 
     z1 = z1 - z1.mean(dim=0)
     z2 = z2 - z2.mean(dim=0)
 
-    C = 2 * (z1.T @ z2) / (self.args.batch_size - 1)
-    V = (z1.T @ z1) / (self.args.batch_size - 1) + (z2.T @ z2) / (self.args.batch_size - 1)
+    C = 2 * (z1.T @ z2) / (N - 1)
+    V = (z1.T @ z1) / (N - 1) + (z2.T @ z2) / (N - 1)
 
-    loss = torch.trace(C) - torch.trace(V @ V)
+    loss = -2*torch.trace(C) + torch.trace(V @ V)
 
     return loss
