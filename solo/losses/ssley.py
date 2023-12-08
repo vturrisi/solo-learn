@@ -33,18 +33,17 @@ def ssley_loss_func(
         z2 (torch.Tensor): NxD Tensor containing projected features from view 2.
 
     Returns:
-        torch.Tensor: VICReg loss.
+        torch.Tensor: SSL-EY loss.
     """
 
-    N, D = z1.size()
-    B = torch.cov(torch.hstack((z1, z2)).T)
+    z1, z2 = gather(z1), gather(z2)
 
-    if dist.is_available() and dist.is_initialized():
-        dist.all_reduce(B)
-        world_size = dist.get_world_size()
-        B /= world_size
+    z1 = z1 - z1.mean(dim=0)
+    z2 = z2 - z2.mean(dim=0)
 
-    A = B[:D, D:] + B[D:, :D]
-    B = B[:D, :D] + B[D:, D:]
+    C = 2 * (z1.T @ z2) / (self.args.batch_size - 1)
+    V = (z1.T @ z1) / (self.args.batch_size - 1) + (z2.T @ z2) / (self.args.batch_size - 1)
 
-    return -torch.trace(2 * A - B @ B)
+    loss = torch.trace(C) - torch.trace(V @ V)
+
+    return loss
