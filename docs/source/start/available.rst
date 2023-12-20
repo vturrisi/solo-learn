@@ -11,6 +11,7 @@ Methods available
 * `SwAV <https://arxiv.org/abs/2006.09882>`_
 * `VICReg <https://arxiv.org/abs/2105.04906>`_
 * `W-MSE <https://arxiv.org/abs/2007.06346>`_
+* `SSL-EYE <https://arxiv.org/abs/2310.01012>`_
 
 ************
 Extra flavor

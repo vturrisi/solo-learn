@@ -1,7 +1,7 @@
 TRAIN_PATH=$1
 VAL_PATH=$2
 FORMAT=$3
-METHODS=("barlow" "byol" "dino" "dino_vit" "mae" "mocov2plus" "mocov3_vit" "mocov3" "nnclr" "ressl" "simclr" "simsiam" "supcon" "swav" "vibcreg" "vicreg")
+METHODS=("barlow" "byol" "dino" "dino_vit" "mae" "mocov2plus" "mocov3_vit" "mocov3" "nnclr" "ressl" "simclr" "simsiam" "supcon" "swav" "vibcreg" "vicreg" "ssley")
 
 for method in ${METHODS[@]}; do
     echo Running $method

@@ -1,4 +1,4 @@
-METHODS=("barlow" "byol" "dino" "mae" "mocov2plus" "mocov3" "nnbyol" "nnclr" "nnsiam" "ressl" "simclr" "simsiam" "supcon" "swav" "vibcreg" "vicreg")
+METHODS=("barlow" "byol" "dino" "mae" "mocov2plus" "mocov3" "nnbyol" "nnclr" "nnsiam" "ressl" "simclr" "simsiam" "supcon" "swav" "vibcreg" "vicreg" "ssley")
 DATASETS=("cifar10")
 
 for dataset in ${DATASETS[@]}; do
