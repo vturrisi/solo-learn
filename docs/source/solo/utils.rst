@@ -158,3 +158,6 @@ Whitening
 
 .. automethod:: solo.utils.whitening.Whitening2d.__init__
    :noindex:
+
+
+
