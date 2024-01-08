@@ -258,5 +258,3 @@ forward
 .. automethod:: solo.utils.positional_encoding.Summer.forward
    :noindex:
 
-
-
