@@ -63,6 +63,7 @@ While the library is self contained, it is possible to use the models outside of
 
    solo/methods/base
    solo/methods/linear
+   solo/methods/all4one
    solo/methods/barlow
    solo/methods/byol
    solo/methods/deepclusterv2

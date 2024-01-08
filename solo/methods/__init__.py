@@ -37,6 +37,8 @@ from solo.methods.swav import SwAV
 from solo.methods.vibcreg import VIbCReg
 from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
+from solo.methods.all4one import All4One
+
 
 METHODS = {
     # base classes
@@ -61,6 +63,7 @@ METHODS = {
     "vibcreg": VIbCReg,
     "vicreg": VICReg,
     "wmse": WMSE,
+    "all4one": All4One,
 }
 __all__ = [
     "BarlowTwins",
@@ -83,4 +86,5 @@ __all__ = [
     "VIbCReg",
     "VICReg",
     "WMSE",
+    "All4One",
 ]
