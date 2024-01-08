@@ -29,6 +29,7 @@ def test_all4one():
         "proj_hidden_dim": 2048,
         "pred_hidden_dim": 2048,
         "queue_size": 8192,
+        "temperature": 0.2,
         "momentum_classifier": True,
     }
 
