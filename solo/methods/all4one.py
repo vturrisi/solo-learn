@@ -301,7 +301,7 @@ class All4One(BaseMomentumMethod):
         out = super().training_step(batch, batch_idx)
         class_loss = out["loss"]
         feats1, feats2 = out["feats"]
-        momentum_z1, momentum_z2 = out["momentum_feats"]
+        momentum_z1, momentum_z2 = out["momentum_z"]
 
         z1 = self.projector(feats1)
         z2 = self.projector(feats2)
