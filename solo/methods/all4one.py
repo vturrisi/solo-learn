@@ -227,7 +227,7 @@ class All4One(BaseMomentumMethod):
         """
 
         out = super().momentum_forward(X)
-        z = self.momentum_projector(out["feats"])
+        z = F.normalize(self.momentum_projector(out["feats"]), dim=-1)
         out.update({"z": z})
         return out
 
