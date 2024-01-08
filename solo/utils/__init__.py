@@ -24,8 +24,8 @@ from solo.utils import (
     metrics,
     misc,
     momentum,
-    sinkhorn_knopp,
     positional_encodings,
+    sinkhorn_knopp,
 )
 
 __all__ = [
@@ -35,9 +35,8 @@ __all__ = [
     "lars",
     "metrics",
     "momentum",
-    "sinkhorn_knopp",
     "positional_encodings",
-
+    "sinkhorn_knopp",
 ]
 
 
