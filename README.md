@@ -18,6 +18,7 @@ The library is self-contained, but it is possible to use the models outside of s
 ---
 
 ## News
+* **[Jan 14 2024]**: :clap: Bunch of stability improvements during 2023 :) Also added [All4One](https://openaccess.thecvf.com/content/ICCV2023/html/Estepa_All4One_Symbiotic_Neighbour_Contrastive_Learning_via_Self-Attention_and_Redundancy_Reduction_ICCV_2023_paper.html).
 * **[Jan 07 2023]**: :diving_mask: Added results, checkpoints and configs for MAE on ImageNet. Thanks to [HuangChiEn](https://github.com/HuangChiEn).
 * **[Dec 31 2022]**: :stars: Shiny new logo! Huge thanks to [Luiz](https://www.instagram.com/linhaaspera/)!
 * **[Sep 27 2022]**: :pencil: Brand new config system using OmegaConf/Hydra. Adds more clarity and flexibility. New tutorials will follow soon!
