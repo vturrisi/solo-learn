@@ -164,7 +164,7 @@ class Checkpointer(Callback):
         self.save_args(trainer)
 
     def on_train_epoch_end(self, trainer: pl.Trainer, _):
-        """Tries to save current checkpoint at the end of each train epoch.
+        """Tries to save the current checkpoint at the end of each train epoch.
 
         Args:
             trainer (pl.Trainer): pytorch lightning trainer object.
@@ -173,3 +173,12 @@ class Checkpointer(Callback):
         epoch = trainer.current_epoch  # type: ignore
         if epoch % self.frequency == 0:
             self.save(trainer)
+
+    def on_train_end(self, trainer: pl.Trainer, _):
+        """Saves model at the end of training.
+
+        Args:
+            trainer (pl.Trainer): pytorch lightning trainer object.
+        """
+
+        self.save(trainer)
