@@ -174,8 +174,7 @@ class Checkpointer(Callback):
         if epoch % self.frequency == 0:
             self.save(trainer)
 
-    def on_train_end(self, trainer: pl.
-Trainer, _):
+    def on_train_end(self, trainer: pl.Trainer, _):
         """Saves model at the end of training.
 
         Args:
