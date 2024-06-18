@@ -174,7 +174,12 @@ class Checkpointer(Callback):
         if epoch % self.frequency == 0:
             self.save(trainer)
 
-    def on_train_epoch_end(self, *args, **kwargs):
-        """Saves model at the end of training. """
+    def on_train_end(self, trainer: pl.
+Trainer, _):
+        """Saves model at the end of training.
+
+        Args:
+            trainer (pl.Trainer): pytorch lightning trainer object.
+        """
 
         self.save(trainer)
