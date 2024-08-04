@@ -1,3 +1,22 @@
+# Copyright 2024 solo-learn development team.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
 from typing import Any, List, Sequence, Dict
 
 import omegaconf
@@ -10,7 +29,7 @@ from solo.losses.frossl import frossl_loss_func
 class FroSSL(BaseMethod):
     def __init__(self, cfg: omegaconf.DictConfig):
         """Implements FroSSL (https://arxiv.org/pdf/2310.02903)
-        
+        Heavily adapted from https://github.com/OFSkean/FroSSL
 
         Extra cfg settings:
             method_kwargs:
@@ -82,6 +101,22 @@ class FroSSL(BaseMethod):
         out.update({"z": z})
         return out
     
+    def multicrop_forward(self, X: torch.tensor) -> Dict[str, Any]:
+        """Performs the forward pass for the multicrop views.
+
+        Args:
+            X (torch.Tensor): batch of images in tensor format.
+
+        Returns:
+            Dict[]: a dict containing the outputs of the parent
+                and the projected features.
+        """
+
+        out = super().multicrop_forward(X)
+        z = self.projector(out["feats"])
+        out.update({"z": z})
+        return out
+
     def training_step(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
         """Training step for FroSSL reusing BaseMethod training step.
 
@@ -98,9 +133,9 @@ class FroSSL(BaseMethod):
         class_loss = out["loss"]
 
         z = torch.stack(out["z"], dim=0)   # V x N_per_gpu x D
-        z = torch.gather(z, dim=1)         # V x N_total x D
+        z = gather(z, dim=1)         # V x N_total x D
 
-        frossl_loss = frossl_loss_func(z, invariance_weight=self.invariance_weight)
-        self.log("train_frossl_loss", frossl_loss, on_epoch=True, sync_dist=True)
+        frossl_loss = frossl_loss_func(z, invariance_weight=self.invariance_weight, logger=self.log)
+        self.log("train_frossl_loss", frossl_loss, sync_dist=True)
         
         return frossl_loss + class_loss
