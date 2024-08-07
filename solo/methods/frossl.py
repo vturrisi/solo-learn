@@ -136,6 +136,6 @@ class FroSSL(BaseMethod):
         z = gather(z, dim=1)         # V x N_total x D
 
         frossl_loss = frossl_loss_func(z, invariance_weight=self.invariance_weight, logger=self.log)
-        self.log("train_frossl_loss", frossl_loss, sync_dist=True)
+        self.log("train_frossl_loss", frossl_loss, on_epoch=True, sync_dist=True)
         
         return frossl_loss + class_loss

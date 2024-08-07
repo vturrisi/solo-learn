@@ -54,8 +54,13 @@ def calculate_invariance_term(z: torch.Tensor) -> torch.Tensor:
 def frossl_loss_func(
     z: torch.Tensor, invariance_weight=1, logger=None
 ) -> torch.Tensor:
-    """Computes FroSSL's loss given batch of projected features z
-    from num_crops different views.
+    """
+    Implements FroSSL (https://arxiv.org/pdf/2310.02903)
+    Heavily adapted from https://github.com/OFSkean/FroSSL. The main difference is that this
+    implementation stacks the views and operates on all of them at once, rather than one at a time.
+    This saves ~2 seconds (about 5% improvement) per batch with N=2,D=1024 on a A5000 GPU. For a simpler,
+    ableit slower, implementation of loss that operates on one view at a time, please see 
+    the original implementation.
 
     Args:
         z (torch.Tensor): V x N x D Tensor containing projected features from the views.
@@ -67,15 +72,17 @@ def frossl_loss_func(
     """
     V, N, D = z.shape
 
-    z = F.normalize(z, dim=-1)  # V x N x D
+    z = F.normalize(z, dim=1)  # V x N x D
 
     regularization_term = calculate_frobenius_regularization_term(z)
+    regularization_term = -1 * regularization_term # make sure its maximized
 
+    invariance_tradeoff = V * D * invariance_weight
     invariance_term = calculate_invariance_term(z)
-    invariance_term = D * invariance_weight * invariance_term
+    invariance_term = invariance_tradeoff * invariance_term
 
     if logger is not None:
-        logger("frossl_regularization_loss", regularization_term, sync_dist=True)
+        logger("frossl_regularization_loss", -regularization_term, sync_dist=True)
         logger("frossl_invariance_loss", invariance_term, sync_dist=True)
 
     total_loss = regularization_term + invariance_term
