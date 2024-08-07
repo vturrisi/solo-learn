@@ -21,8 +21,32 @@ import torch
 from solo.losses import frossl_loss_func
 
 
-def test_frossl_loss():
+def test_frossl_loss_D_greaterthan_N():
     b, f = 32, 128
+    z1 = torch.randn(b, f).requires_grad_()
+    z2 = torch.randn(b, f).requires_grad_()
+
+    z = torch.stack([z1, z2], dim=0)
+    loss = frossl_loss_func(z, invariance_weight=1.4)
+    initial_loss = loss.item()
+    assert initial_loss != 0
+
+    for _ in range(20):
+        z = torch.stack([z1, z2], dim=0)
+
+        loss = frossl_loss_func(z, invariance_weight=1.4)
+        loss.backward()
+        z1.data.add_(-0.5 * z1.grad)
+        z2.data.add_(-0.5 * z2.grad)
+
+        z1.grad = z2.grad = None
+
+    assert loss < initial_loss
+
+
+
+def test_frossl_loss_N_greaterthan_D():
+    b, f = 128, 32
     z1 = torch.randn(b, f).requires_grad_()
     z2 = torch.randn(b, f).requires_grad_()
 
