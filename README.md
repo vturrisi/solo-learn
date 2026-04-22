@@ -205,80 +205,77 @@ If you want to contribute to solo-learn, make sure you take a look at [how to co
 
 ## Model Zoo
 
-All pretrained models avaiable can be downloaded directly via the tables below or programmatically by running one of the following scripts
-`zoo/cifar10.sh`, `zoo/cifar100.sh`, `zoo/imagenet100.sh` and `zoo/imagenet.sh`.
+Checkpoints are no longer available as of 2026. Re-running the scripts will yield the same results indicated below.
 
 ---
 
 ## Results
 
-**Note:** hyperparameters may not be the best, we will be re-running the methods with lower performance eventually.
-
 ### CIFAR-10
 
-| Method       | Backbone | Epochs | Dali | Acc@1 | Acc@5 | Checkpoint |
-|--------------|:--------:|:------:|:----:|:--------------:|:--------------:|:----------:|
-| All4One      | ResNet18 |  1000  |  :x: |      93.24     |     99.88      | [:link:](https://drive.google.com/drive/folders/1dtYmZiftruQ7B2PQ8fo44wguCZ0eSzAd?usp=sharing) |
-| Barlow Twins | ResNet18 |  1000  |  :x: |      92.10     |     99.73      | [:link:](https://drive.google.com/drive/folders/1L5RAM3lCSViD2zEqLtC-GQKVw6mxtxJ_?usp=sharing) |
-| BYOL         | ResNet18 |  1000  |  :x: |      92.58     |     99.79      | [:link:](https://drive.google.com/drive/folders/1KxeYAEE7Ev9kdFFhXWkPZhG-ya3_UwGP?usp=sharing) |
-|DeepCluster V2| ResNet18 |  1000  |  :x: |      88.85     |     99.58      | [:link:](https://drive.google.com/drive/folders/1tkEbiDQ38vZaQUsT6_vEpxbDxSUAGwF-?usp=sharing) |
-| DINO         | ResNet18 |  1000  |  :x: |      89.52     |     99.71      | [:link:](https://drive.google.com/drive/folders/1vyqZKUyP8sQyEyf2cqonxlGMbQC-D1Gi?usp=sharing) |
-| MoCo V2+     | ResNet18 |  1000  |  :x: |      92.94     |     99.79      | [:link:](https://drive.google.com/drive/folders/1ruNFEB3F-Otxv2Y0p62wrjA4v5Fr2cKC?usp=sharing) |
-| MoCo V3      | ResNet18 |  1000  |  :x: |      93.10     |     99.80      | [:link:](https://drive.google.com/drive/folders/1KwZTshNEpmqnYJcmyYPvfIJ_DNwqtAVj?usp=sharing) |
-| NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |     99.78      | [:link:](https://drive.google.com/drive/folders/1xdCzhvRehPmxinphuiZqFlfBwfwWDcLh?usp=sharing) |
-| ReSSL        | ResNet18 |  1000  |  :x: |      90.63     |     99.62      | [:link:](https://drive.google.com/drive/folders/1jrFcztY2eO_fG98xPshqOD15pDIhLXp-?usp=sharing) |
-| SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |     99.75      | [:link:](https://drive.google.com/drive/folders/1mcvWr8P2WNJZ7TVpdLHA_Q91q4VK3y8O?usp=sharing) |
-| Simsiam      | ResNet18 |  1000  |  :x: |      90.51     |     99.72      | [:link:](https://drive.google.com/drive/folders/1OO_igM3IK5oDw7GjQTNmdfg2I1DH3xOk?usp=sharing) |
-| SupCon       | ResNet18 |  1000  |  :x: |      93.82     |     99.65      | [:link:](https://drive.google.com/drive/folders/1VwZ9TrJXCpnxyo7P_l397yGrGH-DAUv-?usp=sharing) |
-| SwAV         | ResNet18 |  1000  |  :x: |      89.17     |     99.68      | [:link:](https://drive.google.com/drive/folders/1nlJH4Ljm8-5fOIeAaKppQT6gtsmmW1T0?usp=sharing) |
-| VIbCReg      | ResNet18 |  1000  |  :x: |      91.18     |     99.74      | [:link:](https://drive.google.com/drive/folders/1XvxUOnLPZlC_-OkeuO7VqXT7z9_tNVk7?usp=sharing) |
-| VICReg       | ResNet18 |  1000  |  :x: |      92.07     |     99.74      | [:link:](https://drive.google.com/drive/folders/159ZgCxocB7aaHxwNDubnAWU71zXV9hn-?usp=sharing) |
-| W-MSE        | ResNet18 |  1000  |  :x: |      88.67     |     99.68      | [:link:](https://drive.google.com/drive/folders/1xPCiULzQ4JCmhrTsbxBp9S2jRZ01KiVM?usp=sharing) |
+| Method       | Backbone | Epochs | Dali | Acc@1 | Acc@5 |
+|--------------|:--------:|:------:|:----:|:--------------:|:--------------:|
+| All4One      | ResNet18 |  1000  |  :x: |      93.24     |     99.88      |
+| Barlow Twins | ResNet18 |  1000  |  :x: |      92.10     |     99.73      |
+| BYOL         | ResNet18 |  1000  |  :x: |      92.58     |     99.79      |
+|DeepCluster V2| ResNet18 |  1000  |  :x: |      88.85     |     99.58      |
+| DINO         | ResNet18 |  1000  |  :x: |      89.52     |     99.71      |
+| MoCo V2+     | ResNet18 |  1000  |  :x: |      92.94     |     99.79      |
+| MoCo V3      | ResNet18 |  1000  |  :x: |      93.10     |     99.80      |
+| NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |     99.78      |
+| ReSSL        | ResNet18 |  1000  |  :x: |      90.63     |     99.62      |
+| SimCLR       | ResNet18 |  1000  |  :x: |      90.74     |     99.75      |
+| Simsiam      | ResNet18 |  1000  |  :x: |      90.51     |     99.72      |
+| SupCon       | ResNet18 |  1000  |  :x: |      93.82     |     99.65      |
+| SwAV         | ResNet18 |  1000  |  :x: |      89.17     |     99.68      |
+| VIbCReg      | ResNet18 |  1000  |  :x: |      91.18     |     99.74      |
+| VICReg       | ResNet18 |  1000  |  :x: |      92.07     |     99.74      |
+| W-MSE        | ResNet18 |  1000  |  :x: |      88.67     |     99.68      |
 
 
 ### CIFAR-100
 
-| Method       | Backbone | Epochs | Dali | Acc@1 | Acc@5 | Checkpoint |
-|--------------|:--------:|:------:|:----:|:--------------:|:--------------:|:----------:|
-| All4One      | ResNet18 |  1000  |  :x: |      72.17     |     93.35      | [:link:](https://drive.google.com/drive/folders/1oQcC80XPr-Wxhjs-PEqD_8VhUa_izqeZ?usp=sharing) |
-| Barlow Twins | ResNet18 |  1000  |  :x: |      70.90     |     91.91      | [:link:](https://drive.google.com/drive/folders/1hDLSApF3zSMAKco1Ck4DMjyNxhsIR2yq?usp=sharing) |
-| BYOL         | ResNet18 |  1000  |  :x: |      70.46     |     91.96      | [:link:](https://drive.google.com/drive/folders/1hwsEdsfsUulD2tAwa4epKK9pkSuvFv6m?usp=sharing) |
-|DeepCluster V2| ResNet18 |  1000  |  :x: |      63.61     |     88.09      | [:link:](https://drive.google.com/drive/folders/1gAKyMz41mvGh1BBOYdc_xu6JPSkKlWqK?usp=sharing) |
-| DINO         | ResNet18 |  1000  |  :x: |      66.76     |     90.34      | [:link:](https://drive.google.com/drive/folders/1TxeZi2YLprDDtbt_y5m29t4euroWr1Fy?usp=sharing) |
-| MoCo V2+     | ResNet18 |  1000  |  :x: |      69.89     |     91.65      | [:link:](https://drive.google.com/drive/folders/15oWNM16vO6YVYmk_yOmw2XUrFivRXam4?usp=sharing) |
-| MoCo V3      | ResNet18 |  1000  |  :x: |      68.83     |     90.57      | [:link:](https://drive.google.com/drive/folders/1Hcf9kMIADKydfxvXLquY9nv7sfNaJ3v6?usp=sharing) |
-| NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |     91.52      | [:link:](https://drive.google.com/drive/folders/1Dz72o0-5hugYPW1kCCQDBb0Xi3kzMLzu?usp=sharing) |
-| ReSSL        | ResNet18 |  1000  |  :x: |      65.92     |     89.73      | [:link:](https://drive.google.com/drive/folders/1aVZs9cHAu6Ccz8ILyWkp6NhTsJGBGfjr?usp=sharing) |
-| SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |     89.04      | [:link:](https://drive.google.com/drive/folders/13pGPcOO9Y3rBoeRVWARgbMFEp8OXxZa0?usp=sharing) |
-| Simsiam      | ResNet18 |  1000  |  :x: |      66.04     |     89.62      | [:link:](https://drive.google.com/drive/folders/1AJUPmsIHh_nqEcFe-Vcz2o4ruEibFHWO?usp=sharing) |
-| SupCon       | ResNet18 |  1000  |  :x: |      70.38     |     89.57      | [:link:](https://drive.google.com/drive/folders/15C68oHPDMAOPtmBAm_Xw6YI6GgOW00gM?usp=sharing) |
-| SwAV         | ResNet18 |  1000  |  :x: |      64.88     |     88.78      | [:link:](https://drive.google.com/drive/folders/1U_bmyhlPEN941hbx0SdRGOT4ivCarQB9?usp=sharing) |
-| VIbCReg      | ResNet18 |  1000  |  :x: |      67.37     |     90.07      | [:link:](https://drive.google.com/drive/folders/19u3p1maX3xqwoCHNrqSDb98J5fRvd_6v?usp=sharing) |
-| VICReg       | ResNet18 |  1000  |  :x: |      68.54     |     90.83      | [:link:](https://drive.google.com/drive/folders/1AHmVf_Zl5fikkmR4X3NWlmMOnRzfv0aT?usp=sharing) |
-| W-MSE        | ResNet18 |  1000  |  :x: |      61.33     |     87.26      | [:link:](https://drive.google.com/drive/folders/1vc9j3RLpVCbECh6o-44oMiE5snNyKPlF?usp=sharing) |
+| Method       | Backbone | Epochs | Dali | Acc@1 | Acc@5 |
+|--------------|:--------:|:------:|:----:|:--------------:|:--------------:|
+| All4One      | ResNet18 |  1000  |  :x: |      72.17     |     93.35      |
+| Barlow Twins | ResNet18 |  1000  |  :x: |      70.90     |     91.91      |
+| BYOL         | ResNet18 |  1000  |  :x: |      70.46     |     91.96      |
+|DeepCluster V2| ResNet18 |  1000  |  :x: |      63.61     |     88.09      |
+| DINO         | ResNet18 |  1000  |  :x: |      66.76     |     90.34      |
+| MoCo V2+     | ResNet18 |  1000  |  :x: |      69.89     |     91.65      |
+| MoCo V3      | ResNet18 |  1000  |  :x: |      68.83     |     90.57      |
+| NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |     91.52      |
+| ReSSL        | ResNet18 |  1000  |  :x: |      65.92     |     89.73      |
+| SimCLR       | ResNet18 |  1000  |  :x: |      65.78     |     89.04      |
+| Simsiam      | ResNet18 |  1000  |  :x: |      66.04     |     89.62      |
+| SupCon       | ResNet18 |  1000  |  :x: |      70.38     |     89.57      |
+| SwAV         | ResNet18 |  1000  |  :x: |      64.88     |     88.78      |
+| VIbCReg      | ResNet18 |  1000  |  :x: |      67.37     |     90.07      |
+| VICReg       | ResNet18 |  1000  |  :x: |      68.54     |     90.83      |
+| W-MSE        | ResNet18 |  1000  |  :x: |      61.33     |     87.26      |
 
 ### ImageNet-100
 
-| Method                  | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint |
-|-------------------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|
-| All4One                 | ResNet18 |   400  | :heavy_check_mark: |      81.93     |     -       |      96.23     |      -      | [:link:](https://drive.google.com/drive/folders/1bJCRLP5Rz_JEylNq9C4sY3ccYZSchUGR?usp=sharing) |
-| Barlow Twins :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.38     |     80.16       |      95.28     |      95.14      | [:link:](https://drive.google.com/drive/folders/1rj8RbER9E71mBlCHIZEIhKPUFn437D5O?usp=sharing) |
-| BYOL         :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.16     |     80.32       |      95.02     |      94.94      | [:link:](https://drive.google.com/drive/folders/1riOLjMawD_znO4HYj8LBN2e1X4jXpDE1?usp=sharing) |
-| DeepCluster V2          | ResNet18 |   400  |         :x:        |      75.36     |     75.4        |      93.22     |      93.10      | [:link:](https://drive.google.com/drive/folders/1d5jPuavrQ7lMlQZn5m2KnN5sPMGhHFo8?usp=sharing) |
-| DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      | [:link:](https://drive.google.com/drive/folders/1NtVvRj-tQJvrMxRlMtCJSAecQnYZYkqs?usp=sharing) |
-| DINO         :sleepy:   | ViT Tiny |   400  |         :x:        |      63.04     |      TODO       |      87.72     |      TODO       | [:link:](https://drive.google.com/drive/folders/16AfsM-UpKky43kdSMlqj4XRe69pRdJLc?usp=sharing) |
-| MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      | [:link:](https://drive.google.com/drive/folders/1ItYBtMJ23Yh-Rhrvwjm4w1waFfUGSoKX?usp=sharing) |
-| MoCo V3      :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.36     |     80.36       |      95.18     |      94.96      | [:link:](https://drive.google.com/drive/folders/15J0JiZsQAsrQler8mbbio-desb_nVoD1?usp=sharing) |
-| MoCo V3      :rocket:   | ResNet50 |   400  | :heavy_check_mark: |      85.48     |     84.58       |      96.82     |      96.70      | [:link:](https://drive.google.com/drive/folders/1a1VRXGlP50COZ57DPUA_doBmpaxGKpQE?usp=sharing) |
-| NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      | [:link:](https://drive.google.com/drive/folders/1QMkq8w3UsdcZmoNUIUPgfSCAZl_LSNjZ?usp=sharing) |
-| ReSSL                   | ResNet18 |   400  | :heavy_check_mark: |      76.92     |     78.48       |      94.20     |      94.24      | [:link:](https://drive.google.com/drive/folders/1urWIFACLont4GAduis6l0jcEbl080c9U?usp=sharing) |
-| SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.64     |     TODO        |      94.06     |      TODO       | [:link:](https://drive.google.com/drive/folders/1yxAVKnc8Vf0tDfkixSB5mXe7dsA8Ll37?usp=sharing) |
-| Simsiam                 | ResNet18 |   400  | :heavy_check_mark: |      74.54     |     78.72       |      93.16     |      94.78      | [:link:](https://drive.google.com/drive/folders/1Bc8Xj-Z7ILmspsiEQHyQsTOn4M99F_f5?usp=sharing) |
-| SupCon                  | ResNet18 |   400  | :heavy_check_mark: |      84.40     |     TODO        |      95.72     |      TODO       | [:link:](https://drive.google.com/drive/folders/1BzR0nehkCKpnLhi-oeDynzzUcCYOCUJi?usp=sharing) |
-| SwAV                    | ResNet18 |   400  | :heavy_check_mark: |      74.04     |     74.28       |      92.70     |      92.84      | [:link:](https://drive.google.com/drive/folders/1VWCMM69sokzjVoPzPSLIsUy5S2Rrm1xJ?usp=sharing) |
-| VIbCReg                 | ResNet18 |   400  | :heavy_check_mark: |      79.86     |     79.38       |      94.98     |      94.60      | [:link:](https://drive.google.com/drive/folders/1Q06hH18usvRwj2P0bsmoCkjNUX_0syCK?usp=sharing) |
-| VICReg       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.22     |     79.40       |      95.06     |      95.02      | [:link:](https://drive.google.com/drive/folders/1uWWR5VBUru8vaHaGeLicS6X3R4CfZsr2?usp=sharing) |
-| W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |     69.06       |      90.94     |      91.22      | [:link:](https://drive.google.com/drive/folders/1TxubagNV4z5Qs7SqbBcyRHWGKevtFO5l?usp=sharing) |
+| Method                  | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) |
+|-------------------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|
+| All4One                 | ResNet18 |   400  | :heavy_check_mark: |      81.93     |       -         |      96.23     |        -        |
+| Barlow Twins :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.38     |     80.16       |      95.28     |      95.14      |
+| BYOL         :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.16     |     80.32       |      95.02     |      94.94      |
+| DeepCluster V2          | ResNet18 |   400  |         :x:        |      75.36     |     75.40       |      93.22     |      93.10      |
+| DINO                    | ResNet18 |   400  | :heavy_check_mark: |      74.84     |     74.92       |      92.92     |      92.78      |
+| DINO         :sleepy:   | ViT Tiny |   400  |         :x:        |      63.04     |       -         |      87.72     |        -        |
+| MoCo V2+     :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      78.20     |     79.28       |      95.50     |      95.18      |
+| MoCo V3      :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      80.36     |     80.36       |      95.18     |      94.96      |
+| MoCo V3      :rocket:   | ResNet50 |   400  | :heavy_check_mark: |      85.48     |     84.58       |      96.82     |      96.70      |
+| NNCLR        :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.80     |     80.16       |      95.28     |      95.30      |
+| ReSSL                   | ResNet18 |   400  | :heavy_check_mark: |      76.92     |     78.48       |      94.20     |      94.24      |
+| SimCLR       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      77.64     |       -         |      94.06     |        -        |
+| Simsiam                 | ResNet18 |   400  | :heavy_check_mark: |      74.54     |     78.72       |      93.16     |      94.78      |
+| SupCon                  | ResNet18 |   400  | :heavy_check_mark: |      84.40     |       -         |      95.72     |        -        |
+| SwAV                    | ResNet18 |   400  | :heavy_check_mark: |      74.04     |     74.28       |      92.70     |      92.84      |
+| VIbCReg                 | ResNet18 |   400  | :heavy_check_mark: |      79.86     |     79.38       |      94.98     |      94.60      |
+| VICReg       :rocket:   | ResNet18 |   400  | :heavy_check_mark: |      79.22     |     79.40       |      95.06     |      95.02      |
+| W-MSE                   | ResNet18 |   400  | :heavy_check_mark: |      67.60     |     69.06       |      90.94     |      91.22      |
 
 :rocket: methods where hyperparameters were heavily tuned.
 
@@ -286,12 +283,12 @@ All pretrained models avaiable can be downloaded directly via the tables below o
 
 ### ImageNet
 
-| Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) | Checkpoint | Finetuned Checkpoint
-|--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|:----------:|:----------:|
-| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      67.18     |      67.23      |      87.69     |      87.98      | [:link:](https://drive.google.com/drive/folders/1IQUIrCOSduAjUJ31WJ1G5tHDZzWUIEft?usp=sharing) | |
-| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37      |      88.80     |      88.66      | [:link:](https://drive.google.com/drive/folders/1-UXo-MttdrqiEQXfV4Duc93fA3mIdsha?usp=sharing) | |
-| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84      |      85.40     |      87.60      | [:link:](https://drive.google.com/drive/folders/1NiBDmieEpNqkwrgn_H7bMnEDVAYc8Sk7?usp=sharing) | |
-| MAE          | ViT-B/16 |   100  |        :x:         |      ~     |   81.60 (finetuned)   |      ~     |   95.50 (finetuned)   | [:link:](https://drive.google.com/drive/folders/1OuaXCnQ7WeqyKPxfJibAkXoVTx7S8Hbb) | [:link:](https://drive.google.com/drive/folders/1c9DGhmLsTTtOu2vc9rodqm89wKtp40C5) |
+| Method       | Backbone | Epochs |        Dali        | Acc@1 (online) | Acc@1 (offline) | Acc@5 (online) | Acc@5 (offline) |
+|--------------|:--------:|:------:|:------------------:|:--------------:|:---------------:|:--------------:|:---------------:|
+| Barlow Twins | ResNet50 |   100  | :heavy_check_mark: |      67.18     |      67.23          |      87.69     |      87.98          |
+| BYOL         | ResNet50 |   100  | :heavy_check_mark: |      68.63     |      68.37          |      88.80     |      88.66          |
+| MoCo V2+     | ResNet50 |   100  | :heavy_check_mark: |      62.61     |      66.84          |      85.40     |      87.60          |
+| MAE          | ViT-B/16 |   100  |        :x:         |        ~       |   81.60 (finetuned) |       ~        |   95.50 (finetuned) |
 
 
 
