@@ -14,7 +14,7 @@ As for pretraining, we start by importing the required packages:
     from torchvision.models import resnet18
 
     from solo.methods.linear import LinearModel  # imports the linear eval class
-    from solo.utils.classification_dataloader import prepare_data
+    from solo.data.classification_dataloader import prepare_data
 
 There are tons of parameters that need to be set and, fortunately, ``main_linear.py`` takes care of this for us.
 If we want to be able to specify the arguments from the command line, we can simply call the function ``parse_args_linear`` in ``solo.args.setup``.
