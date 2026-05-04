@@ -22,6 +22,7 @@ from solo.methods.base import BaseMethod
 from solo.methods.byol import BYOL
 from solo.methods.deepclusterv2 import DeepClusterV2
 from solo.methods.dino import DINO
+from solo.methods.frossl import FroSSL
 from solo.methods.linear import LinearModel
 from solo.methods.mae import MAE
 from solo.methods.mocov2plus import MoCoV2Plus
@@ -49,6 +50,7 @@ METHODS = {
     "byol": BYOL,
     "deepclusterv2": DeepClusterV2,
     "dino": DINO,
+    "frossl": FroSSL,
     "mae": MAE,
     "mocov2plus": MoCoV2Plus,
     "mocov3": MoCoV3,
