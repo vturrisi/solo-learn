@@ -21,6 +21,7 @@ from solo.losses.barlow import barlow_loss_func
 from solo.losses.byol import byol_loss_func
 from solo.losses.deepclusterv2 import deepclusterv2_loss_func
 from solo.losses.dino import DINOLoss
+from solo.losses.frossl import frossl_loss_func
 from solo.losses.mae import mae_loss_func
 from solo.losses.mocov2plus import mocov2plus_loss_func
 from solo.losses.mocov3 import mocov3_loss_func
@@ -38,6 +39,7 @@ __all__ = [
     "byol_loss_func",
     "deepclusterv2_loss_func",
     "DINOLoss",
+    "frossl_loss_func",
     "mae_loss_func",
     "mocov2plus_loss_func",
     "mocov3_loss_func",
