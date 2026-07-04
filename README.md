@@ -221,6 +221,7 @@ Checkpoints are no longer available as of 2026. Re-running the scripts will yiel
 | BYOL         | ResNet18 |  1000  |  :x: |      92.58     |     99.79      |
 |DeepCluster V2| ResNet18 |  1000  |  :x: |      88.85     |     99.58      |
 | DINO         | ResNet18 |  1000  |  :x: |      89.52     |     99.71      |
+| FroSSL       | ResNet18 |  1000  |  :x: |      92.10     |     99.68      |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      92.94     |     99.79      |
 | MoCo V3      | ResNet18 |  1000  |  :x: |      93.10     |     99.80      |
 | NNCLR        | ResNet18 |  1000  |  :x: |      91.88     |     99.78      |
@@ -243,6 +244,7 @@ Checkpoints are no longer available as of 2026. Re-running the scripts will yiel
 | BYOL         | ResNet18 |  1000  |  :x: |      70.46     |     91.96      |
 |DeepCluster V2| ResNet18 |  1000  |  :x: |      63.61     |     88.09      |
 | DINO         | ResNet18 |  1000  |  :x: |      66.76     |     90.34      |
+| FroSSL       | ResNet18 |  1000  |  :x: |      69.52     |     91.04      |
 | MoCo V2+     | ResNet18 |  1000  |  :x: |      69.89     |     91.65      |
 | MoCo V3      | ResNet18 |  1000  |  :x: |      68.83     |     90.57      |
 | NNCLR        | ResNet18 |  1000  |  :x: |      69.62     |     91.52      |
