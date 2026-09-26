@@ -42,7 +42,12 @@ def barlow_loss_func(
     N, D = z1.size()
 
     # to match the original code
-    bn = torch.nn.BatchNorm1d(D, affine=False).to(z1.device)
+    bn_type = (
+        torch.nn.SyncBatchNorm
+        if z1.is_cuda and dist.is_available() and dist.is_initialized()
+        else torch.nn.BatchNorm1d
+    )
+    bn = bn_type(D, affine=False).to(z1.device)
     z1 = bn(z1)
     z2 = bn(z2)
 
