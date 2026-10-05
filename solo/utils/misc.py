@@ -30,7 +30,6 @@ from omegaconf import OmegaConf
 from timm.models.helpers import group_parameters
 from timm.optim.optim_factory import _layer_map
 
-
 try:
     from solo.data.h5_dataset import H5Dataset
 except ImportError:
