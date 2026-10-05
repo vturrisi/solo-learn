@@ -39,7 +39,6 @@ from solo.methods.vicreg import VICReg
 from solo.methods.wmse import WMSE
 from solo.methods.all4one import All4One
 
-
 METHODS = {
     # base classes
     "base": BaseMethod,
