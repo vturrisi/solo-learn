@@ -43,3 +43,23 @@ def test_simclr_loss():
         z1.grad = z2.grad = None
 
     assert loss < initial_loss
+
+
+def test_simclr_loss_with_labels_is_supcon_l_out():
+    # With class labels as indexes (the SupCon method), the loss is L_out^sup of Khosla et al. (2020), Eq. 2:
+    # -mean_i 1/|P(i)| sum_{p in P(i)} log(exp(z_i.z_p / t) / sum_{a != i} exp(z_i.z_a / t)).
+    torch.manual_seed(0)
+    b, f, t = 32, 128, 0.2
+    labels = torch.randint(0, 4, (b,)).repeat(2)
+    z = torch.randn(2 * b, f)
+
+    zn = torch.nn.functional.normalize(z, dim=-1)
+    logits = zn @ zn.T / t
+    self_mask = torch.eye(2 * b, dtype=torch.bool)
+    pos_mask = (labels[:, None] == labels[None, :]) & ~self_mask
+    log_norm = torch.logsumexp(logits.masked_fill(self_mask, float("-inf")), dim=1, keepdim=True)
+    log_prob = logits - log_norm
+    expected = -((log_prob * pos_mask).sum(1) / pos_mask.sum(1)).mean()
+
+    loss = simclr_loss_func(z, labels, temperature=t)
+    assert torch.allclose(loss, expected, atol=1e-5)
