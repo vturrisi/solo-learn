@@ -55,5 +55,8 @@ def simclr_loss_func(
 
     pos = torch.sum(sim * pos_mask, 1)
     neg = torch.sum(sim * neg_mask, 1)
-    loss = -(torch.mean(torch.log(pos / (pos + neg))))
+    # log-probability of each pair under a softmax over all a != i (Khosla et al., 2020, Eq. 2)
+    log_prob = torch.einsum("if, jf -> ij", z, gathered_z) / temperature
+    log_prob = log_prob - torch.log(pos + neg).unsqueeze(1)
+    loss = -torch.mean((log_prob * pos_mask).sum(1) / pos_mask.sum(1))
     return loss
